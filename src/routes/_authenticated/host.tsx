@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Trash2, ShieldCheck } from "lucide-react";
+import { Pencil, Trash2, ShieldCheck, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { claimHostAccess } from "@/lib/guest-access.functions";
@@ -23,6 +23,23 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/host")({
+  head: () => ({
+    meta: [
+      { title: "Host Dashboard — The Wedding Wardrobe" },
+      {
+        name: "description",
+        content:
+          "Add and edit outfits, and see which looks are reserved, who sent measurements and who hasn't responded.",
+      },
+      { property: "og:title", content: "Host Dashboard — The Wedding Wardrobe" },
+      {
+        property: "og:description",
+        content: "Manage the wedding wardrobe: outfits, reservations, measurements and RSVPs.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: HostPage,
 });
 
@@ -39,7 +56,10 @@ const outfitSchema = z.object({
     .string()
     .trim()
     .max(500)
-    .refine((v) => v === "" || /^https?:\/\//.test(v), "Image link must start with http(s)://")
+    .refine(
+      (v) => v === "" || /^https?:\/\//.test(v) || v.startsWith("/"),
+      "Image link must start with http(s):// ",
+    )
     .optional(),
   color_family: z.string().trim().max(60).optional(),
   garment_type: z.string().trim().max(60).optional(),
@@ -48,12 +68,21 @@ const outfitSchema = z.object({
   notes: z.string().trim().max(600).optional(),
 });
 
-const inviteSchema = z.object({
-  guest_name: z.string().trim().min(2, "Enter the guest's name").max(100),
-  email: z.string().trim().max(255).optional(),
-});
+type OutfitForm = {
+  title: string;
+  designer: string;
+  boutique_url: string;
+  image_url: string;
+  color_family: string;
+  garment_type: string;
+  size_note: string;
+  price_note: string;
+  notes: string;
+  gender: string;
+  event_id: string;
+};
 
-const emptyOutfit = {
+const emptyOutfit: OutfitForm = {
   title: "",
   designer: "",
   boutique_url: "",
@@ -66,17 +95,6 @@ const emptyOutfit = {
   gender: "women",
   event_id: "",
 };
-
-function makeCode(name: string) {
-  const base =
-    name
-      .trim()
-      .split(/\s+/)[0]
-      ?.replace(/[^a-zA-Z]/g, "")
-      .toUpperCase()
-      .slice(0, 8) || "GUEST";
-  return `${base}-${Math.floor(1000 + Math.random() * 9000)}`;
-}
 
 function HostPage() {
   const queryClient = useQueryClient();
@@ -141,8 +159,8 @@ function HostPage() {
 
 function HostDashboard() {
   const queryClient = useQueryClient();
-  const [outfit, setOutfit] = useState({ ...emptyOutfit });
-  const [invite, setInvite] = useState({ guest_name: "", email: "" });
+  const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const events = useQuery({
@@ -162,7 +180,7 @@ function HostDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("outfits")
-        .select("id, title, designer, event_id, color_family, image_url")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -180,13 +198,23 @@ function HostDashboard() {
     },
   });
 
+  const profiles = useQuery({
+    queryKey: ["all-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, rsvp_status");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const invites = useQuery({
     queryKey: ["invites"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, code, guest_name, email, claimed_by, claimed_at")
-        .order("created_at", { ascending: false });
+        .select("id, code, guest_name, email, claimed_by");
       if (error) throw error;
       return data;
     },
@@ -201,14 +229,56 @@ function HostDashboard() {
     },
   });
 
-  const addOutfit = async () => {
-    const parsed = outfitSchema.safeParse(outfit);
+  const guestName = (guestId: string, fallback: string | null) =>
+    profiles.data?.find((p) => p.id === guestId)?.full_name ||
+    invites.data?.find((i) => i.claimed_by === guestId)?.guest_name ||
+    fallback ||
+    "Guest";
+
+  const eventName = (id: string | null) =>
+    (events.data ?? []).find((e) => e.id === id)?.name ?? "No function";
+
+  const reservedRows = useMemo(
+    () =>
+      (reservations.data ?? []).map((r) => {
+        const outfit = outfits.data?.find((o) => o.id === r.outfit_id);
+        return {
+          id: r.id,
+          guest: guestName(r.guest_id, r.guest_name),
+          guestId: r.guest_id,
+          outfit: outfit?.title ?? "Outfit",
+          image: outfit?.image_url ?? null,
+          size: outfit?.size_note ?? "Made to measure",
+          event: eventName(outfit?.event_id ?? null),
+          measured: Boolean(measurements.data?.some((m) => m.guest_id === r.guest_id)),
+        };
+      }),
+    [reservations.data, outfits.data, measurements.data, profiles.data, invites.data, events.data],
+  );
+
+  const stats = useMemo(() => {
+    const total = (outfits.data ?? []).length;
+    const reserved = (reservations.data ?? []).length;
+    const measured = new Set((measurements.data ?? []).map((m) => m.guest_id)).size;
+    const invited = (invites.data ?? []).length;
+    const silent = (invites.data ?? []).filter((i) => !i.claimed_by).length;
+    const awaitingRsvp = (profiles.data ?? []).filter((p) => p.rsvp_status === "pending").length;
+    return { total, reserved, available: total - reserved, measured, invited, silent, awaitingRsvp };
+  }, [outfits.data, reservations.data, measurements.data, invites.data, profiles.data]);
+
+  const resetForm = () => {
+    setForm({ ...emptyOutfit });
+    setEditingId(null);
+  };
+
+  const saveOutfit = async () => {
+    const parsed = outfitSchema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("outfits").insert({
+    const payload = {
       title: parsed.data.title,
       designer: parsed.data.designer || null,
       boutique_url: parsed.data.boutique_url || null,
@@ -218,78 +288,215 @@ function HostDashboard() {
       size_note: parsed.data.size_note || null,
       price_note: parsed.data.price_note || null,
       notes: parsed.data.notes || null,
-      gender: outfit.gender,
-      event_id: outfit.event_id || null,
-    });
+      gender: form.gender,
+      event_id: form.event_id || null,
+    };
+    const { error } = editingId
+      ? await supabase.from("outfits").update(payload).eq("id", editingId)
+      : await supabase.from("outfits").insert(payload);
     setBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Outfit added to the lookbook.");
-    setOutfit({ ...emptyOutfit });
+    toast.success(editingId ? "Outfit updated." : "Outfit added to the lookbook.");
+    resetForm();
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
 
-  const removeOutfit = async (id: string) => {
+  const startEdit = (id: string) => {
+    const o = outfits.data?.find((row) => row.id === id);
+    if (!o) return;
+    setEditingId(id);
+    setForm({
+      title: o.title ?? "",
+      designer: o.designer ?? "",
+      boutique_url: o.boutique_url ?? "",
+      image_url: o.image_url ?? "",
+      color_family: o.color_family ?? "",
+      garment_type: o.garment_type ?? "",
+      size_note: o.size_note ?? "",
+      price_note: o.price_note ?? "",
+      notes: o.notes ?? "",
+      gender: o.gender ?? "women",
+      event_id: o.event_id ?? "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const removeOutfit = async (id: string, title: string) => {
+    if (!window.confirm(`Remove “${title}” from the lookbook? Any reservation on it is released.`)) {
+      return;
+    }
+    await supabase.from("reservations").delete().eq("outfit_id", id);
     const { error } = await supabase.from("outfits").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
+    if (editingId === id) resetForm();
+    toast.success("Outfit removed.");
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
     await queryClient.invalidateQueries({ queryKey: ["reservations"] });
   };
 
-  const addInvite = async () => {
-    const parsed = inviteSchema.safeParse(invite);
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
-      return;
-    }
-    setBusy(true);
-    const { error } = await supabase.from("invite_codes").insert({
-      code: makeCode(parsed.data.guest_name),
-      guest_name: parsed.data.guest_name,
-      email: parsed.data.email || null,
-    });
-    setBusy(false);
+  const releaseReservation = async (id: string) => {
+    const { error } = await supabase.from("reservations").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    setInvite({ guest_name: "", email: "" });
-    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+    toast.success("Reservation released — the look is available again.");
+    await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
-
-  const copyInvite = async (code: string, guestName: string) => {
-    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
-    const message = `Hi ${guestName}! As our gift, we've put together a wardrobe of festive Indian outfits for the wedding. Open your invitation, pick your looks and send your measurements: ${link} (your code: ${code})`;
-    try {
-      await navigator.clipboard.writeText(message);
-      toast.success("Invitation message copied — paste it into WhatsApp or email.");
-    } catch {
-      toast.error("Couldn't copy. Your invite link is: " + link);
-    }
-  };
-
-  const outfitTitle = (id: string) => outfits.data?.find((o) => o.id === id)?.title ?? "Outfit";
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <p className="text-eyebrow">Host area</p>
-      <h1 className="mt-3 text-4xl">Run the wardrobe</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-eyebrow">Host area</p>
+          <h1 className="mt-3 text-4xl">Run the wardrobe</h1>
+        </div>
+        <Button asChild variant="outline">
+          <Link to="/guests">
+            <Users className="size-4" /> Guest list
+          </Link>
+        </Button>
+      </div>
 
-      <Tabs defaultValue="outfits" className="mt-8">
+      <Tabs defaultValue="dashboard" className="mt-8">
         <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
-          <TabsTrigger value="invites">Invitations</TabsTrigger>
-          <TabsTrigger value="guests">Reservations</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard" className="mt-6 space-y-8">
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <Stat label="Outfits" value={stats.total} />
+            <Stat label="Reserved" value={stats.reserved} />
+            <Stat label="Still available" value={stats.available} />
+            <Stat label="Measurements in" value={stats.measured} />
+            <Stat label="Not registered" value={stats.silent} />
+            <Stat label="No RSVP yet" value={stats.awaitingRsvp} />
+          </div>
+
+          <section className="panel p-6">
+            <h2 className="text-xl">Reserved looks ({reservedRows.length})</h2>
+            <ul className="mt-4 divide-y divide-border">
+              {reservedRows.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center gap-4 py-4">
+                  {r.image ? (
+                    <img
+                      src={r.image}
+                      alt={r.outfit}
+                      loading="lazy"
+                      width={56}
+                      height={75}
+                      className="h-[75px] w-14 rounded-md object-cover"
+                    />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm">
+                      <span className="text-primary">{r.guest}</span> — {r.outfit}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {r.event} · size: {r.size}
+                    </p>
+                  </div>
+                  <Badge variant={r.measured ? "default" : "secondary"}>
+                    {r.measured ? "Measurements in" : "Awaiting measurements"}
+                  </Badge>
+                  <Button variant="ghost" size="sm" onClick={() => releaseReservation(r.id)}>
+                    Release
+                  </Button>
+                </li>
+              ))}
+              {reservedRows.length === 0 ? (
+                <li className="py-4 text-sm text-muted-foreground">No reservations yet.</li>
+              ) : null}
+            </ul>
+          </section>
+
+          <section className="grid gap-6 lg:grid-cols-2">
+            <div className="panel p-6">
+              <h2 className="text-xl">Measurements submitted</h2>
+              <ul className="mt-4 space-y-3">
+                {(measurements.data ?? []).map((m) => (
+                  <li key={m.id} className="rounded-lg border border-border p-4">
+                    <p className="text-sm text-primary">{guestName(m.guest_id, null)}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {(
+                        [
+                          ["Height", m.height],
+                          ["Bust", m.bust],
+                          ["Waist", m.waist],
+                          ["Hip", m.hip],
+                          ["Shoulder", m.shoulder],
+                          ["Sleeve", m.sleeve_length],
+                          ["Top length", m.top_length],
+                          ["Bottom length", m.bottom_length],
+                          ["Inseam", m.inseam],
+                        ] as const
+                      )
+                        .filter(([, v]) => v != null)
+                        .map(([label, v]) => `${label} ${v}${m.unit}`)
+                        .join(" · ") || "No values entered yet"}
+                      {m.notes ? ` — ${m.notes}` : ""}
+                    </p>
+                  </li>
+                ))}
+                {(measurements.data ?? []).length === 0 ? (
+                  <li className="text-sm text-muted-foreground">Nobody has sent measurements yet.</li>
+                ) : null}
+              </ul>
+            </div>
+
+            <div className="panel p-6">
+              <h2 className="text-xl">Waiting on these guests</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Invited but not registered, or registered without a look, measurements or an RSVP.
+              </p>
+              <ul className="mt-4 divide-y divide-border">
+                {(invites.data ?? []).map((inv) => {
+                  const profile = inv.claimed_by
+                    ? profiles.data?.find((p) => p.id === inv.claimed_by)
+                    : undefined;
+                  const hasLook = Boolean(
+                    inv.claimed_by && reservations.data?.some((r) => r.guest_id === inv.claimed_by),
+                  );
+                  const hasMeasurements = Boolean(
+                    inv.claimed_by && measurements.data?.some((m) => m.guest_id === inv.claimed_by),
+                  );
+                  const missing = [
+                    !inv.claimed_by ? "not registered" : null,
+                    inv.claimed_by && (profile?.rsvp_status ?? "pending") === "pending"
+                      ? "no RSVP"
+                      : null,
+                    inv.claimed_by && !hasLook ? "no look reserved" : null,
+                    inv.claimed_by && !hasMeasurements ? "no measurements" : null,
+                  ].filter(Boolean) as string[];
+                  if (missing.length === 0) return null;
+                  return (
+                    <li key={inv.id} className="py-3">
+                      <p className="text-sm">{profile?.full_name || inv.guest_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {inv.code} · {missing.join(", ")}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Button asChild size="sm" variant="outline" className="mt-4">
+                <Link to="/guests">Open the guest list</Link>
+              </Button>
+            </div>
+          </section>
+        </TabsContent>
 
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           <div className="panel h-fit p-6">
-            <h2 className="text-xl">Add an outfit</h2>
+            <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Copy the image link and product link from Pernia's Pop-Up Shop (or any boutique) and
               paste them here.
@@ -300,8 +507,8 @@ function HostDashboard() {
                 <Input
                   id="o-title"
                   maxLength={120}
-                  value={outfit.title}
-                  onChange={(e) => setOutfit((o) => ({ ...o, title: e.target.value }))}
+                  value={form.title}
+                  onChange={(e) => setForm((o) => ({ ...o, title: e.target.value }))}
                   placeholder="Emerald zardosi lehenga"
                 />
               </div>
@@ -311,16 +518,16 @@ function HostDashboard() {
                   <Input
                     id="o-designer"
                     maxLength={120}
-                    value={outfit.designer}
-                    onChange={(e) => setOutfit((o) => ({ ...o, designer: e.target.value }))}
-                    placeholder="Pernia's Pop-Up Shop"
+                    value={form.designer}
+                    onChange={(e) => setForm((o) => ({ ...o, designer: e.target.value }))}
+                    placeholder="Anita Dongre"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Function</Label>
                   <Select
-                    value={outfit.event_id}
-                    onValueChange={(v) => setOutfit((o) => ({ ...o, event_id: v }))}
+                    value={form.event_id}
+                    onValueChange={(v) => setForm((o) => ({ ...o, event_id: v }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a function" />
@@ -340,8 +547,8 @@ function HostDashboard() {
                 <Input
                   id="o-image"
                   maxLength={500}
-                  value={outfit.image_url}
-                  onChange={(e) => setOutfit((o) => ({ ...o, image_url: e.target.value }))}
+                  value={form.image_url}
+                  onChange={(e) => setForm((o) => ({ ...o, image_url: e.target.value }))}
                   placeholder="https://…"
                 />
               </div>
@@ -350,9 +557,9 @@ function HostDashboard() {
                 <Input
                   id="o-link"
                   maxLength={500}
-                  value={outfit.boutique_url}
-                  onChange={(e) => setOutfit((o) => ({ ...o, boutique_url: e.target.value }))}
-                  placeholder="https://…"
+                  value={form.boutique_url}
+                  onChange={(e) => setForm((o) => ({ ...o, boutique_url: e.target.value }))}
+                  placeholder="https://www.perniaspopupshop.com/…"
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -361,8 +568,8 @@ function HostDashboard() {
                   <Input
                     id="o-color"
                     maxLength={60}
-                    value={outfit.color_family}
-                    onChange={(e) => setOutfit((o) => ({ ...o, color_family: e.target.value }))}
+                    value={form.color_family}
+                    onChange={(e) => setForm((o) => ({ ...o, color_family: e.target.value }))}
                     placeholder="Emerald"
                   />
                 </div>
@@ -371,8 +578,8 @@ function HostDashboard() {
                   <Input
                     id="o-type"
                     maxLength={60}
-                    value={outfit.garment_type}
-                    onChange={(e) => setOutfit((o) => ({ ...o, garment_type: e.target.value }))}
+                    value={form.garment_type}
+                    onChange={(e) => setForm((o) => ({ ...o, garment_type: e.target.value }))}
                     placeholder="Lehenga"
                   />
                 </div>
@@ -383,28 +590,38 @@ function HostDashboard() {
                   <Input
                     id="o-size"
                     maxLength={60}
-                    value={outfit.size_note}
-                    onChange={(e) => setOutfit((o) => ({ ...o, size_note: e.target.value }))}
+                    value={form.size_note}
+                    onChange={(e) => setForm((o) => ({ ...o, size_note: e.target.value }))}
                     placeholder="Made to measure"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>For</Label>
-                  <Select
-                    value={outfit.gender}
-                    onValueChange={(v) => setOutfit((o) => ({ ...o, gender: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="women">Women</SelectItem>
-                      <SelectItem value="men">Men</SelectItem>
-                      <SelectItem value="unisex">Anyone</SelectItem>
-                      <SelectItem value="kids">Kids</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="o-price">Price guidance</Label>
+                  <Input
+                    id="o-price"
+                    maxLength={60}
+                    value={form.price_note}
+                    onChange={(e) => setForm((o) => ({ ...o, price_note: e.target.value }))}
+                    placeholder="approx. ₹95,000"
+                  />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>For</Label>
+                <Select
+                  value={form.gender}
+                  onValueChange={(v) => setForm((o) => ({ ...o, gender: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="women">Women</SelectItem>
+                    <SelectItem value="men">Men</SelectItem>
+                    <SelectItem value="unisex">Anyone</SelectItem>
+                    <SelectItem value="kids">Kids</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="o-notes">Notes for guests</Label>
@@ -412,14 +629,21 @@ function HostDashboard() {
                   id="o-notes"
                   rows={3}
                   maxLength={600}
-                  value={outfit.notes}
-                  onChange={(e) => setOutfit((o) => ({ ...o, notes: e.target.value }))}
+                  value={form.notes}
+                  onChange={(e) => setForm((o) => ({ ...o, notes: e.target.value }))}
                   placeholder="Comes with a stitched blouse and matching dupatta."
                 />
               </div>
-              <Button onClick={addOutfit} disabled={busy} className="w-full">
-                {busy ? "Saving…" : "Add to lookbook"}
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={saveOutfit} disabled={busy} className="flex-1">
+                  {busy ? "Saving…" : editingId ? "Save changes" : "Add to lookbook"}
+                </Button>
+                {editingId ? (
+                  <Button variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -430,24 +654,44 @@ function HostDashboard() {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
                 return (
                   <li key={o.id} className="flex items-center gap-3 py-3">
+                    {o.image_url ? (
+                      <img
+                        src={o.image_url}
+                        alt={o.title}
+                        loading="lazy"
+                        width={40}
+                        height={54}
+                        className="h-[54px] w-10 rounded object-cover"
+                      />
+                    ) : null}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm">{o.title}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {(events.data ?? []).find((e) => e.id === o.event_id)?.name ??
-                          "No function"}
+                        {eventName(o.event_id)}
                         {o.designer ? ` · ${o.designer}` : ""}
+                        {o.price_note ? ` · ${o.price_note}` : ""}
                       </p>
                     </div>
                     {res ? (
-                      <Badge variant="secondary">{res.guest_name ?? "Reserved"}</Badge>
+                      <Badge variant="secondary">
+                        {guestName(res.guest_id, res.guest_name)}
+                      </Badge>
                     ) : (
                       <Badge>Available</Badge>
                     )}
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label="Remove outfit"
-                      onClick={() => removeOutfit(o.id)}
+                      aria-label={`Edit ${o.title}`}
+                      onClick={() => startEdit(o.id)}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Remove ${o.title}`}
+                      onClick={() => removeOutfit(o.id, o.title)}
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -460,119 +704,16 @@ function HostDashboard() {
             </ul>
           </div>
         </TabsContent>
-
-        <TabsContent value="invites" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-          <div className="panel h-fit p-6">
-            <h2 className="text-xl">Invite a guest</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Each guest gets their own code and link. Copy the ready-made message and send it on
-              WhatsApp or email.
-            </p>
-            <div className="mt-5 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="i-name">Guest name</Label>
-                <Input
-                  id="i-name"
-                  maxLength={100}
-                  value={invite.guest_name}
-                  onChange={(e) => setInvite((i) => ({ ...i, guest_name: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="i-email">Email (optional)</Label>
-                <Input
-                  id="i-email"
-                  maxLength={255}
-                  value={invite.email}
-                  onChange={(e) => setInvite((i) => ({ ...i, email: e.target.value }))}
-                />
-              </div>
-              <Button onClick={addInvite} disabled={busy} className="w-full">
-                {busy ? "Saving…" : "Create invitation"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="panel h-fit p-6">
-            <h2 className="text-xl">Invitations ({invites.data?.length ?? 0})</h2>
-            <ul className="mt-4 divide-y divide-border">
-              {(invites.data ?? []).map((inv) => (
-                <li key={inv.id} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm">{inv.guest_name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {inv.code}
-                      {inv.email ? ` · ${inv.email}` : ""}
-                    </p>
-                  </div>
-                  <Badge variant={inv.claimed_by ? "secondary" : "default"}>
-                    {inv.claimed_by ? "Registered" : "Not yet"}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Copy invitation message"
-                    onClick={() => copyInvite(inv.code, inv.guest_name)}
-                  >
-                    <Copy className="size-4" />
-                  </Button>
-                </li>
-              ))}
-              {(invites.data ?? []).length === 0 ? (
-                <li className="py-4 text-sm text-muted-foreground">No invitations yet.</li>
-              ) : null}
-            </ul>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="guests" className="mt-6">
-          <div className="panel p-6">
-            <h2 className="text-xl">Reservations & measurements</h2>
-            <ul className="mt-4 space-y-4">
-              {(reservations.data ?? []).map((r) => {
-                const m = measurements.data?.find((row) => row.guest_id === r.guest_id);
-                return (
-                  <li key={r.id} className="rounded-lg border border-border p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm">
-                        <span className="text-primary">{r.guest_name ?? "Guest"}</span> —{" "}
-                        {outfitTitle(r.outfit_id)}
-                      </p>
-                      <Badge variant={m ? "default" : "secondary"}>
-                        {m ? "Measurements in" : "Awaiting measurements"}
-                      </Badge>
-                    </div>
-                    {m ? (
-                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                        {(
-                          [
-                            ["Height", m.height],
-                            ["Bust", m.bust],
-                            ["Waist", m.waist],
-                            ["Hip", m.hip],
-                            ["Shoulder", m.shoulder],
-                            ["Sleeve", m.sleeve_length],
-                            ["Top length", m.top_length],
-                            ["Bottom length", m.bottom_length],
-                            ["Inseam", m.inseam],
-                          ] as const
-                        )
-                          .filter(([, v]) => v != null)
-                          .map(([label, v]) => `${label} ${v}${m.unit}`)
-                          .join(" · ") || "No values entered yet"}
-                        {m.notes ? ` — ${m.notes}` : ""}
-                      </p>
-                    ) : null}
-                  </li>
-                );
-              })}
-              {(reservations.data ?? []).length === 0 ? (
-                <li className="text-sm text-muted-foreground">No reservations yet.</li>
-              ) : null}
-            </ul>
-          </div>
-        </TabsContent>
       </Tabs>
     </main>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="panel p-4">
+      <p className="font-display text-3xl text-primary">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+    </div>
   );
 }
