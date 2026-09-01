@@ -5,6 +5,9 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
+const linkClass =
+  "rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
+
 export function SiteNav() {
   const navigate = useNavigate();
 
@@ -30,30 +33,32 @@ export function SiteNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3">
         <Link to="/lookbook" className="font-display text-lg tracking-wide">
           The Wedding Wardrobe
         </Link>
-        <nav className="flex items-center gap-1 text-sm">
-          <Link
-            to="/lookbook"
-            className="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary"
-          >
+        <nav className="flex flex-wrap items-center gap-1 text-sm">
+          <Link to="/lookbook" className={linkClass}>
             Lookbook
           </Link>
-          <Link
-            to="/measurements"
-            className="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary"
-          >
+          <Link to="/event" className={linkClass}>
+            Wedding weekend
+          </Link>
+          <Link to="/measurements" className={linkClass}>
             Measurements
           </Link>
+          <Link to="/delivery" className={linkClass}>
+            Delivery
+          </Link>
           {isAdmin ? (
-            <Link
-              to="/host"
-              className="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary"
-            >
-              Host
-            </Link>
+            <>
+              <Link to="/host" className={linkClass}>
+                Host
+              </Link>
+              <Link to="/guests" className={linkClass}>
+                Guests
+              </Link>
+            </>
           ) : null}
           <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
             <LogOut className="size-4" />

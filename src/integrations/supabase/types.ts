@@ -21,7 +21,12 @@ export type Database = {
           event_date: string | null
           id: string
           name: string
+          note: string | null
+          rsvp_by: string | null
           sort_order: number
+          start_time: string | null
+          venue: string | null
+          venue_address: string | null
         }
         Insert: {
           created_at?: string
@@ -29,7 +34,12 @@ export type Database = {
           event_date?: string | null
           id?: string
           name: string
+          note?: string | null
+          rsvp_by?: string | null
           sort_order?: number
+          start_time?: string | null
+          venue?: string | null
+          venue_address?: string | null
         }
         Update: {
           created_at?: string
@@ -37,7 +47,12 @@ export type Database = {
           event_date?: string | null
           id?: string
           name?: string
+          note?: string | null
+          rsvp_by?: string | null
           sort_order?: number
+          start_time?: string | null
+          venue?: string | null
+          venue_address?: string | null
         }
         Relationships: []
       }
@@ -196,6 +211,9 @@ export type Database = {
           full_name: string
           id: string
           invite_claimed: boolean
+          rsvp_note: string | null
+          rsvp_status: string
+          rsvp_updated_at: string | null
           updated_at: string
           whatsapp: string | null
         }
@@ -207,6 +225,9 @@ export type Database = {
           full_name?: string
           id: string
           invite_claimed?: boolean
+          rsvp_note?: string | null
+          rsvp_status?: string
+          rsvp_updated_at?: string | null
           updated_at?: string
           whatsapp?: string | null
         }
@@ -218,6 +239,9 @@ export type Database = {
           full_name?: string
           id?: string
           invite_claimed?: boolean
+          rsvp_note?: string | null
+          rsvp_status?: string
+          rsvp_updated_at?: string | null
           updated_at?: string
           whatsapp?: string | null
         }

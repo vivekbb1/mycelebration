@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, ExternalLink, Lock, Check } from "lucide-react";
+import { CalendarDays, ExternalLink, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { sendReservationEmail } from "@/lib/reservation-email.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,6 +14,23 @@ import { Label } from "@/components/ui/label";
 import { claimInvite } from "@/routes/auth";
 
 export const Route = createFileRoute("/_authenticated/lookbook")({
+  head: () => ({
+    meta: [
+      { title: "The Lookbook — Reserve Your Wedding Outfit" },
+      {
+        name: "description",
+        content:
+          "Browse curated lehengas, sarees, sherwanis and gowns for each wedding function. One guest per look, tailoring included.",
+      },
+      { property: "og:title", content: "The Lookbook — Reserve Your Wedding Outfit" },
+      {
+        property: "og:description",
+        content: "Curated designer outfits per function. Claim a look and it's locked to you alone.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Lookbook,
 });
 
@@ -33,6 +52,7 @@ type Outfit = {
 
 function Lookbook() {
   const queryClient = useQueryClient();
+  const emailConfirmation = useServerFn(sendReservationEmail);
   const [activeEvent, setActiveEvent] = useState<string>("all");
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -57,7 +77,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, event_date, dress_code, sort_order")
+        .select("id, name, event_date, start_time, venue, dress_code, sort_order")
         .order("sort_order");
       if (error) throw error;
       return data;
@@ -110,21 +130,37 @@ function Lookbook() {
     const { error } = await supabase.from("reservations").insert({
       outfit_id: outfit.id,
       guest_id: user.id,
+      guest_name: me.data?.full_name || null,
     });
-    setBusyId(null);
     if (error) {
+      setBusyId(null);
       toast.error(
         error.code === "23505"
           ? "Another guest just claimed this look — please pick a different one."
           : error.message,
       );
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
-    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+      await queryClient.invalidateQueries({ queryKey: ["outfits"] });
       return;
     }
-    toast.success(`${outfit.title} is yours.`);
+
+    let emailed = false;
+    try {
+      const result = await emailConfirmation({ data: { outfitId: outfit.id } });
+      emailed = result.sent;
+    } catch {
+      emailed = false;
+    }
+    setBusyId(null);
+
+    toast.success(
+      emailed
+        ? `${outfit.title} is yours — a confirmation with pickup details is on its way to your inbox.`
+        : `${outfit.title} is yours. Pickup details are on the delivery page.`,
+    );
     await queryClient.invalidateQueries({ queryKey: ["reservations"] });
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+    await queryClient.invalidateQueries({ queryKey: ["my-wardrobe"] });
   };
 
   const release = async (outfit: Outfit) => {
@@ -138,6 +174,7 @@ function Lookbook() {
     toast.success("Reservation released.");
     await queryClient.invalidateQueries({ queryKey: ["reservations"] });
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+    await queryClient.invalidateQueries({ queryKey: ["my-wardrobe"] });
   };
 
   if (me.isLoading) {
@@ -160,7 +197,7 @@ function Lookbook() {
               value={code}
               maxLength={64}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="e.g. MEHNDI-4821"
+              placeholder="e.g. EMMA-2041"
             />
           </div>
           <Button
@@ -178,7 +215,7 @@ function Lookbook() {
     );
   }
 
-  const myReservations = (reservations.data ?? []).filter((r) => r.guest_id === me.data?.id);
+  const myOutfits = (outfits.data ?? []).filter((o) => mineByOutfit.has(o.id));
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -186,14 +223,58 @@ function Lookbook() {
       <h1 className="mt-3 text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Each outfit can be claimed by one guest only. Reserve one per function — the outfit and
-        tailoring are our gift. Fill in your{" "}
-        <span className="text-primary">measurements</span> once you've chosen.
+        tailoring are our gift. Then send your{" "}
+        <Link to="/measurements" className="text-primary underline-offset-4 hover:underline">
+          measurements
+        </Link>
+        .
       </p>
 
-      {myReservations.length > 0 ? (
-        <p className="mt-4 text-sm text-primary">
-          You've reserved {myReservations.length} outfit{myReservations.length > 1 ? "s" : ""}.
+      <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-4">
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="size-4 text-primary" />
+          11–13 February 2027, Jaipur — four functions, four dress codes.
         </p>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/event">Dates, venues &amp; RSVP</Link>
+        </Button>
+      </div>
+
+      {myOutfits.length > 0 ? (
+        <section className="panel mt-6 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl">
+              Your reserved look{myOutfits.length > 1 ? "s" : ""} ({myOutfits.length})
+            </h2>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/delivery">Pickup &amp; delivery plan</Link>
+            </Button>
+          </div>
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+            {myOutfits.map((o) => (
+              <li key={o.id} className="flex items-center gap-4">
+                {o.image_url ? (
+                  <img
+                    src={o.image_url}
+                    alt={o.title}
+                    loading="lazy"
+                    width={56}
+                    height={75}
+                    className="h-[75px] w-14 rounded-md object-cover"
+                  />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="truncate text-sm">{o.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {(events.data ?? []).find((e) => e.id === o.event_id)?.name ?? "Any function"} ·{" "}
+                    {o.size_note ?? "Made to measure"}
+                  </p>
+                  <p className="mt-1 text-xs text-primary">Locked to you</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       <div className="mt-8 flex flex-wrap gap-2">
@@ -214,13 +295,16 @@ function Lookbook() {
       {activeEvent !== "all"
         ? (() => {
             const ev = (events.data ?? []).find((e) => e.id === activeEvent);
-            if (!ev?.dress_code) return null;
+            if (!ev) return null;
             return (
               <div className="panel mt-6 flex items-start gap-3 p-4">
                 <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
                 <p className="text-sm text-muted-foreground">
-                  <span className="text-foreground">{ev.name} dress code: </span>
-                  {ev.dress_code}
+                  <span className="text-foreground">{ev.name}</span>
+                  {ev.event_date ? ` · ${ev.event_date}` : ""}
+                  {ev.start_time ? ` · ${ev.start_time}` : ""}
+                  {ev.venue ? ` · ${ev.venue}` : ""}
+                  {ev.dress_code ? ` — ${ev.dress_code}` : ""}
                 </p>
               </div>
             );
@@ -289,6 +373,11 @@ function Lookbook() {
                         {outfit.size_note}
                       </span>
                     ) : null}
+                    {outfit.price_note ? (
+                      <span className="rounded-full border border-border px-2 py-0.5">
+                        {outfit.price_note}
+                      </span>
+                    ) : null}
                   </div>
                   {outfit.notes ? (
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -316,7 +405,7 @@ function Lookbook() {
                         disabled={busyId === outfit.id}
                         onClick={() => reserve(outfit)}
                       >
-                        Reserve this look
+                        {busyId === outfit.id ? "Reserving…" : "Reserve this look"}
                       </Button>
                     )}
                     {outfit.boutique_url ? (
@@ -326,7 +415,7 @@ function Lookbook() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
                       >
-                        View details <ExternalLink className="size-3" />
+                        View at the boutique <ExternalLink className="size-3" />
                       </a>
                     ) : null}
                   </div>
