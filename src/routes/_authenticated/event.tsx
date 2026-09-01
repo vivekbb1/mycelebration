@@ -217,7 +217,7 @@ function Detail({
   icon: typeof Clock;
   label: string;
   value: string;
-  sub?: string;
+  sub?: string | undefined;
 }) {
   return (
     <div className="flex gap-3">
