@@ -195,6 +195,17 @@ function HostDashboard() {
     },
   });
 
+  const boutiques = useQuery({
+    queryKey: ["boutiques"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("boutiques").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+
+
   const reservations = useQuery({
     queryKey: ["reservations"],
     queryFn: async () => {
