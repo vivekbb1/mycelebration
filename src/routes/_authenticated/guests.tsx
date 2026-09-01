@@ -215,7 +215,25 @@ function GuestListPage() {
     }
   };
 
-  const mailInvite = async (id: string, name: string, email: string | null) => {
+  const inviteText = (guestName: string, code: string) => {
+    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
+    return (
+      `Hi ${guestName},\n\n` +
+      `As our gift, we've put together a wardrobe of festive Indian outfits for the wedding.\n\n` +
+      `Open your invitation: ${link}\nYour personal code: ${code}\n\n` +
+      `Pick your look and send your measurements — tailoring and delivery are on us. ` +
+      `Each outfit can be reserved by one guest only, so do choose early.\n\nWith love,\nThe hosts`
+    );
+  };
+
+  const openMailApp = (name: string, email: string, code: string) => {
+    const subject = `${name}, your outfit invitation for the wedding`;
+    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(inviteText(name, code))}`;
+  };
+
+  const mailInvite = async (id: string, name: string, email: string | null, code: string) => {
     if (!email) {
       toast.error(`Add an email address for ${name} first, or copy the message instead.`);
       return;
@@ -225,21 +243,98 @@ function GuestListPage() {
     try {
       result = await emailInvite({ data: { inviteId: id } });
     } catch {
-      setSendingId(null);
-      toast.error("We couldn't send that invitation. Please try again.");
-      return;
+      result = { sent: false, reason: "network_error" };
     }
     setSendingId(null);
     if (result.sent) {
       toast.success(`Invitation emailed to ${email}.`);
       return;
     }
-    toast.error(
-      result.reason === "email_not_configured"
-        ? "Email sending isn't set up yet — copy the invitation message instead."
-        : "That invitation couldn't be sent. Copy the message instead.",
-    );
+    // No sender domain yet — hand the ready-made invitation to the host's own mail app.
+    openMailApp(name, email, code);
+    toast.message("Opening your mail app with the invitation ready to send.", {
+      description: "Set up a sending domain and the portal will send these for you automatically.",
+    });
   };
+
+  const mailEveryone = async () => {
+    const pending = rows.filter((r) => r.email && !r.registered);
+    if (pending.length === 0) {
+      toast.message("Everyone with an email address has already registered.");
+      return;
+    }
+    setBulkBusy(true);
+    let sent = 0;
+    for (const r of pending) {
+      try {
+        const result = await emailInvite({ data: { inviteId: r.key } });
+        if (result.sent) sent += 1;
+      } catch {
+        // ignore and report at the end
+      }
+    }
+    setBulkBusy(false);
+    if (sent > 0) {
+      toast.success(`Invitation emailed to ${sent} guest${sent === 1 ? "" : "s"}.`);
+      return;
+    }
+    const all = pending
+      .map((r) => `${r.name} <${r.email}>\n${inviteText(r.name, r.code)}`)
+      .join("\n\n———\n\n");
+    try {
+      await navigator.clipboard.writeText(all);
+      toast.message(`Copied ${pending.length} invitations to your clipboard.`, {
+        description:
+          "Sending from the portal needs a domain of your own — until then paste these into email or WhatsApp.",
+      });
+    } catch {
+      toast.error("Couldn't send or copy. Use the mail button on each guest instead.");
+    }
+  };
+
+  const addBulk = async () => {
+    const parsedRows = bulk
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const emailMatch = line.match(/[^\s,;<>]+@[^\s,;<>]+\.[^\s,;<>]+/);
+        const email = emailMatch ? emailMatch[0] : "";
+        const name = line
+          .replace(email, "")
+          .replace(/[<>]/g, "")
+          .replace(/[,;\t]+/g, " ")
+          .trim();
+        return { name, email };
+      })
+      .filter((r) => r.name.length >= 2);
+
+    if (parsedRows.length === 0) {
+      toast.error("Add one guest per line, e.g. Emma Whitfield, emma@example.com");
+      return;
+    }
+
+    setBulkBusy(true);
+    const { error } = await supabase.from("invite_codes").insert(
+      parsedRows.map((r) => ({
+        code: makeCode(r.name),
+        guest_name: r.name,
+        email: r.email || null,
+      })),
+    );
+    setBulkBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(
+      `${parsedRows.length} invitation${parsedRows.length === 1 ? "" : "s"} created.`,
+    );
+    setBulk("");
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
+
+
 
 
   const removeInvite = async (id: string, registered: boolean) => {
