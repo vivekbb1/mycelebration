@@ -557,7 +557,30 @@ function HostDashboard() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Boutique / atelier</Label>
+                  <Select
+                    value={form.boutique_id}
+                    onValueChange={(v) => setForm((o) => ({ ...o, boutique_id: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Who supplies this look?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(boutiques.data ?? []).map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Their stylist then sees this look's orders and measurements in the atelier
+                    portal.
+                  </p>
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="o-image">Image link</Label>
                 <Input
