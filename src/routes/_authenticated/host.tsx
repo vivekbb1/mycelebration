@@ -722,6 +722,11 @@ function HostDashboard() {
         <TabsContent value="logistics" className="mt-6">
           <HostLogistics />
         </TabsContent>
+
+        <TabsContent value="hosts" className="mt-6">
+          <HostTeam />
+        </TabsContent>
+
       </Tabs>
     </main>
   );
