@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Trash2, Search } from "lucide-react";
+import { Copy, Trash2, Search, Mail } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { sendInviteEmail } from "@/lib/invite-email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+
 
 export const Route = createFileRoute("/_authenticated/guests")({
   head: () => ({
