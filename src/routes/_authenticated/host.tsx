@@ -355,10 +355,10 @@ function HostDashboard() {
   const bulkAssign = async (field: "event_id" | "boutique_id", value: string) => {
     if (selected.length === 0) return;
     setBulkBusy(true);
-    const { error } = await supabase
-      .from("outfits")
-      .update({ [field]: value === "none" ? null : value })
-      .in("id", selected);
+    const next = value === "none" ? null : value;
+    const patch = field === "event_id" ? { event_id: next } : { boutique_id: next };
+    const { error } = await supabase.from("outfits").update(patch).in("id", selected);
+
     setBulkBusy(false);
     if (error) {
       toast.error(error.message);
