@@ -151,7 +151,9 @@ function GuestListPage() {
         : [];
       return {
         key: inv.id,
+        guestId: guestId ?? null,
         code: inv.code,
+
         name: profile?.full_name || inv.guest_name,
         email: profile?.email || inv.email,
         location: [profile?.city, profile?.country].filter(Boolean).join(", "),
