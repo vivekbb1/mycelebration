@@ -85,6 +85,7 @@ type OutfitForm = {
   notes: string;
   gender: string;
   event_id: string;
+  boutique_id: string;
 };
 
 const emptyOutfit: OutfitForm = {
@@ -99,6 +100,7 @@ const emptyOutfit: OutfitForm = {
   notes: "",
   gender: "women",
   event_id: "",
+  boutique_id: "",
 };
 
 function HostPage() {
