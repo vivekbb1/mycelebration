@@ -1,0 +1,65 @@
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { LogOut } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+
+export function SiteNav() {
+  const navigate = useNavigate();
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["is-admin"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return false;
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      return Boolean(data);
+    },
+  });
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  };
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <Link to="/lookbook" className="font-display text-lg tracking-wide">
+          The Wedding Wardrobe
+        </Link>
+        <nav className="flex items-center gap-1 text-sm">
+          <Link
+            to="/lookbook"
+            className="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary"
+          >
+            Lookbook
+          </Link>
+          <Link
+            to="/measurements"
+            className="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary"
+          >
+            Measurements
+          </Link>
+          {isAdmin ? (
+            <Link
+              to="/host"
+              className="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary"
+            >
+              Host
+            </Link>
+          ) : null}
+          <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
+            <LogOut className="size-4" />
+          </Button>
+        </nav>
+      </div>
+    </header>
+  );
+}
