@@ -376,6 +376,8 @@ function HostDashboard() {
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+          <TabsTrigger value="hosts">Hosts</TabsTrigger>
+
         </TabsList>
 
 
