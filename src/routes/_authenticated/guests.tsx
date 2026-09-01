@@ -355,11 +355,21 @@ function GuestListPage() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      disabled={sendingId === r.key}
+                      aria-label={`Email invitation code to ${r.name}`}
+                      onClick={() => mailInvite(r.key, r.name, r.email ?? null)}
+                    >
+                      <Mail className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       aria-label={`Copy invitation for ${r.name}`}
                       onClick={() => copyInvite(r.code, r.name)}
                     >
                       <Copy className="size-4" />
                     </Button>
+
                     <Button
                       variant="ghost"
                       size="icon"
