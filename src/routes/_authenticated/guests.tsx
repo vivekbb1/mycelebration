@@ -11,6 +11,7 @@ import { sendInviteEmail } from "@/lib/invite-email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
 
@@ -62,6 +63,8 @@ function GuestListPage() {
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [bulk, setBulk] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
 
   const role = useQuery({
@@ -417,6 +420,29 @@ function GuestListPage() {
             </div>
             <Button className="w-full" disabled={busy} onClick={addInvite}>
               {busy ? "Creating…" : "Create invitation"}
+            </Button>
+          </div>
+
+          <div className="gold-rule my-6" />
+
+          <h2 className="text-xl">Invite in bulk</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            One guest per line — paste straight from a spreadsheet. Name first, email after a comma,
+            tab or space. Everyone gets their own code.
+          </p>
+          <Textarea
+            className="mt-3 font-mono text-xs"
+            rows={7}
+            value={bulk}
+            placeholder={"Emma Whitfield, emma@example.com\nDaniel Osei, daniel@example.com\nMarie Lambert"}
+            onChange={(e) => setBulk(e.target.value)}
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="secondary" disabled={bulkBusy} onClick={addBulk}>
+              {bulkBusy ? "Working…" : "Create invitations"}
+            </Button>
+            <Button variant="ghost" disabled={bulkBusy} onClick={mailEveryone}>
+              <Mail className="size-4" /> Email everyone pending
             </Button>
           </div>
         </div>
