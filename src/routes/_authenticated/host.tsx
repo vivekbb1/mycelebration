@@ -315,7 +315,7 @@ function HostDashboard() {
                 <div className="space-y-2">
                   <Label>Function</Label>
                   <Select
-                    value={outfit.event_id || undefined}
+                    value={outfit.event_id}
                     onValueChange={(v) => setOutfit((o) => ({ ...o, event_id: v }))}
                   >
                     <SelectTrigger>

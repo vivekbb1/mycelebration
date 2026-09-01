@@ -110,7 +110,7 @@ function Lookbook() {
     const { error } = await supabase.from("reservations").insert({
       outfit_id: outfit.id,
       guest_id: user.id,
-      guest_name: me.data?.full_name || user.email,
+      guest_name: me.data?.full_name || user.email || null,
     });
     setBusyId(null);
     if (error) {

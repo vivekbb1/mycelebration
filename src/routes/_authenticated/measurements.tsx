@@ -113,18 +113,27 @@ function Measurements() {
     if (!userData.user) return;
 
     setBusy(true);
-    const payload: Record<string, unknown> = {
-      guest_id: userData.user.id,
-      unit: form.unit,
-      notes: form.notes.trim() || null,
+    const num = (key: FieldKey) => {
+      const raw = form[key].trim();
+      return raw === "" ? null : Number(raw);
     };
-    for (const field of FIELDS) {
-      const raw = form[field.key].trim();
-      payload[field.key] = raw === "" ? null : Number(raw);
-    }
-    const { error } = await supabase
-      .from("measurements")
-      .upsert(payload, { onConflict: "guest_id" });
+    const { error } = await supabase.from("measurements").upsert(
+      {
+        guest_id: userData.user.id,
+        unit: form.unit,
+        notes: form.notes.trim() || null,
+        height: num("height"),
+        bust: num("bust"),
+        waist: num("waist"),
+        hip: num("hip"),
+        shoulder: num("shoulder"),
+        sleeve_length: num("sleeve_length"),
+        top_length: num("top_length"),
+        bottom_length: num("bottom_length"),
+        inseam: num("inseam"),
+      },
+      { onConflict: "guest_id" },
+    );
     setBusy(false);
     if (error) {
       toast.error(error.message);
