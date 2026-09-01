@@ -57,9 +57,12 @@ function makeCode(name: string) {
 
 function GuestListPage() {
   const queryClient = useQueryClient();
+  const emailInvite = useServerFn(sendInviteEmail);
   const [form, setForm] = useState({ guest_name: "", email: "" });
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
 
   const role = useQuery({
     queryKey: ["is-admin"],
