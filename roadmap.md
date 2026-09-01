@@ -14,7 +14,7 @@ Done
 New tasks (this turn)
 - [ ] Sender domain: check email domain status and set it up so invitation + confirmation emails reach real guests, then send a test invite
 - [ ] Real Pernia's outfits in the Outfits tab — needs the host's actual photo/product links (host access can only be claimed by the host themselves)
-- [ ] Tailor / boutique portal: a stylist at each designer or boutique signs in and sees only their own orders (reserved outfits + the guest's measurements, no other boutique's looks)
+- [x] Tailor / boutique portal: a stylist at each designer or boutique signs in and sees only their own orders (reserved outfits + the guest's measurements, no other boutique's looks)
 
 Open, for the host to do
 - [ ] Claim host access at `/host` (first sign-up wins), then add the real functions, delivery plan and looks
