@@ -371,6 +371,20 @@ function GuestListPage() {
                     >
                       <Copy className="size-4" />
                     </Button>
+                    {r.guestId ? (
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`View the portal as ${r.name}`}
+                      >
+                        <Link to="/guest/$guestId" params={{ guestId: r.guestId }}>
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                    ) : null}
+
+
 
                     <Button
                       variant="ghost"
