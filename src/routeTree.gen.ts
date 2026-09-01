@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
+import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,16 +34,24 @@ const AuthenticatedLookbookRoute = AuthenticatedLookbookRouteImport.update({
   path: '/lookbook',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMeasurementsRoute =
+  AuthenticatedMeasurementsRouteImport.update({
+    id: '/measurements',
+    path: '/measurements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
+  '/measurements': typeof AuthenticatedMeasurementsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
+  '/measurements': typeof AuthenticatedMeasurementsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,14 +59,20 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
+  '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/lookbook'
+  fullPaths: '/' | '/auth' | '/lookbook' | '/measurements'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/lookbook'
+  to: '/' | '/auth' | '/lookbook' | '/measurements'
   id:
-    '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/lookbook'
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/lookbook'
+    | '/_authenticated/measurements'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -96,15 +111,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLookbookRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/measurements': {
+      id: '/_authenticated/measurements'
+      path: '/measurements'
+      fullPath: '/measurements'
+      preLoaderRoute: typeof AuthenticatedMeasurementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
+  AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
+  AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
