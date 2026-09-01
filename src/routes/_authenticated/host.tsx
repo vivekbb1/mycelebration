@@ -23,6 +23,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HostEvents } from "@/components/host-events";
 import { HostLogistics } from "@/components/host-logistics";
+import { HostTeam } from "@/components/host-team";
+
 
 
 export const Route = createFileRoute("/_authenticated/host")({
