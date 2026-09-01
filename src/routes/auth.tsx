@@ -4,6 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { claimGuestInvite, type ClaimResult } from "@/lib/guest-access.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -227,14 +228,15 @@ function AuthPage() {
 }
 
 export async function claimInvite(code: string) {
-  const { data, error } = await supabase.rpc("claim_invite", { _code: code });
-  if (error) {
-    toast.error(error.message);
+  let result: ClaimResult;
+  try {
+    result = await claimGuestInvite({ data: { code } });
+  } catch {
+    toast.error("We couldn't confirm that invitation. Please try again.");
     return false;
   }
-  const result = data as { ok: boolean; error?: string } | null;
-  if (!result?.ok) {
-    toast.error(result?.error ?? "That invitation code could not be used");
+  if (!result.ok) {
+    toast.error(result.error ?? "That invitation code could not be used");
     return false;
   }
   toast.success("Invitation confirmed — welcome!");

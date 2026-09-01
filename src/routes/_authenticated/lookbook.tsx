@@ -81,18 +81,18 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name");
+        .select("id, outfit_id, guest_id");
       if (error) throw error;
       return data;
     },
   });
 
-  const takenBy = useMemo(() => {
-    const map = new Map<string, { guest_id: string; guest_name: string | null }>();
-    for (const r of reservations.data ?? []) {
-      map.set(r.outfit_id, { guest_id: r.guest_id, guest_name: r.guest_name });
-    }
-    return map;
+  // Only your own reservations are readable; other guests stay anonymous and
+  // an outfit taken by someone else simply shows as unavailable.
+  const mineByOutfit = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of reservations.data ?? []) set.add(r.outfit_id);
+    return set;
   }, [reservations.data]);
 
   const visible = (outfits.data ?? []).filter(
@@ -110,7 +110,6 @@ function Lookbook() {
     const { error } = await supabase.from("reservations").insert({
       outfit_id: outfit.id,
       guest_id: user.id,
-      guest_name: me.data?.full_name || user.email || null,
     });
     setBusyId(null);
     if (error) {
@@ -237,8 +236,8 @@ function Lookbook() {
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((outfit) => {
-            const taken = takenBy.get(outfit.id);
-            const mine = taken?.guest_id === me.data?.id;
+            const mine = mineByOutfit.has(outfit.id);
+            const taken = mine || !outfit.is_available;
             const eventName = (events.data ?? []).find((e) => e.id === outfit.event_id)?.name;
             return (
               <article key={outfit.id} className="panel flex flex-col overflow-hidden">

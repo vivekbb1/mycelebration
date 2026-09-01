@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Copy, Trash2, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { claimHostAccess } from "@/lib/guest-access.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,6 +80,7 @@ function makeCode(name: string) {
 
 function HostPage() {
   const queryClient = useQueryClient();
+  const claimHost = useServerFn(claimHostAccess);
 
   const role = useQuery({
     queryKey: ["is-admin"],
@@ -111,14 +114,15 @@ function HostPage() {
           <Button
             className="mt-5 w-full"
             onClick={async () => {
-              const { data, error } = await supabase.rpc("claim_host_access");
-              if (error) {
-                toast.error(error.message);
+              let result;
+              try {
+                result = await claimHost();
+              } catch {
+                toast.error("We couldn't claim host access. Please try again.");
                 return;
               }
-              const result = data as { ok: boolean; error?: string } | null;
-              if (!result?.ok) {
-                toast.error(result?.error ?? "Host access is already claimed");
+              if (!result.ok) {
+                toast.error(result.error ?? "Host access is already claimed");
                 return;
               }
               toast.success("You're the host now.");
