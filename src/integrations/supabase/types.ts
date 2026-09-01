@@ -14,16 +14,287 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          created_at: string
+          dress_code: string | null
+          event_date: string | null
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          dress_code?: string | null
+          event_date?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          dress_code?: string | null
+          event_date?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      invite_codes: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          code: string
+          created_at: string
+          email: string | null
+          guest_name: string
+          id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code: string
+          created_at?: string
+          email?: string | null
+          guest_name: string
+          id?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code?: string
+          created_at?: string
+          email?: string | null
+          guest_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      measurements: {
+        Row: {
+          bottom_length: number | null
+          bust: number | null
+          created_at: string
+          guest_id: string
+          height: number | null
+          hip: number | null
+          id: string
+          inseam: number | null
+          notes: string | null
+          shoulder: number | null
+          sleeve_length: number | null
+          top_length: number | null
+          unit: string
+          updated_at: string
+          waist: number | null
+        }
+        Insert: {
+          bottom_length?: number | null
+          bust?: number | null
+          created_at?: string
+          guest_id: string
+          height?: number | null
+          hip?: number | null
+          id?: string
+          inseam?: number | null
+          notes?: string | null
+          shoulder?: number | null
+          sleeve_length?: number | null
+          top_length?: number | null
+          unit?: string
+          updated_at?: string
+          waist?: number | null
+        }
+        Update: {
+          bottom_length?: number | null
+          bust?: number | null
+          created_at?: string
+          guest_id?: string
+          height?: number | null
+          hip?: number | null
+          id?: string
+          inseam?: number | null
+          notes?: string | null
+          shoulder?: number | null
+          sleeve_length?: number | null
+          top_length?: number | null
+          unit?: string
+          updated_at?: string
+          waist?: number | null
+        }
+        Relationships: []
+      }
+      outfits: {
+        Row: {
+          boutique_url: string | null
+          color_family: string | null
+          created_at: string
+          designer: string | null
+          event_id: string | null
+          garment_type: string | null
+          gender: string
+          id: string
+          image_url: string | null
+          is_available: boolean
+          notes: string | null
+          price_note: string | null
+          size_note: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          boutique_url?: string | null
+          color_family?: string | null
+          created_at?: string
+          designer?: string | null
+          event_id?: string | null
+          garment_type?: string | null
+          gender?: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          notes?: string | null
+          price_note?: string | null
+          size_note?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          boutique_url?: string | null
+          color_family?: string | null
+          created_at?: string
+          designer?: string | null
+          event_id?: string | null
+          garment_type?: string | null
+          gender?: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          notes?: string | null
+          price_note?: string | null
+          size_note?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outfits_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          invite_claimed: boolean
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id: string
+          invite_claimed?: boolean
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          invite_claimed?: boolean
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          guest_id: string
+          guest_name: string | null
+          id: string
+          outfit_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          guest_id: string
+          guest_name?: string | null
+          id?: string
+          outfit_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          guest_id?: string
+          guest_name?: string | null
+          id?: string
+          outfit_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_outfit_id_fkey"
+            columns: ["outfit_id"]
+            isOneToOne: true
+            referencedRelation: "outfits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_invite: { Args: { _code: string }; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "guest"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +421,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "guest"],
+    },
   },
 } as const
