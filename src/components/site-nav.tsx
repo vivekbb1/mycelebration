@@ -58,6 +58,11 @@ export function SiteNav() {
           <Link to="/delivery" className={linkClass}>
             Delivery
           </Link>
+          {isStylist ? (
+            <Link to="/atelier" className={linkClass}>
+              Atelier
+            </Link>
+          ) : null}
           {isAdmin ? (
             <>
               <Link to="/host" className={linkClass}>
