@@ -23,6 +23,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HostEvents } from "@/components/host-events";
 import { HostLogistics } from "@/components/host-logistics";
+import { HostTeam } from "@/components/host-team";
+import { HostBoutiques } from "@/components/host-boutiques";
+
 
 
 export const Route = createFileRoute("/_authenticated/host")({
@@ -83,6 +86,7 @@ type OutfitForm = {
   notes: string;
   gender: string;
   event_id: string;
+  boutique_id: string;
 };
 
 const emptyOutfit: OutfitForm = {
@@ -97,6 +101,7 @@ const emptyOutfit: OutfitForm = {
   notes: "",
   gender: "women",
   event_id: "",
+  boutique_id: "",
 };
 
 function HostPage() {
@@ -189,6 +194,17 @@ function HostDashboard() {
       return data;
     },
   });
+
+  const boutiques = useQuery({
+    queryKey: ["boutiques"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("boutiques").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+
 
   const reservations = useQuery({
     queryKey: ["reservations"],
@@ -293,6 +309,7 @@ function HostDashboard() {
       notes: parsed.data.notes || null,
       gender: form.gender,
       event_id: form.event_id || null,
+      boutique_id: form.boutique_id || null,
     };
     const { error } = editingId
       ? await supabase.from("outfits").update(payload).eq("id", editingId)
@@ -323,6 +340,7 @@ function HostDashboard() {
       notes: o.notes ?? "",
       gender: o.gender ?? "women",
       event_id: o.event_id ?? "",
+      boutique_id: o.boutique_id ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -374,6 +392,9 @@ function HostDashboard() {
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+          <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+          <TabsTrigger value="hosts">Hosts</TabsTrigger>
+
         </TabsList>
 
 
@@ -547,7 +568,30 @@ function HostDashboard() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Boutique / atelier</Label>
+                  <Select
+                    value={form.boutique_id}
+                    onValueChange={(v) => setForm((o) => ({ ...o, boutique_id: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Who supplies this look?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(boutiques.data ?? []).map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Their stylist then sees this look's orders and measurements in the atelier
+                    portal.
+                  </p>
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="o-image">Image link</Label>
                 <Input
@@ -718,6 +762,15 @@ function HostDashboard() {
         <TabsContent value="logistics" className="mt-6">
           <HostLogistics />
         </TabsContent>
+
+        <TabsContent value="boutiques" className="mt-6">
+          <HostBoutiques />
+        </TabsContent>
+
+        <TabsContent value="hosts" className="mt-6">
+          <HostTeam />
+        </TabsContent>
+
       </Tabs>
     </main>
   );

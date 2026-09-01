@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Trash2, Search, Mail } from "lucide-react";
+import { Copy, Trash2, Search, Mail, Eye } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { sendInviteEmail } from "@/lib/invite-email.functions";
@@ -151,7 +151,9 @@ function GuestListPage() {
         : [];
       return {
         key: inv.id,
+        guestId: guestId ?? null,
         code: inv.code,
+
         name: profile?.full_name || inv.guest_name,
         email: profile?.email || inv.email,
         location: [profile?.city, profile?.country].filter(Boolean).join(", "),
@@ -369,6 +371,20 @@ function GuestListPage() {
                     >
                       <Copy className="size-4" />
                     </Button>
+                    {r.guestId ? (
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`View the portal as ${r.name}`}
+                      >
+                        <Link to="/guest/$guestId" params={{ guestId: r.guestId }}>
+                          <Eye className="size-4" />
+                        </Link>
+                      </Button>
+                    ) : null}
+
+
 
                     <Button
                       variant="ghost"

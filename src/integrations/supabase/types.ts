@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      boutique_members: {
+        Row: {
+          boutique_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          boutique_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          boutique_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boutique_members_boutique_id_fkey"
+            columns: ["boutique_id"]
+            isOneToOne: false
+            referencedRelation: "boutiques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boutiques: {
+        Row: {
+          access_code: string
+          city: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_code: string
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
@@ -190,6 +258,7 @@ export type Database = {
       }
       outfits: {
         Row: {
+          boutique_id: string | null
           boutique_url: string | null
           color_family: string | null
           created_at: string
@@ -207,6 +276,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          boutique_id?: string | null
           boutique_url?: string | null
           color_family?: string | null
           created_at?: string
@@ -224,6 +294,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          boutique_id?: string | null
           boutique_url?: string | null
           color_family?: string | null
           created_at?: string
@@ -241,6 +312,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "outfits_boutique_id_fkey"
+            columns: ["boutique_id"]
+            isOneToOne: false
+            referencedRelation: "boutiques"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "outfits_event_id_fkey"
             columns: ["event_id"]
@@ -356,6 +434,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_boutique_see_guest: { Args: { _guest_id: string }; Returns: boolean }
+      can_boutique_see_outfit: {
+        Args: { _outfit_id: string }
+        Returns: boolean
+      }
       claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
       has_role: {
@@ -365,6 +448,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "guest"

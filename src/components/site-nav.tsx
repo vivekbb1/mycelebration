@@ -26,6 +26,14 @@ export function SiteNav() {
     },
   });
 
+  const { data: isStylist } = useQuery({
+    queryKey: ["is-stylist"],
+    queryFn: async () => {
+      const { data } = await supabase.from("boutique_members").select("id").limit(1);
+      return Boolean(data && data.length > 0);
+    },
+  });
+
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/" });
@@ -50,6 +58,11 @@ export function SiteNav() {
           <Link to="/delivery" className={linkClass}>
             Delivery
           </Link>
+          {isStylist ? (
+            <Link to="/atelier" className={linkClass}>
+              Atelier
+            </Link>
+          ) : null}
           {isAdmin ? (
             <>
               <Link to="/host" className={linkClass}>

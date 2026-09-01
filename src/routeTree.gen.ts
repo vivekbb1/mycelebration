@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
 import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
+import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -32,6 +34,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAtelierRoute = AuthenticatedAtelierRouteImport.update({
+  id: '/atelier',
+  path: '/atelier',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDeliveryRoute = AuthenticatedDeliveryRouteImport.update({
   id: '/delivery',
@@ -64,71 +71,89 @@ const AuthenticatedMeasurementsRoute =
     path: '/measurements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGuestGuestIdRoute =
+  AuthenticatedGuestGuestIdRouteImport.update({
+    id: '/guest/$guestId',
+    path: '/guest/$guestId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/atelier': typeof AuthenticatedAtelierRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/atelier': typeof AuthenticatedAtelierRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
   '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
+  '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/atelier'
     | '/delivery'
     | '/event'
     | '/guests'
     | '/host'
     | '/lookbook'
     | '/measurements'
+    | '/guest/$guestId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/atelier'
     | '/delivery'
     | '/event'
     | '/guests'
     | '/host'
     | '/lookbook'
     | '/measurements'
+    | '/guest/$guestId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/atelier'
     | '/_authenticated/delivery'
     | '/_authenticated/event'
     | '/_authenticated/guests'
     | '/_authenticated/host'
     | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
+    | '/_authenticated/guest/$guestId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -159,6 +184,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/atelier': {
+      id: '/_authenticated/atelier'
+      path: '/atelier'
+      fullPath: '/atelier'
+      preLoaderRoute: typeof AuthenticatedAtelierRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/delivery': {
       id: '/_authenticated/delivery'
@@ -202,25 +234,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeasurementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/guest/$guestId': {
+      id: '/_authenticated/guest/$guestId'
+      path: '/guest/$guestId'
+      fullPath: '/guest/$guestId'
+      preLoaderRoute: typeof AuthenticatedGuestGuestIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAtelierRoute: typeof AuthenticatedAtelierRoute
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
   AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
+  AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAtelierRoute: AuthenticatedAtelierRoute,
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
   AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
+  AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
