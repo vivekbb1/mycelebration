@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
 import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
@@ -33,6 +34,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAtelierRoute = AuthenticatedAtelierRouteImport.update({
+  id: '/atelier',
+  path: '/atelier',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDeliveryRoute = AuthenticatedDeliveryRouteImport.update({
   id: '/delivery',
@@ -75,6 +81,7 @@ const AuthenticatedGuestGuestIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/atelier': typeof AuthenticatedAtelierRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/atelier': typeof AuthenticatedAtelierRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
   '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/atelier'
     | '/delivery'
     | '/event'
     | '/guests'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/atelier'
     | '/delivery'
     | '/event'
     | '/guests'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/atelier'
     | '/_authenticated/delivery'
     | '/_authenticated/event'
     | '/_authenticated/guests'
@@ -172,6 +184,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/atelier': {
+      id: '/_authenticated/atelier'
+      path: '/atelier'
+      fullPath: '/atelier'
+      preLoaderRoute: typeof AuthenticatedAtelierRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/delivery': {
       id: '/_authenticated/delivery'
@@ -226,6 +245,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAtelierRoute: typeof AuthenticatedAtelierRoute
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
   AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
@@ -236,6 +256,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAtelierRoute: AuthenticatedAtelierRoute,
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
   AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
