@@ -40,7 +40,7 @@ const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Please enter your full name").max(100),
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(8, "Use at least 8 characters").max(72),
-  code: z.string().trim().min(3, "Enter your invitation code").max(64),
+  code: z.string().trim().max(64),
 });
 
 const signInSchema = z.object({
@@ -91,9 +91,8 @@ function AuthPage() {
       setTab("signin");
       return;
     }
-    const claimed = await claimInvite(parsed.data.code);
+    if (parsed.data.code) await claimInvite(parsed.data.code);
     setBusy(false);
-    if (!claimed) return;
     navigate({ to: "/lookbook" });
   };
 
@@ -154,6 +153,9 @@ function AuthPage() {
                     onChange={(e) => setSignUpForm((f) => ({ ...f, code: e.target.value }))}
                     placeholder="e.g. MEHNDI-4821"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Hosts can leave this blank.
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="su-name">Full name</Label>
