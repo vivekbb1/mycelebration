@@ -19,3 +19,9 @@ New tasks (this turn)
 Open, for the host to do
 - [ ] Claim host access at `/host` (first sign-up wins), then add the real functions, delivery plan and looks
 - [ ] Provide a domain you own for sending email
+
+## Done (latest)
+- Host "By boutique" tab: looks grouped by atelier with reserving guest + measurement status.
+- Bulk invite guests (paste name/email per line) + "Email everyone pending" with clipboard fallback.
+- Bulk outfit edit: multi-select, set function/boutique, remove several looks.
+- Invitation email falls back to the host's own mail app until a sending domain is verified.
