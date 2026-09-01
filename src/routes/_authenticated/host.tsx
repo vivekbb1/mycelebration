@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HostEvents } from "@/components/host-events";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
+import { HostBoutiques } from "@/components/host-boutiques";
 
 
 
@@ -297,6 +298,7 @@ function HostDashboard() {
       notes: parsed.data.notes || null,
       gender: form.gender,
       event_id: form.event_id || null,
+      boutique_id: form.boutique_id || null,
     };
     const { error } = editingId
       ? await supabase.from("outfits").update(payload).eq("id", editingId)
@@ -327,6 +329,7 @@ function HostDashboard() {
       notes: o.notes ?? "",
       gender: o.gender ?? "women",
       event_id: o.event_id ?? "",
+      boutique_id: o.boutique_id ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -378,6 +381,7 @@ function HostDashboard() {
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+          <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
           <TabsTrigger value="hosts">Hosts</TabsTrigger>
 
         </TabsList>
@@ -723,6 +727,10 @@ function HostDashboard() {
 
         <TabsContent value="logistics" className="mt-6">
           <HostLogistics />
+        </TabsContent>
+
+        <TabsContent value="boutiques" className="mt-6">
+          <HostBoutiques />
         </TabsContent>
 
         <TabsContent value="hosts" className="mt-6">
