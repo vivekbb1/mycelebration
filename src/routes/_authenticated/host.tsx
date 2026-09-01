@@ -21,6 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HostEvents } from "@/components/host-events";
+import { HostLogistics } from "@/components/host-logistics";
+
 
 export const Route = createFileRoute("/_authenticated/host")({
   head: () => ({
@@ -369,7 +372,10 @@ function HostDashboard() {
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
+          <TabsTrigger value="functions">Functions</TabsTrigger>
+          <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="dashboard" className="mt-6 space-y-8">
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -704,10 +710,19 @@ function HostDashboard() {
             </ul>
           </div>
         </TabsContent>
+
+        <TabsContent value="functions" className="mt-6">
+          <HostEvents />
+        </TabsContent>
+
+        <TabsContent value="logistics" className="mt-6">
+          <HostLogistics />
+        </TabsContent>
       </Tabs>
     </main>
   );
 }
+
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (

@@ -86,6 +86,54 @@ export type Database = {
         }
         Relationships: []
       }
+      logistics: {
+        Row: {
+          checkin_note: string | null
+          created_at: string
+          hotel_address: string | null
+          hotel_name: string | null
+          id: string
+          intro: string
+          measurements_deadline: string | null
+          singleton: boolean
+          team_email: string | null
+          team_name: string | null
+          team_whatsapp: string | null
+          timeline: Json
+          updated_at: string
+        }
+        Insert: {
+          checkin_note?: string | null
+          created_at?: string
+          hotel_address?: string | null
+          hotel_name?: string | null
+          id?: string
+          intro?: string
+          measurements_deadline?: string | null
+          singleton?: boolean
+          team_email?: string | null
+          team_name?: string | null
+          team_whatsapp?: string | null
+          timeline?: Json
+          updated_at?: string
+        }
+        Update: {
+          checkin_note?: string | null
+          created_at?: string
+          hotel_address?: string | null
+          hotel_name?: string | null
+          id?: string
+          intro?: string
+          measurements_deadline?: string | null
+          singleton?: boolean
+          team_email?: string | null
+          team_name?: string | null
+          team_whatsapp?: string | null
+          timeline?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       measurements: {
         Row: {
           bottom_length: number | null

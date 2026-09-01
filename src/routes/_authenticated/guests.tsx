@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Trash2, Search } from "lucide-react";
+import { Copy, Trash2, Search, Mail } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { sendInviteEmail } from "@/lib/invite-email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+
 
 export const Route = createFileRoute("/_authenticated/guests")({
   head: () => ({
@@ -54,9 +57,12 @@ function makeCode(name: string) {
 
 function GuestListPage() {
   const queryClient = useQueryClient();
+  const emailInvite = useServerFn(sendInviteEmail);
   const [form, setForm] = useState({ guest_name: "", email: "" });
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
 
   const role = useQuery({
     queryKey: ["is-admin"],
@@ -207,6 +213,33 @@ function GuestListPage() {
     }
   };
 
+  const mailInvite = async (id: string, name: string, email: string | null) => {
+    if (!email) {
+      toast.error(`Add an email address for ${name} first, or copy the message instead.`);
+      return;
+    }
+    setSendingId(id);
+    let result: { sent: boolean; reason?: string };
+    try {
+      result = await emailInvite({ data: { inviteId: id } });
+    } catch {
+      setSendingId(null);
+      toast.error("We couldn't send that invitation. Please try again.");
+      return;
+    }
+    setSendingId(null);
+    if (result.sent) {
+      toast.success(`Invitation emailed to ${email}.`);
+      return;
+    }
+    toast.error(
+      result.reason === "email_not_configured"
+        ? "Email sending isn't set up yet — copy the invitation message instead."
+        : "That invitation couldn't be sent. Copy the message instead.",
+    );
+  };
+
+
   const removeInvite = async (id: string, registered: boolean) => {
     if (registered) {
       toast.error("This guest already registered — their invitation can't be removed.");
@@ -322,11 +355,21 @@ function GuestListPage() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      disabled={sendingId === r.key}
+                      aria-label={`Email invitation code to ${r.name}`}
+                      onClick={() => mailInvite(r.key, r.name, r.email ?? null)}
+                    >
+                      <Mail className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       aria-label={`Copy invitation for ${r.name}`}
                       onClick={() => copyInvite(r.code, r.name)}
                     >
                       <Copy className="size-4" />
                     </Button>
+
                     <Button
                       variant="ghost"
                       size="icon"

@@ -202,7 +202,14 @@ function EventPage() {
               </div>
             </article>
           ))}
+          {(events.data ?? []).length === 0 ? (
+            <p className="panel p-6 text-sm text-muted-foreground">
+              The schedule is being finalised. Dates, timings and venues will appear here as soon as
+              the hosts add them.
+            </p>
+          ) : null}
         </div>
+
       )}
     </main>
   );
