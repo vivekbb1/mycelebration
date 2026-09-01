@@ -284,6 +284,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
       has_role: {
         Args: {
