@@ -1,25 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { PackageCheck, Ruler, Scissors, MapPin, MessageCircle, Mail } from "lucide-react";
+import { BedDouble, Ruler, MapPin, MessageCircle, Mail, CalendarClock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { MILESTONES, PICKUP_WINDOWS, TAILOR } from "@/lib/delivery-plan";
+import { parseTimeline, type TimelineStep } from "@/lib/logistics";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/delivery")({
   head: () => ({
     meta: [
-      { title: "Delivery & Pickup Plan — The Wedding Wardrobe" },
+      { title: "Your Outfit Delivery Plan — The Wedding Wardrobe" },
       {
         name: "description",
         content:
-          "When your outfit is tailored, where to collect it in Jaipur, and how your measurements reach the tailor.",
+          "Your reserved looks, their sizes, when they are tailored and how they reach your hotel room on arrival.",
       },
-      { property: "og:title", content: "Delivery & Pickup Plan — The Wedding Wardrobe" },
+      { property: "og:title", content: "Your Outfit Delivery Plan — The Wedding Wardrobe" },
       {
         property: "og:description",
-        content: "Tailoring timeline, pickup windows in Jaipur and how measurements reach the atelier.",
+        content:
+          "Tailoring timeline, room delivery at check-in, and how your measurements reach the tailor.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,6 +30,19 @@ export const Route = createFileRoute("/_authenticated/delivery")({
 });
 
 function DeliveryPage() {
+  const logistics = useQuery({
+    queryKey: ["logistics"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("logistics")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const mine = useQuery({
     queryKey: ["my-wardrobe"],
     queryFn: async () => {
@@ -52,7 +66,7 @@ function DeliveryPage() {
       const { data: events } = await supabase.from("events").select("id, name").order("sort_order");
       const { data: measurement } = await supabase
         .from("measurements")
-        .select("id, unit, height, bust, waist, hip")
+        .select("id")
         .eq("guest_id", user.id)
         .maybeSingle();
 
@@ -67,15 +81,16 @@ function DeliveryPage() {
   });
 
   const outfits = mine.data?.outfits ?? [];
+  const plan = logistics.data;
+  const timeline: TimelineStep[] = parseTimeline(plan?.timeline);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <p className="text-eyebrow">Logistics</p>
       <h1 className="mt-3 text-4xl">Your delivery plan</h1>
-      <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        You never have to speak to a tailor or pay for anything. Reserve a look, send your
-        measurements once, and collect the finished outfit in Jaipur.
-      </p>
+      {plan?.intro ? (
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{plan.intro}</p>
+      ) : null}
 
       <section className="panel mt-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -132,37 +147,47 @@ function DeliveryPage() {
         ) : null}
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-2xl">The timeline</h2>
-        <ol className="mt-5 space-y-4">
-          {MILESTONES.map((m, i) => (
-            <li key={m.title} className="panel flex gap-4 p-5">
-              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-primary/60 text-xs text-primary">
-                {i + 1}
-              </span>
-              <div>
-                <p className="text-sm text-primary">{m.date}</p>
-                <h3 className="mt-1 text-lg">{m.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{m.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+      <section className="panel mt-6 p-6">
+        <BedDouble className="size-4 text-primary" />
+        <h2 className="mt-3 text-xl">Delivered to your room</h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          {plan?.checkin_note ??
+            "Your outfits are placed in your hotel room before you check in — the events team manages all logistics."}
+        </p>
+        {plan?.hotel_name || plan?.hotel_address ? (
+          <p className="mt-4 flex items-start gap-2 text-sm">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>
+              {plan?.hotel_name}
+              {plan?.hotel_address ? (
+                <span className="block text-xs text-muted-foreground">{plan.hotel_address}</span>
+              ) : null}
+            </span>
+          </p>
+        ) : null}
       </section>
 
-      <section className="mt-10">
-        <h2 className="text-2xl">Pickup windows</h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-3">
-          {PICKUP_WINDOWS.map((p) => (
-            <div key={p.label} className="panel p-5">
-              <PackageCheck className="size-4 text-primary" />
-              <p className="mt-3 text-eyebrow">{p.label}</p>
-              <p className="mt-2 text-sm">{p.when}</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{p.where}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {timeline.length ? (
+        <section className="mt-10">
+          <h2 className="text-2xl">The timeline</h2>
+          <ol className="mt-5 space-y-4">
+            {timeline.map((m, i) => (
+              <li key={`${m.title}-${i}`} className="panel flex gap-4 p-5">
+                <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-primary/60 text-xs text-primary">
+                  {i + 1}
+                </span>
+                <div>
+                  {m.date ? <p className="text-sm text-primary">{m.date}</p> : null}
+                  <h3 className="mt-1 text-lg">{m.title}</h3>
+                  {m.body ? (
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{m.body}</p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
 
       <section className="mt-10 grid gap-5 sm:grid-cols-2">
         <div className="panel p-6">
@@ -170,37 +195,43 @@ function DeliveryPage() {
           <h2 className="mt-3 text-xl">How your measurements reach the tailor</h2>
           <ol className="mt-3 space-y-2 text-sm leading-relaxed text-muted-foreground">
             <li>1. Fill the guided form in the portal — cm or inches, whichever you prefer.</li>
-            <li>2. We review it against the outfit you reserved and flag anything unusual.</li>
+            <li>2. The hosts check it against the look you reserved and flag anything unusual.</li>
             <li>
-              3. The hosts send a single tailoring sheet per guest to the atelier. You never email
-              the tailor yourself, and your measurements stay private to you and the hosts.
+              3. One tailoring sheet per guest goes to the tailor. You never contact the tailor
+              yourself, and your measurements stay private to you and the hosts.
             </li>
-            <li>4. Changed your mind about a fit? Update the form — we use the latest version.</li>
+            <li>4. Changed your mind about a fit? Update the form — the latest version is used.</li>
           </ol>
+          {plan?.measurements_deadline ? (
+            <p className="mt-4 flex items-start gap-2 text-sm text-primary">
+              <CalendarClock className="mt-0.5 size-4 shrink-0" />
+              {plan.measurements_deadline}
+            </p>
+          ) : null}
           <Button asChild size="sm" variant="outline" className="mt-4">
             <Link to="/measurements">Open the measurement form</Link>
           </Button>
         </div>
 
         <div className="panel p-6">
-          <Scissors className="size-4 text-primary" />
-          <h2 className="mt-3 text-xl">The atelier</h2>
-          <p className="mt-3 text-sm">{TAILOR.name}</p>
-          <p className="text-xs text-muted-foreground">Master tailor: {TAILOR.contact}</p>
+          <MessageCircle className="size-4 text-primary" />
+          <h2 className="mt-3 text-xl">Who to ask</h2>
+          <p className="mt-3 text-sm">{plan?.team_name ?? "The events team"}</p>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-start gap-2">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-primary" /> {TAILOR.address}
-            </li>
-            <li className="flex items-center gap-2">
-              <MessageCircle className="size-4 shrink-0 text-primary" /> {TAILOR.whatsapp}
-            </li>
-            <li className="flex items-center gap-2">
-              <Mail className="size-4 shrink-0 text-primary" /> {TAILOR.email}
-            </li>
+            {plan?.team_whatsapp ? (
+              <li className="flex items-center gap-2">
+                <MessageCircle className="size-4 shrink-0 text-primary" /> {plan.team_whatsapp}
+              </li>
+            ) : null}
+            {plan?.team_email ? (
+              <li className="flex items-center gap-2">
+                <Mail className="size-4 shrink-0 text-primary" /> {plan.team_email}
+              </li>
+            ) : null}
           </ul>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            For anything urgent, message the family group rather than the atelier — we coordinate
-            all fittings.
+            Anything about fittings, sizes or arrival times — ask the events team rather than the
+            tailor. They coordinate every outfit.
           </p>
         </div>
       </section>
