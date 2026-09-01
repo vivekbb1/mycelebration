@@ -119,10 +119,12 @@ function Lookbook() {
           : error.message,
       );
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
       return;
     }
     toast.success(`${outfit.title} is yours.`);
     await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
 
   const release = async (outfit: Outfit) => {
@@ -135,6 +137,7 @@ function Lookbook() {
     }
     toast.success("Reservation released.");
     await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
 
   if (me.isLoading) {
