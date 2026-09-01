@@ -213,6 +213,33 @@ function GuestListPage() {
     }
   };
 
+  const mailInvite = async (id: string, name: string, email: string | null) => {
+    if (!email) {
+      toast.error(`Add an email address for ${name} first, or copy the message instead.`);
+      return;
+    }
+    setSendingId(id);
+    let result: { sent: boolean; reason?: string };
+    try {
+      result = await emailInvite({ data: { inviteId: id } });
+    } catch {
+      setSendingId(null);
+      toast.error("We couldn't send that invitation. Please try again.");
+      return;
+    }
+    setSendingId(null);
+    if (result.sent) {
+      toast.success(`Invitation emailed to ${email}.`);
+      return;
+    }
+    toast.error(
+      result.reason === "email_not_configured"
+        ? "Email sending isn't set up yet — copy the invitation message instead."
+        : "That invitation couldn't be sent. Copy the message instead.",
+    );
+  };
+
+
   const removeInvite = async (id: string, registered: boolean) => {
     if (registered) {
       toast.error("This guest already registered — their invitation can't be removed.");
