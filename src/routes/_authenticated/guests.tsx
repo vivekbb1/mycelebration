@@ -480,7 +480,7 @@ function GuestListPage() {
                       size="icon"
                       disabled={sendingId === r.key}
                       aria-label={`Email invitation code to ${r.name}`}
-                      onClick={() => mailInvite(r.key, r.name, r.email ?? null)}
+                      onClick={() => mailInvite(r.key, r.name, r.email ?? null, r.code)}
                     >
                       <Mail className="size-4" />
                     </Button>
