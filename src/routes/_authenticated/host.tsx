@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostEvents } from "@/components/host-events";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
@@ -169,6 +171,8 @@ function HostDashboard() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const events = useQuery({
@@ -345,6 +349,47 @@ function HostDashboard() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const toggleSelected = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const bulkAssign = async (field: "event_id" | "boutique_id", value: string) => {
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    const { error } = await supabase
+      .from("outfits")
+      .update({ [field]: value === "none" ? null : value })
+      .in("id", selected);
+    setBulkBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${selected.length} look${selected.length === 1 ? "" : "s"} updated.`);
+    setSelected([]);
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+  };
+
+  const bulkRemove = async () => {
+    if (selected.length === 0) return;
+    const reservedNames = (reservations.data ?? [])
+      .filter((r) => selected.includes(r.outfit_id))
+      .map((r) => r.outfit_id);
+    if (reservedNames.length > 0) {
+      toast.error("Some selected looks are already reserved — unreserve them first.");
+      return;
+    }
+    setBulkBusy(true);
+    const { error } = await supabase.from("outfits").delete().in("id", selected);
+    setBulkBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`${selected.length} look${selected.length === 1 ? "" : "s"} removed.`);
+    setSelected([]);
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+  };
+
   const removeOutfit = async (id: string, title: string) => {
     if (!window.confirm(`Remove “${title}” from the lookbook? Any reservation on it is released.`)) {
       return;
@@ -393,6 +438,7 @@ function HostDashboard() {
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
           <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+          <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
           <TabsTrigger value="hosts">Hosts</TabsTrigger>
 
         </TabsList>
@@ -699,11 +745,74 @@ function HostDashboard() {
 
           <div className="panel h-fit p-6">
             <h2 className="text-xl">In the lookbook ({outfits.data?.length ?? 0})</h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <Checkbox
+                id="select-all-looks"
+                checked={
+                  (outfits.data ?? []).length > 0 &&
+                  selected.length === (outfits.data ?? []).length
+                }
+                onCheckedChange={(v) =>
+                  setSelected(v ? (outfits.data ?? []).map((o) => o.id) : [])
+                }
+              />
+              <Label htmlFor="select-all-looks" className="text-xs font-normal">
+                Select all — then edit or remove several looks at once
+              </Label>
+            </div>
+
+            {selected.length > 0 ? (
+              <div className="mt-3 space-y-2 rounded-md border border-primary/40 bg-primary/5 p-3">
+                <p className="text-xs">
+                  {selected.length} selected — apply to all of them:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Select disabled={bulkBusy} onValueChange={(v) => bulkAssign("event_id", v)}>
+                    <SelectTrigger className="w-44">
+                      <SelectValue placeholder="Set function" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No function</SelectItem>
+                      {(events.data ?? []).map((e) => (
+                        <SelectItem key={e.id} value={e.id}>
+                          {e.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select disabled={bulkBusy} onValueChange={(v) => bulkAssign("boutique_id", v)}>
+                    <SelectTrigger className="w-44">
+                      <SelectValue placeholder="Set boutique" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No boutique</SelectItem>
+                      {(boutiques.data ?? []).map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="destructive" disabled={bulkBusy} onClick={bulkRemove}>
+                    <Trash2 className="size-4" /> Remove selected
+                  </Button>
+                  <Button variant="ghost" onClick={() => setSelected([])}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
             <ul className="mt-4 divide-y divide-border">
               {(outfits.data ?? []).map((o) => {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
                 return (
                   <li key={o.id} className="flex items-center gap-3 py-3">
+                    <Checkbox
+                      checked={selected.includes(o.id)}
+                      aria-label={`Select ${o.title}`}
+                      onCheckedChange={() => toggleSelected(o.id)}
+                    />
                     {o.image_url ? (
                       <img
                         src={o.image_url}
@@ -765,6 +874,10 @@ function HostDashboard() {
 
         <TabsContent value="boutiques" className="mt-6">
           <HostBoutiques />
+        </TabsContent>
+
+        <TabsContent value="by-boutique" className="mt-6">
+          <HostByBoutique />
         </TabsContent>
 
         <TabsContent value="hosts" className="mt-6">
