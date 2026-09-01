@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Trash2, Search, Mail } from "lucide-react";
+import { Copy, Trash2, Search, Mail, Eye } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { sendInviteEmail } from "@/lib/invite-email.functions";
