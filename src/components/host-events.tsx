@@ -21,7 +21,10 @@ const eventSchema = z.object({
   rsvp_by: z.string().trim().max(20),
 });
 
-type EventForm = z.infer<typeof eventSchema> & { sort_order: string };
+type EventForm = z.infer<typeof eventSchema> & {
+  sort_order: string;
+  outfit_selection: boolean;
+};
 
 const emptyEvent: EventForm = {
   name: "",
