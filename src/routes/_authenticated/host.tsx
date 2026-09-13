@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
+import { HostPicks } from "@/components/host-picks";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostBoutiques } from "@/components/host-boutiques";
