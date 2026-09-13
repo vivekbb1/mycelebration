@@ -147,6 +147,7 @@ export function HostImport() {
         res.failed ? `${res.failed} couldn't be read` : null,
       ].filter(Boolean);
       toast.success(bits.join(" · ") || "Nothing to add");
+      setImportedTotal((n) => n + res.imported);
       setPicked([]);
       await refresh();
     } catch {
