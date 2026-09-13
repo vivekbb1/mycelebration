@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CalendarDays, ExternalLink, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { sendReservationEmail } from "@/lib/reservation-email.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -234,7 +235,7 @@ function Lookbook() {
       <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-4">
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="size-4 text-primary" />
-          11–13 February 2027, Jaipur — four functions, four dress codes.
+          {scheduleHeadline(events.data ?? [])} — {scheduleSummary(events.data ?? [])}
         </p>
         <Button asChild size="sm" variant="outline">
           <Link to="/event">Dates, venues &amp; RSVP</Link>
