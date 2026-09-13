@@ -334,6 +334,44 @@ export function HostImport() {
             />
           </div>
         </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2">
+            <Label>Colour</Label>
+            <Select value={colour} onValueChange={setColour}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any colour</SelectItem>
+                {PERNIA_COLOURS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Sort the looks shown</Label>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="listed">As the shop lists them</SelectItem>
+                <SelectItem value="price_asc">Price: low to high</SelectItem>
+                <SelectItem value="price_desc">Price: high to low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <label className="flex items-end gap-2 pb-2 sm:col-span-2">
+            <Checkbox
+              checked={readyToShip}
+              onCheckedChange={(v) => setReadyToShip(v === true)}
+            />
+            <span className="text-sm">Ready to ship only (no tailoring wait)</span>
+          </label>
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button disabled={listBusy} onClick={() => runSearch(1)}>
             {listBusy ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
@@ -341,8 +379,11 @@ export function HostImport() {
           </Button>
           {results ? (
             <p className="text-xs text-muted-foreground">
-              {total.toLocaleString()} looks match · page {page}
+              {total.toLocaleString()} looks match · page {page} of {totalPages.toLocaleString()}
             </p>
+          ) : null}
+          {importedTotal ? (
+            <Badge variant="secondary">{importedTotal} added to the wardrobe so far</Badge>
           ) : null}
           {results && results.length ? (
             <Button
