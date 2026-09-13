@@ -69,6 +69,7 @@ export function HostImport() {
   const [minPrice, setMinPrice] = useState("0");
   const [maxPrice, setMaxPrice] = useState("30000");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState("12");
   const [results, setResults] = useState<ListLook[] | null>(null);
   const [total, setTotal] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
@@ -109,6 +110,7 @@ export function HostImport() {
           minPrice: Number(minPrice) || 0,
           maxPrice: Number(maxPrice) || 30000,
           page: nextPage,
+          perPage: Number(perPage) || 12,
         },
       });
       setResults(res.looks);
@@ -273,7 +275,7 @@ export function HostImport() {
           Pick everything you like and add it in one go. Prices are in rupees.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-2">
             <Label>Category</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
@@ -283,6 +285,21 @@ export function HostImport() {
                 {CATEGORIES.map((c) => (
                   <SelectItem key={c.path} value={c.path}>
                     {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Looks per page</Label>
+            <Select value={perPage} onValueChange={setPerPage}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {["6", "12", "24", "36", "48", "60"].map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n} per page
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -316,6 +333,19 @@ export function HostImport() {
             <p className="text-xs text-muted-foreground">
               {total.toLocaleString()} looks match · page {page}
             </p>
+          ) : null}
+          {results && results.length ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setPicked((p) =>
+                  p.length === results.length ? [] : results.map((l) => l.slug),
+                )
+              }
+            >
+              {picked.length === results.length ? "Clear selection" : "Select all on this page"}
+            </Button>
           ) : null}
           {picked.length ? (
             <Button

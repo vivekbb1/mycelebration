@@ -131,7 +131,7 @@ export const fetchPerniaLook = createServerFn({ method: "POST" })
 export const searchPerniaCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { category: string; minPrice: number; maxPrice: number; page: number }) => {
+    (data: { category: string; minPrice: number; maxPrice: number; page: number; perPage?: number }) => {
       const category = String(data?.category ?? "clothing/lehenga")
         .trim()
         .replace(/^\/+|\/+$/g, "");
@@ -143,6 +143,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
         minPrice: Math.max(0, Math.min(2_000_000, Math.round(Number(data?.minPrice) || 0))),
         maxPrice: Math.max(1, Math.min(2_000_000, Math.round(Number(data?.maxPrice) || 30000))),
         page: Math.max(1, Math.min(60, Math.round(Number(data?.page) || 1))),
+        perPage: Math.max(4, Math.min(60, Math.round(Number(data?.perPage) || 12))),
       };
     },
   )
@@ -162,6 +163,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
           currency: "INR",
           price: `${data.minPrice}-${data.maxPrice}`,
           page: String(data.page),
+          size: String(data.perPage),
         },
       }),
     );
@@ -169,7 +171,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
     const json = await getJson(`${HOST}/napi/dyanmic?queryData=${queryData}`);
     const raw: any[] = Array.isArray(json?.data?.products) ? json.data.products : [];
 
-    const looks = raw.map((p) => {
+    const looks = raw.slice(0, data.perPage).map((p) => {
       const title = String(p.short_description ?? p.product_name ?? "Untitled look");
       const images = [p.img, p.hover_image]
         .filter((s): s is string => typeof s === "string")
@@ -199,7 +201,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
 export const importPerniaLooks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { slugs: string[]; eventId?: string | null; boutiqueId?: string | null }) => ({
-    slugs: (Array.isArray(data?.slugs) ? data.slugs : []).slice(0, 24).map((s) => String(s)),
+    slugs: (Array.isArray(data?.slugs) ? data.slugs : []).slice(0, 60).map((s) => String(s)),
     eventId: data?.eventId ? String(data.eventId) : null,
     boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
   }))
