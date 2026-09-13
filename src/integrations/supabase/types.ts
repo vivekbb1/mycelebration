@@ -394,6 +394,8 @@ export type Database = {
           guest_id: string
           guest_name: string | null
           id: string
+          order_status: string
+          order_status_updated_at: string
           outfit_id: string
           status: string
         }
@@ -402,6 +404,8 @@ export type Database = {
           guest_id: string
           guest_name?: string | null
           id?: string
+          order_status?: string
+          order_status_updated_at?: string
           outfit_id: string
           status?: string
         }
@@ -410,6 +414,8 @@ export type Database = {
           guest_id?: string
           guest_name?: string | null
           id?: string
+          order_status?: string
+          order_status_updated_at?: string
           outfit_id?: string
           status?: string
         }
