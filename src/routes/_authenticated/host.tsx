@@ -877,6 +877,10 @@ function HostDashboard() {
           <HostEvents />
         </TabsContent>
 
+        <TabsContent value="picks" className="mt-6">
+          <HostPicks />
+        </TabsContent>
+
         <TabsContent value="logistics" className="mt-6">
           <HostLogistics />
         </TabsContent>
