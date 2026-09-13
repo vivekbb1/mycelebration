@@ -60,11 +60,27 @@ export function HostByBoutique() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, created_at");
+        .select("id, outfit_id, guest_id, guest_name, created_at, order_status");
       if (error) throw error;
       return data;
     },
   });
+
+  const setStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ order_status: status, order_status_updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: async (_d, vars) => {
+      toast.success(`Order marked ${orderStatusLabel(vars.status).toLowerCase()}.`);
+      await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+    },
+    onError: () => toast.error("That status couldn't be saved. Please try again."),
+  });
+
 
   const profiles = useQuery({
     queryKey: ["all-profiles"],
