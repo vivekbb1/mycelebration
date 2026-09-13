@@ -79,7 +79,9 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, event_date, start_time, venue, dress_code, sort_order")
+        .select(
+          "id, name, event_date, start_time, venue, dress_code, sort_order, outfit_selection",
+        )
         .order("sort_order");
       if (error) throw error;
       return data;
@@ -117,7 +119,16 @@ function Lookbook() {
     return set;
   }, [reservations.data]);
 
-  const visible = (outfits.data ?? []).filter(
+  // Functions where the hosts dress the guests, and the ones where guests wear their own.
+  const pickableEvents = (events.data ?? []).filter((e) => e.outfit_selection !== false);
+  const ownOutfitEvents = (events.data ?? []).filter((e) => e.outfit_selection === false);
+  const ownOutfitIds = new Set(ownOutfitEvents.map((e) => e.id));
+
+  const selectable = (outfits.data ?? []).filter(
+    (o) => !o.event_id || !ownOutfitIds.has(o.event_id),
+  );
+
+  const visible = selectable.filter(
     (o) => activeEvent === "all" || o.event_id === activeEvent,
   );
 
@@ -283,7 +294,7 @@ function Lookbook() {
         <FilterChip active={activeEvent === "all"} onClick={() => setActiveEvent("all")}>
           All functions
         </FilterChip>
-        {(events.data ?? []).map((ev) => (
+        {pickableEvents.map((ev) => (
           <FilterChip
             key={ev.id}
             active={activeEvent === ev.id}
@@ -293,6 +304,34 @@ function Lookbook() {
           </FilterChip>
         ))}
       </div>
+
+      {pickableEvents.length > 0 ? (
+        <div className="panel mt-4 p-4">
+          <p className="text-eyebrow">Your picks</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {pickableEvents.map((ev) => {
+              const chosen = myOutfits.some((o) => o.event_id === ev.id);
+              return (
+                <li
+                  key={ev.id}
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    chosen ? "border-primary text-primary" : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {ev.name} — {chosen ? "chosen" : "not chosen yet"}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      {ownOutfitEvents.length > 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          For {ownOutfitEvents.map((e) => e.name).join(", ")} please wear your own outfit — there's
+          nothing to choose.
+        </p>
+      ) : null}
 
       {activeEvent !== "all"
         ? (() => {

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 const eventSchema = z.object({
   name: z.string().trim().min(2, "Name the function (e.g. Mehndi)").max(80),
@@ -21,7 +22,10 @@ const eventSchema = z.object({
   rsvp_by: z.string().trim().max(20),
 });
 
-type EventForm = z.infer<typeof eventSchema> & { sort_order: string };
+type EventForm = z.infer<typeof eventSchema> & {
+  sort_order: string;
+  outfit_selection: boolean;
+};
 
 const emptyEvent: EventForm = {
   name: "",
@@ -33,6 +37,7 @@ const emptyEvent: EventForm = {
   note: "",
   rsvp_by: "",
   sort_order: "",
+  outfit_selection: true,
 };
 
 export function HostEvents() {
@@ -73,6 +78,7 @@ export function HostEvents() {
       note: parsed.data.note || null,
       rsvp_by: parsed.data.rsvp_by || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
+      outfit_selection: form.outfit_selection,
     };
     const { error } = editingId
       ? await supabase.from("events").update(payload).eq("id", editingId)
@@ -101,6 +107,7 @@ export function HostEvents() {
       note: ev.note ?? "",
       rsvp_by: ev.rsvp_by ?? "",
       sort_order: String(ev.sort_order ?? ""),
+      outfit_selection: ev.outfit_selection ?? true,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -220,6 +227,20 @@ export function HostEvents() {
               />
             </div>
           </div>
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+            <div className="space-y-1">
+              <Label htmlFor="e-selection">Guests choose an outfit for this function</Label>
+              <p className="text-xs text-muted-foreground">
+                Turn this off when guests wear their own clothes — the lookbook then hides this
+                function entirely.
+              </p>
+            </div>
+            <Switch
+              id="e-selection"
+              checked={form.outfit_selection}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, outfit_selection: v }))}
+            />
+          </div>
           <div className="flex gap-3">
             <Button onClick={save} disabled={busy} className="flex-1">
               {busy ? "Saving…" : editingId ? "Save changes" : "Add function"}
@@ -239,7 +260,14 @@ export function HostEvents() {
           {(events.data ?? []).map((ev) => (
             <li key={ev.id} className="flex items-start gap-3 py-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate">{ev.name}</p>
+                <p className="flex items-center gap-2 truncate">
+                  {ev.name}
+                  {ev.outfit_selection ? null : (
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                      Own outfit
+                    </span>
+                  )}
+                </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {[ev.event_date, ev.start_time, ev.venue].filter(Boolean).join(" · ") ||
                     "No date or venue yet"}

@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
+import { HostPicks } from "@/components/host-picks";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostBoutiques } from "@/components/host-boutiques";
@@ -438,6 +439,7 @@ function HostDashboard() {
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
           <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
+          <TabsTrigger value="picks">Guest picks</TabsTrigger>
           <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
           <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
           <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
@@ -873,6 +875,10 @@ function HostDashboard() {
 
         <TabsContent value="functions" className="mt-6">
           <HostEvents />
+        </TabsContent>
+
+        <TabsContent value="picks" className="mt-6">
+          <HostPicks />
         </TabsContent>
 
         <TabsContent value="logistics" className="mt-6">
