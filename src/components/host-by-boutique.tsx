@@ -168,6 +168,7 @@ export function HostByBoutique() {
       {groups.map((g) => {
         const reserved = g.looks.filter((l) => l.guest).length;
         const measured = g.looks.filter((l) => l.measured).length;
+        const orders = g.looks.filter((l) => l.reservationId);
         return (
           <section key={g.id ?? "unassigned"} className="panel p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -189,6 +190,20 @@ export function HostByBoutique() {
                 {g.code ? <Badge variant="outline">Code {g.code}</Badge> : null}
               </div>
             </div>
+
+            {orders.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {ORDER_STATUSES.map((s) => {
+                  const count = orders.filter((l) => l.orderStatus === s.value).length;
+                  return count > 0 ? (
+                    <Badge key={s.value} variant={orderStatusVariant(s.value)}>
+                      {count} {s.label.toLowerCase()}
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            ) : null}
+
 
             <ul className="mt-5 divide-y divide-border/70">
               {g.looks.map((l) => (
