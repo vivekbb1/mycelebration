@@ -433,16 +433,6 @@ function Lookbook() {
                         {busyId === outfit.id ? "Reserving…" : "Reserve this look"}
                       </Button>
                     )}
-                    {outfit.boutique_url ? (
-                      <a
-                        href={outfit.boutique_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
-                      >
-                        View at the boutique <ExternalLink className="size-3" />
-                      </a>
-                    ) : null}
                   </div>
                 </div>
               </article>
