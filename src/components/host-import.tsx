@@ -69,6 +69,7 @@ export function HostImport() {
   const [minPrice, setMinPrice] = useState("0");
   const [maxPrice, setMaxPrice] = useState("30000");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState("12");
   const [results, setResults] = useState<ListLook[] | null>(null);
   const [total, setTotal] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
@@ -109,6 +110,7 @@ export function HostImport() {
           minPrice: Number(minPrice) || 0,
           maxPrice: Number(maxPrice) || 30000,
           page: nextPage,
+          perPage: Number(perPage) || 12,
         },
       });
       setResults(res.looks);
