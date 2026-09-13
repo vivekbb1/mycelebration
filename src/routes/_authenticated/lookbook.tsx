@@ -234,7 +234,7 @@ function Lookbook() {
       <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-4">
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="size-4 text-primary" />
-          11–13 February 2027, Jaipur — four functions, four dress codes.
+          {scheduleHeadline(events.data ?? [])} — {scheduleSummary(events.data ?? [])}
         </p>
         <Button asChild size="sm" variant="outline">
           <Link to="/event">Dates, venues &amp; RSVP</Link>
