@@ -439,6 +439,7 @@ function HostDashboard() {
           <TabsTrigger value="outfits">Outfits</TabsTrigger>
           <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
+          <TabsTrigger value="picks">Guest picks</TabsTrigger>
           <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
           <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
           <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
