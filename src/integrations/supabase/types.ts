@@ -90,6 +90,7 @@ export type Database = {
           id: string
           name: string
           note: string | null
+          outfit_selection: boolean
           rsvp_by: string | null
           sort_order: number
           start_time: string | null
@@ -103,6 +104,7 @@ export type Database = {
           id?: string
           name: string
           note?: string | null
+          outfit_selection?: boolean
           rsvp_by?: string | null
           sort_order?: number
           start_time?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           id?: string
           name?: string
           note?: string | null
+          outfit_selection?: boolean
           rsvp_by?: string | null
           sort_order?: number
           start_time?: string | null
