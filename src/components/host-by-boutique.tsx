@@ -231,6 +231,28 @@ export function HostByBoutique() {
                         <Badge variant={l.measured ? "outline" : "secondary"}>
                           {l.measured ? "Measurements in" : "Awaiting measurements"}
                         </Badge>
+                        {l.reservationId ? (
+                          <Select
+                            value={l.orderStatus}
+                            onValueChange={(value) =>
+                              setStatus.mutate({ id: l.reservationId as string, status: value })
+                            }
+                          >
+                            <SelectTrigger
+                              className="h-9 w-40"
+                              aria-label={`Order status for ${l.title}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ORDER_STATUSES.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : null}
                         {l.guestId ? (
                           <Button
                             asChild
@@ -248,6 +270,7 @@ export function HostByBoutique() {
                       <Badge variant="secondary">Still available</Badge>
                     )}
                   </div>
+
                 </li>
               ))}
             </ul>
