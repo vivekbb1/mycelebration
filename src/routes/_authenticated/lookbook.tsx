@@ -119,7 +119,16 @@ function Lookbook() {
     return set;
   }, [reservations.data]);
 
-  const visible = (outfits.data ?? []).filter(
+  // Functions where the hosts dress the guests, and the ones where guests wear their own.
+  const pickableEvents = (events.data ?? []).filter((e) => e.outfit_selection !== false);
+  const ownOutfitEvents = (events.data ?? []).filter((e) => e.outfit_selection === false);
+  const ownOutfitIds = new Set(ownOutfitEvents.map((e) => e.id));
+
+  const selectable = (outfits.data ?? []).filter(
+    (o) => !o.event_id || !ownOutfitIds.has(o.event_id),
+  );
+
+  const visible = selectable.filter(
     (o) => activeEvent === "all" || o.event_id === activeEvent,
   );
 
