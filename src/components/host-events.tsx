@@ -77,6 +77,7 @@ export function HostEvents() {
       note: parsed.data.note || null,
       rsvp_by: parsed.data.rsvp_by || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
+      outfit_selection: form.outfit_selection,
     };
     const { error } = editingId
       ? await supabase.from("events").update(payload).eq("id", editingId)
