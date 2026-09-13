@@ -294,7 +294,7 @@ function Lookbook() {
         <FilterChip active={activeEvent === "all"} onClick={() => setActiveEvent("all")}>
           All functions
         </FilterChip>
-        {(events.data ?? []).map((ev) => (
+        {pickableEvents.map((ev) => (
           <FilterChip
             key={ev.id}
             active={activeEvent === ev.id}
@@ -304,6 +304,34 @@ function Lookbook() {
           </FilterChip>
         ))}
       </div>
+
+      {pickableEvents.length > 0 ? (
+        <div className="panel mt-4 p-4">
+          <p className="text-eyebrow">Your picks</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {pickableEvents.map((ev) => {
+              const chosen = myOutfits.some((o) => o.event_id === ev.id);
+              return (
+                <li
+                  key={ev.id}
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    chosen ? "border-primary text-primary" : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {ev.name} — {chosen ? "chosen" : "not chosen yet"}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      {ownOutfitEvents.length > 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          For {ownOutfitEvents.map((e) => e.name).join(", ")} please wear your own outfit — there's
+          nothing to choose.
+        </p>
+      ) : null}
 
       {activeEvent !== "all"
         ? (() => {
