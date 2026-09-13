@@ -106,6 +106,7 @@ export function HostEvents() {
       note: ev.note ?? "",
       rsvp_by: ev.rsvp_by ?? "",
       sort_order: String(ev.sort_order ?? ""),
+      outfit_selection: ev.outfit_selection ?? true,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
