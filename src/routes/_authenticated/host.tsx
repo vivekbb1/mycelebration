@@ -23,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
+import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
