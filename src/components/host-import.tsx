@@ -9,6 +9,7 @@ import {
   fetchPerniaLook,
   importPerniaLooks,
   searchPerniaCategory,
+  PERNIA_COLOURS,
   type PerniaLook,
 } from "@/lib/pernia.functions";
 import { Button } from "@/components/ui/button";
