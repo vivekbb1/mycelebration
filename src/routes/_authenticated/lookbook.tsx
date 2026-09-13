@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, ExternalLink, Lock, Check, MapPin } from "lucide-react";
+import { CalendarDays, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
