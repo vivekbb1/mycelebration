@@ -469,7 +469,7 @@ export function HostImport() {
                 );
               })}
             </ul>
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -478,10 +478,27 @@ export function HostImport() {
               >
                 Previous
               </Button>
+              {pageLinks.map((n, i) =>
+                n === null ? (
+                  <span key={`gap-${i}`} className="px-1 text-xs text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <Button
+                    key={n}
+                    size="sm"
+                    variant={n === page ? "default" : "ghost"}
+                    disabled={listBusy}
+                    onClick={() => runSearch(n)}
+                  >
+                    {n}
+                  </Button>
+                ),
+              )}
               <Button
                 variant="outline"
                 size="sm"
-                disabled={listBusy || results.length === 0}
+                disabled={listBusy || page >= totalPages}
                 onClick={() => runSearch(page + 1)}
               >
                 Next
