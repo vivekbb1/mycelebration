@@ -36,6 +36,7 @@ const emptyEvent: EventForm = {
   note: "",
   rsvp_by: "",
   sort_order: "",
+  outfit_selection: true,
 };
 
 export function HostEvents() {
