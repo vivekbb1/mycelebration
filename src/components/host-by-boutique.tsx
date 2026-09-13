@@ -22,6 +22,8 @@ import { ORDER_STATUSES, orderStatusLabel, orderStatusVariant } from "@/lib/orde
  * guest who reserved it and whether their measurements are in.
  */
 export function HostByBoutique() {
+  const queryClient = useQueryClient();
+
   const boutiques = useQuery({
     queryKey: ["boutiques"],
     queryFn: async () => {
