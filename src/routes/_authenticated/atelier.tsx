@@ -285,10 +285,34 @@ function AtelierPage() {
                         {[r.outfit.designer, r.outfit.garment_type].filter(Boolean).join(" · ")}
                       </p>
                     </div>
-                    <Badge variant={r.measurements ? "default" : "secondary"}>
-                      {r.measurements ? "Ready to tailor" : "Awaiting measurements"}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={orderStatusVariant(r.orderStatus)}>
+                        {orderStatusLabel(r.orderStatus)}
+                      </Badge>
+                      <Badge variant={r.measurements ? "default" : "secondary"}>
+                        {r.measurements ? "Ready to tailor" : "Awaiting measurements"}
+                      </Badge>
+                      <Select
+                        value={r.orderStatus}
+                        onValueChange={(value) => setStatus.mutate({ id: r.id, status: value })}
+                      >
+                        <SelectTrigger
+                          className="h-9 w-40"
+                          aria-label={`Update status for ${r.outfit.title}`}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ORDER_STATUSES.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              {s.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
 
                   <p className="mt-4 text-sm">
                     <span className="text-muted-foreground">Guest: </span>
