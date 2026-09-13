@@ -103,6 +103,18 @@ export function HostImport() {
     },
   });
 
+  const pageLinks: (number | null)[] = (() => {
+    if (totalPages <= 9) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const out: (number | null)[] = [1];
+    const from = Math.max(2, page - 2);
+    const to = Math.min(totalPages - 1, page + 2);
+    if (from > 2) out.push(null);
+    for (let n = from; n <= to; n += 1) out.push(n);
+    if (to < totalPages - 1) out.push(null);
+    out.push(totalPages);
+    return out;
+  })();
+
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
