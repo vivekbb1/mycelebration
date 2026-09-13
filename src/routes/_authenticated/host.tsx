@@ -865,6 +865,11 @@ function HostDashboard() {
           </div>
         </TabsContent>
 
+        <TabsContent value="import" className="mt-6">
+          <HostImport />
+        </TabsContent>
+
+
         <TabsContent value="functions" className="mt-6">
           <HostEvents />
         </TabsContent>
