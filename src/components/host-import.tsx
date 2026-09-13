@@ -116,10 +116,14 @@ export function HostImport() {
           maxPrice: Number(maxPrice) || 30000,
           page: nextPage,
           perPage: Number(perPage) || 12,
+          readyToShip,
+          colour: colour === "all" ? null : colour,
+          sort,
         },
       });
       setResults(res.looks);
       setTotal(res.total);
+      setTotalPages(res.totalPages);
       setPage(res.page);
       setPicked([]);
       if (res.looks.length === 0) toast.info("No looks in that price range — widen it a little.");
