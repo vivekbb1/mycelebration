@@ -47,6 +47,7 @@ type Outfit = {
   size_note: string | null;
   price_note: string | null;
   notes: string | null;
+  images: string[] | null;
   is_available: boolean;
 };
 
@@ -328,19 +329,8 @@ function Lookbook() {
             const eventName = (events.data ?? []).find((e) => e.id === outfit.event_id)?.name;
             return (
               <article key={outfit.id} className="panel flex flex-col overflow-hidden">
-                <div className="relative aspect-[3/4] bg-secondary">
-                  {outfit.image_url ? (
-                    <img
-                      src={outfit.image_url}
-                      alt={outfit.title}
-                      loading="lazy"
-                      className={`h-full w-full object-cover ${taken && !mine ? "opacity-35 grayscale" : ""}`}
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center px-4 text-center font-display text-sm text-muted-foreground">
-                      {outfit.title}
-                    </div>
-                  )}
+                <div className="relative bg-secondary">
+                  <LookGallery outfit={outfit} dimmed={taken && !mine} />
                   {taken ? (
                     <Badge
                       variant={mine ? "default" : "secondary"}
@@ -449,5 +439,51 @@ function FilterChip({
     >
       {children}
     </button>
+  );
+}
+
+/** Main photo plus the other angles of the same look, when the boutique has them. */
+function LookGallery({ outfit, dimmed }: { outfit: Outfit; dimmed: boolean }) {
+  const photos = (
+    Array.isArray(outfit.images) && outfit.images.length
+      ? outfit.images
+      : outfit.image_url
+        ? [outfit.image_url]
+        : []
+  ).filter((s): s is string => typeof s === "string");
+  const [active, setActive] = useState(0);
+
+  if (photos.length === 0) {
+    return (
+      <div className="flex aspect-[3/4] items-center justify-center px-4 text-center font-display text-sm text-muted-foreground">
+        {outfit.title}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <img
+        src={photos[Math.min(active, photos.length - 1)]}
+        alt={outfit.title}
+        loading="lazy"
+        className={`aspect-[3/4] w-full object-cover ${dimmed ? "opacity-35 grayscale" : ""}`}
+      />
+      {photos.length > 1 ? (
+        <div className="absolute bottom-2 left-2 flex gap-1.5">
+          {photos.slice(0, 5).map((src, i) => (
+            <button
+              key={src}
+              type="button"
+              aria-label={`Photo ${i + 1} of ${outfit.title}`}
+              onClick={() => setActive(i)}
+              className={`overflow-hidden rounded border ${i === active ? "border-primary" : "border-transparent opacity-70"}`}
+            >
+              <img src={src} alt="" loading="lazy" className="h-11 w-8 object-cover" />
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </>
   );
 }
