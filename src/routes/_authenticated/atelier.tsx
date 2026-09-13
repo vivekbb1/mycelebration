@@ -157,12 +157,14 @@ function AtelierPage() {
           id: o.id,
           guest: o.guest_name || "Guest",
           placed: o.created_at,
+          orderStatus: (o.order_status as string | null) ?? "pending",
           outfit,
           functionName: ev?.name ?? null,
           functionDate: ev?.event_date ?? null,
           boutique: boutiques.data?.find((b) => b.id === outfit.boutique_id)?.name ?? "",
           measurements: m ?? null,
         };
+
       })
       .filter((r): r is NonNullable<typeof r> => r !== null);
   }, [orders.data, outfits.data, events.data, measurements.data, boutiques.data, boutiqueIds]);
