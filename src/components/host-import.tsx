@@ -70,8 +70,13 @@ export function HostImport() {
   const [maxPrice, setMaxPrice] = useState("30000");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("12");
+  const [readyToShip, setReadyToShip] = useState(false);
+  const [colour, setColour] = useState("all");
+  const [sort, setSort] = useState("listed");
   const [results, setResults] = useState<ListLook[] | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [importedTotal, setImportedTotal] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
   const [listBusy, setListBusy] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
