@@ -9,6 +9,7 @@ import {
   fetchPerniaLook,
   importPerniaLooks,
   searchPerniaCategory,
+  PERNIA_COLOURS,
   type PerniaLook,
 } from "@/lib/pernia.functions";
 import { Button } from "@/components/ui/button";
@@ -70,8 +71,13 @@ export function HostImport() {
   const [maxPrice, setMaxPrice] = useState("30000");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("12");
+  const [readyToShip, setReadyToShip] = useState(false);
+  const [colour, setColour] = useState("all");
+  const [sort, setSort] = useState("listed");
   const [results, setResults] = useState<ListLook[] | null>(null);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [importedTotal, setImportedTotal] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
   const [listBusy, setListBusy] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
@@ -97,6 +103,18 @@ export function HostImport() {
     },
   });
 
+  const pageLinks: (number | null)[] = (() => {
+    if (totalPages <= 9) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const out: (number | null)[] = [1];
+    const from = Math.max(2, page - 2);
+    const to = Math.min(totalPages - 1, page + 2);
+    if (from > 2) out.push(null);
+    for (let n = from; n <= to; n += 1) out.push(n);
+    if (to < totalPages - 1) out.push(null);
+    out.push(totalPages);
+    return out;
+  })();
+
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
@@ -111,10 +129,14 @@ export function HostImport() {
           maxPrice: Number(maxPrice) || 30000,
           page: nextPage,
           perPage: Number(perPage) || 12,
+          readyToShip,
+          colour: colour === "all" ? null : colour,
+          sort,
         },
       });
       setResults(res.looks);
       setTotal(res.total);
+      setTotalPages(res.totalPages);
       setPage(res.page);
       setPicked([]);
       if (res.looks.length === 0) toast.info("No looks in that price range — widen it a little.");
@@ -138,6 +160,7 @@ export function HostImport() {
         res.failed ? `${res.failed} couldn't be read` : null,
       ].filter(Boolean);
       toast.success(bits.join(" · ") || "Nothing to add");
+      setImportedTotal((n) => n + res.imported);
       setPicked([]);
       await refresh();
     } catch {
@@ -297,7 +320,7 @@ export function HostImport() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["6", "12", "24", "36", "48", "60"].map((n) => (
+                {["6", "12", "24", "36", "48"].map((n) => (
                   <SelectItem key={n} value={n}>
                     {n} per page
                   </SelectItem>
@@ -324,6 +347,44 @@ export function HostImport() {
             />
           </div>
         </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2">
+            <Label>Colour</Label>
+            <Select value={colour} onValueChange={setColour}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any colour</SelectItem>
+                {PERNIA_COLOURS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Sort the looks shown</Label>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="listed">As the shop lists them</SelectItem>
+                <SelectItem value="price_asc">Price: low to high</SelectItem>
+                <SelectItem value="price_desc">Price: high to low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <label className="flex items-end gap-2 pb-2 sm:col-span-2">
+            <Checkbox
+              checked={readyToShip}
+              onCheckedChange={(v) => setReadyToShip(v === true)}
+            />
+            <span className="text-sm">Ready to ship only (no tailoring wait)</span>
+          </label>
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button disabled={listBusy} onClick={() => runSearch(1)}>
             {listBusy ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
@@ -331,8 +392,11 @@ export function HostImport() {
           </Button>
           {results ? (
             <p className="text-xs text-muted-foreground">
-              {total.toLocaleString()} looks match · page {page}
+              {total.toLocaleString()} looks match · page {page} of {totalPages.toLocaleString()}
             </p>
+          ) : null}
+          {importedTotal ? (
+            <Badge variant="secondary">{importedTotal} added to the wardrobe so far</Badge>
           ) : null}
           {results && results.length ? (
             <Button
@@ -418,7 +482,7 @@ export function HostImport() {
                 );
               })}
             </ul>
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -427,10 +491,27 @@ export function HostImport() {
               >
                 Previous
               </Button>
+              {pageLinks.map((n, i) =>
+                n === null ? (
+                  <span key={`gap-${i}`} className="px-1 text-xs text-muted-foreground">
+                    …
+                  </span>
+                ) : (
+                  <Button
+                    key={n}
+                    size="sm"
+                    variant={n === page ? "default" : "ghost"}
+                    disabled={listBusy}
+                    onClick={() => runSearch(n)}
+                  >
+                    {n}
+                  </Button>
+                ),
+              )}
               <Button
                 variant="outline"
                 size="sm"
-                disabled={listBusy || results.length === 0}
+                disabled={listBusy || page >= totalPages}
                 onClick={() => runSearch(page + 1)}
               >
                 Next
