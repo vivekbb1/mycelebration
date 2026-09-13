@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, ExternalLink, Lock, Check, MapPin } from "lucide-react";
+import { CalendarDays, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
@@ -403,11 +403,6 @@ function Lookbook() {
                         {outfit.size_note}
                       </span>
                     ) : null}
-                    {outfit.price_note ? (
-                      <span className="rounded-full border border-border px-2 py-0.5">
-                        {outfit.price_note}
-                      </span>
-                    ) : null}
                   </div>
                   {outfit.notes ? (
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -438,16 +433,6 @@ function Lookbook() {
                         {busyId === outfit.id ? "Reserving…" : "Reserve this look"}
                       </Button>
                     )}
-                    {outfit.boutique_url ? (
-                      <a
-                        href={outfit.boutique_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
-                      >
-                        View at the boutique <ExternalLink className="size-3" />
-                      </a>
-                    ) : null}
                   </div>
                 </div>
               </article>
