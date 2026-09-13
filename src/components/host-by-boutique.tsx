@@ -1,17 +1,29 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Eye, Store } from "lucide-react";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ORDER_STATUSES, orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
+
 
 /**
  * Host view of every look grouped by the boutique / tailor supplying it, with the
  * guest who reserved it and whether their measurements are in.
  */
 export function HostByBoutique() {
+  const queryClient = useQueryClient();
+
   const boutiques = useQuery({
     queryKey: ["boutiques"],
     queryFn: async () => {
@@ -50,11 +62,27 @@ export function HostByBoutique() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, created_at");
+        .select("id, outfit_id, guest_id, guest_name, created_at, order_status");
       if (error) throw error;
       return data;
     },
   });
+
+  const setStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ order_status: status, order_status_updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: async (_d, vars) => {
+      toast.success(`Order marked ${orderStatusLabel(vars.status).toLowerCase()}.`);
+      await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+    },
+    onError: () => toast.error("That status couldn't be saved. Please try again."),
+  });
+
 
   const profiles = useQuery({
     queryKey: ["all-profiles"],
@@ -108,8 +136,11 @@ export function HostByBoutique() {
                 (events.data ?? []).find((e) => e.id === o.event_id)?.name ?? null,
               guestId: res?.guest_id ?? null,
               guest: profile?.full_name || res?.guest_name || null,
+              reservationId: res?.id ?? null,
+              orderStatus: (res?.order_status as string | null) ?? "pending",
               measured,
             };
+
           });
         return { ...b, looks };
       })
@@ -137,6 +168,7 @@ export function HostByBoutique() {
       {groups.map((g) => {
         const reserved = g.looks.filter((l) => l.guest).length;
         const measured = g.looks.filter((l) => l.measured).length;
+        const orders = g.looks.filter((l) => l.reservationId);
         return (
           <section key={g.id ?? "unassigned"} className="panel p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -158,6 +190,20 @@ export function HostByBoutique() {
                 {g.code ? <Badge variant="outline">Code {g.code}</Badge> : null}
               </div>
             </div>
+
+            {orders.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {ORDER_STATUSES.map((s) => {
+                  const count = orders.filter((l) => l.orderStatus === s.value).length;
+                  return count > 0 ? (
+                    <Badge key={s.value} variant={orderStatusVariant(s.value)}>
+                      {count} {s.label.toLowerCase()}
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            ) : null}
+
 
             <ul className="mt-5 divide-y divide-border/70">
               {g.looks.map((l) => (
@@ -185,6 +231,28 @@ export function HostByBoutique() {
                         <Badge variant={l.measured ? "outline" : "secondary"}>
                           {l.measured ? "Measurements in" : "Awaiting measurements"}
                         </Badge>
+                        {l.reservationId ? (
+                          <Select
+                            value={l.orderStatus}
+                            onValueChange={(value) =>
+                              setStatus.mutate({ id: l.reservationId as string, status: value })
+                            }
+                          >
+                            <SelectTrigger
+                              className="h-9 w-40"
+                              aria-label={`Order status for ${l.title}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ORDER_STATUSES.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : null}
                         {l.guestId ? (
                           <Button
                             asChild
@@ -202,6 +270,7 @@ export function HostByBoutique() {
                       <Badge variant="secondary">Still available</Badge>
                     )}
                   </div>
+
                 </li>
               ))}
             </ul>

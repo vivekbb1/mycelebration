@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -7,10 +7,19 @@ import { Scissors, Ruler, Store } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { claimBoutiqueAccess } from "@/lib/boutique-access.functions";
+import { ORDER_STATUSES, orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 export const Route = createFileRoute("/_authenticated/atelier")({
   head: () => ({
@@ -98,12 +107,28 @@ function AtelierPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, created_at")
+        .select("id, outfit_id, guest_id, guest_name, created_at, order_status")
         .order("created_at");
       if (error) throw error;
       return data;
     },
   });
+
+  const setStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ order_status: status, order_status_updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: async (_d, vars) => {
+      toast.success(`Marked ${orderStatusLabel(vars.status).toLowerCase()}.`);
+      await queryClient.invalidateQueries({ queryKey: ["atelier-orders"] });
+    },
+    onError: () => toast.error("That status couldn't be saved. Please try again."),
+  });
+
 
   // RLS returns only measurements of guests who reserved this boutique's outfits.
   const measurements = useQuery({
@@ -132,12 +157,14 @@ function AtelierPage() {
           id: o.id,
           guest: o.guest_name || "Guest",
           placed: o.created_at,
+          orderStatus: (o.order_status as string | null) ?? "pending",
           outfit,
           functionName: ev?.name ?? null,
           functionDate: ev?.event_date ?? null,
           boutique: boutiques.data?.find((b) => b.id === outfit.boutique_id)?.name ?? "",
           measurements: m ?? null,
         };
+
       })
       .filter((r): r is NonNullable<typeof r> => r !== null);
   }, [orders.data, outfits.data, events.data, measurements.data, boutiques.data, boutiqueIds]);
@@ -258,10 +285,34 @@ function AtelierPage() {
                         {[r.outfit.designer, r.outfit.garment_type].filter(Boolean).join(" · ")}
                       </p>
                     </div>
-                    <Badge variant={r.measurements ? "default" : "secondary"}>
-                      {r.measurements ? "Ready to tailor" : "Awaiting measurements"}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={orderStatusVariant(r.orderStatus)}>
+                        {orderStatusLabel(r.orderStatus)}
+                      </Badge>
+                      <Badge variant={r.measurements ? "default" : "secondary"}>
+                        {r.measurements ? "Ready to tailor" : "Awaiting measurements"}
+                      </Badge>
+                      <Select
+                        value={r.orderStatus}
+                        onValueChange={(value) => setStatus.mutate({ id: r.id, status: value })}
+                      >
+                        <SelectTrigger
+                          className="h-9 w-40"
+                          aria-label={`Update status for ${r.outfit.title}`}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ORDER_STATUSES.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              {s.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
 
                   <p className="mt-4 text-sm">
                     <span className="text-muted-foreground">Guest: </span>
