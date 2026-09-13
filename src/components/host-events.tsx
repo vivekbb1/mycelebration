@@ -226,6 +226,20 @@ export function HostEvents() {
               />
             </div>
           </div>
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+            <div className="space-y-1">
+              <Label htmlFor="e-selection">Guests choose an outfit for this function</Label>
+              <p className="text-xs text-muted-foreground">
+                Turn this off when guests wear their own clothes — the lookbook then hides this
+                function entirely.
+              </p>
+            </div>
+            <Switch
+              id="e-selection"
+              checked={form.outfit_selection}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, outfit_selection: v }))}
+            />
+          </div>
           <div className="flex gap-3">
             <Button onClick={save} disabled={busy} className="flex-1">
               {busy ? "Saving…" : editingId ? "Save changes" : "Add function"}
