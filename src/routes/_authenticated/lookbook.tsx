@@ -79,7 +79,9 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, event_date, start_time, venue, dress_code, sort_order")
+        .select(
+          "id, name, event_date, start_time, venue, dress_code, sort_order, outfit_selection",
+        )
         .order("sort_order");
       if (error) throw error;
       return data;
