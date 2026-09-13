@@ -259,7 +259,14 @@ export function HostEvents() {
           {(events.data ?? []).map((ev) => (
             <li key={ev.id} className="flex items-start gap-3 py-4">
               <div className="min-w-0 flex-1">
-                <p className="truncate">{ev.name}</p>
+                <p className="flex items-center gap-2 truncate">
+                  {ev.name}
+                  {ev.outfit_selection ? null : (
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                      Own outfit
+                    </span>
+                  )}
+                </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {[ev.event_date, ev.start_time, ev.venue].filter(Boolean).join(" · ") ||
                     "No date or venue yet"}
