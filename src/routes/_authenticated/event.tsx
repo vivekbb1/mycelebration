@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { CalendarDays, MapPin, Clock, Shirt, Check, X, HelpCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";

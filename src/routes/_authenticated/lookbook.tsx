@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CalendarDays, ExternalLink, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { sendReservationEmail } from "@/lib/reservation-email.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
