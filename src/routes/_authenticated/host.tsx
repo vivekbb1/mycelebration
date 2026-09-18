@@ -34,6 +34,7 @@ import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
+import { HostBranding } from "@/components/host-branding";
 import { HostBoutiques } from "@/components/host-boutiques";
 
 
@@ -931,6 +932,7 @@ function HostDashboard() {
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               <TabsTrigger value="email">Email</TabsTrigger>
               <TabsTrigger value="wording">Wording</TabsTrigger>
+              <TabsTrigger value="branding">Branding</TabsTrigger>
             </TabsList>
             <TabsContent value="boutiques" className="mt-6">
               <HostBoutiques />
@@ -946,6 +948,9 @@ function HostDashboard() {
             </TabsContent>
             <TabsContent value="wording" className="mt-6">
               <HostContent />
+            </TabsContent>
+            <TabsContent value="branding" className="mt-6">
+              <HostBranding />
             </TabsContent>
           </Tabs>
         </TabsContent>

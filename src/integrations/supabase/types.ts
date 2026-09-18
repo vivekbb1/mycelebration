@@ -82,6 +82,66 @@ export type Database = {
         }
         Relationships: []
       }
+      branding: {
+        Row: {
+          base_font_size: number
+          body_font: string
+          color_accent: string
+          color_background: string
+          color_border: string
+          color_foreground: string
+          color_primary: string
+          color_primary_foreground: string
+          color_surface: string
+          favicon_url: string | null
+          heading_font: string
+          heading_scale: number
+          id: string
+          logo_height: number
+          logo_url: string | null
+          radius: number
+          updated_at: string
+        }
+        Insert: {
+          base_font_size?: number
+          body_font?: string
+          color_accent?: string
+          color_background?: string
+          color_border?: string
+          color_foreground?: string
+          color_primary?: string
+          color_primary_foreground?: string
+          color_surface?: string
+          favicon_url?: string | null
+          heading_font?: string
+          heading_scale?: number
+          id?: string
+          logo_height?: number
+          logo_url?: string | null
+          radius?: number
+          updated_at?: string
+        }
+        Update: {
+          base_font_size?: number
+          body_font?: string
+          color_accent?: string
+          color_background?: string
+          color_border?: string
+          color_foreground?: string
+          color_primary?: string
+          color_primary_foreground?: string
+          color_surface?: string
+          favicon_url?: string | null
+          heading_font?: string
+          heading_scale?: number
+          id?: string
+          logo_height?: number
+          logo_url?: string | null
+          radius?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_settings: {
         Row: {
           from_email: string | null

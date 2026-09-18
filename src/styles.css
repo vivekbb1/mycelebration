@@ -133,6 +133,7 @@
     font-family: var(--font-display);
     font-weight: 400;
     letter-spacing: 0.01em;
+    font-size: calc(1em * var(--heading-scale, 1));
   }
 }
 

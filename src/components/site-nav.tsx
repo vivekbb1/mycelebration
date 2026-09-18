@@ -5,6 +5,7 @@ import { ArrowLeft, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
+import { useBranding } from "@/lib/branding";
 import { GuestTabs } from "@/components/guest-tabs";
 
 const linkClass =
@@ -18,6 +19,7 @@ const HOST_PATHS = ["/guests", "/guest", "/host"];
 export function SiteNav() {
   const navigate = useNavigate();
   const { t } = useSiteContent();
+  const { branding } = useBranding();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const onGuestTab = GUEST_TAB_PATHS.some(
@@ -61,9 +63,18 @@ export function SiteNav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
         <Link
           to="/invitation"
-          className="font-display shrink-0 truncate text-base tracking-wide sm:text-lg"
+          className="font-display flex shrink-0 items-center truncate text-base tracking-wide sm:text-lg"
         >
-          {t("nav.brand", "Our Wedding")}
+          {branding.logo_url ? (
+            <img
+              src={branding.logo_url}
+              alt={t("nav.brand", "Our Wedding")}
+              style={{ height: Math.min(branding.logo_height, 40) }}
+              className="w-auto"
+            />
+          ) : (
+            t("nav.brand", "Our Wedding")
+          )}
         </Link>
 
         <div className="mx-auto min-w-0">
