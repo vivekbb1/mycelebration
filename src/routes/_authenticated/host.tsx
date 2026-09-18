@@ -38,6 +38,8 @@ import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
 import { HostBranding } from "@/components/host-branding";
 import { HostBoutiques } from "@/components/host-boutiques";
+import { HostRsvp } from "@/components/host-rsvp";
+import { HostMessages } from "@/components/host-messages";
 
 
 
@@ -429,13 +431,13 @@ function HostDashboard() {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+    <main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-10">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <p className="text-eyebrow">Host area</p>
-          <h1 className="mt-3 text-4xl">Run the wardrobe</h1>
+          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the wardrobe</h1>
         </div>
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" size="sm" className="shrink-0">
           <Link to="/guests">
             <Users className="size-4" /> Guest list
           </Link>
@@ -592,6 +594,8 @@ function HostDashboard() {
           <Tabs defaultValue="invited">
             <TabsList>
               <TabsTrigger value="invited">Who's invited to what</TabsTrigger>
+              <TabsTrigger value="rsvps">RSVPs</TabsTrigger>
+              <TabsTrigger value="messages">Messages</TabsTrigger>
               <TabsTrigger value="picks">Guest picks</TabsTrigger>
               <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
               <TabsTrigger value="hosted">Who invited whom</TabsTrigger>
@@ -599,6 +603,12 @@ function HostDashboard() {
             </TabsList>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
+            </TabsContent>
+            <TabsContent value="rsvps" className="mt-6">
+              <HostRsvp />
+            </TabsContent>
+            <TabsContent value="messages" className="mt-6">
+              <HostMessages />
             </TabsContent>
             <TabsContent value="picks" className="mt-6">
               <HostPicks />

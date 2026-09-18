@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useInvites } from "@/components/host-invites";
+import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 type Wardrobe = "" | "women" | "men";
 
@@ -423,12 +424,10 @@ export function HostFamilies() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
-      <div className="panel h-fit p-6">
-        <h2 className="text-xl">Add a family</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          One code for the whole family. Inside, they choose the person first, then that person's
-          look.
-        </p>
+      <CollapsiblePanel
+        title="Add a family"
+        subtitle="One code for the whole family. Inside, they choose the person first, then that person's look."
+      >
 
         <div className="mt-5 space-y-2">
           <Label htmlFor="f-invite">Which invitation</Label>
@@ -581,9 +580,9 @@ export function HostFamilies() {
         >
           {bulkBusy ? "Working…" : "Add pasted rows"}
         </Button>
-      </div>
+      </CollapsiblePanel>
 
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Families ({grouped.length})</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Each family has one code. Share it once and everyone in the family uses it.

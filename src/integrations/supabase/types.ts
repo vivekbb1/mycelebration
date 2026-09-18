@@ -464,6 +464,39 @@ export type Database = {
           },
         ]
       }
+      guest_messages: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          body: string
+          created_at: string
+          from_host: boolean
+          household: string
+          id: string
+          read_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          body: string
+          created_at?: string
+          from_host?: boolean
+          household: string
+          id?: string
+          read_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          body?: string
+          created_at?: string
+          from_host?: boolean
+          household?: string
+          id?: string
+          read_at?: string | null
+        }
+        Relationships: []
+      }
       host_invites: {
         Row: {
           claimed_at: string | null
@@ -546,6 +579,10 @@ export type Database = {
           personally_invited: boolean
           personally_invited_at: string | null
           personally_invited_by: string | null
+          rsvp_note: string | null
+          rsvp_recorded_at: string | null
+          rsvp_recorded_by: string | null
+          rsvp_status: string
         }
         Insert: {
           branding_preset_id?: string | null
@@ -563,6 +600,10 @@ export type Database = {
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
+          rsvp_note?: string | null
+          rsvp_recorded_at?: string | null
+          rsvp_recorded_by?: string | null
+          rsvp_status?: string
         }
         Update: {
           branding_preset_id?: string | null
@@ -580,6 +621,10 @@ export type Database = {
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
+          rsvp_note?: string | null
+          rsvp_recorded_at?: string | null
+          rsvp_recorded_by?: string | null
+          rsvp_status?: string
         }
         Relationships: [
           {

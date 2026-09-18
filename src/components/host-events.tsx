@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useInvites } from "@/components/host-invites";
+import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 const eventSchema = z.object({
   name: z.string().trim().min(2, "Name the function (e.g. Mehndi)").max(80),
@@ -180,11 +181,11 @@ export function HostEvents() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-      <div className="panel h-fit p-6">
-        <h2 className="text-xl">{editingId ? "Edit function" : "Add a function"}</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Everything you enter here appears on the guests' event page and in their RSVP.
-        </p>
+      <CollapsiblePanel
+        title={editingId ? "Edit function" : "Add a function"}
+        subtitle="Everything you enter here appears on the guests' event page and in their RSVP."
+        defaultOpen={editingId ? true : undefined}
+      >
         <div className="mt-5 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="e-invite">Part of which invitation</Label>
@@ -381,9 +382,9 @@ export function HostEvents() {
             ) : null}
           </div>
         </div>
-      </div>
+      </CollapsiblePanel>
 
-      <div className="panel h-fit p-6">
+      <div className="panel h-fit p-4 sm:p-6">
         <h2 className="text-xl">The schedule ({events.data?.length ?? 0})</h2>
         <ul className="mt-4 divide-y divide-border">
           {(events.data ?? []).map((ev) => (
