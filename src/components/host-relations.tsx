@@ -558,6 +558,7 @@ export function HostRelations() {
                 const followUp = history.find((n) => n.follow_up_on);
                 const isOpen = openLog === g.id;
                 const isMine = me.data ? assigned.includes(me.data) : false;
+                const tip = advice[g.id];
                 const someoneElse = !isMine && assigned.length > 0;
                 return (
                   <div key={g.id} className="rounded-xl border border-border/60 p-4">
@@ -673,17 +674,17 @@ export function HostRelations() {
                       ) : null}
                     </div>
 
-                    {advice[g.id] ? (
+                    {tip ? (
                       <div className="mt-4 space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Badge variant="secondary">{advice[g.id].status}</Badge>
+                          <Badge variant="secondary">{tip.status}</Badge>
                           <span className="text-xs text-muted-foreground">
                             Suggested for you — change anything before you send it.
                           </span>
                         </div>
-                        <p>{advice[g.id].next_step}</p>
+                        <p>{tip.next_step}</p>
                         <p className="whitespace-pre-wrap rounded-md border border-border/60 bg-background/60 p-3">
-                          {advice[g.id].message}
+                          {tip.message}
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <Button
@@ -691,7 +692,7 @@ export function HostRelations() {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              void navigator.clipboard.writeText(advice[g.id].message);
+                              void navigator.clipboard.writeText(tip.message);
                               toast.success("Message copied.");
                             }}
                           >
@@ -703,13 +704,13 @@ export function HostRelations() {
                             variant="outline"
                             onClick={() => {
                               const when = new Date(
-                                Date.now() + advice[g.id].suggested_follow_up_days * 86400000,
+                                Date.now() + tip.suggested_follow_up_days * 86400000,
                               )
                                 .toISOString()
                                 .slice(0, 10);
                               setDraft((d) => ({
                                 ...d,
-                                notes: advice[g.id].message,
+                                notes: tip.message,
                                 follow_up_on: when,
                               }));
                               setOpenLog(g.id);
