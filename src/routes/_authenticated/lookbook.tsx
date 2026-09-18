@@ -58,6 +58,8 @@ function Lookbook() {
   const [activeEvent, setActiveEvent] = useState<string>("all");
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [activePerson, setActivePerson] = useState<string | null>(null);
+  const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
 
   const me = useQuery({
     queryKey: ["me"],
