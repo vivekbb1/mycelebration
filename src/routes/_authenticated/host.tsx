@@ -575,9 +575,6 @@ function HostDashboard() {
                   );
                 })}
               </ul>
-              <Button asChild size="sm" variant="outline" className="mt-4">
-                <Link to="/guests">Open the guest list</Link>
-              </Button>
             </div>
           </section>
         </TabsContent>
