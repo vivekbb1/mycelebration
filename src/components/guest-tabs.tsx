@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarCheck, Mail, Ruler, Sparkles } from "lucide-react";
+import { CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
 
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
@@ -17,7 +17,7 @@ export function GuestTabs() {
   const tabs = [
     { to: "/invitation", label: t("nav.tab_invite", "Invite"), icon: Mail },
     { to: "/event", label: t("nav.tab_rsvp", "RSVP"), icon: CalendarCheck },
-    { to: "/lookbook", label: t("nav.tab_outfit", "Outfit"), icon: Sparkles },
+    { to: "/lookbook", label: t("nav.tab_outfit", "Outfit"), icon: Shirt },
     { to: "/measurements", label: t("nav.tab_measurement", "Measurement"), icon: Ruler },
   ].filter(
     // RSVP-only families never see the wardrobe steps.
