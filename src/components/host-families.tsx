@@ -212,21 +212,55 @@ export function HostFamilies() {
     for (const f of families.data ?? []) byName.set(f.name.toLowerCase(), f);
     for (const f of inserted) byName.set(f.name.toLowerCase(), f);
 
-    const rows = groups.flatMap((g) => {
+    // People already on the list are updated (so a filled-in template can be
+    // uploaded again to add emails), never duplicated.
+    const known = new Map<string, { id: string; email: string | null; gender: string | null }>();
+    for (const m of memberRows.data ?? []) {
+      if (!m.family_id) continue;
+      known.set(`${m.family_id}|${(m.guest_name ?? "").trim().toLowerCase()}`, {
+        id: m.id,
+        email: m.email,
+        gender: m.gender,
+      });
+    }
+
+    const rows: Record<string, unknown>[] = [];
+    const patches: { id: string; email?: string | null; gender?: string | null }[] = [];
+
+    for (const g of groups) {
       const fam = byName.get(g.family.toLowerCase());
-      if (!fam) return [];
-      return g.people.map((p) => ({
-        code: makeMemberCode(p.name),
-        guest_name: p.name.trim(),
-        email: p.email.trim() || null,
-        gender: p.gender || null,
-        household: fam.name,
-        family_id: fam.id,
-      }));
-    });
+      if (!fam) continue;
+      for (const p of g.people) {
+        const name = p.name.trim();
+        const seen = known.get(`${fam.id}|${name.toLowerCase()}`);
+        if (seen) {
+          const patch: { id: string; email?: string | null; gender?: string | null } = { id: seen.id };
+          if (p.email.trim() && p.email.trim() !== seen.email) patch.email = p.email.trim();
+          if (p.gender && p.gender !== seen.gender) patch.gender = p.gender;
+          if (Object.keys(patch).length > 1) patches.push(patch);
+          continue;
+        }
+        rows.push({
+          code: makeMemberCode(name),
+          guest_name: name,
+          email: p.email.trim() || null,
+          gender: p.gender || null,
+          household: fam.name,
+          family_id: fam.id,
+        });
+      }
+    }
 
     if (rows.length > 0) {
       const { error } = await supabase.from("invite_codes").insert(rows);
+      if (error) {
+        toast.error(error.message);
+        return null;
+      }
+    }
+
+    for (const { id, ...patch } of patches) {
+      const { error } = await supabase.from("invite_codes").update(patch).eq("id", id);
       if (error) {
         toast.error(error.message);
         return null;
@@ -238,7 +272,35 @@ export function HostFamilies() {
       const fam = byName.get(g.family.toLowerCase());
       if (fam) codes[g.family] = fam.code;
     }
-    return codes;
+    return { codes, added: rows.length, updated: patches.length };
+  };
+
+  /** Spreadsheet of the current guest list (or a blank sample) to fill in and upload back. */
+  const downloadTemplate = async () => {
+    const XLSX = await import("xlsx");
+    const header = ["Family", "Name", "Email", "Wardrobe"];
+    const body = grouped.flatMap((f) =>
+      f.members.map((m) => [
+        f.name,
+        m.guest_name ?? "",
+        m.email ?? "",
+        m.gender === "men" ? "menswear" : m.gender === "women" ? "womenswear" : "",
+      ]),
+    );
+    const sample = [
+      ["Mr & Mrs Bhatia", "Vivek Bhatia", "vivek@example.com", "menswear"],
+      ["Mr & Mrs Bhatia", "Priya Bhatia", "priya@example.com", "womenswear"],
+    ];
+    const sheet = XLSX.utils.aoa_to_sheet([header, ...(body.length > 0 ? body : sample)]);
+    sheet["!cols"] = [{ wch: 30 }, { wch: 26 }, { wch: 32 }, { wch: 14 }];
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, sheet, "Guest list");
+    XLSX.writeFile(book, "guest-list.xlsx");
+    toast.success(
+      body.length > 0
+        ? "Downloaded your guest list — add the emails and upload it back."
+        : "Downloaded a blank guest list template.",
+    );
   };
 
   const importRows = async (parsed: ParsedRow[]) => {
