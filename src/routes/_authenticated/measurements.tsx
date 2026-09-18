@@ -215,9 +215,9 @@ function Measurements() {
         sure — we'll follow up. Only you and the hosts can see these.
       </p>
 
-      {people.length > 1 ? (
-        <section className="panel mt-6 p-4">
-          <p className="text-eyebrow">Whose measurements are these?</p>
+      <section className="panel mt-6 p-4">
+        <p className="text-eyebrow">Whose measurements are these?</p>
+        {people.length > 1 ? (
           <ul className="mt-3 flex flex-wrap gap-2">
             {people.map((name) => {
               const active = name === activeName;
