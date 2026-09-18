@@ -577,6 +577,7 @@ export type Database = {
       invite_codes: {
         Row: {
           branding_preset_id: string | null
+          category: string
           claimed_at: string | null
           claimed_by: string | null
           code: string
@@ -591,6 +592,7 @@ export type Database = {
           personally_invited: boolean
           personally_invited_at: string | null
           personally_invited_by: string | null
+          phone: string | null
           rsvp_note: string | null
           rsvp_recorded_at: string | null
           rsvp_recorded_by: string | null
@@ -598,6 +600,7 @@ export type Database = {
         }
         Insert: {
           branding_preset_id?: string | null
+          category?: string
           claimed_at?: string | null
           claimed_by?: string | null
           code: string
@@ -612,6 +615,7 @@ export type Database = {
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
+          phone?: string | null
           rsvp_note?: string | null
           rsvp_recorded_at?: string | null
           rsvp_recorded_by?: string | null
@@ -619,6 +623,7 @@ export type Database = {
         }
         Update: {
           branding_preset_id?: string | null
+          category?: string
           claimed_at?: string | null
           claimed_by?: string | null
           code?: string
@@ -633,6 +638,7 @@ export type Database = {
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
+          phone?: string | null
           rsvp_note?: string | null
           rsvp_recorded_at?: string | null
           rsvp_recorded_by?: string | null
@@ -903,6 +909,7 @@ export type Database = {
           household: string | null
           id: string
           invite_claimed: boolean
+          phone: string | null
           rsvp_note: string | null
           rsvp_status: string
           rsvp_updated_at: string | null
@@ -919,6 +926,7 @@ export type Database = {
           household?: string | null
           id: string
           invite_claimed?: boolean
+          phone?: string | null
           rsvp_note?: string | null
           rsvp_status?: string
           rsvp_updated_at?: string | null
@@ -935,6 +943,7 @@ export type Database = {
           household?: string | null
           id?: string
           invite_claimed?: boolean
+          phone?: string | null
           rsvp_note?: string | null
           rsvp_status?: string
           rsvp_updated_at?: string | null
