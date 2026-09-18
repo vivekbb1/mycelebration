@@ -60,8 +60,9 @@
   --color-chart-4: var(--primary);
   --color-chart-5: var(--muted-foreground);
 
-  --shadow-glow: 0 0 0 1px oklch(0.7 0.1 78 / 0.3), 0 18px 50px -18px oklch(0.7 0.1 78 / 0.28);
-  --shadow-panel: 0 20px 50px -28px oklch(0.55 0.08 25 / 0.28);
+  --shadow-glow: 0 0 0 1px oklch(0.7 0.1 78 / 0.22), 0 14px 36px -20px oklch(0.7 0.1 78 / 0.2);
+  --shadow-panel: 0 10px 30px -24px oklch(0.55 0.08 25 / 0.2);
+
 }
 
 :root {
