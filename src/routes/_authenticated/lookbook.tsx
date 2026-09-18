@@ -151,9 +151,31 @@ function Lookbook() {
     return map;
   }, [reservations.data]);
 
+  // Per-family choices: for some functions a family chooses a look from us, for
+  // others they wear their own — set by the hosts, family by family.
+  const myAccess = useQuery({
+    queryKey: ["my-household-event-invites"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("household_event_invites")
+        .select("event_id, outfit_selection");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const familyPicks = (eventId: string) => {
+    const row = (myAccess.data ?? []).find((r) => r.event_id === eventId);
+    return row ? row.outfit_selection !== false : true;
+  };
+
   // Functions where the hosts dress the guests, and the ones where guests wear their own.
-  const pickableEvents = (events.data ?? []).filter((e) => e.outfit_selection !== false);
-  const ownOutfitEvents = (events.data ?? []).filter((e) => e.outfit_selection === false);
+  const pickableEvents = (events.data ?? []).filter(
+    (e) => e.outfit_selection !== false && familyPicks(e.id),
+  );
+  const ownOutfitEvents = (events.data ?? []).filter(
+    (e) => e.outfit_selection === false || !familyPicks(e.id),
+  );
   const ownOutfitIds = new Set(ownOutfitEvents.map((e) => e.id));
 
   // Each guest sees the looks made for them: menswear or womenswear, never both.
