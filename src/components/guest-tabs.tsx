@@ -4,7 +4,7 @@ import { CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
-const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/measurements"] as const;
+const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/measurements", "/plan"] as const;
 
 /** The four things a guest ever does, as quiet underlined tabs in the header. */
 export function GuestTabs() {
