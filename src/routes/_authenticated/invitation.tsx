@@ -11,6 +11,7 @@ import { scheduleSummary } from "@/lib/schedule";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { GuestMessages } from "@/components/guest-messages";
+import { useDeliveryPlan } from "@/lib/logistics";
 
 const travelDate = (value: string | null) =>
   value
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/_authenticated/invitation")({
 type StepTarget = "/event" | "/lookbook" | "/measurements";
 
 function InvitationPage() {
+  const deliveryPlan = useDeliveryPlan();
   const { t } = useSiteContent();
   const profile = useQuery({
     queryKey: ["my-profile"],
@@ -404,12 +406,14 @@ function InvitationPage() {
               <Check className="size-4" /> What's expected of you
             </Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/delivery">
-              <Truck className="size-4" />{" "}
-              {t("invitation.delivery_cta", "How your outfit reaches you")}
-            </Link>
-          </Button>
+          {deliveryPlan.data?.enabled !== false ? (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/delivery">
+                <Truck className="size-4" />{" "}
+                {t("invitation.delivery_cta", "How your outfit reaches you")}
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </div>
     </main>

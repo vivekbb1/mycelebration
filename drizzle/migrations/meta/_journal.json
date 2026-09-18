@@ -204,6 +204,13 @@
       "when": 1789734497834,
       "tag": "0028_lock_profile_household",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1789734834497,
+      "tag": "0029_logistics_enabled",
+      "breakpoints": true
     }
   ]
 }

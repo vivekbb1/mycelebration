@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 type Fields = {
   intro: string;
@@ -38,6 +39,7 @@ export function HostLogistics() {
   const [fields, setFields] = useState<Fields>({ ...emptyFields });
   const [timeline, setTimeline] = useState<TimelineStep[]>([]);
   const [busy, setBusy] = useState(false);
+  const [enabled, setEnabled] = useState(true);
 
   const plan = useQuery({
     queryKey: ["logistics"],
@@ -61,6 +63,7 @@ export function HostLogistics() {
       team_whatsapp: row.team_whatsapp ?? "",
       team_email: row.team_email ?? "",
     });
+    setEnabled(row.enabled ?? true);
     setTimeline(parseTimeline(row.timeline));
   }, [plan.data]);
 
@@ -68,12 +71,13 @@ export function HostLogistics() {
     setFields((f) => ({ ...f, [key]: value }));
 
   const save = async () => {
-    if (fields.intro.trim().length < 10) {
+    if (enabled && fields.intro.trim().length < 10) {
       toast.error("Write a short intro so guests know what to expect.");
       return;
     }
     setBusy(true);
     const payload = {
+      enabled,
       intro: fields.intro.trim(),
       hotel_name: fields.hotel_name.trim() || null,
       hotel_address: fields.hotel_address.trim() || null,
@@ -110,8 +114,13 @@ export function HostLogistics() {
       return;
     }
     setBusy(false);
-    toast.success("Delivery plan updated — guests see it right away.");
+    toast.success(
+      enabled
+        ? "Delivery plan updated — guests see it right away."
+        : "Delivery plan switched off — guests no longer see it.",
+    );
     await queryClient.invalidateQueries({ queryKey: ["logistics"] });
+    await queryClient.invalidateQueries({ queryKey: ["logistics-enabled"] });
   };
 
   return (
@@ -121,6 +130,17 @@ export function HostLogistics() {
         <p className="mt-1 text-xs text-muted-foreground">
           This is exactly what guests read on their delivery plan page.
         </p>
+        <div className="mt-4 flex items-start justify-between gap-4 rounded-md border border-border bg-surface p-3">
+          <div>
+            <Label htmlFor="l-enabled">Show the delivery plan to guests</Label>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {enabled
+                ? "Guests can open it from their invitation and their outfit page."
+                : "Switched off — the links are hidden and the page tells guests you'll be in touch."}
+            </p>
+          </div>
+          <Switch id="l-enabled" checked={enabled} onCheckedChange={setEnabled} />
+        </div>
         <div className="mt-5 space-y-4">
           <Field
             id="l-intro"
