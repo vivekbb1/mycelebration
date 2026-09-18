@@ -698,6 +698,7 @@ export type Database = {
         Row: {
           checkin_note: string | null
           created_at: string
+          enabled: boolean
           hotel_address: string | null
           hotel_name: string | null
           id: string
@@ -713,6 +714,7 @@ export type Database = {
         Insert: {
           checkin_note?: string | null
           created_at?: string
+          enabled?: boolean
           hotel_address?: string | null
           hotel_name?: string | null
           id?: string
@@ -728,6 +730,7 @@ export type Database = {
         Update: {
           checkin_note?: string | null
           created_at?: string
+          enabled?: boolean
           hotel_address?: string | null
           hotel_name?: string | null
           id?: string
