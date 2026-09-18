@@ -879,6 +879,10 @@ function HostDashboard() {
           <HostEvents />
         </TabsContent>
 
+        <TabsContent value="invited" className="mt-6">
+          <HostFunctionAccess />
+        </TabsContent>
+
         <TabsContent value="picks" className="mt-6">
           <HostPicks />
         </TabsContent>
