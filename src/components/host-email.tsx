@@ -155,7 +155,7 @@ export function HostEmail() {
                 id="em-name"
                 value={fromName}
                 onChange={(e) => setFromName(e.target.value)}
-                placeholder="Kush &amp; Khyati"
+                placeholder="Our Wedding"
               />
             </div>
             <div className="space-y-2">

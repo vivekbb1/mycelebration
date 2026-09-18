@@ -206,7 +206,7 @@ function InvitationPage() {
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
-  const couple = t("invitation.couple", "Kush & Khyati");
+  const couple = t("invitation.couple", "Our Wedding");
   const coupleParts = couple.split("&").map((part) => part.trim());
 
   return (
