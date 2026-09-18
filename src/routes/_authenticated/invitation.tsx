@@ -183,16 +183,24 @@ function InvitationPage() {
           : chosenCount === outfitFunctions.length
             ? "All chosen"
             : `${chosenCount} of ${outfitFunctions.length} chosen`,
-      cta: chosenCount > 0 ? "See or change your looks" : "Choose a look",
+      cta:
+        chosenCount > 0
+          ? t("step.outfit_cta_done", "See or change your looks")
+          : t("step.outfit_cta", "Choose a look"),
     },
     {
       to: "/measurements",
       icon: Ruler,
-      title: "Send your measurements",
-      body: "So your outfit is tailored before you arrive. Every field has a tip to help you measure.",
+      title: t("step.measure_title", "Send your measurements"),
+      body: t(
+        "step.measure_body",
+        "So your outfit is tailored before you arrive. Every field has a tip to help you measure.",
+      ),
       done: measurementsDone,
       status: measurementsDone ? "Sent — thank you" : "Not sent yet",
-      cta: measurementsDone ? "Update measurements" : "Send measurements",
+      cta: measurementsDone
+        ? t("step.measure_cta_done", "Update measurements")
+        : t("step.measure_cta", "Send measurements"),
     },
   ];
 
