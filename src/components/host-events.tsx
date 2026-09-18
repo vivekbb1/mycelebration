@@ -24,6 +24,8 @@ const eventSchema = z.object({
   note: z.string().trim().max(600),
   rsvp_by: z.string().trim().max(20),
   background_image_url: z.string().trim().max(500),
+  outfit_ready_by: z.string().trim().max(20),
+  outfit_slot_note: z.string().trim().max(400),
 });
 
 type EventForm = z.infer<typeof eventSchema> & {
@@ -42,6 +44,8 @@ const emptyEvent: EventForm = {
   note: "",
   rsvp_by: "",
   background_image_url: "",
+  outfit_ready_by: "",
+  outfit_slot_note: "",
   sort_order: "",
   outfit_selection: true,
   invite_id: "",
@@ -116,6 +120,8 @@ export function HostEvents() {
       note: parsed.data.note || null,
       rsvp_by: parsed.data.rsvp_by || null,
       background_image_url: parsed.data.background_image_url || null,
+      outfit_ready_by: parsed.data.outfit_ready_by || null,
+      outfit_slot_note: parsed.data.outfit_slot_note || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
       invite_id: chosenInvite || null,
@@ -160,6 +166,8 @@ export function HostEvents() {
       note: ev.note ?? "",
       rsvp_by: ev.rsvp_by ?? "",
       background_image_url: ev.background_image_url ?? "",
+      outfit_ready_by: ev.outfit_ready_by ?? "",
+      outfit_slot_note: ev.outfit_slot_note ?? "",
       sort_order: String(ev.sort_order ?? ""),
       outfit_selection: ev.outfit_selection ?? true,
       invite_id: ev.invite_id ?? "",
@@ -371,6 +379,34 @@ export function HostEvents() {
               onCheckedChange={(v) => setForm((f) => ({ ...f, outfit_selection: v }))}
             />
           </div>
+          <div className="rounded-lg border border-border/70 p-4">
+            <p className="text-sm">Outfit slot</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              When the outfit for this function has to be ready, and what it involves — guests see
+              this next to their arrival and departure.
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="e-outfit-by">Outfit ready by</Label>
+                <Input
+                  id="e-outfit-by"
+                  type="date"
+                  value={form.outfit_ready_by}
+                  onChange={(e) => setForm((f) => ({ ...f, outfit_ready_by: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-outfit-note">Outfit details</Label>
+                <Input
+                  id="e-outfit-note"
+                  maxLength={400}
+                  placeholder="Fitting at the hotel, 4pm the day before"
+                  value={form.outfit_slot_note}
+                  onChange={(e) => setForm((f) => ({ ...f, outfit_slot_note: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
           <div className="flex gap-3">
             <Button onClick={save} disabled={busy} className="flex-1">
               {busy ? "Saving…" : editingId ? "Save changes" : "Add function"}
@@ -410,6 +446,12 @@ export function HostEvents() {
                 </p>
                 {ev.dress_code ? (
                   <p className="mt-1 truncate text-xs text-primary">{ev.dress_code}</p>
+                ) : null}
+                {ev.outfit_ready_by || ev.outfit_slot_note ? (
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    Outfit{ev.outfit_ready_by ? ` ready by ${ev.outfit_ready_by}` : ""}
+                    {ev.outfit_slot_note ? ` · ${ev.outfit_slot_note}` : ""}
+                  </p>
                 ) : null}
               </div>
               <Button

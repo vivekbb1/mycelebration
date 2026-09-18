@@ -241,7 +241,9 @@ export type Database = {
           invite_id: string | null
           name: string
           note: string | null
+          outfit_ready_by: string | null
           outfit_selection: boolean
+          outfit_slot_note: string | null
           rsvp_by: string | null
           sort_order: number
           start_time: string | null
@@ -258,7 +260,9 @@ export type Database = {
           invite_id?: string | null
           name: string
           note?: string | null
+          outfit_ready_by?: string | null
           outfit_selection?: boolean
+          outfit_slot_note?: string | null
           rsvp_by?: string | null
           sort_order?: number
           start_time?: string | null
@@ -275,7 +279,9 @@ export type Database = {
           invite_id?: string | null
           name?: string
           note?: string | null
+          outfit_ready_by?: string | null
           outfit_selection?: boolean
+          outfit_slot_note?: string | null
           rsvp_by?: string | null
           sort_order?: number
           start_time?: string | null
@@ -930,6 +936,9 @@ export type Database = {
       }
       reservations: {
         Row: {
+          build_fabric: string | null
+          build_garment: string | null
+          build_size: string | null
           created_at: string
           guest_id: string
           guest_name: string | null
@@ -940,6 +949,9 @@ export type Database = {
           status: string
         }
         Insert: {
+          build_fabric?: string | null
+          build_garment?: string | null
+          build_size?: string | null
           created_at?: string
           guest_id: string
           guest_name?: string | null
@@ -950,6 +962,9 @@ export type Database = {
           status?: string
         }
         Update: {
+          build_fabric?: string | null
+          build_garment?: string | null
+          build_size?: string | null
           created_at?: string
           guest_id?: string
           guest_name?: string | null

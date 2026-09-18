@@ -11,7 +11,7 @@ import { GuestTabs } from "@/components/guest-tabs";
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
-const GUEST_TAB_PATHS = ["/invitation", "/event", "/lookbook", "/measurements"];
+const GUEST_TAB_PATHS = ["/invitation", "/event", "/lookbook", "/measurements", "/plan"];
 
 /** Host-side pages belong back on the host page; everything else on the invitation. */
 const HOST_PATHS = ["/guests", "/guest", "/host"];

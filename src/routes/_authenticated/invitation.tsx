@@ -398,7 +398,12 @@ function InvitationPage() {
           <GuestMessages />
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-12 flex flex-wrap justify-center gap-3 text-center">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/plan">
+              <Check className="size-4" /> What's expected of you
+            </Link>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/delivery">
               <Truck className="size-4" />{" "}
