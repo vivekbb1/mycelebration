@@ -190,9 +190,13 @@ function Lookbook() {
   const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
   const wardrobe = wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender;
 
+  const invitedIds = myEventIds.data;
+
   const selectable = (outfits.data ?? []).filter(
     (o) =>
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
+      // Looks for a function this family isn't invited to stay hidden.
+      (!o.event_id || !invitedIds || invitedIds.has(o.event_id)) &&
       (!wardrobe || (o.gender ?? "women") === wardrobe),
   );
 
