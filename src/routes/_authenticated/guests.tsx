@@ -43,7 +43,30 @@ const inviteSchema = z.object({
     .trim()
     .max(255)
     .refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email address"),
+  household: z.string().trim().max(120),
+  gender: z.enum(["women", "men", ""]),
 });
+
+/**
+ * A pasted line can say who the person is: "Vivek Bhatia, vivek@x.com, husband"
+ * or "(m)" / "(f)". Anything else leaves the choice to the guest.
+ */
+function genderFrom(line: string): { gender: "women" | "men" | ""; cleaned: string } {
+  const lower = line.toLowerCase();
+  const men = /\b(m|male|man|husband|mr|son|boy)\b|\(m\)/.test(lower);
+  const women = /\b(f|female|woman|wife|mrs|ms|daughter|girl)\b|\(f\)/.test(lower);
+  const cleaned = line
+    .replace(/\((m|f)\)/gi, "")
+    .replace(
+      /\b(male|female|man|woman|husband|wife|mrs|mr|ms|son|daughter|boy|girl|m|f)\b/gi,
+      (match, _g, offset: number) => (offset === 0 ? match : ""),
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (men && !women) return { gender: "men", cleaned };
+  if (women && !men) return { gender: "women", cleaned };
+  return { gender: "", cleaned: line };
+}
 
 function makeCode(name: string) {
   const base =
