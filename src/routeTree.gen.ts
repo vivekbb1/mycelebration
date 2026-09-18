@@ -20,6 +20,7 @@ import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
+import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 
@@ -78,6 +79,11 @@ const AuthenticatedMeasurementsRoute =
     path: '/measurements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGuestGuestIdRoute =
   AuthenticatedGuestGuestIdRouteImport.update({
     id: '/guest/$guestId',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/invitation': typeof AuthenticatedInvitationRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/plan': typeof AuthenticatedPlanRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/invitation': typeof AuthenticatedInvitationRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/plan': typeof AuthenticatedPlanRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
+  '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/invitation'
     | '/lookbook'
     | '/measurements'
+    | '/plan'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/invitation'
     | '/lookbook'
     | '/measurements'
+    | '/plan'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   id:
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/invitation'
     | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
+    | '/_authenticated/plan'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesById: FileRoutesById
@@ -267,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeasurementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/plan': {
+      id: '/_authenticated/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof AuthenticatedPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/guest/$guestId': {
       id: '/_authenticated/guest/$guestId'
       path: '/guest/$guestId'
@@ -293,6 +312,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
   AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
+  AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
@@ -305,6 +325,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
   AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
+  AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
 
