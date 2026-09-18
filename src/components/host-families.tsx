@@ -191,7 +191,7 @@ export function HostFamilies() {
   /** Creates any missing families, then their members. Returns family name → code. */
   const createFamilies = async (
     groups: { family: string; people: MemberDraft[] }[],
-  ): Promise<Record<string, string> | null> => {
+  ): Promise<{ codes: Record<string, string>; added: number; updated: number } | null> => {
     const existing = new Map((families.data ?? []).map((f) => [f.name.toLowerCase(), f]));
     const toCreate = groups.filter((g) => !existing.has(g.family.toLowerCase()));
 
