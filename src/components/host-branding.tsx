@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { guardedUpdate } from "@/lib/save-guard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
