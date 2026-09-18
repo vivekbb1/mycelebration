@@ -53,6 +53,17 @@ type Note = {
   reminder_sent_at: string | null;
 };
 
+type Transfer = {
+  id: string;
+  invite_id: string;
+  from_host: string | null;
+  to_host: string;
+  reason: string | null;
+  effective_on: string;
+  applied_at: string | null;
+  created_at: string;
+};
+
 const CHANNELS = [
   { value: "call", label: "Call" },
   { value: "whatsapp", label: "WhatsApp" },
@@ -409,6 +420,16 @@ export function HostRelations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Bring any booked hand-overs into effect once their date has arrived.
+  useEffect(() => {
+    void supabase.rpc("apply_due_guest_transfers").then(({ data }) => {
+      if (data && data > 0) {
+        qc.invalidateQueries({ queryKey: ["relations-links"] });
+        qc.invalidateQueries({ queryKey: ["relations-transfers"] });
+      }
+    });
+  }, [qc]);
+
   // Once a day, the first host to open this page sets the reminder emails going.
   useEffect(() => {
     const stamp = new Date().toISOString().slice(0, 10);
@@ -630,6 +651,8 @@ export function HostRelations() {
                 const isMine = me.data ? assigned.includes(me.data) : false;
                 const tip = advice[g.id];
                 const someoneElse = !isMine && assigned.length > 0;
+                const handovers = transfersFor.get(g.id) ?? [];
+                const handingOver = openHandover === g.id;
                 return (
                   <div key={g.id} className="rounded-xl border border-border/60 p-4">
                     <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
@@ -717,6 +740,17 @@ export function HostRelations() {
                                 "Mark invited personally"
                               )}
                             </Button>
+                            {(hosts.data ?? []).length > 1 && assigned.length > 0 ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setOpenHandover(handingOver ? null : g.id)}
+                              >
+                                <ArrowRightLeft className="mr-2 size-4" />
+                                {handingOver ? "Close" : "Hand over"}
+                              </Button>
+                            ) : null}
                           </>
                         )}
                       </div>
