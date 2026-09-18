@@ -931,6 +931,7 @@ function HostDashboard() {
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               <TabsTrigger value="email">Email</TabsTrigger>
               <TabsTrigger value="wording">Wording</TabsTrigger>
+              <TabsTrigger value="branding">Branding</TabsTrigger>
             </TabsList>
             <TabsContent value="boutiques" className="mt-6">
               <HostBoutiques />
