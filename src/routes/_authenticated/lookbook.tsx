@@ -67,10 +67,18 @@ function Lookbook() {
       if (!user) return null;
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, invite_claimed")
+        .select("id, full_name, invite_claimed, gender, household")
         .eq("id", user.id)
         .maybeSingle();
-      return data ?? { id: user.id, full_name: "", invite_claimed: false };
+      return (
+        data ?? {
+          id: user.id,
+          full_name: "",
+          invite_claimed: false,
+          gender: null as string | null,
+          household: null as string | null,
+        }
+      );
     },
   });
 
