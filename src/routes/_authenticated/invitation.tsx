@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/invitation")({
         content:
           "Your personal wedding invitation in three simple steps: reply, choose your outfit, send your measurements.",
       },
-      { property: "og:title", content: "Your Invitation — Kush & Khyati" },
+      { property: "og:title", content: "Your Invitation — Reply, Outfit & Measurements" },
       {
         property: "og:description",
         content:
