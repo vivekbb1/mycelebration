@@ -492,8 +492,11 @@ function Lookbook() {
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((outfit) => {
-            const mine = mineByOutfit.has(outfit.id);
-            const taken = mine || !outfit.is_available;
+            const heldBy = mineByOutfit.has(outfit.id)
+              ? (mineByOutfit.get(outfit.id) ?? activeName)
+              : null;
+            const mine = heldBy === activeName;
+            const taken = heldBy !== null || !outfit.is_available;
             const eventName = (events.data ?? []).find((e) => e.id === outfit.event_id)?.name;
             return (
               <article key={outfit.id} className="panel flex flex-col overflow-hidden">
