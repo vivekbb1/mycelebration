@@ -44,6 +44,8 @@ const emptyEvent: EventForm = {
   note: "",
   rsvp_by: "",
   background_image_url: "",
+  outfit_ready_by: "",
+  outfit_slot_note: "",
   sort_order: "",
   outfit_selection: true,
   invite_id: "",
