@@ -108,7 +108,7 @@ export function HostBranding() {
       if (!name) throw new Error("Give the theme a name first.");
       const { error } = await supabase.from("branding_presets").insert({
         name,
-        settings: vars.settings as unknown as Record<string, unknown>,
+        settings: JSON.parse(JSON.stringify(vars.settings)),
       });
       if (error) throw error;
     },
@@ -125,7 +125,7 @@ export function HostBranding() {
       const { error } = await supabase
         .from("branding_presets")
         .update({
-          settings: draft as unknown as Record<string, unknown>,
+          settings: JSON.parse(JSON.stringify(draft)),
           updated_at: new Date().toISOString(),
         })
         .eq("id", preset.id);
