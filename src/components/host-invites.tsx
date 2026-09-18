@@ -89,7 +89,7 @@ function ThemePicker({
       aria-label={label}
       value={value ?? MAIN}
       onChange={(e) => onPick(e.target.value === MAIN ? null : e.target.value)}
-      className="h-9 rounded-md border border-border bg-surface px-2 text-sm"
+      className="field-select max-w-full"
     >
       <option value={MAIN}>Main saved look</option>
       {themes.map((t) => (

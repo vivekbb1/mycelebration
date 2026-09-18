@@ -201,7 +201,7 @@ export function HostEvents() {
               id="e-invite"
               value={chosenInvite}
               onChange={(e) => setForm((f) => ({ ...f, invite_id: e.target.value }))}
-              className="h-9 w-full rounded-md border border-border bg-surface px-2 text-sm"
+              className="field-select"
             >
               {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
               {inviteList.map((v) => (
