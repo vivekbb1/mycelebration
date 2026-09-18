@@ -34,6 +34,7 @@ import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
+import { HostBranding } from "@/components/host-branding";
 import { HostBoutiques } from "@/components/host-boutiques";
 
 
