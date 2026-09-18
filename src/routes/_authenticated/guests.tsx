@@ -90,11 +90,17 @@ function makeCode(name: string) {
 function GuestListPage() {
   const queryClient = useQueryClient();
   const emailInvite = useServerFn(sendInviteEmail);
-  const [form, setForm] = useState({ guest_name: "", email: "" });
+  const [form, setForm] = useState<{
+    guest_name: string;
+    email: string;
+    household: string;
+    gender: "women" | "men" | "";
+  }>({ guest_name: "", email: "", household: "", gender: "" });
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [bulk, setBulk] = useState("");
+  const [bulkHousehold, setBulkHousehold] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
 
 
