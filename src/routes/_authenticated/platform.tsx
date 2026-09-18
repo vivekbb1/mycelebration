@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { FEATURES, useFeatures } from "@/lib/features";
+import { HostContent } from "@/components/host-content";
+import { HostBranding } from "@/components/host-branding";
+import { SITE_CONTENT_KEY, useSiteContent } from "@/lib/site-content";
+import { guardedUpdate } from "@/lib/save-guard";
 
 export const Route = createFileRoute("/_authenticated/platform")({
   head: () => ({
