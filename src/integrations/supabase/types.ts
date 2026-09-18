@@ -572,6 +572,7 @@ export type Database = {
           key: string
           kind: string
           label: string
+          page_name: string
           sort_order: number
           updated_at: string
           value: string
@@ -582,6 +583,7 @@ export type Database = {
           key: string
           kind?: string
           label: string
+          page_name?: string
           sort_order?: number
           updated_at?: string
           value: string
@@ -592,6 +594,7 @@ export type Database = {
           key?: string
           kind?: string
           label?: string
+          page_name?: string
           sort_order?: number
           updated_at?: string
           value?: string
