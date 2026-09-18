@@ -122,9 +122,9 @@ function GuestViewPage() {
         .from("measurements")
         .select("*")
         .eq("guest_id", guestId)
-        .maybeSingle();
+        .order("guest_name");
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 
