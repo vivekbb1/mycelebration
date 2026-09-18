@@ -281,6 +281,7 @@ export type Database = {
       }
       families: {
         Row: {
+          branding_preset_id: string | null
           code: string
           created_at: string
           email: string | null
@@ -289,6 +290,7 @@ export type Database = {
           needs_wardrobe: boolean
         }
         Insert: {
+          branding_preset_id?: string | null
           code: string
           created_at?: string
           email?: string | null
@@ -297,6 +299,7 @@ export type Database = {
           needs_wardrobe?: boolean
         }
         Update: {
+          branding_preset_id?: string | null
           code?: string
           created_at?: string
           email?: string | null
@@ -304,7 +307,15 @@ export type Database = {
           name?: string
           needs_wardrobe?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "families_branding_preset_id_fkey"
+            columns: ["branding_preset_id"]
+            isOneToOne: false
+            referencedRelation: "branding_presets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       guest_communications: {
         Row: {
@@ -496,6 +507,7 @@ export type Database = {
       }
       invite_codes: {
         Row: {
+          branding_preset_id: string | null
           claimed_at: string | null
           claimed_by: string | null
           code: string
@@ -511,6 +523,7 @@ export type Database = {
           personally_invited_by: string | null
         }
         Insert: {
+          branding_preset_id?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
           code: string
@@ -526,6 +539,7 @@ export type Database = {
           personally_invited_by?: string | null
         }
         Update: {
+          branding_preset_id?: string | null
           claimed_at?: string | null
           claimed_by?: string | null
           code?: string
@@ -541,6 +555,13 @@ export type Database = {
           personally_invited_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "invite_codes_branding_preset_id_fkey"
+            columns: ["branding_preset_id"]
+            isOneToOne: false
+            referencedRelation: "branding_presets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invite_codes_family_id_fkey"
             columns: ["family_id"]
@@ -964,6 +985,7 @@ export type Database = {
         }[]
       }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
+      my_branding: { Args: never; Returns: Json }
       my_event_ids: {
         Args: never
         Returns: {
