@@ -61,13 +61,14 @@ export function HostBranding() {
     queryFn: async (): Promise<Preset[]> => {
       const { data, error } = await supabase
         .from("branding_presets")
-        .select("id, name, settings, created_at")
+        .select("id, name, settings, created_at, updated_at")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []).map((row) => ({
         id: row.id,
         name: row.name,
         created_at: row.created_at,
+        updated_at: row.updated_at,
         settings: { ...BRANDING_DEFAULTS, ...((row.settings ?? {}) as Partial<Draft>) },
       }));
     },
