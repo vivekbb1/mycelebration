@@ -385,7 +385,7 @@ function Lookbook() {
         <section className="panel mt-6 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">
-              Your reserved look{myOutfits.length > 1 ? "s" : ""} ({myOutfits.length})
+              Reserved for {activeName} ({myOutfits.length})
             </h2>
             <Button asChild size="sm" variant="outline">
               <Link to="/delivery">Pickup &amp; delivery plan</Link>
