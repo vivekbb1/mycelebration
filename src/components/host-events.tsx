@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 const eventSchema = z.object({
@@ -60,7 +61,8 @@ export function HostEvents() {
   const fileRef = useRef<HTMLInputElement>(null);
   const invites = useInvites();
   const inviteList = invites.data ?? [];
-  const chosenInvite = form.invite_id || inviteList[0]?.id || "";
+  const { inviteId: selectedEvent } = useSelectedEvent();
+  const chosenInvite = form.invite_id || selectedEvent || inviteList[0]?.id || "";
 
   async function uploadImage(file: File) {
     setUploading(true);
@@ -96,6 +98,11 @@ export function HostEvents() {
       return data;
     },
   });
+
+  /** Only the functions of the event the host is working on. */
+  const scheduleList = (events.data ?? []).filter(
+    (ev) => !selectedEvent || !ev.invite_id || ev.invite_id === selectedEvent,
+  );
 
   const reset = () => {
     setForm({ ...emptyEvent });
@@ -426,9 +433,9 @@ export function HostEvents() {
       </CollapsiblePanel>
 
       <div className="panel h-fit p-4 sm:p-6">
-        <h2 className="text-xl">The schedule ({events.data?.length ?? 0})</h2>
+        <h2 className="text-xl">The schedule ({scheduleList.length})</h2>
         <ul className="mt-4 divide-y divide-border">
-          {(events.data ?? []).map((ev) => (
+          {scheduleList.map((ev) => (
             <li key={ev.id} className="flex items-start gap-3 py-4">
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-2 truncate">
@@ -477,7 +484,7 @@ export function HostEvents() {
               </Button>
             </li>
           ))}
-          {(events.data ?? []).length === 0 ? (
+          {scheduleList.length === 0 ? (
             <li className="py-4 text-sm text-muted-foreground">
               No functions yet — add your first one and guests will see it immediately.
             </li>

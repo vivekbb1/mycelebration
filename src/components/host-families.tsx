@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 type Wardrobe = "" | "women" | "men";
@@ -177,7 +178,8 @@ export function HostFamilies() {
   const invites = useInvites();
   const inviteList = invites.data ?? [];
   const [inviteId, setInviteId] = useState("");
-  const chosenInvite = inviteId || inviteList[0]?.id || "";
+  const { inviteId: selectedEvent } = useSelectedEvent();
+  const chosenInvite = inviteId || selectedEvent || inviteList[0]?.id || "";
 
   const families = useQuery({
     queryKey: ["families"],
@@ -203,11 +205,13 @@ export function HostFamilies() {
   });
 
   const grouped = useMemo(() => {
-    return (families.data ?? []).map((f) => ({
+    return (families.data ?? [])
+      .filter((f) => !selectedEvent || !f.invite_id || f.invite_id === selectedEvent)
+      .map((f) => ({
       ...f,
       members: (memberRows.data ?? []).filter((m) => m.family_id === f.id),
     }));
-  }, [families.data, memberRows.data]);
+  }, [families.data, memberRows.data, selectedEvent]);
 
   /** Local families only RSVP — the outfit and measurement steps vanish for them. */
   const toggleWardrobe = async (id: string, next: boolean) => {

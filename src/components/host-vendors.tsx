@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +74,7 @@ const money = (n: number) => new Intl.NumberFormat("en-IN").format(Math.round(n)
 export function HostVendors() {
   const qc = useQueryClient();
   const invites = useInvites();
+  const { inviteId: selectedEvent } = useSelectedEvent();
   const [draft, setDraft] = useState<Draft>(empty);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,14 +96,16 @@ export function HostVendors() {
 
   const shown = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const list = vendors.data ?? [];
+    const list = (vendors.data ?? []).filter(
+      (v) => !selectedEvent || !v.invite_id || v.invite_id === selectedEvent,
+    );
     if (!q) return list;
     return list.filter((v) =>
       `${v.name} ${v.city ?? ""} ${v.contact_name ?? ""} ${vendorCategoryLabel(v.category)}`
         .toLowerCase()
         .includes(q),
     );
-  }, [vendors.data, search]);
+  }, [vendors.data, search, selectedEvent]);
 
   const totals = useMemo(() => {
     const list = vendors.data ?? [];
@@ -127,7 +131,7 @@ export function HostVendors() {
       website: draft.website.trim() || null,
       status: draft.status,
       agreed_amount: draft.agreed_amount.trim() ? Number(draft.agreed_amount) : null,
-      invite_id: draft.invite_id || null,
+      invite_id: draft.invite_id || selectedEvent || null,
       notes: draft.notes.trim() || null,
       created_by: me.user?.id ?? null,
     });

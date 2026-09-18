@@ -26,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
-import { HostInvites } from "@/components/host-invites";
+import { HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
@@ -40,6 +40,7 @@ import { HostContent } from "@/components/host-content";
 import { HostBoutiques } from "@/components/host-boutiques";
 import { HostVendors } from "@/components/host-vendors";
 import { HostFees } from "@/components/host-fees";
+import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
@@ -64,7 +65,7 @@ export const Route = createFileRoute("/_authenticated/host")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: HostPage,
+  component: HostRoute,
 });
 
 const outfitSchema = z.object({
@@ -197,7 +198,7 @@ function HostDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, event_date, dress_code, sort_order")
+        .select("id, name, event_date, dress_code, sort_order, invite_id")
         .order("sort_order");
       if (error) throw error;
       return data;
@@ -275,8 +276,24 @@ function HostDashboard() {
     fallback ||
     "Guest";
 
+  const { inviteId: selectedEvent } = useSelectedEvent();
+
+  /** Only the functions and looks that belong to the event being worked on. */
+  const eventList = useMemo(
+    () =>
+      (events.data ?? []).filter(
+        (e) => !selectedEvent || !e.invite_id || e.invite_id === selectedEvent,
+      ),
+    [events.data, selectedEvent],
+  );
+  const allowedEventIds = useMemo(() => new Set(eventList.map((e) => e.id)), [eventList]);
+  const outfitList = useMemo(
+    () => (outfits.data ?? []).filter((o) => !o.event_id || allowedEventIds.has(o.event_id)),
+    [outfits.data, allowedEventIds],
+  );
+
   const eventName = (id: string | null) =>
-    (events.data ?? []).find((e) => e.id === id)?.name ?? "No function";
+    eventList.find((e) => e.id === id)?.name ?? "No function";
 
   const reservedRows = useMemo(
     () =>
@@ -297,14 +314,14 @@ function HostDashboard() {
   );
 
   const stats = useMemo(() => {
-    const total = (outfits.data ?? []).length;
+    const total = outfitList.length;
     const reserved = (reservations.data ?? []).length;
     const measured = new Set((measurements.data ?? []).map((m) => m.guest_id)).size;
     const invited = (invites.data ?? []).length;
     const silent = (invites.data ?? []).filter((i) => !i.claimed_by).length;
     const awaitingRsvp = (profiles.data ?? []).filter((p) => p.rsvp_status === "pending").length;
     return { total, reserved, available: total - reserved, measured, invited, silent, awaitingRsvp };
-  }, [outfits.data, reservations.data, measurements.data, invites.data, profiles.data]);
+  }, [outfitList, reservations.data, measurements.data, invites.data, profiles.data]);
 
   const resetForm = () => {
     setForm({ ...emptyOutfit });
@@ -447,6 +464,8 @@ function HostDashboard() {
           </Link>
         </Button>
       </div>
+
+      <EventPicker />
 
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
@@ -698,7 +717,7 @@ function HostDashboard() {
                       <SelectValue placeholder="Choose a function" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(events.data ?? []).map((ev) => (
+                      {eventList.map((ev) => (
                         <SelectItem key={ev.id} value={ev.id}>
                           {ev.name}
                         </SelectItem>
@@ -836,16 +855,15 @@ function HostDashboard() {
           </div>
 
           <div className="panel h-fit p-4 sm:p-6">
-            <h2 className="text-xl">In the lookbook ({outfits.data?.length ?? 0})</h2>
+            <h2 className="text-xl">In the lookbook ({outfitList.length})</h2>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <Checkbox
                 id="select-all-looks"
                 checked={
-                  (outfits.data ?? []).length > 0 &&
-                  selected.length === (outfits.data ?? []).length
+                  outfitList.length > 0 && selected.length === outfitList.length
                 }
                 onCheckedChange={(v) =>
-                  setSelected(v ? (outfits.data ?? []).map((o) => o.id) : [])
+                  setSelected(v ? outfitList.map((o) => o.id) : [])
                 }
               />
               <Label htmlFor="select-all-looks" className="text-xs font-normal">
@@ -865,7 +883,7 @@ function HostDashboard() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No function</SelectItem>
-                      {(events.data ?? []).map((e) => (
+                      {eventList.map((e) => (
                         <SelectItem key={e.id} value={e.id}>
                           {e.name}
                         </SelectItem>
@@ -896,7 +914,7 @@ function HostDashboard() {
             ) : null}
 
             <ul className="mt-4 divide-y divide-border">
-              {(outfits.data ?? []).map((o) => {
+              {outfitList.map((o) => {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
                 return (
                   <li key={o.id} className="flex items-center gap-3 py-3">
@@ -949,7 +967,7 @@ function HostDashboard() {
                   </li>
                 );
               })}
-              {(outfits.data ?? []).length === 0 ? (
+              {outfitList.length === 0 ? (
                 <li className="py-4 text-sm text-muted-foreground">No outfits added yet.</li>
               ) : null}
             </ul>
@@ -1029,6 +1047,51 @@ function Stat({ label, value }: { label: string; value: number }) {
     <div className="panel p-4">
       <p className="font-display text-3xl text-primary">{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+/** Wraps the host area so every tab works on the same chosen event. */
+function HostRoute() {
+  return (
+    <SelectedEventProvider>
+      <HostPage />
+    </SelectedEventProvider>
+  );
+}
+
+/** The one place a host chooses which celebration they're working on. */
+function EventPicker() {
+  const { inviteId, setInviteId } = useSelectedEvent();
+  const invites = useInvites();
+  const list = invites.data ?? [];
+
+  return (
+    <div className="panel mt-6 flex flex-wrap items-center gap-3 p-3 sm:p-4">
+      <Label htmlFor="host-event" className="text-xs text-muted-foreground">
+        Working on
+      </Label>
+      {list.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No event yet — create one under the Event tab.
+        </p>
+      ) : (
+        <select
+          id="host-event"
+          className="field-select w-full sm:w-64"
+          value={inviteId}
+          onChange={(e) => setInviteId(e.target.value)}
+        >
+          {list.map((i) => (
+            <option key={i.id} value={i.id}>
+              {i.name}
+            </option>
+          ))}
+        </select>
+      )}
+      <p className="w-full text-xs text-muted-foreground sm:w-auto">
+        Functions, guests, wardrobe and setup all apply to this event.
+      </p>
     </div>
   );
 }

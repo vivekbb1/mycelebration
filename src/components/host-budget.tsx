@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { VENDOR_CATEGORIES, vendorCategoryLabel } from "@/components/host-vendors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ const num = (v: string) => (v.trim() ? Number(v) : null);
 export function HostBudget() {
   const qc = useQueryClient();
   const invites = useInvites();
+  const { inviteId: selectedEvent } = useSelectedEvent();
   const [draft, setDraft] = useState<Draft>(empty);
   const [busy, setBusy] = useState(false);
 
@@ -82,8 +84,16 @@ export function HostBudget() {
     },
   });
 
+  const itemList = useMemo(
+    () =>
+      (items.data ?? []).filter(
+        (i) => !selectedEvent || !i.invite_id || i.invite_id === selectedEvent,
+      ),
+    [items.data, selectedEvent],
+  );
+
   const totals = useMemo(() => {
-    const list = items.data ?? [];
+    const list = itemList;
     const planned = list.reduce((s, i) => s + Number(i.planned_amount ?? 0), 0);
     const actual = list.reduce(
       (s, i) => s + Number(i.actual_amount ?? i.planned_amount ?? 0),
@@ -91,11 +101,11 @@ export function HostBudget() {
     );
     const paid = list.reduce((s, i) => s + Number(i.paid_amount ?? 0), 0);
     return { planned, actual, paid, left: actual - paid };
-  }, [items.data]);
+  }, [itemList]);
 
   const byCategory = useMemo(() => {
     const map = new Map<string, { planned: number; actual: number; paid: number }>();
-    for (const i of items.data ?? []) {
+    for (const i of itemList) {
       const row = map.get(i.category) ?? { planned: 0, actual: 0, paid: 0 };
       row.planned += Number(i.planned_amount ?? 0);
       row.actual += Number(i.actual_amount ?? i.planned_amount ?? 0);
@@ -103,7 +113,7 @@ export function HostBudget() {
       map.set(i.category, row);
     }
     return [...map.entries()].sort((a, b) => b[1].actual - a[1].actual);
-  }, [items.data]);
+  }, [itemList]);
 
   const add = async () => {
     const label = draft.label.trim();
@@ -113,7 +123,7 @@ export function HostBudget() {
     const { error } = await supabase.from("budget_items").insert({
       label,
       category: draft.category,
-      invite_id: draft.invite_id || null,
+      invite_id: draft.invite_id || selectedEvent || null,
       event_id: draft.event_id || null,
       vendor_id: draft.vendor_id || null,
       planned_amount: num(draft.planned_amount) ?? 0,
@@ -317,9 +327,9 @@ export function HostBudget() {
       </div>
 
       <div className="panel p-4 sm:p-6">
-        <h3 className="text-xl">Every cost ({(items.data ?? []).length})</h3>
+        <h3 className="text-xl">Every cost ({itemList.length})</h3>
         <ul className="mt-4 divide-y divide-border">
-          {(items.data ?? []).map((i) => (
+          {itemList.map((i) => (
             <li key={i.id} className="py-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -359,7 +369,7 @@ export function HostBudget() {
               </div>
             </li>
           ))}
-          {(items.data ?? []).length === 0 ? (
+          {itemList.length === 0 ? (
             <li className="py-4 text-sm text-muted-foreground">No costs yet.</li>
           ) : null}
         </ul>
