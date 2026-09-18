@@ -46,7 +46,7 @@ export function HostFunctionAccess() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("household_event_invites")
-        .select("id, household, event_id");
+        .select("id, household, event_id, outfit_selection");
       if (error) throw error;
       return data;
     },
