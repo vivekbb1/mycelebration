@@ -119,7 +119,7 @@ function Row({
   sub?: string | undefined;
 }) {
   return (
-    <div className="flex justify-center gap-3 text-center sm:text-left">
+    <div className="flex items-start gap-3 text-left">
       <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
       <div>
         <dt className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">{label}</dt>
