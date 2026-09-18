@@ -128,7 +128,7 @@ export function HostEvents() {
       outfit_slot_note: parsed.data.outfit_slot_note || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
-      invite_id: chosenInvite || null,
+      invite_id: chosenInvite,
     };
     try {
       if (editingId) {
