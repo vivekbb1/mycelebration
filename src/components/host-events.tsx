@@ -108,6 +108,10 @@ export function HostEvents() {
       toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
       return;
     }
+    if (!chosenInvite) {
+      toast.error("Choose the event this function belongs to — create one under the Event tab.");
+      return;
+    }
     setBusy(true);
     const order = Number.parseInt(form.sort_order, 10);
     const payload = {
