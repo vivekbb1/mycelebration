@@ -625,10 +625,14 @@ function GuestListPage() {
 
 
                     <Button
-                      variant="ghost"
+                      variant={confirmRemove === r.key ? "destructive" : "ghost"}
                       size="icon"
-                      aria-label={`Remove invitation for ${r.name}`}
-                      onClick={() => removeInvite(r.key, r.registered)}
+                      aria-label={
+                        confirmRemove === r.key
+                          ? `Confirm removing ${r.name}`
+                          : `Remove invitation for ${r.name}`
+                      }
+                      onClick={() => removeInvite(r.key, r.registered, r.name)}
                     >
                       <Trash2 className="size-4" />
                     </Button>
