@@ -132,8 +132,23 @@ function Lookbook() {
   const ownOutfitEvents = (events.data ?? []).filter((e) => e.outfit_selection === false);
   const ownOutfitIds = new Set(ownOutfitEvents.map((e) => e.id));
 
+  // Each guest sees the looks made for them: menswear or womenswear, never both.
+  const myGender = (me.data?.gender as string | null) ?? null;
+
+  const saveGender = async (gender: string) => {
+    if (!me.data?.id) return;
+    const { error } = await supabase.from("profiles").update({ gender }).eq("id", me.data.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["me"] });
+  };
+
   const selectable = (outfits.data ?? []).filter(
-    (o) => !o.event_id || !ownOutfitIds.has(o.event_id),
+    (o) =>
+      (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
+      (!myGender || (o.gender ?? "women") === myGender),
   );
 
   const visible = selectable.filter(
