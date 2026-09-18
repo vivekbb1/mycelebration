@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 import { scheduleSummary } from "@/lib/schedule";
 import { useSiteContent } from "@/lib/site-content";
+import { useNeedsWardrobe } from "@/lib/wardrobe";
 
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
@@ -122,6 +123,7 @@ function InvitationPage() {
     return row ? row.outfit_selection !== false : true;
   };
 
+  const { needsWardrobe } = useNeedsWardrobe();
   const firstName = (profile.data?.full_name ?? "").trim().split(" ")[0] ?? "";
   const rsvp = profile.data?.rsvp_status ?? "pending";
   const list = events.data ?? [];
