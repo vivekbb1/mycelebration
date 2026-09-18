@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Upload } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,34 @@ export function HostEvents() {
   const [form, setForm] = useState<EventForm>({ ...emptyEvent });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function uploadImage(file: File) {
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("event-images").upload(path, file, {
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+      if (up.error) throw new Error(up.error.message);
+      const signed = await supabase.storage
+        .from("event-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed.error || !signed.data?.signedUrl) {
+        throw new Error(signed.error?.message ?? "Could not make a link for the picture.");
+      }
+      setForm((f) => ({ ...f, background_image_url: signed.data.signedUrl }));
+      toast.success("Picture uploaded — remember to save the function.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "The picture could not be uploaded.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
 
   const events = useQuery({
     queryKey: ["events"],
@@ -240,10 +268,44 @@ export function HostEvents() {
               placeholder="https://…/mehndi-card.jpg"
               onChange={(e) => setForm((f) => ({ ...f, background_image_url: e.target.value }))}
             />
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void uploadImage(file);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {uploading ? "Uploading…" : "Upload a picture (JPG)"}
+              </Button>
+              {form.background_image_url.trim() ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setForm((f) => ({ ...f, background_image_url: "" }))}
+                >
+                  Remove picture
+                </Button>
+              ) : null}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Best size: 1200 × 1600 px (portrait, 3:4), at least 900 × 1200 px, under 500 KB. It
-              sits behind the card text with a soft wash over it, so a calm, uncluttered picture
-              works best. Leave empty for the plain watercolour card.
+              Paste a link or upload a JPG from your computer. Best size: 1200 × 1600 px (portrait,
+              3:4), at least 900 × 1200 px, under 5 MB. It sits behind the card text with a soft
+              wash over it, so a calm, uncluttered picture works best. Leave empty for the plain
+              watercolour card.
             </p>
             {form.background_image_url.trim() ? (
               <img
