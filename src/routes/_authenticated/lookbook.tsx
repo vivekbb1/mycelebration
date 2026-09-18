@@ -115,9 +115,19 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id");
+        .select("id, outfit_id, guest_id, guest_name");
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Everyone invited under the same family name, so a couple can choose one after the other.
+  const household = useQuery({
+    queryKey: ["household-members"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("household_members");
+      if (error) throw error;
+      return (data ?? []) as { name: string; gender: string | null }[];
     },
   });
 
