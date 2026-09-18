@@ -697,6 +697,7 @@ export type Database = {
           bust: number | null
           created_at: string
           guest_id: string
+          guest_name: string
           height: number | null
           hip: number | null
           id: string
@@ -714,6 +715,7 @@ export type Database = {
           bust?: number | null
           created_at?: string
           guest_id: string
+          guest_name?: string
           height?: number | null
           hip?: number | null
           id?: string
@@ -731,6 +733,7 @@ export type Database = {
           bust?: number | null
           created_at?: string
           guest_id?: string
+          guest_name?: string
           height?: number | null
           hip?: number | null
           id?: string
