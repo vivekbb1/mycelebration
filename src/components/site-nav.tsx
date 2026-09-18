@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useSiteContent } from "@/lib/site-content";
 
 const linkClass =
   "rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
