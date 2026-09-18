@@ -564,6 +564,81 @@ export function HostBranding() {
         ) : null}
       </section>
 
+      <section className="panel p-4 sm:p-6">
+        <h3 className="text-lg">Wedding logo on the invitation card</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Shown at the top of the first card guests see. Upload a PNG with a see-through background —
+          best around 600 × 600 px, under 500 KB — or paste a link. Leave it empty to show only your
+          names.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <input
+            ref={coverFileRef}
+            type="file"
+            accept="image/png,image/svg+xml,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void uploadCoverLogo(file);
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploadingLogo}
+            onClick={() => coverFileRef.current?.click()}
+          >
+            {uploadingLogo ? "Uploading…" : "Upload a logo (PNG)"}
+          </Button>
+          {draft.cover_logo_url ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => set("cover_logo_url", null)}
+            >
+              Remove logo
+            </Button>
+          ) : null}
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="text-sm">
+            Or paste a link
+            <Input
+              value={draft.cover_logo_url ?? ""}
+              onChange={(e) => set("cover_logo_url", e.target.value.trim() || null)}
+              placeholder="https://…/wedding-logo.png"
+              className="mt-1"
+            />
+          </label>
+          <label className="text-sm">
+            Size on the card
+            <span className="ml-2 text-xs text-muted-foreground">{draft.cover_logo_height}px</span>
+            <input
+              type="range"
+              min={48}
+              max={220}
+              step={4}
+              value={draft.cover_logo_height}
+              onChange={(e) => set("cover_logo_height", Number(e.target.value))}
+              className="mt-2 w-full accent-primary"
+            />
+          </label>
+        </div>
+        {draft.cover_logo_url ? (
+          <div className="invite-card mt-4 flex justify-center p-6">
+            <img
+              src={draft.cover_logo_url}
+              alt="Your wedding logo"
+              style={{ height: draft.cover_logo_height }}
+              className="w-auto"
+            />
+          </div>
+        ) : null}
+      </section>
+
       <section className="invite-card p-6 sm:p-9">
         <p className="text-eyebrow text-center">How it looks</p>
         <h3 className="mt-3 text-center text-3xl">Your Wedding</h3>
