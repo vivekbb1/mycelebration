@@ -107,7 +107,7 @@ export function HostPicks() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {(guests.data ?? []).map((g) => {
+                {sortedGuests.map((g) => {
                   const forGuest = picks.get(g.id);
                   const missing = pickable.filter((ev) => !forGuest?.get(ev.id)).length;
                   return (
