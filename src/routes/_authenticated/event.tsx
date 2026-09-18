@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 import { useSiteContent } from "@/lib/site-content";
+import { GuestTravel } from "@/components/guest-travel";
 
 export const Route = createFileRoute("/_authenticated/event")({
   head: () => ({
@@ -194,6 +195,8 @@ function EventPage() {
           </Button>
         </div>
       </section>
+
+      <GuestTravel events={events.data ?? []} />
 
       <div className="gold-rule my-10" />
 

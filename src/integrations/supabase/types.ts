@@ -106,6 +106,44 @@ export type Database = {
         }
         Relationships: []
       }
+      event_attendance: {
+        Row: {
+          attending: boolean
+          created_at: string
+          event_id: string
+          guest_count: number
+          household: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          attending?: boolean
+          created_at?: string
+          event_id: string
+          guest_count?: number
+          household: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          attending?: boolean
+          created_at?: string
+          event_id?: string
+          guest_count?: number
+          household?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           background_image_url: string | null
@@ -161,6 +199,7 @@ export type Database = {
           email: string | null
           id: string
           name: string
+          needs_wardrobe: boolean
         }
         Insert: {
           code: string
@@ -168,6 +207,7 @@ export type Database = {
           email?: string | null
           id?: string
           name: string
+          needs_wardrobe?: boolean
         }
         Update: {
           code?: string
@@ -175,6 +215,7 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string
+          needs_wardrobe?: boolean
         }
         Relationships: []
       }
@@ -604,6 +645,57 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_plans: {
+        Row: {
+          arrival_date: string | null
+          arrival_flight: string | null
+          arrival_time: string | null
+          created_at: string
+          created_by: string | null
+          departure_date: string | null
+          departure_flight: string | null
+          departure_time: string | null
+          guest_name: string | null
+          household: string
+          id: string
+          notes: string | null
+          party_size: number | null
+          updated_at: string
+        }
+        Insert: {
+          arrival_date?: string | null
+          arrival_flight?: string | null
+          arrival_time?: string | null
+          created_at?: string
+          created_by?: string | null
+          departure_date?: string | null
+          departure_flight?: string | null
+          departure_time?: string | null
+          guest_name?: string | null
+          household: string
+          id?: string
+          notes?: string | null
+          party_size?: number | null
+          updated_at?: string
+        }
+        Update: {
+          arrival_date?: string | null
+          arrival_flight?: string | null
+          arrival_time?: string | null
+          created_at?: string
+          created_by?: string | null
+          departure_date?: string | null
+          departure_flight?: string | null
+          departure_time?: string | null
+          guest_name?: string | null
+          household?: string
+          id?: string
+          notes?: string | null
+          party_size?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -658,6 +750,7 @@ export type Database = {
           event_id: string
         }[]
       }
+      my_family_needs_wardrobe: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "guest"

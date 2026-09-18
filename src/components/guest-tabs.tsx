@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { CalendarCheck, Mail, Ruler, Sparkles } from "lucide-react";
 
 import { useSiteContent } from "@/lib/site-content";
+import { useNeedsWardrobe } from "@/lib/wardrobe";
 
 const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/measurements"] as const;
 
@@ -9,6 +10,7 @@ const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/measurements"] as c
 export function GuestTabs() {
   const { t } = useSiteContent();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { needsWardrobe } = useNeedsWardrobe();
 
   if (!GUEST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
 
@@ -17,7 +19,10 @@ export function GuestTabs() {
     { to: "/event", label: t("nav.tab_rsvp", "RSVP"), icon: CalendarCheck },
     { to: "/lookbook", label: t("nav.tab_outfit", "Outfit"), icon: Sparkles },
     { to: "/measurements", label: t("nav.tab_measurement", "Measurement"), icon: Ruler },
-  ] as const;
+  ].filter(
+    // RSVP-only families never see the wardrobe steps.
+    (tab) => needsWardrobe || (tab.to !== "/lookbook" && tab.to !== "/measurements"),
+  );
 
   return (
     <nav className="flex items-center gap-1 sm:gap-5">

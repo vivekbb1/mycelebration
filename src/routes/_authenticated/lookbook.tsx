@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CalendarDays, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { sendReservationEmail } from "@/lib/reservation-email.functions";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ function Lookbook() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [activePerson, setActivePerson] = useState<string | null>(null);
   const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
+  const { needsWardrobe } = useNeedsWardrobe();
 
   const me = useQuery({
     queryKey: ["me"],
@@ -284,6 +286,24 @@ function Lookbook() {
     await queryClient.invalidateQueries({ queryKey: ["my-wardrobe"] });
   };
 
+  if (!needsWardrobe) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-16">
+        <div className="panel p-6 text-center">
+          <p className="text-eyebrow">Nothing to choose</p>
+          <h1 className="mt-3 text-2xl">You'll wear your own outfit</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            We're not dressing your family for this wedding, so there's no look to pick and no
+            measurements to send. Just let us know you're coming.
+          </p>
+          <Button asChild className="mt-5">
+            <Link to="/event">Go to your RSVP</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   if (me.isLoading) {
     return <p className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
   }
@@ -322,23 +342,71 @@ function Lookbook() {
     );
   }
 
-  if (me.data && !wardrobe && people.length <= 1) {
+  // Everyone invited under this invitation code, by name — choose the person first.
+  const namedPeople = (household.data ?? []).filter((p) => p.name && p.name !== "Guest");
+
+  if (me.data && !wardrobe) {
+    const chosen = activePerson
+      ? namedPeople.find((p) => p.name === activePerson)
+      : undefined;
+
     return (
       <main className="mx-auto max-w-md px-4 py-16">
         <div className="panel p-6">
           <p className="text-eyebrow">Almost there</p>
           <h1 className="mt-3 text-2xl">Who are we dressing?</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Tell us which wardrobe to show you{me.data.household ? ` for the ${me.data.household}` : ""}.
-            Every person invited has their own link, so a husband and wife each choose their own
-            looks and send their own measurements.
-          </p>
-          <div className="mt-5 grid gap-3">
-            <Button onClick={() => saveGender("women")}>Womenswear</Button>
-            <Button variant="outline" onClick={() => saveGender("men")}>
-              Menswear
-            </Button>
-          </div>
+          {namedPeople.length > 0 && !chosen ? (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Everyone invited{me.data.household ? ` under ${me.data.household}` : ""} — choose
+                the person whose look you're picking now. You can come back and choose for the
+                others afterwards.
+              </p>
+              <div className="mt-5 grid gap-3">
+                {namedPeople.map((p) => (
+                  <Button
+                    key={p.name}
+                    variant={p.gender ? "default" : "outline"}
+                    onClick={() => setActivePerson(p.name)}
+                  >
+                    {p.name}
+                  </Button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Which looks should we show{chosen ? ` ${chosen.name}` : ""}?
+              </p>
+              <div className="mt-5 grid gap-3">
+                <Button
+                  onClick={() =>
+                    chosen
+                      ? setWardrobeOverride((prev) => ({ ...prev, [chosen.name]: "women" }))
+                      : saveGender("women")
+                  }
+                >
+                  Womenswear
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    chosen
+                      ? setWardrobeOverride((prev) => ({ ...prev, [chosen.name]: "men" }))
+                      : saveGender("men")
+                  }
+                >
+                  Menswear
+                </Button>
+                {chosen ? (
+                  <Button variant="ghost" onClick={() => setActivePerson(null)}>
+                    Choose someone else
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
       </main>
     );

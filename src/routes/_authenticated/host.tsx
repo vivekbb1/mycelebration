@@ -27,6 +27,7 @@ import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostPicks } from "@/components/host-picks";
+import { HostTravel } from "@/components/host-travel";
 import { HostOverview } from "@/components/host-overview";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
@@ -584,12 +585,16 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="invited">Who's invited to what</TabsTrigger>
               <TabsTrigger value="picks">Guest picks</TabsTrigger>
+              <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
             </TabsList>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
             <TabsContent value="picks" className="mt-6">
               <HostPicks />
+            </TabsContent>
+            <TabsContent value="travel" className="mt-6">
+              <HostTravel />
             </TabsContent>
           </Tabs>
         </TabsContent>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 import { scheduleSummary } from "@/lib/schedule";
 import { useSiteContent } from "@/lib/site-content";
+import { useNeedsWardrobe } from "@/lib/wardrobe";
 
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
@@ -122,6 +123,7 @@ function InvitationPage() {
     return row ? row.outfit_selection !== false : true;
   };
 
+  const { needsWardrobe } = useNeedsWardrobe();
   const firstName = (profile.data?.full_name ?? "").trim().split(" ")[0] ?? "";
   const rsvp = profile.data?.rsvp_status ?? "pending";
   const list = events.data ?? [];
@@ -134,7 +136,7 @@ function InvitationPage() {
   const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount === outfitFunctions.length);
   const measurementsDone = (myMeasurements.data ?? []).length > 0;
 
-  const steps: {
+  const allSteps: {
     to: StepTarget;
     icon: typeof Sparkles;
     title: string;
@@ -203,6 +205,9 @@ function InvitationPage() {
         : t("step.measure_cta", "Send measurements"),
     },
   ];
+
+  // RSVP-only families have nothing to choose and nothing to measure.
+  const steps = allSteps.filter((step) => needsWardrobe || step.to === "/event");
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
