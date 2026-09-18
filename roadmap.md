@@ -21,6 +21,7 @@ Open, for the host to do
 - [ ] Provide a domain you own for sending email
 
 ## Done (latest)
+- Per-family function access: host "Invited to" tab ticks which functions each family may see; guests only see those functions and their outfits. Functions from the printed invitation (Mehendi, Bollywood Night, Acha Sathiyaro, Wedding, Reception) loaded with dates, venues and attire.
 - Couples/families: each person gets their own invitation code but shares a family name; men/women wardrobe per guest, guests can pick their own if unset; lookbook shows only matching looks with a switch; importer has a wardrobe override; guest list and picks group families together.
 - Host "By boutique" tab: looks grouped by atelier with reserving guest + measurement status.
 - Bulk invite guests (paste name/email per line) + "Email everyone pending" with clipboard fallback.
