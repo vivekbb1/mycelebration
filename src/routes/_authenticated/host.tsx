@@ -651,7 +651,7 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="outfits">Outfits</TabsTrigger>
               <TabsTrigger value="import">Add from a shop</TabsTrigger>
-              <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+              {has("delivery") ? <TabsTrigger value="logistics">Delivery plan</TabsTrigger> : null}
             </TabsList>
 
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
@@ -964,10 +964,12 @@ function HostDashboard() {
         <TabsContent value="setup" className="mt-6">
           <Tabs defaultValue="boutiques">
             <TabsList>
-              <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+              {has("vendor_management") ? (
+                <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+              ) : null}
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
-              <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="look">Look &amp; wording</TabsTrigger>
+              {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
+              {has("branding") ? <TabsTrigger value="look">Look &amp; wording</TabsTrigger> : null}
             </TabsList>
             <TabsContent value="boutiques" className="mt-6 space-y-8">
               <HostBoutiques />
