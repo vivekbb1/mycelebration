@@ -255,6 +255,8 @@ export function HostRelations() {
   }, [links.data, me.data]);
 
   const showingMine = scope === "mine" && myGuestIds.size > 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const soon = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
 
   const term = search.trim().toLowerCase();
   const matched = (guests.data ?? []).filter((g) => {
@@ -264,7 +266,24 @@ export function HostRelations() {
       (g.household ?? "").toLowerCase().includes(term) ||
       (g.email ?? "").toLowerCase().includes(term);
     const mine = !showingMine || myGuestIds.has(g.id);
-    return hit && mine;
+
+    const assigned = hostsFor.get(g.id) ?? [];
+    const byHost =
+      hostFilter === "all" ||
+      (hostFilter === "none" ? assigned.length === 0 : assigned.includes(hostFilter));
+
+    const history = notesFor.get(g.id) ?? [];
+    const byStatus =
+      statusFilter === "all" ||
+      (statusFilter === "none"
+        ? history.length === 0
+        : history[0]?.outcome === statusFilter);
+    const byChannel =
+      channelFilter === "all" || history.some((n) => n.channel === channelFilter);
+    const byOverdue =
+      !overdueOnly || history.some((n) => n.follow_up_on && n.follow_up_on <= today);
+
+    return hit && mine && byHost && byStatus && byChannel && byOverdue;
   });
 
   const families = useMemo(() => {
@@ -278,11 +297,55 @@ export function HostRelations() {
 
   const personallyCount = (guests.data ?? []).filter((g) => g.personally_invited).length;
   const spokenCount = new Set((notes.data ?? []).map((r) => r.invite_id)).size;
-  const today = new Date().toISOString().slice(0, 10);
   const dueFollowUps = (notes.data ?? []).filter(
     (n) => n.follow_up_on && n.follow_up_on <= today,
   );
+  const comingUp = (notes.data ?? []).filter(
+    (n) => n.follow_up_on && n.follow_up_on > today && n.follow_up_on <= soon,
+  );
   const myDue = dueFollowUps.filter((n) => myGuestIds.has(n.invite_id));
+  const guestName = (inviteId: string) =>
+    (guests.data ?? []).find((g) => g.id === inviteId)?.guest_name ?? "A guest";
+  const myReminders = [...dueFollowUps, ...comingUp].filter(
+    (n) => myGuestIds.size === 0 || myGuestIds.has(n.invite_id),
+  );
+
+  const suggest = useMutation({
+    mutationFn: async (inviteId: string) => {
+      setThinking(inviteId);
+      return await askAi({ data: { inviteId } });
+    },
+    onSettled: () => setThinking(null),
+    onSuccess: (result, inviteId) => {
+      if (!result.ok || !result.suggestion) {
+        toast.error(result.error ?? "No suggestion came back.");
+        return;
+      }
+      setAdvice((prev) => ({ ...prev, [inviteId]: result.suggestion! }));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remind = useMutation({
+    mutationFn: async () => await runReminders({ data: undefined }),
+    onSuccess: (result) => {
+      if (!result.ok) {
+        toast.error(result.error ?? "Reminders could not go out.");
+        return;
+      }
+      if ((result.sent ?? 0) === 0) {
+        toast.message(
+          result.due === 0
+            ? "Nothing due — no reminders needed."
+            : "No reminder went out. Check the sending address under Setup → Email.",
+        );
+      } else {
+        toast.success(`Reminder sent to ${result.sent} host${result.sent === 1 ? "" : "s"}.`);
+      }
+      qc.invalidateQueries({ queryKey: ["relations-notes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-6">
