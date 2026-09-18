@@ -11,10 +11,32 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
-/** Lets the hosts reword every line of copy guests see. */
-export function HostContent() {
+/**
+ * Lets the hosts reword the copy guests see. `only` / `exclude` keep the
+ * portal-wide pages (welcome page, site-wide wording) on the platform screen
+ * and the event pages on the host screen.
+ */
+export function HostContent({
+  only,
+  exclude,
+  heading = "Wording",
+  intro = "Choose a page, then edit its headlines, paragraphs and buttons. Save and guests see the new wording straight away.",
+}: {
+  only?: string[];
+  exclude?: string[];
+  heading?: string;
+  intro?: string;
+} = {}) {
   const queryClient = useQueryClient();
-  const { rows, isLoading } = useSiteContent();
+  const { rows: allRows, isLoading } = useSiteContent();
+  const rows = useMemo(
+    () =>
+      allRows.filter(
+        (r) =>
+          (!only || only.includes(r.page_name)) && (!exclude || !exclude.includes(r.page_name)),
+      ),
+    [allRows, only, exclude],
+  );
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState("");
@@ -101,11 +123,8 @@ export function HostContent() {
   return (
     <div className="space-y-6">
       <div className="panel p-4 sm:p-6">
-        <h2 className="text-xl">Wording</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Choose a page, then edit its headlines, paragraphs and buttons. Save and guests see the
-          new wording straight away.
-        </p>
+        <h2 className="text-xl">{heading}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{intro}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Input
             value={filter}

@@ -37,7 +37,6 @@ import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
-import { HostBranding } from "@/components/host-branding";
 import { HostBoutiques } from "@/components/host-boutiques";
 import { HostVendors } from "@/components/host-vendors";
 import { HostBudget } from "@/components/host-budget";
@@ -977,7 +976,7 @@ function HostDashboard() {
               {has("budgeting") ? <TabsTrigger value="budget">Budget</TabsTrigger> : null}
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
-              {has("branding") ? <TabsTrigger value="look">Look &amp; wording</TabsTrigger> : null}
+              {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
             </TabsList>
             <TabsContent value="boutiques" className="mt-6 space-y-8">
               <HostBoutiques />
@@ -1006,8 +1005,10 @@ function HostDashboard() {
               <HostEmail />
             </TabsContent>
             <TabsContent value="look" className="mt-6 space-y-8">
-              <HostBranding />
-              <HostContent />
+              <HostContent
+                exclude={["Welcome page", "Site-wide"]}
+                intro="Choose a page, then edit its headlines, paragraphs and buttons. Save and your guests see the new wording straight away. The welcome page and the portal name are looked after by the platform owner."
+              />
             </TabsContent>
           </Tabs>
         </TabsContent>
