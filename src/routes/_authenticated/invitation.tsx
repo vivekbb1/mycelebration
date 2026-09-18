@@ -299,8 +299,11 @@ function InvitationPage() {
               </Link>
             </Button>
           ) : (
-            <p className="mt-6 text-sm text-muted-foreground">
-              Everything's done — we'll be in touch about delivery. You can still change any answer.
+            <p className="mt-6 text-sm whitespace-pre-line text-muted-foreground">
+              {t(
+                "invitation.all_done_note",
+                "Everything's done — we'll be in touch about delivery. You can still change any answer.",
+              )}
             </p>
           )}
         </section>
