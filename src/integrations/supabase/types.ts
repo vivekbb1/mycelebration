@@ -151,6 +151,30 @@ export type Database = {
         }
         Relationships: []
       }
+      families: {
+        Row: {
+          code: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       host_invites: {
         Row: {
           claimed_at: string | null
@@ -223,6 +247,7 @@ export type Database = {
           code: string
           created_at: string
           email: string | null
+          family_id: string | null
           gender: string | null
           guest_name: string
           household: string | null
@@ -234,6 +259,7 @@ export type Database = {
           code: string
           created_at?: string
           email?: string | null
+          family_id?: string | null
           gender?: string | null
           guest_name: string
           household?: string | null
@@ -245,12 +271,21 @@ export type Database = {
           code?: string
           created_at?: string
           email?: string | null
+          family_id?: string | null
           gender?: string | null
           guest_name?: string
           household?: string | null
           id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invite_codes_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       logistics: {
         Row: {
