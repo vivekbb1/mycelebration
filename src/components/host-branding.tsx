@@ -1,6 +1,15 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Palette, RotateCcw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  BookmarkPlus,
+  Check,
+  Copy,
+  Eye,
+  Palette,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -15,8 +24,17 @@ import {
   useBranding,
   type Branding,
 } from "@/lib/branding";
+import { Badge } from "@/components/ui/badge";
+import { findContrastIssues } from "@/lib/contrast";
 
 type Draft = Omit<Branding, "id">;
+
+type Preset = {
+  id: string;
+  name: string;
+  settings: Draft;
+  created_at: string;
+};
 
 const COLOURS: { key: keyof Draft; label: string; hint: string }[] = [
   { key: "color_background", label: "Page background", hint: "The paper behind everything" },
@@ -34,6 +52,25 @@ export function HostBranding() {
   const { branding, query } = useBranding();
   const [draft, setDraft] = useState<Draft>({ ...BRANDING_DEFAULTS });
   const [loaded, setLoaded] = useState(false);
+  const [presetName, setPresetName] = useState("");
+  const [confirmSave, setConfirmSave] = useState(false);
+
+  const presets = useQuery({
+    queryKey: ["branding-presets"],
+    queryFn: async (): Promise<Preset[]> => {
+      const { data, error } = await supabase
+        .from("branding_presets")
+        .select("id, name, settings, created_at")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        created_at: row.created_at,
+        settings: { ...BRANDING_DEFAULTS, ...((row.settings ?? {}) as Partial<Draft>) },
+      }));
+    },
+  });
 
   useEffect(() => {
     if (!loaded && query.data) {
@@ -65,6 +102,84 @@ export function HostBranding() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const savePreset = useMutation({
+    mutationFn: async (vars: { name: string; settings: Draft }) => {
+      const name = vars.name.trim();
+      if (!name) throw new Error("Give the theme a name first.");
+      const { error } = await supabase.from("branding_presets").insert({
+        name,
+        settings: vars.settings as unknown as Record<string, unknown>,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setPresetName("");
+      qc.invalidateQueries({ queryKey: ["branding-presets"] });
+      toast.success("Theme saved — switch to it any time.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updatePreset = useMutation({
+    mutationFn: async (preset: Preset) => {
+      const { error } = await supabase
+        .from("branding_presets")
+        .update({
+          settings: draft as unknown as Record<string, unknown>,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", preset.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["branding-presets"] });
+      toast.success("Theme updated with what's on screen.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const removePreset = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("branding_presets").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["branding-presets"] });
+      toast.success("Theme removed.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const issues = useMemo(() => findContrastIssues(draft), [draft]);
+
+  const fixAll = () => {
+    setDraft((d) => {
+      let next = { ...d };
+      // Re-check as we go: fixing one colour can settle the pair beside it.
+      for (let round = 0; round < 3; round += 1) {
+        const found = findContrastIssues(next);
+        if (found.length === 0) break;
+        for (const issue of found) {
+          next = { ...next, [issue.key]: issue.suggestion } as Draft;
+        }
+      }
+      return next;
+    });
+    toast.success("Colours nudged until every pairing reads clearly.");
+  };
+
+  const attemptSave = () => {
+    if (issues.length > 0 && !confirmSave) {
+      setConfirmSave(true);
+      toast.warning(
+        `${issues.length} colour pairing${issues.length === 1 ? "" : "s"} will be hard to read. Fix them, or press Save again to keep them anyway.`,
+      );
+      return;
+    }
+    setConfirmSave(false);
+    save.mutate();
+  };
+
   const restore = () => {
     setDraft({ ...BRANDING_DEFAULTS });
     toast.message("Original look restored — save to keep it.");
@@ -87,8 +202,8 @@ export function HostBranding() {
           pick them; save when you're happy and guests see the same.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button type="button" size="sm" disabled={save.isPending} onClick={() => save.mutate()}>
-            Save branding
+          <Button type="button" size="sm" disabled={save.isPending} onClick={attemptSave}>
+            {confirmSave && issues.length > 0 ? "Save anyway" : "Save branding"}
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={discard}>
             Discard changes
