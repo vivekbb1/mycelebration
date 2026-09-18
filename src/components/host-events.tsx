@@ -240,10 +240,44 @@ export function HostEvents() {
               placeholder="https://…/mehndi-card.jpg"
               onChange={(e) => setForm((f) => ({ ...f, background_image_url: e.target.value }))}
             />
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void uploadImage(file);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {uploading ? "Uploading…" : "Upload a picture (JPG)"}
+              </Button>
+              {form.background_image_url.trim() ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setForm((f) => ({ ...f, background_image_url: "" }))}
+                >
+                  Remove picture
+                </Button>
+              ) : null}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Best size: 1200 × 1600 px (portrait, 3:4), at least 900 × 1200 px, under 500 KB. It
-              sits behind the card text with a soft wash over it, so a calm, uncluttered picture
-              works best. Leave empty for the plain watercolour card.
+              Paste a link or upload a JPG from your computer. Best size: 1200 × 1600 px (portrait,
+              3:4), at least 900 × 1200 px, under 5 MB. It sits behind the card text with a soft
+              wash over it, so a calm, uncluttered picture works best. Leave empty for the plain
+              watercolour card.
             </p>
             {form.background_image_url.trim() ? (
               <img
