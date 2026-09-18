@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  ArrowRightLeft,
   BellRing,
   Check,
   Copy,
@@ -777,6 +778,88 @@ export function HostRelations() {
                         </Badge>
                       ) : null}
                     </div>
+
+                    {handingOver ? (
+                      <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface/60 p-4 text-sm">
+                        <p className="text-xs text-muted-foreground">
+                          Pass this guest to another host. Every talk and note already recorded
+                          stays with the guest, so whoever takes over sees the whole story.
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-1">
+                            <span className="text-xs text-muted-foreground">Taking over</span>
+                            <Select
+                              value={handoverDraft.to}
+                              onValueChange={(v) =>
+                                setHandoverDraft((d) => ({ ...d, to: v }))
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a host" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(hosts.data ?? [])
+                                  .filter((h) => !assigned.includes(h.id))
+                                  .map((h) => (
+                                    <SelectItem key={h.id} value={h.id}>
+                                      {h.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-xs text-muted-foreground">From this date</span>
+                            <Input
+                              type="date"
+                              value={handoverDraft.effective}
+                              onChange={(e) =>
+                                setHandoverDraft((d) => ({ ...d, effective: e.target.value }))
+                              }
+                            />
+                          </div>
+                        </div>
+                        <Textarea
+                          rows={2}
+                          placeholder="Why the change — travelling, closer to the family, sharing the load…"
+                          value={handoverDraft.reason}
+                          onChange={(e) =>
+                            setHandoverDraft((d) => ({ ...d, reason: e.target.value }))
+                          }
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={handOver.isPending || !handoverDraft.to}
+                            onClick={() => handOver.mutate(g)}
+                          >
+                            {handOver.isPending ? "Handing over…" : "Confirm hand-over"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setOpenHandover(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {handovers.length > 0 ? (
+                      <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        {handovers.slice(0, 3).map((t) => (
+                          <li key={t.id}>
+                            {t.applied_at ? "Handed over" : "Hand-over booked"} —{" "}
+                            {hostName(t.from_host)} &rarr; {hostName(t.to_host)} ·{" "}
+                            {prettyDate(t.effective_on)}
+                            {t.reason ? ` · ${t.reason}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
 
                     {tip ? (
                       <div className="mt-4 space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
