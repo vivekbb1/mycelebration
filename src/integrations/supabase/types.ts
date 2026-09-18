@@ -205,6 +205,82 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_items: {
+        Row: {
+          actual_amount: number | null
+          category: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_on: string | null
+          event_id: string | null
+          id: string
+          invite_id: string | null
+          label: string
+          notes: string | null
+          paid_amount: number
+          planned_amount: number
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          actual_amount?: number | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_on?: string | null
+          event_id?: string | null
+          id?: string
+          invite_id?: string | null
+          label: string
+          notes?: string | null
+          paid_amount?: number
+          planned_amount?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          actual_amount?: number | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_on?: string | null
+          event_id?: string | null
+          id?: string
+          invite_id?: string | null
+          label?: string
+          notes?: string | null
+          paid_amount?: number
+          planned_amount?: number
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_items_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_items_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_settings: {
         Row: {
           from_email: string | null
@@ -1254,6 +1330,68 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vendors: {
+        Row: {
+          agreed_amount: number | null
+          category: string
+          city: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          invite_id: string | null
+          name: string
+          notes: string | null
+          status: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          agreed_amount?: number | null
+          category?: string
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invite_id?: string | null
+          name: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          agreed_amount?: number | null
+          category?: string
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invite_id?: string | null
+          name?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendors_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
