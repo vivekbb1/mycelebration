@@ -138,7 +138,9 @@ function GuestListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, city, country, whatsapp, rsvp_status, rsvp_note");
+        .select(
+          "id, full_name, email, city, country, whatsapp, rsvp_status, rsvp_note, household, gender",
+        );
       if (error) throw error;
       return data;
     },
