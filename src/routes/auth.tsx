@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { claimGuestInvite, type ClaimResult } from "@/lib/guest-access.functions";
+import { claimHostInvite } from "@/lib/host-invite.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,9 +93,10 @@ function AuthPage() {
       setTab("signin");
       return;
     }
+    const isHostCode = parsed.data.code.trim().toUpperCase().startsWith("HOST-");
     if (parsed.data.code) await claimInvite(parsed.data.code);
     setBusy(false);
-    navigate({ to: "/lookbook" });
+    navigate({ to: isHostCode ? "/host" : "/lookbook" });
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -155,7 +157,7 @@ function AuthPage() {
                     placeholder="e.g. MEHNDI-4821"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Hosts can leave this blank.
+                    Hosts: use the HOST- code from your email.
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -228,9 +230,26 @@ function AuthPage() {
 }
 
 export async function claimInvite(code: string) {
+  const trimmed = code.trim();
+  if (trimmed.toUpperCase().startsWith("HOST-")) {
+    let hostResult: ClaimResult;
+    try {
+      hostResult = await claimHostInvite({ data: { code: trimmed } });
+    } catch {
+      toast.error("We couldn't confirm that host invitation. Please try again.");
+      return false;
+    }
+    if (!hostResult.ok) {
+      toast.error(hostResult.error ?? "That host code could not be used");
+      return false;
+    }
+    toast.success("Welcome — you can now help host the wedding.");
+    return true;
+  }
+
   let result: ClaimResult;
   try {
-    result = await claimGuestInvite({ data: { code } });
+    result = await claimGuestInvite({ data: { code: trimmed } });
   } catch {
     toast.error("We couldn't confirm that invitation. Please try again.");
     return false;
