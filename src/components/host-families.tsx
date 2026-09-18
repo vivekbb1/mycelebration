@@ -224,7 +224,7 @@ export function HostFamilies() {
           toCreate.map((g) => ({
             name: g.family,
             code: makeFamilyCode(g.family),
-            invite_id: chosenInvite || null,
+            invite_id: chosenInvite,
           })),
         )
         .select("id, name, code");
@@ -285,7 +285,7 @@ export function HostFamilies() {
           gender: p.gender || null,
           household: fam.name,
           family_id: fam.id,
-          invite_id: chosenInvite || null,
+          invite_id: chosenInvite,
         });
       }
     }
