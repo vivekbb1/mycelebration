@@ -203,13 +203,22 @@ function GuestListPage() {
         rsvp: profile?.rsvp_status ?? "pending",
         rsvpNote: profile?.rsvp_note ?? null,
         looks,
+        household: profile?.household || inv.household || "",
+        gender: profile?.gender || inv.gender || "",
         measured: guestId ? Boolean(measurements.data?.some((m) => m.guest_id === guestId)) : false,
       };
     });
+    list.sort((a, b) =>
+      (a.household || "zzzz").localeCompare(b.household || "zzzz") || a.name.localeCompare(b.name),
+    );
     const q = filter.trim().toLowerCase();
     return q
       ? list.filter((r) =>
-          [r.name, r.email, r.code, ...r.looks].filter(Boolean).join(" ").toLowerCase().includes(q),
+          [r.name, r.email, r.code, r.household, ...r.looks]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
         )
       : list;
   }, [invites.data, profiles.data, reservations.data, outfits.data, measurements.data, filter]);
