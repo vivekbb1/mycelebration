@@ -84,12 +84,21 @@ export function HostRelations() {
   const [search, setSearch] = useState("");
   const [scope, setScope] = useState<"mine" | "all">("mine");
   const [openLog, setOpenLog] = useState<string | null>(null);
+  const [hostFilter, setHostFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState("all");
+  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [thinking, setThinking] = useState<string | null>(null);
+  const [advice, setAdvice] = useState<Record<string, FollowUpSuggestion>>({});
   const [draft, setDraft] = useState<{
     channel: string;
     outcome: string;
     notes: string;
     follow_up_on: string;
   }>({ channel: "call", outcome: "reached", notes: "", follow_up_on: "" });
+
+  const askAi = useServerFn(suggestFollowUp);
+  const runReminders = useServerFn(sendFollowUpReminders);
 
   const me = useQuery({
     queryKey: ["relations-me"],
