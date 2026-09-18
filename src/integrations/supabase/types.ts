@@ -245,6 +245,7 @@ export type Database = {
           rsvp_by: string | null
           sort_order: number
           start_time: string | null
+          updated_at: string
           venue: string | null
           venue_address: string | null
         }
@@ -261,6 +262,7 @@ export type Database = {
           rsvp_by?: string | null
           sort_order?: number
           start_time?: string | null
+          updated_at?: string
           venue?: string | null
           venue_address?: string | null
         }
@@ -277,6 +279,7 @@ export type Database = {
           rsvp_by?: string | null
           sort_order?: number
           start_time?: string | null
+          updated_at?: string
           venue?: string | null
           venue_address?: string | null
         }
