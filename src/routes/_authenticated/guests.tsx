@@ -51,21 +51,29 @@ const inviteSchema = z.object({
  * A pasted line can say who the person is: "Vivek Bhatia, vivek@x.com, husband"
  * or "(m)" / "(f)". Anything else leaves the choice to the guest.
  */
+const MEN_WORDS = ["m", "male", "man", "husband", "son", "boy", "menswear"];
+const WOMEN_WORDS = ["f", "female", "woman", "wife", "daughter", "girl", "womenswear"];
+
 function genderFrom(line: string): { gender: "women" | "men" | ""; cleaned: string } {
-  const lower = line.toLowerCase();
-  const men = /\b(m|male|man|husband|mr|son|boy)\b|\(m\)/.test(lower);
-  const women = /\b(f|female|woman|wife|mrs|ms|daughter|girl)\b|\(f\)/.test(lower);
-  const cleaned = line
-    .replace(/\((m|f)\)/gi, "")
-    .replace(
-      /\b(male|female|man|woman|husband|wife|mrs|mr|ms|son|daughter|boy|girl|m|f)\b/gi,
-      (match, _g, offset: number) => (offset === 0 ? match : ""),
-    )
-    .replace(/\s{2,}/g, " ")
-    .trim();
-  if (men && !women) return { gender: "men", cleaned };
-  if (women && !men) return { gender: "women", cleaned };
-  return { gender: "", cleaned: line };
+  // Markers appear as a bracketed hint or the last comma-separated field.
+  const bracket = line.match(/\((m|f|male|female|husband|wife)\)/i);
+  let rest = line.replace(/\([^)]*\)/g, " ");
+  let marker = bracket ? bracket[1].toLowerCase() : "";
+
+  if (!marker) {
+    const parts = rest.split(/[,;]/).map((p) => p.trim());
+    const last = (parts[parts.length - 1] ?? "").toLowerCase();
+    if (parts.length > 1 && (MEN_WORDS.includes(last) || WOMEN_WORDS.includes(last))) {
+      marker = last;
+      parts.pop();
+      rest = parts.join(", ");
+    }
+  }
+
+  const cleaned = rest.replace(/\s{2,}/g, " ").trim();
+  if (MEN_WORDS.includes(marker)) return { gender: "men", cleaned };
+  if (WOMEN_WORDS.includes(marker)) return { gender: "women", cleaned };
+  return { gender: "", cleaned };
 }
 
 function makeCode(name: string) {
