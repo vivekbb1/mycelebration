@@ -45,6 +45,7 @@ const formatDate = (value: string | null) =>
     : "Date to be confirmed";
 
 function EventPage() {
+  const { t } = useSiteContent();
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
