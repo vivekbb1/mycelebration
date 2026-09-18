@@ -170,7 +170,7 @@ export function HostByBoutique() {
         const measured = g.looks.filter((l) => l.measured).length;
         const orders = g.looks.filter((l) => l.reservationId);
         return (
-          <section key={g.id ?? "unassigned"} className="panel p-6">
+          <section key={g.id ?? "unassigned"} className="panel p-4 sm:p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-primary">

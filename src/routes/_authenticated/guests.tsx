@@ -292,7 +292,7 @@ function GuestListPage() {
   if (!role.data) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <h1 className="text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             The guest list is visible to the hosting family only.
@@ -327,7 +327,7 @@ function GuestListPage() {
       </div>
 
       <div className="mt-8">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">Everyone invited ({rows.length})</h2>
             <Button variant="ghost" disabled={bulkBusy} onClick={mailEveryone}>

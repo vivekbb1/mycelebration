@@ -100,7 +100,7 @@ export function HostContent() {
 
   return (
     <div className="space-y-6">
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Wording</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Choose a page, then edit its headlines, paragraphs and buttons. Save and guests see the
@@ -163,7 +163,7 @@ export function HostContent() {
       {isLoading ? <p className="text-sm text-muted-foreground">Loading the wording…</p> : null}
 
       {groups.map(([group, list]) => (
-        <section key={group} className="panel p-6">
+        <section key={group} className="panel p-4 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-lg">{group}</h3>
             <Badge variant="secondary">{list.length}</Badge>

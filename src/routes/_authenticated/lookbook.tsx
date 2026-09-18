@@ -311,7 +311,7 @@ function Lookbook() {
   if (me.data && !me.data.invite_claimed) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <Lock className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Enter your invitation code</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -352,7 +352,7 @@ function Lookbook() {
 
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <p className="text-eyebrow">Almost there</p>
           <h1 className="mt-3 text-2xl">Who are we dressing?</h1>
           {namedPeople.length > 0 && !chosen ? (

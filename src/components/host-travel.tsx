@@ -118,7 +118,7 @@ export function HostTravel() {
     <div className="space-y-6">
       <HostBuild />
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <CalendarClock className="size-4 text-primary" /> Guest timeline
         </h2>
@@ -176,7 +176,7 @@ export function HostTravel() {
         )}
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Users className="size-4 text-primary" /> Heads per function
         </h2>
@@ -198,7 +198,7 @@ export function HostTravel() {
       </section>
 
       {clashes.length > 0 ? (
-        <section className="panel p-6">
+        <section className="panel p-4 sm:p-6">
           <h2 className="flex items-center gap-2 text-xl">
             <AlertTriangle className="size-4 text-primary" /> Landing after a function
           </h2>
@@ -213,7 +213,7 @@ export function HostTravel() {
         </section>
       ) : null}
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Plane className="size-4 text-primary" /> Flights
         </h2>

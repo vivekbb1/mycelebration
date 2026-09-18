@@ -123,7 +123,7 @@ function Landing() {
         <h2 className="text-3xl sm:text-4xl">{t("landing.how_title", "How it works")}</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
           {steps.map((step) => (
-            <div key={step.title} className="panel p-6">
+            <div key={step.title} className="panel p-4 sm:p-6">
               <step.icon className="size-5 text-primary" />
               <h3 className="mt-4 text-xl">{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">

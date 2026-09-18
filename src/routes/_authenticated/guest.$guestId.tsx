@@ -135,7 +135,7 @@ function GuestViewPage() {
   if (!isHost) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <ShieldCheck className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -184,7 +184,7 @@ function GuestViewPage() {
 
       <div className="gold-rule my-8" />
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">RSVP</h2>
         <p className="mt-2 text-sm">
           <Badge variant={rsvp === "yes" ? "default" : rsvp === "no" ? "destructive" : "secondary"}>

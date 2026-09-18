@@ -207,7 +207,7 @@ export function HostFunctionAccess() {
 
   return (
     <div className="space-y-6">
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Who is invited to what</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Tick the functions each family is invited to. They'll only see those functions — and only

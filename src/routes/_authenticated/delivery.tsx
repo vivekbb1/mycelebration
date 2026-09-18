@@ -190,7 +190,7 @@ function DeliveryPage() {
       ) : null}
 
       <section className="mt-10 grid gap-5 sm:grid-cols-2">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <Ruler className="size-4 text-primary" />
           <h2 className="mt-3 text-xl">How your measurements reach the tailor</h2>
           <ol className="mt-3 space-y-2 text-sm leading-relaxed text-muted-foreground">
@@ -213,7 +213,7 @@ function DeliveryPage() {
           </Button>
         </div>
 
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <MessageCircle className="size-4 text-primary" />
           <h2 className="mt-3 text-xl">Who to ask</h2>
           <p className="mt-3 text-sm">{plan?.team_name ?? "The events team"}</p>

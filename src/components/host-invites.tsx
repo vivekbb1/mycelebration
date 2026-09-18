@@ -292,7 +292,7 @@ export function InviteThemes() {
   const themeList = themes.data ?? [];
 
   return (
-    <section className="panel p-6">
+    <section className="panel p-4 sm:p-6">
       <h3 className="flex items-center gap-2 text-lg">
         <Mail className="size-4 text-primary" /> The look for each invitation
       </h3>

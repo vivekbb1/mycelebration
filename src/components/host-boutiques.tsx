@@ -121,7 +121,7 @@ export function HostBoutiques() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,380px)_1fr]">
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">{editingId ? "Edit boutique" : "Add a designer or boutique"}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Each one gets a private code. Their stylist signs in, enters the code, and sees only the
@@ -201,7 +201,7 @@ export function HostBoutiques() {
         </div>
       </div>
 
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Ateliers</h2>
         <ul className="mt-4 divide-y divide-border/70">
           {(boutiques.data ?? []).map((b) => {

@@ -144,7 +144,7 @@ export function HostOverview() {
         />
       </div>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl">Selections by function</h2>

@@ -145,7 +145,7 @@ function HostPage() {
   if (!role.data) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <ShieldCheck className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Host access</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -467,7 +467,7 @@ function HostDashboard() {
             <Stat label="No RSVP yet" value={stats.awaitingRsvp} />
           </div>
 
-          <section className="panel p-6">
+          <section className="panel p-4 sm:p-6">
             <h2 className="text-xl">Reserved looks ({reservedRows.length})</h2>
             <ul className="mt-4 divide-y divide-border">
               {reservedRows.map((r) => (
@@ -505,7 +505,7 @@ function HostDashboard() {
           </section>
 
           <section className="grid gap-6 lg:grid-cols-2">
-            <div className="panel p-6">
+            <div className="panel p-4 sm:p-6">
               <h2 className="text-xl">Measurements submitted</h2>
               <ul className="mt-4 space-y-3">
                 {(measurements.data ?? []).map((m) => (
@@ -540,7 +540,7 @@ function HostDashboard() {
               </ul>
             </div>
 
-            <div className="panel p-6">
+            <div className="panel p-4 sm:p-6">
               <h2 className="text-xl">Waiting on these guests</h2>
               <p className="mt-1 text-xs text-muted-foreground">
                 Invited but not registered, or registered without a look, measurements or an RSVP.
@@ -630,7 +630,7 @@ function HostDashboard() {
         </TabsContent>
 
         <TabsContent value="functions" className="mt-6 space-y-6">
-          <div className="panel p-6">
+          <div className="panel p-4 sm:p-6">
             <h2 className="text-xl">How to set up your celebration</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
               <li>Create the invitation itself under Invitations — one per celebration.</li>
