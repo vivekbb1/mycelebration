@@ -70,6 +70,18 @@ export function HostPicks() {
     return map;
   }, [reservations.data, outfitById]);
 
+  /** Families stay together, so a couple's picks sit side by side. */
+  const sortedGuests = useMemo(
+    () =>
+      [...(guests.data ?? [])].sort(
+        (a, b) =>
+          ((a.household as string | null) ?? "zzzz").localeCompare(
+            (b.household as string | null) ?? "zzzz",
+          ) || (a.full_name ?? "").localeCompare(b.full_name ?? ""),
+      ),
+    [guests.data],
+  );
+
   const loading =
     events.isLoading || guests.isLoading || outfits.isLoading || reservations.isLoading;
 
