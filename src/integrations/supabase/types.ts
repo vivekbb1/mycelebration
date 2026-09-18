@@ -219,6 +219,38 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_hosts: {
+        Row: {
+          created_at: string
+          host_id: string
+          id: string
+          invite_id: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          host_id: string
+          id?: string
+          invite_id: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          host_id?: string
+          id?: string
+          invite_id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_hosts_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       host_invites: {
         Row: {
           claimed_at: string | null
@@ -296,6 +328,9 @@ export type Database = {
           guest_name: string
           household: string | null
           id: string
+          personally_invited: boolean
+          personally_invited_at: string | null
+          personally_invited_by: string | null
         }
         Insert: {
           claimed_at?: string | null
@@ -308,6 +343,9 @@ export type Database = {
           guest_name: string
           household?: string | null
           id?: string
+          personally_invited?: boolean
+          personally_invited_at?: string | null
+          personally_invited_by?: string | null
         }
         Update: {
           claimed_at?: string | null
@@ -320,6 +358,9 @@ export type Database = {
           guest_name?: string
           household?: string | null
           id?: string
+          personally_invited?: boolean
+          personally_invited_at?: string | null
+          personally_invited_by?: string | null
         }
         Relationships: [
           {

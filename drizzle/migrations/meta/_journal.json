@@ -99,6 +99,13 @@
       "when": 1789728616176,
       "tag": "0013_travel_and_wardrobe_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789728954350,
+      "tag": "0014_guest_host_assignments",
+      "breakpoints": true
     }
   ]
 }
