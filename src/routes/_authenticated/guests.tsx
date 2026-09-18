@@ -102,6 +102,7 @@ function GuestListPage() {
   const [bulk, setBulk] = useState("");
   const [bulkHousehold, setBulkHousehold] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
 
   const role = useQuery({
