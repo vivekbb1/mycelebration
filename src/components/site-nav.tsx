@@ -19,6 +19,7 @@ const HOST_PATHS = ["/guests", "/guest", "/host"];
 export function SiteNav() {
   const navigate = useNavigate();
   const { t } = useSiteContent();
+  const { branding } = useBranding();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const onGuestTab = GUEST_TAB_PATHS.some(
