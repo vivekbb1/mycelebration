@@ -24,6 +24,8 @@ const eventSchema = z.object({
   note: z.string().trim().max(600),
   rsvp_by: z.string().trim().max(20),
   background_image_url: z.string().trim().max(500),
+  outfit_ready_by: z.string().trim().max(20),
+  outfit_slot_note: z.string().trim().max(400),
 });
 
 type EventForm = z.infer<typeof eventSchema> & {
