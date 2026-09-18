@@ -169,7 +169,7 @@ export function HostVendors() {
         </div>
       </div>
 
-      <CollapsiblePanel title="Add a vendor" description="Anyone you're booking for the wedding.">
+      <CollapsiblePanel title="Add a vendor" subtitle="Anyone you're booking for the wedding.">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <Label htmlFor="vendor-name">Name</Label>
