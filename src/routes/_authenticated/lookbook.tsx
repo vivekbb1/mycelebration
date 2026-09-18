@@ -507,7 +507,7 @@ function Lookbook() {
                       variant={mine ? "default" : "secondary"}
                       className="absolute top-3 left-3"
                     >
-                      {mine ? "Yours" : "Reserved"}
+                      {mine ? `For ${activeName}` : heldBy ? `For ${heldBy}` : "Reserved"}
                     </Badge>
                   ) : null}
                 </div>
