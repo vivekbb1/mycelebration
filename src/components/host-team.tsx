@@ -302,8 +302,9 @@ export function HostTeam() {
           <Button className="w-full" disabled={busy || !pick} onClick={addHost}>
             Make them a host
           </Button>
-        </div>
-      </section>
+          </div>
+        </section>
+      </div>
 
       <section className="panel p-6">
         <h2 className="text-xl">Hosts ({hosts.length})</h2>
