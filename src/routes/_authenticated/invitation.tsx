@@ -206,6 +206,8 @@ function InvitationPage() {
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
+  const couple = t("invitation.couple", "Kush & Khyati");
+  const coupleParts = couple.split("&").map((part) => part.trim());
 
   return (
     <main className="bg-zari">
