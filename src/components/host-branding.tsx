@@ -57,6 +57,33 @@ export function HostBranding() {
   const [loaded, setLoaded] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [confirmSave, setConfirmSave] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const coverFileRef = useRef<HTMLInputElement>(null);
+
+  async function uploadCoverLogo(file: File) {
+    setUploadingLogo(true);
+    try {
+      const ext = (file.name.split(".").pop() ?? "png").toLowerCase().slice(0, 5);
+      const path = `logo-${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("event-images").upload(path, file, {
+        contentType: file.type || "image/png",
+        upsert: false,
+      });
+      if (up.error) throw new Error(up.error.message);
+      const signed = await supabase.storage
+        .from("event-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed.error || !signed.data?.signedUrl) {
+        throw new Error(signed.error?.message ?? "Could not make a link for the logo.");
+      }
+      setDraft((d) => ({ ...d, cover_logo_url: signed.data.signedUrl }));
+      toast.success("Logo uploaded — press Save branding to show it to guests.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "The logo could not be uploaded.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
 
   const presets = useQuery({
     queryKey: ["branding-presets"],
