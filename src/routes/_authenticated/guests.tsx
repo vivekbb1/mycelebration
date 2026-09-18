@@ -102,6 +102,7 @@ function GuestListPage() {
   const [bulk, setBulk] = useState("");
   const [bulkHousehold, setBulkHousehold] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
 
   const role = useQuery({
@@ -396,11 +397,15 @@ function GuestListPage() {
 
 
 
-  const removeInvite = async (id: string, registered: boolean) => {
-    if (registered) {
-      toast.error("This guest already registered — their invitation can't be removed.");
+  const removeInvite = async (id: string, registered: boolean, name: string) => {
+    if (registered && confirmRemove !== id) {
+      setConfirmRemove(id);
+      toast.warning(
+        `${name} has already registered. Click remove again to take them off the guest list — anything they chose stays on record.`,
+      );
       return;
     }
+    setConfirmRemove(null);
     const { error } = await supabase.from("invite_codes").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -621,10 +626,14 @@ function GuestListPage() {
 
 
                     <Button
-                      variant="ghost"
+                      variant={confirmRemove === r.key ? "destructive" : "ghost"}
                       size="icon"
-                      aria-label={`Remove invitation for ${r.name}`}
-                      onClick={() => removeInvite(r.key, r.registered)}
+                      aria-label={
+                        confirmRemove === r.key
+                          ? `Confirm removing ${r.name}`
+                          : `Remove invitation for ${r.name}`
+                      }
+                      onClick={() => removeInvite(r.key, r.registered, r.name)}
                     >
                       <Trash2 className="size-4" />
                     </Button>
