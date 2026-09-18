@@ -259,7 +259,7 @@ function AtelierPage() {
       {orders.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading your orders…</p>
       ) : rows.length === 0 ? (
-        <p className="panel p-6 text-sm text-muted-foreground">
+        <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
           No looks from your atelier have been reserved yet. This page fills up as guests choose
           their outfits.
         </p>
@@ -303,7 +303,7 @@ function AtelierPage() {
                         onValueChange={(value) => setStatus.mutate({ id: r.id, status: value })}
                       >
                         <SelectTrigger
-                          className="h-9 w-40"
+                          className="h-11 w-full sm:h-9 sm:w-40"
                           aria-label={`Update status for ${r.outfit.title}`}
                         >
                           <SelectValue />

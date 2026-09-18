@@ -128,7 +128,7 @@ function AuthPage() {
       </header>
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">
-        <div className="panel p-6 sm:p-8">
+        <div className="panel p-4 sm:p-6 sm:p-8">
           <p className="text-eyebrow">Guests only</p>
           <h1 className="mt-3 text-3xl">Welcome</h1>
           <p className="mt-2 text-sm text-muted-foreground">

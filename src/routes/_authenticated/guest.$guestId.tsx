@@ -201,7 +201,7 @@ function GuestViewPage() {
         {reservations.isLoading ? (
           <p className="mt-3 text-sm text-muted-foreground">Loading…</p>
         ) : (reservations.data ?? []).length === 0 ? (
-          <p className="panel mt-3 p-6 text-sm text-muted-foreground">
+          <p className="panel mt-3 p-4 sm:p-6 text-sm text-muted-foreground">
             {guestName} hasn't picked a look yet.
           </p>
         ) : (
@@ -238,7 +238,7 @@ function GuestViewPage() {
         )}
       </section>
 
-      <section className="panel mt-6 p-6">
+      <section className="panel mt-6 p-4 sm:p-6">
         <h2 className="text-xl">Measurements</h2>
         {measurements.isLoading ? (
           <p className="mt-3 text-sm text-muted-foreground">Loading…</p>

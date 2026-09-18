@@ -235,7 +235,7 @@ function PlanPage() {
               );
             })}
             {list.length === 0 ? (
-              <p className="panel p-6 text-center text-sm text-muted-foreground">
+              <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
                 Your functions will appear here as soon as the schedule is settled.
               </p>
             ) : null}

@@ -92,7 +92,7 @@ function DeliveryPage() {
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{plan.intro}</p>
       ) : null}
 
-      <section className="panel mt-8 p-6">
+      <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl">Your outfits &amp; sizes</h2>
           <Badge variant={mine.data?.measured ? "default" : "secondary"}>
@@ -147,7 +147,7 @@ function DeliveryPage() {
         ) : null}
       </section>
 
-      <section className="panel mt-6 p-6">
+      <section className="panel mt-6 p-4 sm:p-6">
         <BedDouble className="size-4 text-primary" />
         <h2 className="mt-3 text-xl">Delivered to your room</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

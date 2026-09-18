@@ -156,7 +156,7 @@ export function HostByBoutique() {
 
   if (groups.length === 0) {
     return (
-      <p className="panel p-6 text-sm text-muted-foreground">
+      <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
         Add looks in the Outfits tab and assign each one to a boutique — they'll appear here grouped
         by atelier, with the guest who reserved them.
       </p>
@@ -239,7 +239,7 @@ export function HostByBoutique() {
                             }
                           >
                             <SelectTrigger
-                              className="h-9 w-40"
+                              className="h-11 w-full sm:h-9 sm:w-40"
                               aria-label={`Order status for ${l.title}`}
                             >
                               <SelectValue />

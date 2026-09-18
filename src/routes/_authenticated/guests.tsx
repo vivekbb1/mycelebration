@@ -336,7 +336,7 @@ function GuestListPage() {
             <div className="relative">
               <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
               <Input
-                className="w-56 pl-9"
+                className="w-full pl-9 sm:w-56"
                 placeholder="Search name, code, look…"
                 maxLength={80}
                 value={filter}

@@ -298,7 +298,7 @@ export function HostBranding() {
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
               placeholder="Mehendi morning"
-              className="mt-1 w-56"
+              className="mt-1 w-full sm:w-56"
             />
           </label>
           <Button

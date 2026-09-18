@@ -257,7 +257,7 @@ function Measurements() {
         </p>
       </section>
 
-      <div className="panel mt-6 p-6">
+      <div className="panel mt-6 p-4 sm:p-6">
         <h2 className="mb-4 text-xl">{activeName}</h2>
         <div className="flex items-center gap-3">
           <Label className="text-sm">Units</Label>

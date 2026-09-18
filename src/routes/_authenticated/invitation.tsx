@@ -263,7 +263,7 @@ function InvitationPage() {
           </div>
         </section>
 
-        <section className="panel mt-8 p-6 sm:p-8">
+        <section className="panel mt-8 p-4 sm:p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-eyebrow">
@@ -355,7 +355,7 @@ function InvitationPage() {
               />
             ))}
             {list.length === 0 ? (
-              <p className="panel p-6 text-center text-sm text-muted-foreground">
+              <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
                 The schedule is being finalised — your functions will appear here shortly.
               </p>
             ) : null}

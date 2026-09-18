@@ -289,7 +289,7 @@ function Lookbook() {
   if (!needsWardrobe) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6 text-center">
+        <div className="panel p-4 sm:p-6 text-center">
           <p className="text-eyebrow">Nothing to choose</p>
           <h1 className="mt-3 text-2xl">You'll wear your own outfit</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -488,7 +488,7 @@ function Lookbook() {
 
 
       {myOutfits.length > 0 ? (
-        <section className="panel mt-6 p-6">
+        <section className="panel mt-6 p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">
               Reserved for {activeName} ({myOutfits.length})

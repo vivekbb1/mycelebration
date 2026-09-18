@@ -139,7 +139,7 @@ function EventPage() {
         .
       </p>
 
-      <section className="panel mt-8 p-6">
+      <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl">{t("rsvp.title", "Your RSVP")}</h2>
@@ -208,7 +208,7 @@ function EventPage() {
             <FunctionCard key={ev.id} event={ev as WeddingFunction} />
           ))}
           {(events.data ?? []).length === 0 ? (
-            <p className="panel p-6 text-sm text-muted-foreground">
+            <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
               The schedule is being finalised. Dates, timings and venues will appear here as soon as
               the hosts add them.
             </p>

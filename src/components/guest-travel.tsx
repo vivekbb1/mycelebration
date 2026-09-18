@@ -184,7 +184,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
   return (
     <>
-      <section className="panel mt-8 p-6">
+      <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="flex items-center gap-2 text-xl">
@@ -318,7 +318,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
         </Button>
       </section>
 
-      <section className="panel mt-6 p-6">
+      <section className="panel mt-6 p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Users className="size-4 text-primary" /> How many of you at each function?
         </h2>

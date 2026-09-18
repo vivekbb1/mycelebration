@@ -656,7 +656,7 @@ function HostDashboard() {
 
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
 
-          <div className="panel h-fit p-6">
+          <div className="panel h-fit p-4 sm:p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Copy the image link and product link from Pernia's Pop-Up Shop (or any boutique) and
@@ -831,7 +831,7 @@ function HostDashboard() {
             </div>
           </div>
 
-          <div className="panel h-fit p-6">
+          <div className="panel h-fit p-4 sm:p-6">
             <h2 className="text-xl">In the lookbook ({outfits.data?.length ?? 0})</h2>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <Checkbox
@@ -856,7 +856,7 @@ function HostDashboard() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Select disabled={bulkBusy} onValueChange={(v) => bulkAssign("event_id", v)}>
-                    <SelectTrigger className="w-44">
+                    <SelectTrigger className="w-full sm:w-44">
                       <SelectValue placeholder="Set function" />
                     </SelectTrigger>
                     <SelectContent>
@@ -869,7 +869,7 @@ function HostDashboard() {
                     </SelectContent>
                   </Select>
                   <Select disabled={bulkBusy} onValueChange={(v) => bulkAssign("boutique_id", v)}>
-                    <SelectTrigger className="w-44">
+                    <SelectTrigger className="w-full sm:w-44">
                       <SelectValue placeholder="Set boutique" />
                     </SelectTrigger>
                     <SelectContent>
