@@ -284,7 +284,7 @@ function Lookbook() {
     );
   }
 
-  if (me.data && !myGender) {
+  if (me.data && !wardrobe && people.length <= 1) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
         <div className="panel p-6">
