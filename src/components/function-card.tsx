@@ -14,6 +14,7 @@ export type WeddingFunction = {
   venue_address: string | null;
   dress_code: string | null;
   note: string | null;
+  background_image_url?: string | null;
 };
 
 export const formatEventDate = (value: string | null) =>
