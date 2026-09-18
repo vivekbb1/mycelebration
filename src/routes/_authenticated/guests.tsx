@@ -452,112 +452,17 @@ function GuestListPage() {
         <Stat label="Measurements in" value={stats.measured} />
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[360px_1fr]">
-        <div className="panel h-fit p-6">
-          <h2 className="text-xl">Invite a guest</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Each guest gets their own code and link — that's how reservations stay tied to a name.
-          </p>
-          <div className="mt-5 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="g-name">Guest name</Label>
-              <Input
-                id="g-name"
-                maxLength={100}
-                value={form.guest_name}
-                placeholder="Emma Whitfield"
-                onChange={(e) => setForm((f) => ({ ...f, guest_name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="g-email">Email (optional)</Label>
-              <Input
-                id="g-email"
-                maxLength={255}
-                value={form.email}
-                placeholder="emma@example.com"
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="g-household">Family (optional)</Label>
-              <Input
-                id="g-household"
-                maxLength={120}
-                value={form.household}
-                placeholder="Mr & Mrs Bhatia and Family"
-                onChange={(e) => setForm((f) => ({ ...f, household: e.target.value }))}
-              />
-              <p className="text-xs text-muted-foreground">
-                Give everyone in one family the same name here — each person still gets their own
-                code and picks their own looks.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label>Wardrobe</Label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { value: "", label: "Let them choose" },
-                  { value: "women", label: "Womenswear" },
-                  { value: "men", label: "Menswear" },
-                ].map((opt) => (
-                  <Button
-                    key={opt.value || "any"}
-                    type="button"
-                    size="sm"
-                    variant={form.gender === opt.value ? "default" : "outline"}
-                    onClick={() =>
-                      setForm((f) => ({ ...f, gender: opt.value as "" | "women" | "men" }))
-                    }
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <Button className="w-full" disabled={busy} onClick={addInvite}>
-              {busy ? "Creating…" : "Create invitation"}
-            </Button>
-          </div>
+      <div className="mt-8">
+        <HostFamilies />
+      </div>
 
-          <div className="gold-rule my-6" />
-
-          <h2 className="text-xl">Invite a family in bulk</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            One person per line: name, email, then <span className="text-foreground">husband</span>{" "}
-            or <span className="text-foreground">wife</span> (or m / f) so they see the right
-            wardrobe. Add <span className="text-foreground">| Family name</span> to group a couple
-            or family together.
-          </p>
-          <Input
-            className="mt-3"
-            maxLength={120}
-            value={bulkHousehold}
-            placeholder="Family for everyone below (optional)"
-            onChange={(e) => setBulkHousehold(e.target.value)}
-          />
-          <Textarea
-            className="mt-3 font-mono text-xs"
-            rows={7}
-            value={bulk}
-            placeholder={
-              "Vivek Bhatia, vivek@example.com, husband | Mr & Mrs Bhatia\nPriya Bhatia, priya@example.com, wife | Mr & Mrs Bhatia\nMarie Lambert, marie@example.com, f"
-            }
-            onChange={(e) => setBulk(e.target.value)}
-          />
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="secondary" disabled={bulkBusy} onClick={addBulk}>
-              {bulkBusy ? "Working…" : "Create invitations"}
-            </Button>
+      <div className="mt-8">
+        <div className="panel p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl">Everyone invited ({rows.length})</h2>
             <Button variant="ghost" disabled={bulkBusy} onClick={mailEveryone}>
               <Mail className="size-4" /> Email everyone pending
             </Button>
-          </div>
-        </div>
-
-        <div className="panel p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl">Guests ({rows.length})</h2>
             <div className="relative">
               <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
               <Input
