@@ -8,7 +8,7 @@ import { useSiteContent } from "@/lib/site-content";
 import { GuestTabs } from "@/components/guest-tabs";
 
 const linkClass =
-  "rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
+  "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
 export function SiteNav() {
   const navigate = useNavigate();
