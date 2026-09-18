@@ -448,10 +448,11 @@ function HostDashboard() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invitations">Event</TabsTrigger>
-          <TabsTrigger value="functions">Functions</TabsTrigger>
-          <TabsTrigger value="guests">Guests</TabsTrigger>
-          <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
+          {has("functions") ? <TabsTrigger value="functions">Functions</TabsTrigger> : null}
+          {has("guest_list") ? <TabsTrigger value="guests">Guests</TabsTrigger> : null}
+          {has("wardrobe_picker") ? <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger> : null}
           <TabsTrigger value="setup">Setup</TabsTrigger>
+          {isPlatformAdmin ? <TabsTrigger value="platform">Platform</TabsTrigger> : null}
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 space-y-8">
@@ -584,16 +585,22 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="invited">Invited to what</TabsTrigger>
               <TabsTrigger value="replies">Replies</TabsTrigger>
-              <TabsTrigger value="picks">Outfit picks</TabsTrigger>
-              <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
-              <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
+              {has("wardrobe_picker") ? (
+                <TabsTrigger value="picks">Outfit picks</TabsTrigger>
+              ) : null}
+              {has("rsvp_extended") ? (
+                <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
+              ) : null}
+              {has("guest_tracker") || has("guest_communication") ? (
+                <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
+              ) : null}
             </TabsList>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
             <TabsContent value="replies" className="mt-6 space-y-8">
               <HostRsvp />
-              <HostMessages />
+              {has("messaging") ? <HostMessages /> : null}
             </TabsContent>
             <TabsContent value="picks" className="mt-6">
               <HostPicks />
@@ -607,6 +614,20 @@ function HostDashboard() {
             </TabsContent>
           </Tabs>
         </TabsContent>
+
+        {isPlatformAdmin ? (
+          <TabsContent value="platform" className="mt-6">
+            <div className="panel p-4 sm:p-6">
+              <h2 className="text-xl">Packages &amp; features</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Decide what each package includes and which hosts are on it.
+              </p>
+              <Button asChild className="mt-4">
+                <Link to="/platform">Open platform admin</Link>
+              </Button>
+            </div>
+          </TabsContent>
+        ) : null}
 
         <TabsContent value="invitations" className="mt-6">
           <HostInvites />
