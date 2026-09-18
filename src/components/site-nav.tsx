@@ -8,7 +8,7 @@ import { useSiteContent } from "@/lib/site-content";
 import { GuestTabs } from "@/components/guest-tabs";
 
 const linkClass =
-  "rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
+  "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
 export function SiteNav() {
   const navigate = useNavigate();
@@ -43,13 +43,20 @@ export function SiteNav() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-        <Link to="/invitation" className="font-display text-lg tracking-wide">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
+        <Link
+          to="/invitation"
+          className="font-display shrink-0 truncate text-base tracking-wide sm:text-lg"
+        >
           {t("nav.brand", "Our Wedding")}
         </Link>
-        <nav className="flex flex-wrap items-center gap-1 text-sm">
+
+        <div className="mx-auto">
           <GuestTabs />
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1">
           {isStylist ? (
             <Link to="/atelier" className={linkClass}>
               Atelier
@@ -60,11 +67,10 @@ export function SiteNav() {
               Host
             </Link>
           ) : null}
-
           <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
             <LogOut className="size-4" />
           </Button>
-        </nav>
+        </div>
       </div>
     </header>
   );
