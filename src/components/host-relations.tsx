@@ -1,10 +1,14 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
+  BellRing,
   Check,
+  Copy,
   HeartHandshake,
   MessageCircle,
   Search,
+  Sparkles,
   Trash2,
   UserCheck,
   UserPlus,
@@ -17,6 +21,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { suggestFollowUp, type FollowUpSuggestion } from "@/lib/followup.functions";
+import { sendFollowUpReminders } from "@/lib/followup-reminders.functions";
 
 type Guest = {
   id: string;
