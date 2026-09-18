@@ -25,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
+import { HostInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
@@ -444,6 +445,7 @@ function HostDashboard() {
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="invitations">Invitations</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="guests">Guests</TabsTrigger>
           <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
@@ -611,11 +613,16 @@ function HostDashboard() {
           </Tabs>
         </TabsContent>
 
+        <TabsContent value="invitations" className="mt-6">
+          <HostInvites />
+        </TabsContent>
+
         <TabsContent value="functions" className="mt-6 space-y-6">
           <div className="panel p-6">
             <h2 className="text-xl">How to set up your celebration</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-              <li>Create each function here — day, time, place and the card picture.</li>
+              <li>Create the invitation itself under Invitations — one per celebration.</li>
+              <li>Create each of its functions here — day, time, place and the card picture.</li>
               <li>Add your families and their members under Guests.</li>
               <li>
                 In Guests → Who's invited to what, tick the functions each family is invited to, say

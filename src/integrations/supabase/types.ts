@@ -238,6 +238,7 @@ export type Database = {
           dress_code: string | null
           event_date: string | null
           id: string
+          invite_id: string | null
           name: string
           note: string | null
           outfit_selection: boolean
@@ -253,6 +254,7 @@ export type Database = {
           dress_code?: string | null
           event_date?: string | null
           id?: string
+          invite_id?: string | null
           name: string
           note?: string | null
           outfit_selection?: boolean
@@ -268,6 +270,7 @@ export type Database = {
           dress_code?: string | null
           event_date?: string | null
           id?: string
+          invite_id?: string | null
           name?: string
           note?: string | null
           outfit_selection?: boolean
@@ -277,7 +280,15 @@ export type Database = {
           venue?: string | null
           venue_address?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       families: {
         Row: {
@@ -286,6 +297,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          invite_id: string | null
           name: string
           needs_wardrobe: boolean
         }
@@ -295,6 +307,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          invite_id?: string | null
           name: string
           needs_wardrobe?: boolean
         }
@@ -304,6 +317,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          invite_id?: string | null
           name?: string
           needs_wardrobe?: boolean
         }
@@ -313,6 +327,13 @@ export type Database = {
             columns: ["branding_preset_id"]
             isOneToOne: false
             referencedRelation: "branding_presets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "families_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
             referencedColumns: ["id"]
           },
         ]
@@ -518,6 +539,7 @@ export type Database = {
           guest_name: string
           household: string | null
           id: string
+          invite_id: string | null
           personally_invited: boolean
           personally_invited_at: string | null
           personally_invited_by: string | null
@@ -534,6 +556,7 @@ export type Database = {
           guest_name: string
           household?: string | null
           id?: string
+          invite_id?: string | null
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
@@ -550,6 +573,7 @@ export type Database = {
           guest_name?: string
           household?: string | null
           id?: string
+          invite_id?: string | null
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
@@ -567,6 +591,51 @@ export type Database = {
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_codes_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invites: {
+        Row: {
+          branding_preset_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          branding_preset_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branding_preset_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_branding_preset_id_fkey"
+            columns: ["branding_preset_id"]
+            isOneToOne: false
+            referencedRelation: "branding_presets"
             referencedColumns: ["id"]
           },
         ]

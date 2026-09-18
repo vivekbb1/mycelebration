@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useInvites } from "@/components/host-invites";
 
 type Wardrobe = "" | "women" | "men";
 
@@ -121,12 +122,17 @@ export function HostFamilies() {
   const [bulkFamily, setBulkFamily] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
 
+  const invites = useInvites();
+  const inviteList = invites.data ?? [];
+  const [inviteId, setInviteId] = useState("");
+  const chosenInvite = inviteId || inviteList[0]?.id || "";
+
   const families = useQuery({
     queryKey: ["families"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, created_at, needs_wardrobe")
+        .select("id, name, code, created_at, needs_wardrobe, invite_id")
         .order("name");
       if (error) throw error;
       return data;
@@ -209,7 +215,13 @@ export function HostFamilies() {
     if (toCreate.length > 0) {
       const { data, error } = await supabase
         .from("families")
-        .insert(toCreate.map((g) => ({ name: g.family, code: makeFamilyCode(g.family) })))
+        .insert(
+          toCreate.map((g) => ({
+            name: g.family,
+            code: makeFamilyCode(g.family),
+            invite_id: chosenInvite || null,
+          })),
+        )
         .select("id, name, code");
       if (error) {
         toast.error(error.message);
@@ -241,6 +253,7 @@ export function HostFamilies() {
       gender: string | null;
       household: string;
       family_id: string;
+      invite_id: string | null;
     }[] = [];
     const patches: { id: string; email?: string | null; gender?: string | null }[] = [];
 
@@ -264,6 +277,7 @@ export function HostFamilies() {
           gender: p.gender || null,
           household: fam.name,
           family_id: fam.id,
+          invite_id: chosenInvite || null,
         });
       }
     }
@@ -407,6 +421,26 @@ export function HostFamilies() {
           One code for the whole family. Inside, they choose the person first, then that person's
           look.
         </p>
+
+        <div className="mt-5 space-y-2">
+          <Label htmlFor="f-invite">Which invitation</Label>
+          <select
+            id="f-invite"
+            value={chosenInvite}
+            onChange={(e) => setInviteId(e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-surface px-2 text-sm"
+          >
+            {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
+            {inviteList.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            They will see that invitation's functions and its look.
+          </p>
+        </div>
 
         <div className="mt-5 space-y-2">
           <Label htmlFor="f-name">Family name</Label>
@@ -556,6 +590,38 @@ export function HostFamilies() {
                     <Users className="size-4 text-primary" />
                     {f.name}
                     <Badge variant="outline">{f.code}</Badge>
+                  </p>
+                  <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    Invitation
+                    <select
+                      aria-label={`Invitation for ${f.name}`}
+                      value={f.invite_id ?? ""}
+                      onChange={async (e) => {
+                        const next = e.target.value || null;
+                        const fam = await supabase
+                          .from("families")
+                          .update({ invite_id: next })
+                          .eq("id", f.id);
+                        const people = await supabase
+                          .from("invite_codes")
+                          .update({ invite_id: next })
+                          .eq("family_id", f.id);
+                        if (fam.error || people.error) {
+                          toast.error((fam.error ?? people.error)?.message ?? "Could not move them");
+                          return;
+                        }
+                        toast.success(`${f.name} moved.`);
+                        await refresh();
+                      }}
+                      className="h-8 rounded-md border border-border bg-surface px-2 text-xs"
+                    >
+                      <option value="">Not on an invitation</option>
+                      {inviteList.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.name}
+                        </option>
+                      ))}
+                    </select>
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {f.members.length === 0

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { useInvites } from "@/components/host-invites";
 
 const eventSchema = z.object({
   name: z.string().trim().min(2, "Name the function (e.g. Mehndi)").max(80),
@@ -26,6 +27,7 @@ const eventSchema = z.object({
 type EventForm = z.infer<typeof eventSchema> & {
   sort_order: string;
   outfit_selection: boolean;
+  invite_id: string;
 };
 
 const emptyEvent: EventForm = {
@@ -40,6 +42,7 @@ const emptyEvent: EventForm = {
   background_image_url: "",
   sort_order: "",
   outfit_selection: true,
+  invite_id: "",
 };
 
 export function HostEvents() {
@@ -49,6 +52,9 @@ export function HostEvents() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const invites = useInvites();
+  const inviteList = invites.data ?? [];
+  const chosenInvite = form.invite_id || inviteList[0]?.id || "";
 
   async function uploadImage(file: File) {
     setUploading(true);
@@ -110,6 +116,7 @@ export function HostEvents() {
       background_image_url: parsed.data.background_image_url || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
+      invite_id: chosenInvite || null,
     };
     const { error } = editingId
       ? await supabase.from("events").update(payload).eq("id", editingId)
@@ -140,6 +147,7 @@ export function HostEvents() {
       background_image_url: ev.background_image_url ?? "",
       sort_order: String(ev.sort_order ?? ""),
       outfit_selection: ev.outfit_selection ?? true,
+      invite_id: ev.invite_id ?? "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -164,6 +172,25 @@ export function HostEvents() {
           Everything you enter here appears on the guests' event page and in their RSVP.
         </p>
         <div className="mt-5 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="e-invite">Part of which invitation</Label>
+            <select
+              id="e-invite"
+              value={chosenInvite}
+              onChange={(e) => setForm((f) => ({ ...f, invite_id: e.target.value }))}
+              className="h-9 w-full rounded-md border border-border bg-surface px-2 text-sm"
+            >
+              {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
+              {inviteList.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Only the guests on this invitation will see this function.
+            </p>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="e-name">Function name</Label>
             <Input
@@ -357,8 +384,14 @@ export function HostEvents() {
                   )}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {[ev.event_date, ev.start_time, ev.venue].filter(Boolean).join(" · ") ||
-                    "No date or venue yet"}
+                  {[
+                    inviteList.find((v) => v.id === ev.invite_id)?.name,
+                    ev.event_date,
+                    ev.start_time,
+                    ev.venue,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") || "No date or venue yet"}
                 </p>
                 {ev.dress_code ? (
                   <p className="mt-1 truncate text-xs text-primary">{ev.dress_code}</p>
