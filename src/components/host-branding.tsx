@@ -91,14 +91,22 @@ export function HostBranding() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("branding")
-        .upsert({ id: "default", ...draft, updated_at: new Date().toISOString() });
-      if (error) throw error;
+      await guardedUpdate({
+        table: "branding",
+        idColumn: "id",
+        id: "default",
+        expectedUpdatedAt: query.data?.updated_at,
+        patch: { ...draft },
+        label: "the branding",
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["branding"] });
       toast.success("Branding saved — guests see it straight away.");
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["branding"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
