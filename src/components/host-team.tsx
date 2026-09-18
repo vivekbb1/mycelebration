@@ -25,6 +25,80 @@ export function HostTeam() {
   const queryClient = useQueryClient();
   const [pick, setPick] = useState("");
   const [busy, setBusy] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+
+  const hostInvites = useQuery({
+    queryKey: ["host-invites"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("host_invites")
+        .select("id, email, full_name, code, claimed_by, claimed_at, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const sendHostInvite = async () => {
+    const email = inviteEmail.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await inviteHostByEmail({
+        data: { email, fullName: inviteName.trim() || undefined },
+      });
+      if (!result.ok) {
+        toast.error(result.error ?? "We couldn't send that invitation.");
+        return;
+      }
+      setInviteEmail("");
+      setInviteName("");
+      await queryClient.invalidateQueries({ queryKey: ["host-invites"] });
+      if (result.sent) {
+        toast.success(`Invitation sent to ${email}.`);
+      } else {
+        const link = result.link ?? "";
+        const subject = encodeURIComponent("You've been invited to host the wedding wardrobe");
+        const body = encodeURIComponent(
+          `You can now help run the wedding wardrobe.\n\nRegister here: ${link}\nHost code: ${result.code}\n`,
+        );
+        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
+        toast.success(
+          "Opening your mail app with the host invitation ready to send. Set up a sending domain and the portal will send these for you.",
+        );
+      }
+    } catch {
+      toast.error("We couldn't send that invitation. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyHostLink = async (code: string) => {
+    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Registration link copied.");
+    } catch {
+      toast.error("We couldn't copy the link.");
+    }
+  };
+
+  const removeHostInvite = async (id: string) => {
+    setBusy(true);
+    const { error } = await supabase.from("host_invites").delete().eq("id", id);
+    setBusy(false);
+    if (error) {
+      toast.error("We couldn't withdraw that invitation.");
+      return;
+    }
+    toast.success("Invitation withdrawn.");
+    await queryClient.invalidateQueries({ queryKey: ["host-invites"] });
+  };
 
   const me = useQuery({
     queryKey: ["me-id"],
