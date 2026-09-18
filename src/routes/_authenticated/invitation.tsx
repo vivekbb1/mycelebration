@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 import { scheduleSummary } from "@/lib/schedule";
+import { useSiteContent } from "@/lib/site-content";
 
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
