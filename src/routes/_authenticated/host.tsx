@@ -583,31 +583,24 @@ function HostDashboard() {
         </TabsContent>
 
         <TabsContent value="guests" className="mt-6">
-          <div className="mb-5 flex flex-wrap items-center gap-3">
+          <div className="mb-5">
             <Button asChild variant="outline" size="sm">
               <Link to="/guests">Guest list &amp; invitations</Link>
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Add guests and families, and send their invitations.
-            </p>
           </div>
           <Tabs defaultValue="invited">
             <TabsList>
-              <TabsTrigger value="invited">Who's invited to what</TabsTrigger>
-              <TabsTrigger value="rsvps">RSVPs</TabsTrigger>
-              <TabsTrigger value="messages">Messages</TabsTrigger>
-              <TabsTrigger value="picks">Guest picks</TabsTrigger>
+              <TabsTrigger value="invited">Invited to what</TabsTrigger>
+              <TabsTrigger value="replies">Replies</TabsTrigger>
+              <TabsTrigger value="picks">Outfit picks</TabsTrigger>
               <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
-              <TabsTrigger value="hosted">Who invited whom</TabsTrigger>
-              <TabsTrigger value="workload">How the hosts are doing</TabsTrigger>
+              <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
             </TabsList>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
-            <TabsContent value="rsvps" className="mt-6">
+            <TabsContent value="replies" className="mt-6 space-y-8">
               <HostRsvp />
-            </TabsContent>
-            <TabsContent value="messages" className="mt-6">
               <HostMessages />
             </TabsContent>
             <TabsContent value="picks" className="mt-6">
@@ -616,10 +609,8 @@ function HostDashboard() {
             <TabsContent value="travel" className="mt-6">
               <HostTravel />
             </TabsContent>
-            <TabsContent value="hosted" className="mt-6">
+            <TabsContent value="hosts" className="mt-6 space-y-8">
               <HostRelations />
-            </TabsContent>
-            <TabsContent value="workload" className="mt-6">
               <HostWorkload />
             </TabsContent>
           </Tabs>
@@ -631,16 +622,12 @@ function HostDashboard() {
 
         <TabsContent value="functions" className="mt-6 space-y-6">
           <div className="panel p-4 sm:p-6">
-            <h2 className="text-xl">How to set up your celebration</h2>
+            <h2 className="text-xl">Four steps</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-              <li>Create the invitation itself under Invitations — one per celebration.</li>
-              <li>Create each of its functions here — day, time, place and the card picture.</li>
-              <li>Add your families and their members under Guests.</li>
-              <li>
-                In Guests → Who's invited to what, tick the functions each family is invited to, say
-                whether you are dressing them and for which function, and add head counts.
-              </li>
-              <li>Send the invitation from the guest list once it all looks right.</li>
+              <li>Create the invitation under Invitations — one per celebration.</li>
+              <li>Add its functions below.</li>
+              <li>Add families under Guests.</li>
+              <li>Tick who's invited to what, then send the invitation.</li>
             </ol>
           </div>
           <HostEvents />
@@ -965,16 +952,12 @@ function HostDashboard() {
           <Tabs defaultValue="boutiques">
             <TabsList>
               <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
-              <TabsTrigger value="by-boutique">Orders by boutique</TabsTrigger>
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="wording">Wording</TabsTrigger>
-              <TabsTrigger value="branding">Branding</TabsTrigger>
+              <TabsTrigger value="look">Look &amp; wording</TabsTrigger>
             </TabsList>
-            <TabsContent value="boutiques" className="mt-6">
+            <TabsContent value="boutiques" className="mt-6 space-y-8">
               <HostBoutiques />
-            </TabsContent>
-            <TabsContent value="by-boutique" className="mt-6">
               <HostByBoutique />
             </TabsContent>
             <TabsContent value="hosts" className="mt-6">
@@ -983,11 +966,9 @@ function HostDashboard() {
             <TabsContent value="email" className="mt-6">
               <HostEmail />
             </TabsContent>
-            <TabsContent value="wording" className="mt-6">
-              <HostContent />
-            </TabsContent>
-            <TabsContent value="branding" className="mt-6">
+            <TabsContent value="look" className="mt-6 space-y-8">
               <HostBranding />
+              <HostContent />
             </TabsContent>
           </Tabs>
         </TabsContent>

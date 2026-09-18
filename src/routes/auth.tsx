@@ -42,12 +42,13 @@ const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Please enter your full name").max(100),
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(8, "Use at least 8 characters").max(72),
-  code: z.string().trim().max(64),
+  code: z.string().trim().min(4, "Enter the invitation code from your invite").max(64),
 });
 
 const signInSchema = z.object({
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(1, "Enter your password").max(72),
+  code: z.string().trim().max(64),
 });
 
 function AuthPage() {
@@ -64,7 +65,11 @@ function AuthPage() {
     password: "",
     code: search.code ?? "",
   });
-  const [signInForm, setSignInForm] = useState({ email: "", password: "" });
+  const [signInForm, setSignInForm] = useState({
+    email: "",
+    password: "",
+    code: search.code ?? "",
+  });
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,12 +116,15 @@ function AuthPage() {
       email: parsed.data.email,
       password: parsed.data.password,
     });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/invitation" });
+    const isHostCode = parsed.data.code.trim().toUpperCase().startsWith("HOST-");
+    if (parsed.data.code) await claimInvite(parsed.data.code);
+    setBusy(false);
+    navigate({ to: isHostCode ? "/host" : "/invitation" });
   };
 
   return (
@@ -215,6 +223,16 @@ function AuthPage() {
                     value={signInForm.password}
                     maxLength={72}
                     onChange={(e) => setSignInForm((f) => ({ ...f, password: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="si-code">Invitation code (only if it's your first time)</Label>
+                  <Input
+                    id="si-code"
+                    value={signInForm.code}
+                    maxLength={64}
+                    onChange={(e) => setSignInForm((f) => ({ ...f, code: e.target.value }))}
+                    placeholder="Leave empty if you've used it already"
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={busy}>
