@@ -84,6 +84,52 @@ export function HostFunctionAccess() {
     return rows.some((r) => r.event_id === eventId);
   };
 
+  /** Does this family get to choose an outfit for this function? Default: yes. */
+  const picksOutfit = (household: string, eventId: string) => {
+    const row = rowsFor(household).find((r) => r.event_id === eventId);
+    return row ? row.outfit_selection !== false : true;
+  };
+
+  const toggleOutfit = async (household: string, eventId: string) => {
+    const rows = rowsFor(household);
+    setBusy(true);
+
+    // No explicit choices yet: write a row for every function first, so the
+    // "no outfit selection" flag has somewhere to live.
+    if (rows.length === 0) {
+      const { error } = await supabase.from("household_event_invites").insert(
+        (events.data ?? []).map((e) => ({
+          household,
+          event_id: e.id,
+          outfit_selection: e.id !== eventId,
+        })),
+      );
+      setBusy(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      await refresh();
+      return;
+    }
+
+    const existing = rows.find((r) => r.event_id === eventId);
+    const { error } = existing
+      ? await supabase
+          .from("household_event_invites")
+          .update({ outfit_selection: existing.outfit_selection === false })
+          .eq("id", existing.id)
+      : await supabase
+          .from("household_event_invites")
+          .insert({ household, event_id: eventId, outfit_selection: false });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await refresh();
+  };
+
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["household-event-invites"] });
   };
@@ -165,7 +211,9 @@ export function HostFunctionAccess() {
         <h2 className="text-xl">Who is invited to what</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Tick the functions each family is invited to. They'll only see those functions — and only
-          the outfits for those functions. A family with nothing ticked sees every function.
+          the outfits for those functions. A family with nothing ticked sees every function. Under
+          each tick you can also decide whether that family chooses an outfit from you for that
+          function, or wears their own.
         </p>
         <div className="mt-4 max-w-sm">
           <Input
