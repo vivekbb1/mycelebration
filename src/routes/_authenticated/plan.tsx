@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { CalendarClock, Plane, Ruler, Scissors, Shirt } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { GuestFees } from "@/components/guest-fees";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -315,6 +316,8 @@ function PlanPage() {
             <Link to="/event">Add or change travel dates</Link>
           </Button>
         </section>
+
+        <GuestFees />
 
         <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
           <Scissors className="size-3.5" /> Anything look wrong? Send the hosts a message from your

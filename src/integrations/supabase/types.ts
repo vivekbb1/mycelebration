@@ -343,6 +343,69 @@ export type Database = {
           },
         ]
       }
+      event_fees: {
+        Row: {
+          active: boolean
+          audience: string
+          base_amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          event_id: string | null
+          id: string
+          invite_id: string
+          label: string
+          note: string | null
+          per_guest_amount: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          audience?: string
+          base_amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_id?: string | null
+          id?: string
+          invite_id: string
+          label?: string
+          note?: string | null
+          per_guest_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          audience?: string
+          base_amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_id?: string | null
+          id?: string
+          invite_id?: string
+          label?: string
+          note?: string | null
+          per_guest_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_fees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_fees_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           background_image_url: string | null
@@ -452,6 +515,65 @@ export type Database = {
           },
           {
             foreignKeyName: "families_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_payments: {
+        Row: {
+          amount_due: number
+          amount_paid: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          host_id: string | null
+          household: string | null
+          id: string
+          invite_id: string | null
+          method: string | null
+          note: string | null
+          paid_at: string | null
+          payer_kind: string
+          updated_at: string
+        }
+        Insert: {
+          amount_due?: number
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          host_id?: string | null
+          household?: string | null
+          id?: string
+          invite_id?: string | null
+          method?: string | null
+          note?: string | null
+          paid_at?: string | null
+          payer_kind?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          host_id?: string | null
+          household?: string | null
+          id?: string
+          invite_id?: string | null
+          method?: string | null
+          note?: string | null
+          paid_at?: string | null
+          payer_kind?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_payments_invite_id_fkey"
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"

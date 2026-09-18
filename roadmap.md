@@ -33,3 +33,5 @@ Open, for the host to do
 - [ ] Hosts pay for a package + add-ons: subscription and one-off (per-event) charges.
 - [ ] Hosts can also collect payments from their own guests for paid events (host-as-seller payouts).
 - Note: Paddle ruled out (physical attire in the offering); seller country AE, so Stripe with tax calculation and collection only (automatic_tax), not managed_payments.
+
+- Event fees: fee rules (flat / per head / per function) live in event_fees; manual payments in fee_payments. Card checkout still pending Stripe.
