@@ -20,6 +20,9 @@ export type Branding = {
   logo_url: string | null;
   logo_height: number;
   favicon_url: string | null;
+  /** Logo shown on the invitation card itself (bigger than the header one). */
+  cover_logo_url: string | null;
+  cover_logo_height: number;
   /** Set by the database on every save; used to spot two hosts saving at once. */
   updated_at?: string | null;
 };
