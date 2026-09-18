@@ -166,7 +166,7 @@ export function HostBuild() {
           <Label htmlFor="b-event">Function</Label>
           <select
             id="b-event"
-            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="field-select"
             value={eventId}
             onChange={(e) => {
               setEventId(e.target.value);
@@ -189,7 +189,7 @@ export function HostBuild() {
           <Label htmlFor="b-guest">Guest</Label>
           <select
             id="b-guest"
-            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="field-select"
             value={guestId}
             onChange={(e) => {
               setGuestId(e.target.value);
@@ -215,7 +215,7 @@ export function HostBuild() {
           <Label htmlFor="b-garment">Garment</Label>
           <select
             id="b-garment"
-            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="field-select"
             value={outfitId}
             onChange={(e) => setOutfitId(e.target.value)}
           >

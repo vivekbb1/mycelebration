@@ -129,13 +129,13 @@ function GuestViewPage() {
   });
 
   if (role.isLoading) {
-    return <p className="mx-auto max-w-5xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!isHost) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6">
           <ShieldCheck className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -157,7 +157,7 @@ function GuestViewPage() {
     id ? (events.data?.find((e) => e.id === id)?.name ?? null) : null;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to="/guests">
           <ArrowLeft className="size-4" /> Back to the guest list
@@ -184,7 +184,7 @@ function GuestViewPage() {
 
       <div className="gold-rule my-8" />
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">RSVP</h2>
         <p className="mt-2 text-sm">
           <Badge variant={rsvp === "yes" ? "default" : rsvp === "no" ? "destructive" : "secondary"}>
@@ -201,7 +201,7 @@ function GuestViewPage() {
         {reservations.isLoading ? (
           <p className="mt-3 text-sm text-muted-foreground">Loading…</p>
         ) : (reservations.data ?? []).length === 0 ? (
-          <p className="panel mt-3 p-6 text-sm text-muted-foreground">
+          <p className="panel mt-3 p-4 sm:p-6 text-sm text-muted-foreground">
             {guestName} hasn't picked a look yet.
           </p>
         ) : (
@@ -238,7 +238,7 @@ function GuestViewPage() {
         )}
       </section>
 
-      <section className="panel mt-6 p-6">
+      <section className="panel mt-6 p-4 sm:p-6">
         <h2 className="text-xl">Measurements</h2>
         {measurements.isLoading ? (
           <p className="mt-3 text-sm text-muted-foreground">Loading…</p>

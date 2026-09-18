@@ -207,7 +207,7 @@ function Measurements() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">For the tailor</p>
       <h1 className="mt-3 text-4xl">Measurements</h1>
       <p className="mt-3 text-sm text-muted-foreground">
@@ -257,7 +257,7 @@ function Measurements() {
         </p>
       </section>
 
-      <div className="panel mt-6 p-6">
+      <div className="panel mt-6 p-4 sm:p-6">
         <h2 className="mb-4 text-xl">{activeName}</h2>
         <div className="flex items-center gap-3">
           <Label className="text-sm">Units</Label>

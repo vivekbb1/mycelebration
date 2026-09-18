@@ -89,7 +89,7 @@ function ThemePicker({
       aria-label={label}
       value={value ?? MAIN}
       onChange={(e) => onPick(e.target.value === MAIN ? null : e.target.value)}
-      className="h-9 rounded-md border border-border bg-surface px-2 text-sm"
+      className="field-select max-w-full"
     >
       <option value={MAIN}>Main saved look</option>
       {themes.map((t) => (
@@ -191,7 +191,7 @@ export function HostInvites() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-      <div className="panel h-fit p-6">
+      <div className="panel h-fit p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Mail className="size-4 text-primary" /> Add an invitation
         </h2>
@@ -224,7 +224,7 @@ export function HostInvites() {
         </div>
       </div>
 
-      <div className="panel h-fit p-6">
+      <div className="panel h-fit p-4 sm:p-6">
         <h2 className="text-xl">Your invitations ({invites.data?.length ?? 0})</h2>
         {(invites.data ?? []).length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
@@ -292,7 +292,7 @@ export function InviteThemes() {
   const themeList = themes.data ?? [];
 
   return (
-    <section className="panel p-6">
+    <section className="panel p-4 sm:p-6">
       <h3 className="flex items-center gap-2 text-lg">
         <Mail className="size-4 text-primary" /> The look for each invitation
       </h3>

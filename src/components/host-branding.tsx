@@ -207,7 +207,7 @@ export function HostBranding() {
 
   return (
     <div className="space-y-6">
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Palette className="size-4 text-primary" /> Branding
         </h2>
@@ -228,7 +228,7 @@ export function HostBranding() {
         </div>
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h3 className="flex items-center gap-2 text-lg">
           <AlertTriangle className="size-4 text-primary" /> Easy to read
         </h3>
@@ -281,7 +281,7 @@ export function HostBranding() {
         )}
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h3 className="flex items-center gap-2 text-lg">
           <BookmarkPlus className="size-4 text-primary" /> Saved themes
         </h3>
@@ -298,7 +298,7 @@ export function HostBranding() {
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
               placeholder="Mehendi morning"
-              className="mt-1 w-56"
+              className="mt-1 w-full sm:w-56"
             />
           </label>
           <Button
@@ -394,7 +394,7 @@ export function HostBranding() {
 
       <InviteThemes />
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h3 className="text-lg">Lettering</h3>
         <div className="mt-4 grid gap-5 sm:grid-cols-2">
           <div>
@@ -484,7 +484,7 @@ export function HostBranding() {
         </div>
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h3 className="text-lg">Colours</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {COLOURS.map((c) => {
@@ -513,7 +513,7 @@ export function HostBranding() {
         </div>
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h3 className="text-lg">Logo</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           Paste a link to your logo (PNG or SVG with a see-through background works best). Best size

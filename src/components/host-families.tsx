@@ -435,7 +435,7 @@ export function HostFamilies() {
             id="f-invite"
             value={chosenInvite}
             onChange={(e) => setInviteId(e.target.value)}
-            className="h-9 w-full rounded-md border border-border bg-surface px-2 text-sm"
+            className="field-select"
           >
             {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
             {inviteList.map((v) => (
@@ -620,7 +620,7 @@ export function HostFamilies() {
                         toast.success(`${f.name} moved.`);
                         await refresh();
                       }}
-                      className="h-8 rounded-md border border-border bg-surface px-2 text-xs"
+                      className="field-select max-w-full text-xs"
                     >
                       <option value="">Not on an invitation</option>
                       {inviteList.map((v) => (

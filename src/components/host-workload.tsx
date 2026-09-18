@@ -151,7 +151,7 @@ export function HostWorkload() {
 
   return (
     <div className="space-y-6">
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Gauge className="size-4 text-primary" /> How the hosts are doing
         </h2>
@@ -184,7 +184,7 @@ export function HostWorkload() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {rows.map((r) => (
-          <section key={r.id} className="panel p-6">
+          <section key={r.id} className="panel p-4 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg">{r.name}</h3>

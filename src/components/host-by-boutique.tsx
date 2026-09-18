@@ -156,7 +156,7 @@ export function HostByBoutique() {
 
   if (groups.length === 0) {
     return (
-      <p className="panel p-6 text-sm text-muted-foreground">
+      <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
         Add looks in the Outfits tab and assign each one to a boutique — they'll appear here grouped
         by atelier, with the guest who reserved them.
       </p>
@@ -170,7 +170,7 @@ export function HostByBoutique() {
         const measured = g.looks.filter((l) => l.measured).length;
         const orders = g.looks.filter((l) => l.reservationId);
         return (
-          <section key={g.id ?? "unassigned"} className="panel p-6">
+          <section key={g.id ?? "unassigned"} className="panel p-4 sm:p-6">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-primary">
@@ -239,7 +239,7 @@ export function HostByBoutique() {
                             }
                           >
                             <SelectTrigger
-                              className="h-9 w-40"
+                              className="h-11 w-full sm:h-9 sm:w-40"
                               aria-label={`Order status for ${l.title}`}
                             >
                               <SelectValue />

@@ -116,7 +116,7 @@ export function HostLogistics() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-      <div className="panel h-fit p-6">
+      <div className="panel h-fit p-4 sm:p-6">
         <h2 className="text-xl">Delivery &amp; arrival</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           This is exactly what guests read on their delivery plan page.
@@ -200,7 +200,7 @@ export function HostLogistics() {
         </div>
       </div>
 
-      <div className="panel h-fit p-6">
+      <div className="panel h-fit p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl">Timeline steps</h2>
           <Button

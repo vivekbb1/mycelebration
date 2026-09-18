@@ -123,7 +123,7 @@ function EventPage() {
   const rsvpBy = events.data?.find((e) => e.rsvp_by)?.rsvp_by ?? null;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
+    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">The wedding weekend</p>
       <h1 className="mt-3 text-4xl">{scheduleHeadline(events.data ?? [])}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -139,7 +139,7 @@ function EventPage() {
         .
       </p>
 
-      <section className="panel mt-8 p-6">
+      <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl">{t("rsvp.title", "Your RSVP")}</h2>
@@ -208,7 +208,7 @@ function EventPage() {
             <FunctionCard key={ev.id} event={ev as WeddingFunction} />
           ))}
           {(events.data ?? []).length === 0 ? (
-            <p className="panel p-6 text-sm text-muted-foreground">
+            <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
               The schedule is being finalised. Dates, timings and venues will appear here as soon as
               the hosts add them.
             </p>

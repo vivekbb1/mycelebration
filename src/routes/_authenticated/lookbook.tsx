@@ -288,8 +288,8 @@ function Lookbook() {
 
   if (!needsWardrobe) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6 text-center">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6 text-center">
           <p className="text-eyebrow">Nothing to choose</p>
           <h1 className="mt-3 text-2xl">You'll wear your own outfit</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -305,13 +305,13 @@ function Lookbook() {
   }
 
   if (me.isLoading) {
-    return <p className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (me.data && !me.data.invite_claimed) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6">
           <Lock className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Enter your invitation code</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -351,8 +351,8 @@ function Lookbook() {
       : undefined;
 
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6">
           <p className="text-eyebrow">Almost there</p>
           <h1 className="mt-3 text-2xl">Who are we dressing?</h1>
           {namedPeople.length > 0 && !chosen ? (
@@ -420,7 +420,7 @@ function Lookbook() {
   const myOutfits = outfitsFor(activeName);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">The lookbook</p>
       <h1 className="mt-3 text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -488,7 +488,7 @@ function Lookbook() {
 
 
       {myOutfits.length > 0 ? (
-        <section className="panel mt-6 p-6">
+        <section className="panel mt-6 p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">
               Reserved for {activeName} ({myOutfits.length})

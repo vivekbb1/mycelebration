@@ -178,7 +178,7 @@ export function HostImport() {
 
   return (
     <div className="space-y-8">
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Where should imported looks go?</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Applied to everything you add below. You can change it per look afterwards in Outfits.
@@ -234,7 +234,7 @@ export function HostImport() {
         </div>
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Add one look from its link</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Paste the outfit's page link — the name, designer, colour, fabric details, price and all of
@@ -315,7 +315,7 @@ export function HostImport() {
         ) : null}
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Browse a category in your price range</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Pick everything you like and add it in one go. Prices are in rupees.

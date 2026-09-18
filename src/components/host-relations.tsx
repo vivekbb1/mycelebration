@@ -444,7 +444,7 @@ export function HostRelations() {
 
   return (
     <div className="space-y-6">
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <HeartHandshake className="size-4 text-primary" /> Who invited whom
         </h2>
@@ -577,7 +577,7 @@ export function HostRelations() {
         </div>
       </section>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
           <div>
             <h3 className="flex items-center gap-2 text-lg">
@@ -640,7 +640,7 @@ export function HostRelations() {
 
       <div className="space-y-4">
         {families.map(([family, members]) => (
-          <section key={family} className="panel p-6">
+          <section key={family} className="panel p-4 sm:p-6">
             <h3 className="text-lg">{family}</h3>
             <div className="mt-4 space-y-4">
               {members.map((g) => {

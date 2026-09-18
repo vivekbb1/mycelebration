@@ -286,13 +286,13 @@ function GuestListPage() {
   };
 
   if (role.isLoading) {
-    return <p className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!role.data) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6">
           <h1 className="text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             The guest list is visible to the hosting family only.
@@ -306,7 +306,7 @@ function GuestListPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">Host area</p>
       <h1 className="mt-3 text-4xl">Guest list</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -327,7 +327,7 @@ function GuestListPage() {
       </div>
 
       <div className="mt-8">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">Everyone invited ({rows.length})</h2>
             <Button variant="ghost" disabled={bulkBusy} onClick={mailEveryone}>
@@ -336,7 +336,7 @@ function GuestListPage() {
             <div className="relative">
               <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
               <Input
-                className="w-56 pl-9"
+                className="w-full pl-9 sm:w-56"
                 placeholder="Search name, code, look…"
                 maxLength={80}
                 value={filter}

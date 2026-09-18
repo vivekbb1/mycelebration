@@ -85,14 +85,14 @@ function DeliveryPage() {
   const timeline: TimelineStep[] = parseTimeline(plan?.timeline);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
+    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">Logistics</p>
       <h1 className="mt-3 text-4xl">Your delivery plan</h1>
       {plan?.intro ? (
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">{plan.intro}</p>
       ) : null}
 
-      <section className="panel mt-8 p-6">
+      <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl">Your outfits &amp; sizes</h2>
           <Badge variant={mine.data?.measured ? "default" : "secondary"}>
@@ -147,7 +147,7 @@ function DeliveryPage() {
         ) : null}
       </section>
 
-      <section className="panel mt-6 p-6">
+      <section className="panel mt-6 p-4 sm:p-6">
         <BedDouble className="size-4 text-primary" />
         <h2 className="mt-3 text-xl">Delivered to your room</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -190,7 +190,7 @@ function DeliveryPage() {
       ) : null}
 
       <section className="mt-10 grid gap-5 sm:grid-cols-2">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <Ruler className="size-4 text-primary" />
           <h2 className="mt-3 text-xl">How your measurements reach the tailor</h2>
           <ol className="mt-3 space-y-2 text-sm leading-relaxed text-muted-foreground">
@@ -213,7 +213,7 @@ function DeliveryPage() {
           </Button>
         </div>
 
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <MessageCircle className="size-4 text-primary" />
           <h2 className="mt-3 text-xl">Who to ask</h2>
           <p className="mt-3 text-sm">{plan?.team_name ?? "The events team"}</p>

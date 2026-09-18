@@ -239,7 +239,7 @@ function InvitationPage() {
 
   return (
     <main className="bg-zari">
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
             <p className="text-eyebrow">
@@ -263,7 +263,7 @@ function InvitationPage() {
           </div>
         </section>
 
-        <section className="panel mt-8 p-6 sm:p-8">
+        <section className="panel mt-8 p-4 sm:p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-eyebrow">
@@ -355,7 +355,7 @@ function InvitationPage() {
               />
             ))}
             {list.length === 0 ? (
-              <p className="panel p-6 text-center text-sm text-muted-foreground">
+              <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
                 The schedule is being finalised — your functions will appear here shortly.
               </p>
             ) : null}

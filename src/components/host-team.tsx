@@ -199,7 +199,7 @@ export function HostTeam() {
   return (
     <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
       <div className="space-y-6">
-        <section className="panel p-6">
+        <section className="panel p-4 sm:p-6">
           <h2 className="text-xl">Invite a host by email</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             They don't need an account yet — we email them a link and their own host code, and they
@@ -271,7 +271,7 @@ export function HostTeam() {
           ) : null}
         </section>
 
-        <section className="panel p-6">
+        <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Add someone already registered</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Hosts share everything: outfits, functions, the delivery plan, the guest list and
@@ -306,7 +306,7 @@ export function HostTeam() {
         </section>
       </div>
 
-      <section className="panel p-6">
+      <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Hosts ({hosts.length})</h2>
         {hostRoles.isLoading ? (
           <p className="mt-3 text-sm text-muted-foreground">Loading…</p>

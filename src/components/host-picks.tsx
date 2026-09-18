@@ -87,7 +87,7 @@ export function HostPicks() {
 
   return (
     <div className="space-y-6">
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Outfit picks per guest</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           One column per function that guests choose a look for.

@@ -200,13 +200,13 @@ function AtelierPage() {
   };
 
   if (boutiques.isLoading) {
-    return <p className="mx-auto max-w-5xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!isStylist) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
-        <div className="panel p-6">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6">
           <Scissors className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Atelier access</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -234,7 +234,7 @@ function AtelierPage() {
   const pending = rows.filter((r) => !r.measurements).length;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-xs uppercase tracking-[0.18em] text-primary">Atelier</p>
       <h1 className="mt-2 text-3xl">
         {(boutiques.data ?? []).map((b) => b.name).join(" · ")}
@@ -259,7 +259,7 @@ function AtelierPage() {
       {orders.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading your orders…</p>
       ) : rows.length === 0 ? (
-        <p className="panel p-6 text-sm text-muted-foreground">
+        <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
           No looks from your atelier have been reserved yet. This page fills up as guests choose
           their outfits.
         </p>
@@ -303,7 +303,7 @@ function AtelierPage() {
                         onValueChange={(value) => setStatus.mutate({ id: r.id, status: value })}
                       >
                         <SelectTrigger
-                          className="h-9 w-40"
+                          className="h-11 w-full sm:h-9 sm:w-40"
                           aria-label={`Update status for ${r.outfit.title}`}
                         >
                           <SelectValue />
