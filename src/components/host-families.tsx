@@ -270,6 +270,9 @@ export function HostFamilies() {
           if (Object.keys(patch).length > 1) patches.push(patch);
           continue;
         }
+        // Guards against the same person appearing twice in one pasted list.
+        if (rows.some((r) => r.family_id === fam.id && r.guest_name.toLowerCase() === name.toLowerCase()))
+          continue;
         rows.push({
           code: makeMemberCode(name),
           guest_name: name,
