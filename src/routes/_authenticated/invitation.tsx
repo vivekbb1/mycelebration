@@ -204,7 +204,10 @@ function InvitationPage() {
         ? t("step.measure_cta_done", "Update measurements")
         : t("step.measure_cta", "Send measurements"),
     },
-  ];
+  ].filter(
+    // RSVP-only families have nothing to choose and nothing to measure.
+    (step) => needsWardrobe || step.to === "/event",
+  );
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
