@@ -11,6 +11,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/measurements")({
+  head: () => ({
+    meta: [
+      { title: "Your measurements | Wedding wardrobe" },
+      {
+        name: "description",
+        content:
+          "Send us your measurements so each outfit is tailored to fit before the celebrations begin.",
+      },
+      { property: "og:title", content: "Your measurements" },
+      {
+        property: "og:description",
+        content: "Share your measurements so your outfit is tailored to fit.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Measurements,
 });
 
