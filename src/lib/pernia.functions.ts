@@ -313,7 +313,7 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
         price_note: look.price ? `₹${look.price}` : null,
         price_inr: look.priceInr || null,
         source_sku: look.sku || null,
-        gender: look.gender,
+        gender: data.gender ?? look.gender,
         notes: look.description || null,
         event_id: data.eventId,
         boutique_id: data.boutiqueId,
