@@ -60,8 +60,9 @@
   --color-chart-4: var(--primary);
   --color-chart-5: var(--muted-foreground);
 
-  --shadow-glow: 0 0 0 1px oklch(0.7 0.1 78 / 0.3), 0 18px 50px -18px oklch(0.7 0.1 78 / 0.28);
-  --shadow-panel: 0 20px 50px -28px oklch(0.55 0.08 25 / 0.28);
+  --shadow-glow: 0 0 0 1px oklch(0.7 0.1 78 / 0.22), 0 14px 36px -20px oklch(0.7 0.1 78 / 0.2);
+  --shadow-panel: 0 10px 30px -24px oklch(0.55 0.08 25 / 0.2);
+
 }
 
 :root {
@@ -145,10 +146,11 @@
 
 @utility bg-zari {
   background-image:
-    radial-gradient(circle at 10% 12%, oklch(0.88 0.075 20 / 0.5), transparent 46%),
-    radial-gradient(circle at 92% 6%, oklch(0.86 0.06 150 / 0.42), transparent 44%),
-    radial-gradient(circle at 50% 100%, oklch(0.93 0.05 60 / 0.6), transparent 58%);
+    radial-gradient(circle at 12% 10%, oklch(0.9 0.05 20 / 0.28), transparent 45%),
+    radial-gradient(circle at 90% 6%, oklch(0.9 0.04 150 / 0.24), transparent 42%),
+    radial-gradient(circle at 50% 100%, oklch(0.95 0.03 60 / 0.35), transparent 55%);
 }
+
 
 @utility gold-rule {
   height: 1px;
@@ -172,10 +174,11 @@
   position: relative;
   background-color: var(--color-surface);
   background-image:
-    radial-gradient(circle at 8% 6%, oklch(0.88 0.075 20 / 0.45), transparent 42%),
-    radial-gradient(circle at 96% 10%, oklch(0.86 0.06 150 / 0.38), transparent 40%),
-    radial-gradient(circle at 50% 104%, oklch(0.93 0.05 60 / 0.55), transparent 55%);
-  border: 1px solid color-mix(in oklab, var(--color-primary) 45%, transparent);
+    radial-gradient(circle at 8% 6%, oklch(0.9 0.05 20 / 0.26), transparent 42%),
+    radial-gradient(circle at 96% 10%, oklch(0.9 0.04 150 / 0.22), transparent 40%),
+    radial-gradient(circle at 50% 104%, oklch(0.95 0.03 60 / 0.32), transparent 55%);
+  border: 1px solid color-mix(in oklab, var(--color-primary) 32%, transparent);
+
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
 

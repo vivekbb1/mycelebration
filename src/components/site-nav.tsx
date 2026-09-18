@@ -47,19 +47,7 @@ export function SiteNav() {
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
           <Link to="/invitation" className={linkClass}>
-            Invitation
-          </Link>
-          <Link to="/event" className={linkClass}>
-            RSVP
-          </Link>
-          <Link to="/lookbook" className={linkClass}>
-            Outfits
-          </Link>
-          <Link to="/measurements" className={linkClass}>
-            Measurements
-          </Link>
-          <Link to="/delivery" className={linkClass}>
-            Delivery
+            Your invitation
           </Link>
           {isStylist ? (
             <Link to="/atelier" className={linkClass}>
@@ -67,15 +55,11 @@ export function SiteNav() {
             </Link>
           ) : null}
           {isAdmin ? (
-            <>
-              <Link to="/host" className={linkClass}>
-                Host
-              </Link>
-              <Link to="/guests" className={linkClass}>
-                Guests
-              </Link>
-            </>
+            <Link to="/host" className={linkClass}>
+              Host
+            </Link>
           ) : null}
+
           <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
             <LogOut className="size-4" />
           </Button>

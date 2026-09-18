@@ -436,24 +436,16 @@ function HostDashboard() {
         </Button>
       </div>
 
-      <Tabs defaultValue="dashboard" className="mt-8">
+      <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="outfits">Outfits</TabsTrigger>
-          <TabsTrigger value="import">Import</TabsTrigger>
-          <TabsTrigger value="functions">Functions</TabsTrigger>
-          <TabsTrigger value="invited">Invited to</TabsTrigger>
-          <TabsTrigger value="picks">Guest picks</TabsTrigger>
-          <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
-          <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
-          <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
-          <TabsTrigger value="hosts">Hosts</TabsTrigger>
-          <TabsTrigger value="email">Email</TabsTrigger>
-
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="guests">Guests</TabsTrigger>
+          <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
+          <TabsTrigger value="setup">Setup</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="overview" className="mt-6 space-y-8">
 
-        <TabsContent value="dashboard" className="mt-6 space-y-8">
           <HostOverview />
 
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -578,7 +570,40 @@ function HostDashboard() {
           </section>
         </TabsContent>
 
+        <TabsContent value="guests" className="mt-6">
+          <div className="mb-5 flex flex-wrap items-center gap-3">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/guests">Guest list &amp; invitations</Link>
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Add guests and families, and send their invitations.
+            </p>
+          </div>
+          <Tabs defaultValue="invited">
+            <TabsList>
+              <TabsTrigger value="invited">Who's invited to what</TabsTrigger>
+              <TabsTrigger value="picks">Guest picks</TabsTrigger>
+            </TabsList>
+            <TabsContent value="invited" className="mt-6">
+              <HostFunctionAccess />
+            </TabsContent>
+            <TabsContent value="picks" className="mt-6">
+              <HostPicks />
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="wardrobe" className="mt-6">
+          <Tabs defaultValue="outfits">
+            <TabsList>
+              <TabsTrigger value="outfits">Outfits</TabsTrigger>
+              <TabsTrigger value="import">Add from a shop</TabsTrigger>
+              <TabsTrigger value="functions">Functions</TabsTrigger>
+              <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+            </TabsList>
+
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+
           <div className="panel h-fit p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -875,44 +900,42 @@ function HostDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="import" className="mt-6">
-          <HostImport />
+            <TabsContent value="import" className="mt-6">
+              <HostImport />
+            </TabsContent>
+            <TabsContent value="functions" className="mt-6">
+              <HostEvents />
+            </TabsContent>
+            <TabsContent value="logistics" className="mt-6">
+              <HostLogistics />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
-
-        <TabsContent value="functions" className="mt-6">
-          <HostEvents />
+        <TabsContent value="setup" className="mt-6">
+          <Tabs defaultValue="boutiques">
+            <TabsList>
+              <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+              <TabsTrigger value="by-boutique">Orders by boutique</TabsTrigger>
+              <TabsTrigger value="hosts">Hosts</TabsTrigger>
+              <TabsTrigger value="email">Email</TabsTrigger>
+            </TabsList>
+            <TabsContent value="boutiques" className="mt-6">
+              <HostBoutiques />
+            </TabsContent>
+            <TabsContent value="by-boutique" className="mt-6">
+              <HostByBoutique />
+            </TabsContent>
+            <TabsContent value="hosts" className="mt-6">
+              <HostTeam />
+            </TabsContent>
+            <TabsContent value="email" className="mt-6">
+              <HostEmail />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
-
-        <TabsContent value="invited" className="mt-6">
-          <HostFunctionAccess />
-        </TabsContent>
-
-        <TabsContent value="picks" className="mt-6">
-          <HostPicks />
-        </TabsContent>
-
-        <TabsContent value="logistics" className="mt-6">
-          <HostLogistics />
-        </TabsContent>
-
-        <TabsContent value="boutiques" className="mt-6">
-          <HostBoutiques />
-        </TabsContent>
-
-        <TabsContent value="by-boutique" className="mt-6">
-          <HostByBoutique />
-        </TabsContent>
-
-        <TabsContent value="hosts" className="mt-6">
-          <HostTeam />
-        </TabsContent>
-
-        <TabsContent value="email" className="mt-6">
-          <HostEmail />
-        </TabsContent>
-
       </Tabs>
+
     </main>
   );
 }
