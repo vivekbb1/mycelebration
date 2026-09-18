@@ -190,6 +190,13 @@
       "when": 1789733836191,
       "tag": "0026_outfit_slot_and_build",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1789734437410,
+      "tag": "0027_tighten_invite_and_preset_reads",
+      "breakpoints": true
     }
   ]
 }
