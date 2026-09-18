@@ -40,6 +40,7 @@ export const Route = createFileRoute("/_authenticated/guests")({
 
 function GuestListPage() {
   const queryClient = useQueryClient();
+  const features = useFeatures();
   const emailInvite = useServerFn(sendInviteEmail);
   const [filter, setFilter] = useState("");
 
