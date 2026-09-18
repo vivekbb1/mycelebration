@@ -4,12 +4,14 @@ import { LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useSiteContent } from "@/lib/site-content";
 
 const linkClass =
   "rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
 export function SiteNav() {
   const navigate = useNavigate();
+  const { t } = useSiteContent();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin"],
@@ -43,11 +45,11 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3">
         <Link to="/invitation" className="font-display text-lg tracking-wide">
-          Kush &amp; Khyati
+          {t("nav.brand", "Kush & Khyati")}
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
           <Link to="/invitation" className={linkClass}>
-            Your invitation
+            {t("nav.invitation", "Your invitation")}
           </Link>
           {isStylist ? (
             <Link to="/atelier" className={linkClass}>

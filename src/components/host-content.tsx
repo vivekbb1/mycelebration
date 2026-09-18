@@ -1,0 +1,176 @@
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { RotateCcw } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
+import { SITE_CONTENT_KEY, useSiteContent, type ContentRow } from "@/lib/site-content";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+
+/** Lets the hosts reword every line of copy guests see. */
+export function HostContent() {
+  const queryClient = useQueryClient();
+  const { rows, isLoading } = useSiteContent();
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    setDraft((prev) => {
+      const next = { ...prev };
+      for (const row of rows) if (!(row.key in next)) next[row.key] = row.value;
+      return next;
+    });
+  }, [rows]);
+
+  const groups = useMemo(() => {
+    const term = filter.trim().toLowerCase();
+    const map = new Map<string, ContentRow[]>();
+    for (const row of rows) {
+      if (
+        term &&
+        !row.label.toLowerCase().includes(term) &&
+        !row.value.toLowerCase().includes(term) &&
+        !row.group_name.toLowerCase().includes(term)
+      ) {
+        continue;
+      }
+      const list = map.get(row.group_name) ?? [];
+      list.push(row);
+      map.set(row.group_name, list);
+    }
+    return [...map.entries()];
+  }, [rows, filter]);
+
+  const changed = rows.filter((r) => (draft[r.key] ?? r.value) !== r.value);
+
+  const saveAll = async () => {
+    if (changed.length === 0) return;
+    setBusy(true);
+    for (const row of changed) {
+      const value = (draft[row.key] ?? row.value).trim();
+      if (!value) {
+        setBusy(false);
+        toast.error(`“${row.label}” can't be empty.`);
+        return;
+      }
+      const { error } = await supabase
+        .from("site_content")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("key", row.key);
+      if (error) {
+        setBusy(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+    setBusy(false);
+    toast.success(
+      `${changed.length} line${changed.length === 1 ? "" : "s"} updated — guests see the new wording straight away.`,
+    );
+    await queryClient.invalidateQueries({ queryKey: SITE_CONTENT_KEY });
+  };
+
+  const restore = (row: ContentRow) =>
+    setDraft((prev) => ({ ...prev, [row.key]: row.default_value }));
+
+  return (
+    <div className="space-y-6">
+      <div className="panel p-6">
+        <h2 className="text-xl">Wording</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Every headline, paragraph and button guests see. Edit the wording, then save — the site
+          updates immediately.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Search the wording…"
+            className="max-w-xs"
+          />
+          <Button onClick={saveAll} disabled={busy || changed.length === 0}>
+            {busy
+              ? "Saving…"
+              : changed.length === 0
+                ? "No changes yet"
+                : `Save ${changed.length} change${changed.length === 1 ? "" : "s"}`}
+          </Button>
+          {changed.length > 0 ? (
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() =>
+                setDraft(Object.fromEntries(rows.map((r) => [r.key, r.value])) as Record<
+                  string,
+                  string
+                >)
+              }
+            >
+              Discard changes
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {isLoading ? <p className="text-sm text-muted-foreground">Loading the wording…</p> : null}
+
+      {groups.map(([group, list]) => (
+        <section key={group} className="panel p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg">{group}</h3>
+            <Badge variant="secondary">{list.length}</Badge>
+          </div>
+          <div className="mt-5 space-y-5">
+            {list.map((row) => {
+              const value = draft[row.key] ?? row.value;
+              const dirty = value !== row.value;
+              return (
+                <div key={row.key} className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Label htmlFor={`c-${row.key}`}>{row.label}</Label>
+                    {dirty ? <Badge>unsaved</Badge> : null}
+                    {value !== row.default_value ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => restore(row)}
+                      >
+                        <RotateCcw className="size-3" /> Original wording
+                      </Button>
+                    ) : null}
+                  </div>
+                  {row.kind === "multiline" ? (
+                    <Textarea
+                      id={`c-${row.key}`}
+                      rows={3}
+                      maxLength={1200}
+                      value={value}
+                      onChange={(e) => setDraft((p) => ({ ...p, [row.key]: e.target.value }))}
+                    />
+                  ) : (
+                    <Input
+                      id={`c-${row.key}`}
+                      maxLength={300}
+                      value={value}
+                      onChange={(e) => setDraft((p) => ({ ...p, [row.key]: e.target.value }))}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+
+      {!isLoading && groups.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nothing matches that search.</p>
+      ) : null}
+    </div>
+  );
+}

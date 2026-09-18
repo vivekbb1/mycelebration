@@ -3,6 +3,7 @@ import { Clock, MapPin, Shirt, Sparkles, StickyNote } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useSiteContent } from "@/lib/site-content";
 
 export type WeddingFunction = {
   id: string;
@@ -40,6 +41,9 @@ export function FunctionCard({
   chosenLook?: string | null;
   showOutfitAction?: boolean;
 }) {
+  const { t } = useSiteContent();
+  const eventName = /^the\s/i.test(event.name) ? event.name : `the ${event.name}`;
+
   return (
     <article className="invite-card p-7 sm:p-9">
       <div className="relative">
@@ -75,20 +79,26 @@ export function FunctionCard({
             {picksOutfit ? (
               <>
                 {chosenLook ? (
-                  <Badge>Your look: {chosenLook}</Badge>
+                  <Badge>
+                    {t("card.look_prefix", "Your look:")} {chosenLook}
+                  </Badge>
                 ) : (
-                  <Badge variant="secondary">Outfit is our gift to you</Badge>
+                  <Badge variant="secondary">
+                    {t("card.gift_badge", "Outfit is our gift to you")}
+                  </Badge>
                 )}
                 <Button asChild variant="outline" size="sm">
                   <Link to="/lookbook">
                     {chosenLook
-                      ? "Change your look"
-                      : `Choose your look for ${/^the\s/i.test(event.name) ? event.name : `the ${event.name}`}`}
+                      ? t("card.change_cta", "Change your look")
+                      : `${t("card.choose_prefix", "Choose your look for")} ${eventName}`}
                   </Link>
                 </Button>
               </>
             ) : (
-              <Badge variant="secondary">Please wear your own outfit for this function</Badge>
+              <Badge variant="secondary">
+                {t("card.own_badge", "Please wear your own outfit for this function")}
+              </Badge>
             )}
           </div>
         ) : null}

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 import { scheduleSummary } from "@/lib/schedule";
+import { useSiteContent } from "@/lib/site-content";
 
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/invitation")({
 type StepTarget = "/event" | "/lookbook" | "/measurements";
 
 function InvitationPage() {
+  const { t } = useSiteContent();
   const profile = useQuery({
     queryKey: ["my-profile"],
     queryFn: async () => {
@@ -144,8 +146,11 @@ function InvitationPage() {
     {
       to: "/event",
       icon: CalendarCheck,
-      title: "Tell us if you're coming",
-      body: "A yes or no, plus anything we should know — arrival day, food, who's travelling with you.",
+      title: t("step.rsvp_title", "Tell us if you're coming"),
+      body: t(
+        "step.rsvp_body",
+        "A yes or no, plus anything we should know — arrival day, food, who's travelling with you.",
+      ),
       done: rsvpDone,
       status:
         rsvp === "yes"
@@ -153,15 +158,23 @@ function InvitationPage() {
           : rsvp === "no"
             ? "You've let us know you can't come"
             : "Not answered yet",
-      cta: rsvpDone ? "Change your answer" : "Reply now",
+      cta: rsvpDone
+        ? t("step.rsvp_cta_done", "Change your answer")
+        : t("step.rsvp_cta", "Reply now"),
     },
     {
       to: "/lookbook",
       icon: Sparkles,
-      title: "Choose your outfit",
+      title: t("step.outfit_title", "Choose your outfit"),
       body: needsOutfits
-        ? "Pick a look for each function where the outfit is our gift to you."
-        : "For your functions you'll wear your own outfit — nothing to choose here.",
+        ? t(
+            "step.outfit_body",
+            "Pick a look for each function where the outfit is our gift to you.",
+          )
+        : t(
+            "step.outfit_body_own",
+            "For your functions you'll wear your own outfit — nothing to choose here.",
+          ),
       done: outfitsDone,
       status: !needsOutfits
         ? "Not needed"
@@ -170,34 +183,53 @@ function InvitationPage() {
           : chosenCount === outfitFunctions.length
             ? "All chosen"
             : `${chosenCount} of ${outfitFunctions.length} chosen`,
-      cta: chosenCount > 0 ? "See or change your looks" : "Choose a look",
+      cta:
+        chosenCount > 0
+          ? t("step.outfit_cta_done", "See or change your looks")
+          : t("step.outfit_cta", "Choose a look"),
     },
     {
       to: "/measurements",
       icon: Ruler,
-      title: "Send your measurements",
-      body: "So your outfit is tailored before you arrive. Every field has a tip to help you measure.",
+      title: t("step.measure_title", "Send your measurements"),
+      body: t(
+        "step.measure_body",
+        "So your outfit is tailored before you arrive. Every field has a tip to help you measure.",
+      ),
       done: measurementsDone,
       status: measurementsDone ? "Sent — thank you" : "Not sent yet",
-      cta: measurementsDone ? "Update measurements" : "Send measurements",
+      cta: measurementsDone
+        ? t("step.measure_cta_done", "Update measurements")
+        : t("step.measure_cta", "Send measurements"),
     },
   ];
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
+  const couple = t("invitation.couple", "Kush & Khyati");
+  const coupleParts = couple.split("&").map((part) => part.trim());
 
   return (
     <main className="bg-zari">
       <div className="mx-auto max-w-3xl px-4 py-12">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
-            <p className="text-eyebrow">Together with our families</p>
+            <p className="text-eyebrow">
+              {t("invitation.eyebrow", "Together with our families")}
+            </p>
             <h1 className="mt-6 text-5xl leading-none sm:text-6xl">
-              Kush <span className="text-primary">&</span> Khyati
+              {coupleParts.length === 2 ? (
+                <>
+                  {coupleParts[0]} <span className="text-primary">&</span> {coupleParts[1]}
+                </>
+              ) : (
+                couple
+              )}
             </h1>
             <div className="gold-rule mx-auto mt-6 max-w-[16rem]" />
             <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              {firstName ? `${firstName}, ` : ""}we would be honoured to have you with us.
+              {firstName ? `${firstName}, ` : ""}
+              {t("invitation.greeting", "we would be honoured to have you with us.")}
               {list.length > 0 ? ` ${scheduleSummary(list)}` : ""}
             </p>
           </div>
@@ -206,9 +238,13 @@ function InvitationPage() {
         <section className="panel mt-8 p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-eyebrow">Three simple steps</p>
+              <p className="text-eyebrow">
+                {t("invitation.steps_eyebrow", "Three simple steps")}
+              </p>
               <h2 className="mt-3 text-2xl">
-                {doneCount === steps.length ? "You're all set" : "Here's what's left to do"}
+                {doneCount === steps.length
+                  ? t("invitation.steps_title_done", "You're all set")
+                  : t("invitation.steps_title_open", "Here's what's left to do")}
               </h2>
             </div>
             <Badge variant={doneCount === steps.length ? "default" : "secondary"}>
@@ -263,15 +299,20 @@ function InvitationPage() {
               </Link>
             </Button>
           ) : (
-            <p className="mt-6 text-sm text-muted-foreground">
-              Everything's done — we'll be in touch about delivery. You can still change any answer.
+            <p className="mt-6 text-sm whitespace-pre-line text-muted-foreground">
+              {t(
+                "invitation.all_done_note",
+                "Everything's done — we'll be in touch about delivery. You can still change any answer.",
+              )}
             </p>
           )}
         </section>
 
         <div className="gold-rule my-12" />
 
-        <p className="text-center text-eyebrow">Your functions</p>
+        <p className="text-center text-eyebrow">
+          {t("invitation.functions_title", "Your functions")}
+        </p>
 
         {events.isLoading ? (
           <p className="mt-6 text-center text-sm text-muted-foreground">Opening your invitation…</p>
@@ -296,7 +337,8 @@ function InvitationPage() {
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="sm">
             <Link to="/delivery">
-              <Truck className="size-4" /> How your outfit reaches you
+              <Truck className="size-4" />{" "}
+              {t("invitation.delivery_cta", "How your outfit reaches you")}
             </Link>
           </Button>
         </div>

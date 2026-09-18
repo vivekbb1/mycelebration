@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
+import { useSiteContent } from "@/lib/site-content";
 
 export const Route = createFileRoute("/_authenticated/event")({
   head: () => ({
@@ -44,6 +45,7 @@ const formatDate = (value: string | null) =>
     : "Date to be confirmed";
 
 function EventPage() {
+  const { t } = useSiteContent();
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -107,7 +109,11 @@ function EventPage() {
       toast.error(error.message);
       return;
     }
-    toast.success(status === "yes" ? "Wonderful — you're on the list." : "Thank you for letting us know.");
+    toast.success(
+      status === "yes"
+        ? t("rsvp.thanks_yes", "Wonderful — you're on the list.")
+        : t("rsvp.thanks_no", "Thank you for letting us know."),
+    );
     setNoteTouched(false);
     await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
   };
@@ -120,8 +126,12 @@ function EventPage() {
       <p className="text-eyebrow">The wedding weekend</p>
       <h1 className="mt-3 text-4xl">{scheduleHeadline(events.data ?? [])}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        {scheduleSummary(events.data ?? [])} Dress codes are guidance, not rules — but red and ivory
-        are reserved for the couple. Once you know which functions you'll join,{" "}
+        {scheduleSummary(events.data ?? [])}{" "}
+        {t(
+          "rsvp.dress_note",
+          "Dress codes are guidance, not rules — but red and ivory are reserved for the couple.",
+        )}{" "}
+        Once you know which functions you'll join,{" "}
         <Link to="/lookbook" className="text-primary underline-offset-4 hover:underline">
           reserve your looks in the lookbook
         </Link>
@@ -131,7 +141,7 @@ function EventPage() {
       <section className="panel mt-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl">Your RSVP</h2>
+            <h2 className="text-xl">{t("rsvp.title", "Your RSVP")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {rsvpBy ? `Please let us know by ${formatDate(rsvpBy)}.` : "Please let us know soon."}
             </p>
@@ -154,13 +164,18 @@ function EventPage() {
         </div>
 
         <div className="mt-5 space-y-2">
-          <Label htmlFor="rsvp-note">Anything we should know? (optional)</Label>
+          <Label htmlFor="rsvp-note">
+            {t("rsvp.note_label", "Anything we should know? (optional)")}
+          </Label>
           <Textarea
             id="rsvp-note"
             rows={3}
             maxLength={600}
             value={currentNote}
-            placeholder="Arrival date, dietary needs, travelling with family…"
+            placeholder={t(
+              "rsvp.note_placeholder",
+              "Arrival date, dietary needs, travelling with family…",
+            )}
             onChange={(e) => {
               setNoteTouched(true);
               setNote(e.target.value);
@@ -170,10 +185,12 @@ function EventPage() {
 
         <div className="mt-4 flex flex-wrap gap-3">
           <Button disabled={busy} onClick={() => saveRsvp("yes")}>
-            {rsvp === "yes" ? "Update — I'll be there" : "I'll be there"}
+            {rsvp === "yes"
+              ? t("rsvp.yes_update", "Update — I'll be there")
+              : t("rsvp.yes_cta", "I'll be there")}
           </Button>
           <Button variant="outline" disabled={busy} onClick={() => saveRsvp("no")}>
-            Sadly can't make it
+            {t("rsvp.no_cta", "Sadly can't make it")}
           </Button>
         </div>
       </section>

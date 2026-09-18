@@ -530,6 +530,39 @@ export type Database = {
           },
         ]
       }
+      site_content: {
+        Row: {
+          default_value: string
+          group_name: string
+          key: string
+          kind: string
+          label: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          default_value: string
+          group_name: string
+          key: string
+          kind?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          default_value?: string
+          group_name?: string
+          key?: string
+          kind?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
