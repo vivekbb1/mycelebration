@@ -265,7 +265,34 @@ function InvitationPage() {
           </div>
         </section>
 
-        <section className="panel mt-8 p-4 sm:p-6 sm:p-8">
+
+        <div className="gold-rule my-12" />
+
+        <p className="text-center text-eyebrow">
+          {t("invitation.functions_title", "Your functions")}
+        </p>
+
+        {events.isLoading ? (
+          <p className="mt-6 text-center text-sm text-muted-foreground">Opening your invitation…</p>
+        ) : (
+          <div className="mt-8 space-y-7">
+            {list.map((ev) => (
+              <FunctionCard
+                key={ev.id}
+                event={ev as WeddingFunction}
+                picksOutfit={picksOutfit(ev)}
+                chosenLook={lookByEvent.get(ev.id) ?? null}
+              />
+            ))}
+            {list.length === 0 ? (
+              <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
+                The schedule is being finalised — your functions will appear here shortly.
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        <section className="panel mt-12 p-4 sm:p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-eyebrow">
@@ -337,32 +364,6 @@ function InvitationPage() {
             </p>
           )}
         </section>
-
-        <div className="gold-rule my-12" />
-
-        <p className="text-center text-eyebrow">
-          {t("invitation.functions_title", "Your functions")}
-        </p>
-
-        {events.isLoading ? (
-          <p className="mt-6 text-center text-sm text-muted-foreground">Opening your invitation…</p>
-        ) : (
-          <div className="mt-8 space-y-7">
-            {list.map((ev) => (
-              <FunctionCard
-                key={ev.id}
-                event={ev as WeddingFunction}
-                picksOutfit={picksOutfit(ev)}
-                chosenLook={lookByEvent.get(ev.id) ?? null}
-              />
-            ))}
-            {list.length === 0 ? (
-              <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
-                The schedule is being finalised — your functions will appear here shortly.
-              </p>
-            ) : null}
-          </div>
-        )}
 
         <section className="panel mt-12 p-4 sm:p-6">
           <p className="text-eyebrow">Your travel</p>
