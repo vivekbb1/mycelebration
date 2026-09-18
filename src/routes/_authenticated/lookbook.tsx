@@ -157,10 +157,31 @@ function Lookbook() {
     await queryClient.invalidateQueries({ queryKey: ["me"] });
   };
 
+  // Pick the person first: every name invited under this family becomes a capsule.
+  const people = useMemo(() => {
+    const list = household.data ?? [];
+    if (list.length > 0) return list;
+    return [
+      {
+        name: (me.data?.full_name ?? "").trim() || "You",
+        gender: myGender,
+      },
+    ];
+  }, [household.data, me.data?.full_name, myGender]);
+
+  const activeName =
+    (activePerson && people.some((p) => p.name === activePerson) ? activePerson : null) ??
+    people.find((p) => p.name === (me.data?.full_name ?? "").trim())?.name ??
+    people[0]?.name ??
+    "You";
+
+  const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
+  const wardrobe = wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender;
+
   const selectable = (outfits.data ?? []).filter(
     (o) =>
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
-      (!myGender || (o.gender ?? "women") === myGender),
+      (!wardrobe || (o.gender ?? "women") === wardrobe),
   );
 
   const visible = selectable.filter(
