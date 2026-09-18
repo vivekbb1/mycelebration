@@ -209,6 +209,10 @@ export function HostFamilies() {
   const createFamilies = async (
     groups: { family: string; people: MemberDraft[] }[],
   ): Promise<{ codes: Record<string, string>; added: number; updated: number } | null> => {
+    if (!chosenInvite) {
+      toast.error("Choose the event first — create one under the Event tab.");
+      return null;
+    }
     const existing = new Map((families.data ?? []).map((f) => [f.name.toLowerCase(), f]));
     const toCreate = groups.filter((g) => !existing.has(g.family.toLowerCase()));
 
