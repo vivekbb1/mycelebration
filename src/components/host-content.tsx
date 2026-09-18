@@ -97,8 +97,8 @@ export function HostContent() {
       <div className="panel p-6">
         <h2 className="text-xl">Wording</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every headline, paragraph and button guests see. Edit the wording, then save — the site
-          updates immediately.
+          Choose a page, then edit its headlines, paragraphs and buttons. Save and guests see the
+          new wording straight away.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Input
