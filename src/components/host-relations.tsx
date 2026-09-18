@@ -221,6 +221,17 @@ export function HostRelations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const myGuestIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!me.data) return set;
+    for (const row of links.data ?? []) {
+      if (row.host_id === me.data) set.add(row.invite_id);
+    }
+    return set;
+  }, [links.data, me.data]);
+
+  const showingMine = scope === "mine" && myGuestIds.size > 0;
+
   const term = search.trim().toLowerCase();
   const matched = (guests.data ?? []).filter((g) => {
     const hit =
@@ -228,7 +239,7 @@ export function HostRelations() {
       g.guest_name.toLowerCase().includes(term) ||
       (g.household ?? "").toLowerCase().includes(term) ||
       (g.email ?? "").toLowerCase().includes(term);
-    const mine = !onlyMine || (me.data ? (hostsFor.get(g.id) ?? []).includes(me.data) : false);
+    const mine = !showingMine || myGuestIds.has(g.id);
     return hit && mine;
   });
 
@@ -242,12 +253,12 @@ export function HostRelations() {
   }, [matched]);
 
   const personallyCount = (guests.data ?? []).filter((g) => g.personally_invited).length;
-  const assignedCount = new Set((links.data ?? []).map((r) => r.invite_id)).size;
   const spokenCount = new Set((notes.data ?? []).map((r) => r.invite_id)).size;
   const today = new Date().toISOString().slice(0, 10);
   const dueFollowUps = (notes.data ?? []).filter(
     (n) => n.follow_up_on && n.follow_up_on <= today,
   );
+  const myDue = dueFollowUps.filter((n) => myGuestIds.has(n.invite_id));
 
   return (
     <div className="space-y-6">
