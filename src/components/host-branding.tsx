@@ -131,20 +131,23 @@ export function HostBranding() {
 
   const updatePreset = useMutation({
     mutationFn: async (preset: Preset) => {
-      const { error } = await supabase
-        .from("branding_presets")
-        .update({
-          settings: JSON.parse(JSON.stringify(draft)),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", preset.id);
-      if (error) throw error;
+      await guardedUpdate({
+        table: "branding_presets",
+        idColumn: "id",
+        id: preset.id,
+        expectedUpdatedAt: preset.updated_at,
+        patch: { settings: JSON.parse(JSON.stringify(draft)) },
+        label: `the theme “${preset.name}”`,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["branding-presets"] });
       toast.success("Theme updated with what's on screen.");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["branding-presets"] });
+    },
   });
 
   const removePreset = useMutation({
