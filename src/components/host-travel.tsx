@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plane, Users, AlertTriangle } from "lucide-react";
+import { Plane, Users, AlertTriangle, CalendarClock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -71,8 +71,108 @@ export function HostTravel() {
       : [],
   );
 
+  /** One entry per function, with who is in town that day and who travels that day. */
+  const timeline = useMemo(() => {
+    const byHousehold = new Map<string, typeof rows>();
+    for (const p of rows) {
+      const current = byHousehold.get(p.household) ?? [];
+      current.push(p);
+      byHousehold.set(p.household, current);
+    }
+
+    return list.map((e) => {
+      const coming = (attendance.data ?? []).filter(
+        (a) => a.event_id === e.id && a.attending && (a.guest_count ?? 0) > 0,
+      );
+      const people = coming.map((a) => {
+        const travel = byHousehold.get(a.household) ?? [];
+        const arrivals = travel.map((t) => t.arrival_date).filter(Boolean) as string[];
+        const departures = travel.map((t) => t.departure_date).filter(Boolean) as string[];
+        const arrival = arrivals.sort()[0] ?? null;
+        const departure = departures.sort().slice(-1)[0] ?? null;
+        const day = e.event_date;
+        return {
+          household: a.household,
+          guests: a.guest_count ?? 0,
+          arrival,
+          departure,
+          arrivesToday: !!day && arrival === day,
+          leavesToday: !!day && departure === day,
+          notYetHere: !!day && !!arrival && arrival > day,
+          alreadyGone: !!day && !!departure && departure < day,
+        };
+      });
+      people.sort((a, b) => a.household.localeCompare(b.household));
+      return {
+        id: e.id,
+        name: e.name,
+        date: e.event_date,
+        heads: people.reduce((sum, p) => sum + p.guests, 0),
+        people,
+      };
+    });
+  }, [list, rows, attendance.data]);
+
   return (
     <div className="space-y-6">
+      <section className="panel p-6">
+        <h2 className="flex items-center gap-2 text-xl">
+          <CalendarClock className="size-4 text-primary" /> Guest timeline
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Every function in order, with who is attending, who arrives that day and who flies out.
+        </p>
+        {timeline.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">Add your functions first.</p>
+        ) : (
+          <ol className="mt-5 space-y-5 border-l border-border/70 pl-5">
+            {timeline.map((t) => (
+              <li key={t.id} className="relative">
+                <span className="absolute -left-[26px] top-2 size-2 rounded-full bg-primary" />
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <p className="text-lg">{t.name}</p>
+                  <span className="text-xs text-muted-foreground">{dateLabel(t.date)}</span>
+                  <Badge variant="outline">{t.heads} guests</Badge>
+                </div>
+                {t.people.length === 0 ? (
+                  <p className="mt-1 text-sm text-muted-foreground">No one has confirmed yet.</p>
+                ) : (
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {t.people.map((p) => (
+                      <li key={`${t.id}-${p.household}`} className="flex flex-wrap items-center gap-2">
+                        <span>{p.household}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {p.guests} {p.guests === 1 ? "guest" : "guests"}
+                        </span>
+                        {p.arrivesToday ? (
+                          <Badge variant="outline" className="text-primary">
+                            arrives today
+                          </Badge>
+                        ) : null}
+                        {p.leavesToday ? <Badge variant="outline">flies out today</Badge> : null}
+                        {p.notYetHere ? (
+                          <Badge variant="outline" className="text-destructive">
+                            lands {dateLabel(p.arrival)}
+                          </Badge>
+                        ) : null}
+                        {p.alreadyGone ? (
+                          <Badge variant="outline" className="text-destructive">
+                            left {dateLabel(p.departure)}
+                          </Badge>
+                        ) : null}
+                        {!p.arrival && !p.departure ? (
+                          <span className="text-xs text-muted-foreground">no travel details</span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+
       <section className="panel p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Users className="size-4 text-primary" /> Heads per function
