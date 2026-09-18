@@ -136,7 +136,7 @@ function InvitationPage() {
   const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount === outfitFunctions.length);
   const measurementsDone = (myMeasurements.data ?? []).length > 0;
 
-  const steps: {
+  const allSteps: {
     to: StepTarget;
     icon: typeof Sparkles;
     title: string;
@@ -204,10 +204,10 @@ function InvitationPage() {
         ? t("step.measure_cta_done", "Update measurements")
         : t("step.measure_cta", "Send measurements"),
     },
-  ].filter(
-    // RSVP-only families have nothing to choose and nothing to measure.
-    (step) => needsWardrobe || step.to === "/event",
-  );
+  ];
+
+  // RSVP-only families have nothing to choose and nothing to measure.
+  const steps = allSteps.filter((step) => needsWardrobe || step.to === "/event");
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
