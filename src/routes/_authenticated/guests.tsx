@@ -58,7 +58,7 @@ function genderFrom(line: string): { gender: "women" | "men" | ""; cleaned: stri
   // Markers appear as a bracketed hint or the last comma-separated field.
   const bracket = line.match(/\((m|f|male|female|husband|wife)\)/i);
   let rest = line.replace(/\([^)]*\)/g, " ");
-  let marker = bracket ? bracket[1].toLowerCase() : "";
+  let marker = (bracket?.[1] ?? "").toLowerCase();
 
   if (!marker) {
     const parts = rest.split(/[,;]/).map((p) => p.trim());
