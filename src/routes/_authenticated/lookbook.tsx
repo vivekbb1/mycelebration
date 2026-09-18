@@ -60,6 +60,7 @@ function Lookbook() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [activePerson, setActivePerson] = useState<string | null>(null);
   const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
+  const { needsWardrobe } = useNeedsWardrobe();
 
   const me = useQuery({
     queryKey: ["me"],
@@ -283,6 +284,24 @@ function Lookbook() {
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
     await queryClient.invalidateQueries({ queryKey: ["my-wardrobe"] });
   };
+
+  if (!needsWardrobe) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-16">
+        <div className="panel p-6 text-center">
+          <p className="text-eyebrow">Nothing to choose</p>
+          <h1 className="mt-3 text-2xl">You'll wear your own outfit</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            We're not dressing your family for this wedding, so there's no look to pick and no
+            measurements to send. Just let us know you're coming.
+          </p>
+          <Button asChild className="mt-5">
+            <Link to="/event">Go to your RSVP</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   if (me.isLoading) {
     return <p className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
