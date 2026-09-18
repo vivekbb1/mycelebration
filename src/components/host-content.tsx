@@ -72,13 +72,19 @@ export function HostContent() {
         toast.error(`“${row.label}” can't be empty.`);
         return;
       }
-      const { error } = await supabase
-        .from("site_content")
-        .update({ value, updated_at: new Date().toISOString() })
-        .eq("key", row.key);
-      if (error) {
+      try {
+        await guardedUpdate({
+          table: "site_content",
+          idColumn: "key",
+          id: row.key,
+          expectedUpdatedAt: row.updated_at,
+          patch: { value },
+          label: `“${row.label}”`,
+        });
+      } catch (e) {
         setBusy(false);
-        toast.error(error.message);
+        toast.error(e instanceof Error ? e.message : "Could not save.");
+        await queryClient.invalidateQueries({ queryKey: SITE_CONTENT_KEY });
         return;
       }
     }
