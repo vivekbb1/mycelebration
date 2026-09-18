@@ -194,14 +194,90 @@ export function HostTeam() {
     await queryClient.invalidateQueries({ queryKey: ["host-roles"] });
   };
 
+  const pendingInvites = (hostInvites.data ?? []).filter((i) => !i.claimed_by);
+
   return (
     <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
-      <section className="panel p-6">
-        <h2 className="text-xl">Add a host</h2>
+      <div className="space-y-6">
+        <section className="panel p-6">
+          <h2 className="text-xl">Invite a host by email</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            They don't need an account yet — we email them a link and their own host code, and they
+            become a host as soon as they register.
+          </p>
+          <div className="mt-5 space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="hi-email">Email</Label>
+              <Input
+                id="hi-email"
+                type="email"
+                maxLength={255}
+                value={inviteEmail}
+                placeholder="sister@example.com"
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hi-name">Name (optional)</Label>
+              <Input
+                id="hi-name"
+                maxLength={100}
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+              />
+            </div>
+            <Button className="w-full" disabled={busy || !inviteEmail} onClick={sendHostInvite}>
+              <Mail className="mr-2 size-4" />
+              Send host invitation
+            </Button>
+          </div>
+
+          {pendingInvites.length > 0 ? (
+            <div className="mt-6">
+              <p className="text-eyebrow">Waiting to register ({pendingInvites.length})</p>
+              <ul className="mt-3 divide-y divide-border/60">
+                {pendingInvites.map((i) => (
+                  <li key={i.id} className="flex items-center justify-between gap-2 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm">{i.full_name || i.email}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {i.full_name ? `${i.email} · ` : ""}
+                        {i.code}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Copy registration link for ${i.email}`}
+                        onClick={() => copyHostLink(i.code)}
+                      >
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={busy}
+                        aria-label={`Withdraw invitation for ${i.email}`}
+                        onClick={() => removeHostInvite(i.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+
+        <section className="panel p-6">
+        <h2 className="text-xl">Add someone already registered</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Hosts share everything: outfits, functions, the delivery plan, the guest list and
-          measurements. Anyone who has already registered on the portal can be made a host.
+          measurements.
         </p>
+
 
         <div className="mt-5 space-y-3">
           <Select value={pick} onValueChange={setPick}>
