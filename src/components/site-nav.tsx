@@ -42,15 +42,18 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-        <Link to="/lookbook" className="font-display text-lg tracking-wide">
-          The Wedding Wardrobe
+        <Link to="/invitation" className="font-display text-lg tracking-wide">
+          Kush &amp; Khyati
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
-          <Link to="/lookbook" className={linkClass}>
-            Lookbook
+          <Link to="/invitation" className={linkClass}>
+            Invitation
           </Link>
           <Link to="/event" className={linkClass}>
-            Wedding weekend
+            RSVP
+          </Link>
+          <Link to="/lookbook" className={linkClass}>
+            Outfits
           </Link>
           <Link to="/measurements" className={linkClass}>
             Measurements

@@ -96,7 +96,7 @@ function AuthPage() {
     const isHostCode = parsed.data.code.trim().toUpperCase().startsWith("HOST-");
     if (parsed.data.code) await claimInvite(parsed.data.code);
     setBusy(false);
-    navigate({ to: isHostCode ? "/host" : "/lookbook" });
+    navigate({ to: isHostCode ? "/host" : "/invitation" });
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -116,7 +116,7 @@ function AuthPage() {
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/lookbook" });
+    navigate({ to: "/invitation" });
   };
 
   return (

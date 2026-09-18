@@ -3,13 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
-import { CalendarDays, MapPin, Clock, Shirt, Check, X, HelpCircle } from "lucide-react";
+import { Check, X, HelpCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 
 export const Route = createFileRoute("/_authenticated/event")({
   head: () => ({
@@ -182,38 +183,9 @@ function EventPage() {
       {events.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading the schedule…</p>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-7">
           {(events.data ?? []).map((ev) => (
-            <article key={ev.id} className="panel p-6">
-              <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <h2 className="text-2xl">{ev.name}</h2>
-                <p className="text-sm text-primary">{formatDate(ev.event_date)}</p>
-              </div>
-
-              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                {ev.start_time ? (
-                  <Detail icon={Clock} label="Timing" value={ev.start_time} />
-                ) : null}
-                {ev.venue ? (
-                  <Detail
-                    icon={MapPin}
-                    label="Venue"
-                    value={ev.venue}
-                    sub={ev.venue_address ?? undefined}
-                  />
-                ) : null}
-                {ev.dress_code ? (
-                  <Detail icon={Shirt} label="Dress code" value={ev.dress_code} />
-                ) : null}
-                {ev.note ? <Detail icon={CalendarDays} label="Good to know" value={ev.note} /> : null}
-              </dl>
-
-              <div className="mt-5">
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/lookbook">See looks for the {ev.name.toLowerCase()}</Link>
-                </Button>
-              </div>
-            </article>
+            <FunctionCard key={ev.id} event={ev as WeddingFunction} />
           ))}
           {(events.data ?? []).length === 0 ? (
             <p className="panel p-6 text-sm text-muted-foreground">
@@ -222,31 +194,7 @@ function EventPage() {
             </p>
           ) : null}
         </div>
-
       )}
     </main>
-  );
-}
-
-function Detail({
-  icon: Icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: typeof Clock;
-  label: string;
-  value: string;
-  sub?: string | undefined;
-}) {
-  return (
-    <div className="flex gap-3">
-      <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-      <div>
-        <dt className="text-xs tracking-wide text-muted-foreground uppercase">{label}</dt>
-        <dd className="mt-1 leading-relaxed">{value}</dd>
-        {sub ? <dd className="mt-0.5 text-xs text-muted-foreground">{sub}</dd> : null}
-      </div>
-    </div>
   );
 }
