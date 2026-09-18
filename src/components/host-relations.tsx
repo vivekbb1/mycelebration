@@ -50,6 +50,7 @@ type Note = {
   notes: string | null;
   follow_up_on: string | null;
   contacted_at: string;
+  reminder_sent_at: string | null;
 };
 
 const CHANNELS = [
