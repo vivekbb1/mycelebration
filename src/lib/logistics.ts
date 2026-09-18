@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { supabase } from "@/integrations/supabase/client";
+
 // Client-safe shapes for the host-managed delivery plan.
 
 export type TimelineStep = {
@@ -29,4 +33,21 @@ export function parseTimeline(value: unknown): TimelineStep[] {
       body: typeof step["body"] === "string" ? step["body"] : "",
     }))
     .filter((step) => step.title || step.date || step.body);
+}
+
+/** Whether the host has the delivery plan switched on for guests. */
+export function useDeliveryPlan() {
+  return useQuery({
+    queryKey: ["logistics-enabled"],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("logistics")
+        .select("enabled")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return { enabled: data?.enabled ?? true };
+    },
+  });
 }
