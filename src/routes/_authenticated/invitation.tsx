@@ -146,8 +146,11 @@ function InvitationPage() {
     {
       to: "/event",
       icon: CalendarCheck,
-      title: "Tell us if you're coming",
-      body: "A yes or no, plus anything we should know — arrival day, food, who's travelling with you.",
+      title: t("step.rsvp_title", "Tell us if you're coming"),
+      body: t(
+        "step.rsvp_body",
+        "A yes or no, plus anything we should know — arrival day, food, who's travelling with you.",
+      ),
       done: rsvpDone,
       status:
         rsvp === "yes"
@@ -155,15 +158,23 @@ function InvitationPage() {
           : rsvp === "no"
             ? "You've let us know you can't come"
             : "Not answered yet",
-      cta: rsvpDone ? "Change your answer" : "Reply now",
+      cta: rsvpDone
+        ? t("step.rsvp_cta_done", "Change your answer")
+        : t("step.rsvp_cta", "Reply now"),
     },
     {
       to: "/lookbook",
       icon: Sparkles,
-      title: "Choose your outfit",
+      title: t("step.outfit_title", "Choose your outfit"),
       body: needsOutfits
-        ? "Pick a look for each function where the outfit is our gift to you."
-        : "For your functions you'll wear your own outfit — nothing to choose here.",
+        ? t(
+            "step.outfit_body",
+            "Pick a look for each function where the outfit is our gift to you.",
+          )
+        : t(
+            "step.outfit_body_own",
+            "For your functions you'll wear your own outfit — nothing to choose here.",
+          ),
       done: outfitsDone,
       status: !needsOutfits
         ? "Not needed"
