@@ -900,44 +900,42 @@ function HostDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="import" className="mt-6">
-          <HostImport />
+            <TabsContent value="import" className="mt-6">
+              <HostImport />
+            </TabsContent>
+            <TabsContent value="functions" className="mt-6">
+              <HostEvents />
+            </TabsContent>
+            <TabsContent value="logistics" className="mt-6">
+              <HostLogistics />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
-
-        <TabsContent value="functions" className="mt-6">
-          <HostEvents />
+        <TabsContent value="setup" className="mt-6">
+          <Tabs defaultValue="boutiques">
+            <TabsList>
+              <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+              <TabsTrigger value="by-boutique">Orders by boutique</TabsTrigger>
+              <TabsTrigger value="hosts">Hosts</TabsTrigger>
+              <TabsTrigger value="email">Email</TabsTrigger>
+            </TabsList>
+            <TabsContent value="boutiques" className="mt-6">
+              <HostBoutiques />
+            </TabsContent>
+            <TabsContent value="by-boutique" className="mt-6">
+              <HostByBoutique />
+            </TabsContent>
+            <TabsContent value="hosts" className="mt-6">
+              <HostTeam />
+            </TabsContent>
+            <TabsContent value="email" className="mt-6">
+              <HostEmail />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
-
-        <TabsContent value="invited" className="mt-6">
-          <HostFunctionAccess />
-        </TabsContent>
-
-        <TabsContent value="picks" className="mt-6">
-          <HostPicks />
-        </TabsContent>
-
-        <TabsContent value="logistics" className="mt-6">
-          <HostLogistics />
-        </TabsContent>
-
-        <TabsContent value="boutiques" className="mt-6">
-          <HostBoutiques />
-        </TabsContent>
-
-        <TabsContent value="by-boutique" className="mt-6">
-          <HostByBoutique />
-        </TabsContent>
-
-        <TabsContent value="hosts" className="mt-6">
-          <HostTeam />
-        </TabsContent>
-
-        <TabsContent value="email" className="mt-6">
-          <HostEmail />
-        </TabsContent>
-
       </Tabs>
+
     </main>
   );
 }
