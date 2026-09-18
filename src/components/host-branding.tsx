@@ -26,6 +26,7 @@ import {
 } from "@/lib/branding";
 import { Badge } from "@/components/ui/badge";
 import { findContrastIssues } from "@/lib/contrast";
+import { HostInviteBranding } from "@/components/host-invite-branding";
 
 type Draft = Omit<Branding, "id">;
 
@@ -377,6 +378,8 @@ export function HostBranding() {
           </div>
         )}
       </section>
+
+      <HostInviteBranding />
 
       <section className="panel p-6">
         <h3 className="text-lg">Lettering</h3>
