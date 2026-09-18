@@ -21,7 +21,7 @@ export const claimGuestInvite = createServerFn({ method: "POST" })
 
     const { data: invite, error } = await supabaseAdmin
       .from("invite_codes")
-      .select("id, code, guest_name, claimed_by, claimed_at")
+      .select("id, code, guest_name, claimed_by, claimed_at, household, gender")
       .ilike("code", code)
       .maybeSingle();
 
@@ -39,15 +39,19 @@ export const claimGuestInvite = createServerFn({ method: "POST" })
 
     const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .select("full_name")
+      .select("full_name, household, gender")
       .eq("id", userId)
       .maybeSingle();
 
+    // The family name and wardrobe come from the invitation: they decide which
+    // functions this guest sees and whether we show menswear or womenswear.
     await supabaseAdmin
       .from("profiles")
       .update({
         invite_claimed: true,
         full_name: profile?.full_name ? profile.full_name : invite.guest_name,
+        household: profile?.household ?? invite.household,
+        gender: profile?.gender ?? invite.gender,
       })
       .eq("id", userId);
 
