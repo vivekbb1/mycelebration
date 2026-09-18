@@ -292,7 +292,7 @@ function InvitationPage() {
           </div>
         )}
 
-        <section className="panel mt-8 p-4 sm:p-6 sm:p-8">
+        <section className="panel mt-12 p-4 sm:p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-eyebrow">
