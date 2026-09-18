@@ -12,6 +12,7 @@ export type ContentRow = {
   page_name: string;
   kind: string;
   sort_order: number;
+  updated_at: string | null;
 };
 
 export const SITE_CONTENT_KEY = ["site-content"];
