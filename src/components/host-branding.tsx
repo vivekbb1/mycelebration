@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { guardedUpdate } from "@/lib/save-guard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ type Preset = {
   name: string;
   settings: Draft;
   created_at: string;
+  updated_at: string | null;
 };
 
 const COLOURS: { key: keyof Draft; label: string; hint: string }[] = [
@@ -61,13 +63,14 @@ export function HostBranding() {
     queryFn: async (): Promise<Preset[]> => {
       const { data, error } = await supabase
         .from("branding_presets")
-        .select("id, name, settings, created_at")
+        .select("id, name, settings, created_at, updated_at")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []).map((row) => ({
         id: row.id,
         name: row.name,
         created_at: row.created_at,
+        updated_at: row.updated_at,
         settings: { ...BRANDING_DEFAULTS, ...((row.settings ?? {}) as Partial<Draft>) },
       }));
     },
@@ -75,7 +78,7 @@ export function HostBranding() {
 
   useEffect(() => {
     if (!loaded && query.data) {
-      const { id: _id, ...rest } = query.data;
+      const { id: _id, updated_at: _u, ...rest } = query.data;
       setDraft(rest);
       setLoaded(true);
     }
@@ -91,16 +94,23 @@ export function HostBranding() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("branding")
-        .upsert({ id: "default", ...draft, updated_at: new Date().toISOString() });
-      if (error) throw error;
+      await guardedUpdate({
+        table: "branding",
+        idColumn: "id",
+        id: "default",
+        expectedUpdatedAt: query.data?.updated_at,
+        patch: { ...draft },
+        label: "the branding",
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["branding"] });
       toast.success("Branding saved — guests see it straight away.");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["branding"] });
+    },
   });
 
   const savePreset = useMutation({
@@ -123,20 +133,23 @@ export function HostBranding() {
 
   const updatePreset = useMutation({
     mutationFn: async (preset: Preset) => {
-      const { error } = await supabase
-        .from("branding_presets")
-        .update({
-          settings: JSON.parse(JSON.stringify(draft)),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", preset.id);
-      if (error) throw error;
+      await guardedUpdate({
+        table: "branding_presets",
+        idColumn: "id",
+        id: preset.id,
+        expectedUpdatedAt: preset.updated_at,
+        patch: { settings: JSON.parse(JSON.stringify(draft)) },
+        label: `the theme “${preset.name}”`,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["branding-presets"] });
       toast.success("Theme updated with what's on screen.");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries({ queryKey: ["branding-presets"] });
+    },
   });
 
   const removePreset = useMutation({

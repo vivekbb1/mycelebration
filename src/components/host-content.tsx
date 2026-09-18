@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RotateCcw } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { guardedUpdate } from "@/lib/save-guard";
 import { SITE_CONTENT_KEY, useSiteContent, type ContentRow } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,13 +72,19 @@ export function HostContent() {
         toast.error(`“${row.label}” can't be empty.`);
         return;
       }
-      const { error } = await supabase
-        .from("site_content")
-        .update({ value, updated_at: new Date().toISOString() })
-        .eq("key", row.key);
-      if (error) {
+      try {
+        await guardedUpdate({
+          table: "site_content",
+          idColumn: "key",
+          id: row.key,
+          expectedUpdatedAt: row.updated_at,
+          patch: { value },
+          label: `“${row.label}”`,
+        });
+      } catch (e) {
         setBusy(false);
-        toast.error(error.message);
+        toast.error(e instanceof Error ? e.message : "Could not save.");
+        await queryClient.invalidateQueries({ queryKey: SITE_CONTENT_KEY });
         return;
       }
     }

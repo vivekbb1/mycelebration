@@ -270,6 +270,9 @@ export function HostFamilies() {
           if (Object.keys(patch).length > 1) patches.push(patch);
           continue;
         }
+        // Guards against the same person appearing twice in one pasted list.
+        if (rows.some((r) => r.family_id === fam.id && r.guest_name.toLowerCase() === name.toLowerCase()))
+          continue;
         rows.push({
           code: makeMemberCode(name),
           guest_name: name,
@@ -285,7 +288,12 @@ export function HostFamilies() {
     if (rows.length > 0) {
       const { error } = await supabase.from("invite_codes").insert(rows);
       if (error) {
-        toast.error(error.message);
+        toast.error(
+          error.code === "23505"
+            ? "Someone on this list is already on the guest list — refresh the page and add only the new names."
+            : error.message,
+        );
+        await refresh();
         return null;
       }
     }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Pencil, Trash2, Upload } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { guardedUpdate } from "@/lib/save-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,14 +119,27 @@ export function HostEvents() {
       outfit_selection: form.outfit_selection,
       invite_id: chosenInvite || null,
     };
-    const { error } = editingId
-      ? await supabase.from("events").update(payload).eq("id", editingId)
-      : await supabase.from("events").insert(payload);
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
+    try {
+      if (editingId) {
+        await guardedUpdate({
+          table: "events",
+          idColumn: "id",
+          id: editingId,
+          expectedUpdatedAt: events.data?.find((e) => e.id === editingId)?.updated_at,
+          patch: payload,
+          label: `“${parsed.data.name}”`,
+        });
+      } else {
+        const { error } = await supabase.from("events").insert(payload);
+        if (error) throw error;
+      }
+    } catch (e) {
+      setBusy(false);
+      toast.error(e instanceof Error ? e.message : "Could not save.");
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
       return;
     }
+    setBusy(false);
     toast.success(editingId ? "Function updated." : "Function added — guests can see it now.");
     reset();
     await queryClient.invalidateQueries({ queryKey: ["events"] });

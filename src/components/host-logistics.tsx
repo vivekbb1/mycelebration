@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { guardedUpdate } from "@/lib/save-guard";
 import { parseTimeline, type TimelineStep } from "@/lib/logistics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,14 +87,29 @@ export function HostLogistics() {
         .filter((s) => s.title || s.date || s.body),
     };
     const existing = plan.data?.id;
-    const { error } = existing
-      ? await supabase.from("logistics").update(payload).eq("id", existing)
-      : await supabase.from("logistics").insert({ ...payload, singleton: true });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
+    try {
+      if (existing) {
+        await guardedUpdate({
+          table: "logistics",
+          idColumn: "id",
+          id: existing,
+          expectedUpdatedAt: plan.data?.updated_at,
+          patch: payload,
+          label: "the delivery plan",
+        });
+      } else {
+        const { error } = await supabase
+          .from("logistics")
+          .insert({ ...payload, singleton: true });
+        if (error) throw error;
+      }
+    } catch (e) {
+      setBusy(false);
+      toast.error(e instanceof Error ? e.message : "Could not save.");
+      await queryClient.invalidateQueries({ queryKey: ["logistics"] });
       return;
     }
+    setBusy(false);
     toast.success("Delivery plan updated — guests see it right away.");
     await queryClient.invalidateQueries({ queryKey: ["logistics"] });
   };
