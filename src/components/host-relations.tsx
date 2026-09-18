@@ -416,6 +416,123 @@ export function HostRelations() {
             take them on.
           </p>
         ) : null}
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-xs text-muted-foreground">
+            Looked after by
+            <Select value={hostFilter} onValueChange={setHostFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any host</SelectItem>
+                <SelectItem value="none">No host yet</SelectItem>
+                {(hosts.data ?? []).map((h) => (
+                  <SelectItem key={h.id} value={h.id}>
+                    {h.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            Where the talk stands
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any status</SelectItem>
+                <SelectItem value="none">Not contacted yet</SelectItem>
+                {OUTCOMES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            How they were contacted
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any way</SelectItem>
+                {CHANNELS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <div className="flex items-end">
+            <Button
+              type="button"
+              variant={overdueOnly ? "default" : "outline"}
+              size="sm"
+              className="w-full"
+              onClick={() => setOverdueOnly((v) => !v)}
+            >
+              Only follow-ups due ({dueFollowUps.length})
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel p-6">
+        <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
+          <div>
+            <h3 className="flex items-center gap-2 text-lg">
+              <BellRing className="size-4 text-primary" /> Reminders
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Every host gets an email when a guest they look after is due a word — the day it
+              falls, two days before, and again if it slips. Nobody is reminded twice about the
+              same note.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="mt-3 shrink-0 sm:mt-0"
+            disabled={remind.isPending}
+            onClick={() => remind.mutate()}
+          >
+            {remind.isPending ? "Sending…" : "Send reminders now"}
+          </Button>
+        </div>
+        {myReminders.length > 0 ? (
+          <ul className="mt-4 space-y-2">
+            {myReminders.slice(0, 8).map((n) => {
+              const overdue = !!n.follow_up_on && n.follow_up_on <= today;
+              return (
+                <li
+                  key={n.id}
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 p-3 text-xs"
+                >
+                  <Badge variant={overdue ? "destructive" : "outline"}>
+                    {overdue ? "Due" : "Coming up"} {prettyDate(n.follow_up_on)}
+                  </Badge>
+                  <span>{guestName(n.invite_id)}</span>
+                  <span className="text-muted-foreground">
+                    {labelOf(OUTCOMES, n.outcome)} · {labelOf(CHANNELS, n.channel)}
+                  </span>
+                  {n.reminder_sent_at ? (
+                    <span className="text-muted-foreground">· reminder sent</span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Nothing waiting — set a follow-up date when you record a talk and it will show here.
+          </p>
+        )}
       </section>
 
       {hosts.data && hosts.data.length <= 1 ? (
@@ -424,6 +541,7 @@ export function HostRelations() {
           appear here to share the guests with.
         </p>
       ) : null}
+
 
       <div className="space-y-4">
         {families.map(([family, members]) => (
