@@ -623,6 +623,16 @@ export function HostRelations() {
                             <Button
                               type="button"
                               size="sm"
+                              variant="outline"
+                              disabled={thinking === g.id}
+                              onClick={() => suggest.mutate(g.id)}
+                            >
+                              <Sparkles className="mr-2 size-4" />
+                              {thinking === g.id ? "Thinking…" : "Suggest a follow-up"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
                               variant={g.personally_invited ? "default" : "outline"}
                               onClick={() =>
                                 togglePersonal.mutate({ guest: g, next: !g.personally_invited })
@@ -662,6 +672,69 @@ export function HostRelations() {
                         </Badge>
                       ) : null}
                     </div>
+
+                    {advice[g.id] ? (
+                      <div className="mt-4 space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="secondary">{advice[g.id].status}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            Suggested for you — change anything before you send it.
+                          </span>
+                        </div>
+                        <p>{advice[g.id].next_step}</p>
+                        <p className="whitespace-pre-wrap rounded-md border border-border/60 bg-background/60 p-3">
+                          {advice[g.id].message}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(advice[g.id].message);
+                              toast.success("Message copied.");
+                            }}
+                          >
+                            <Copy className="mr-2 size-4" /> Copy message
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const when = new Date(
+                                Date.now() + advice[g.id].suggested_follow_up_days * 86400000,
+                              )
+                                .toISOString()
+                                .slice(0, 10);
+                              setDraft((d) => ({
+                                ...d,
+                                notes: advice[g.id].message,
+                                follow_up_on: when,
+                              }));
+                              setOpenLog(g.id);
+                            }}
+                          >
+                            Use it in a note
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              setAdvice((prev) => {
+                                const next = { ...prev };
+                                delete next[g.id];
+                                return next;
+                              })
+                            }
+                          >
+                            Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+
 
                     {isOpen ? (
                       <div className="mt-4 space-y-3 rounded-lg border border-border/60 bg-background/40 p-4">
