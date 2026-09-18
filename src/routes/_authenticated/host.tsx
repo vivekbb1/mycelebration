@@ -435,7 +435,7 @@ function HostDashboard() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <p className="text-eyebrow">Host area</p>
-          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the wardrobe</h1>
+          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the event</h1>
         </div>
         <Button asChild variant="outline" size="sm" className="shrink-0">
           <Link to="/guests">
@@ -447,7 +447,7 @@ function HostDashboard() {
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">Invitations</TabsTrigger>
+          <TabsTrigger value="invitations">Event</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="guests">Guests</TabsTrigger>
           <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
@@ -583,19 +583,20 @@ function HostDashboard() {
         </TabsContent>
 
         <TabsContent value="guests" className="mt-6">
-          <div className="mb-5">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/guests">Guest list &amp; invitations</Link>
-            </Button>
-          </div>
-          <Tabs defaultValue="invited">
+          <Tabs defaultValue="list">
             <TabsList>
+              <TabsTrigger value="list">Guest list</TabsTrigger>
               <TabsTrigger value="invited">Invited to what</TabsTrigger>
               <TabsTrigger value="replies">Replies</TabsTrigger>
               <TabsTrigger value="picks">Outfit picks</TabsTrigger>
               <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
               <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
             </TabsList>
+            <TabsContent value="list" className="mt-6">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/guests">Open the guest list</Link>
+              </Button>
+            </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
@@ -624,10 +625,10 @@ function HostDashboard() {
           <div className="panel p-4 sm:p-6">
             <h2 className="text-xl">Four steps</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-              <li>Create the invitation under Invitations — one per celebration.</li>
+              <li>Create the event under the Event tab — one per celebration.</li>
               <li>Add its functions below.</li>
               <li>Add families under Guests.</li>
-              <li>Tick who's invited to what, then send the invitation.</li>
+              <li>Tick who's invited to what, then send their invitation.</li>
             </ol>
           </div>
           <HostEvents />
