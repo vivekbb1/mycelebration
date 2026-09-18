@@ -350,15 +350,19 @@ function GuestListPage() {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
-      .map((line) => {
-        const emailMatch = line.match(/[^\s,;<>]+@[^\s,;<>]+\.[^\s,;<>]+/);
+      .map((rawLine) => {
+        // "Name, email, husband | Bhatia Family" — the family after a pipe is optional.
+        const [beforePipe, afterPipe] = rawLine.split("|");
+        const household = (afterPipe ?? "").trim() || bulkHousehold.trim();
+        const { gender, cleaned } = genderFrom(beforePipe ?? "");
+        const emailMatch = cleaned.match(/[^\s,;<>]+@[^\s,;<>]+\.[^\s,;<>]+/);
         const email = emailMatch ? emailMatch[0] : "";
-        const name = line
+        const name = cleaned
           .replace(email, "")
           .replace(/[<>]/g, "")
           .replace(/[,;\t]+/g, " ")
           .trim();
-        return { name, email };
+        return { name, email, gender, household };
       })
       .filter((r) => r.name.length >= 2);
 
