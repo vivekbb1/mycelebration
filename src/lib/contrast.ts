@@ -118,13 +118,6 @@ const PAIRS: Pair[] = [
     onLabel: "cards",
     large: true,
   },
-  {
-    key: "color_border",
-    against: "color_surface",
-    label: "Lines",
-    onLabel: "cards",
-    large: true,
-  },
 ];
 
 /** Every colour pairing that would be hard to read, worst first. */
