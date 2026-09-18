@@ -224,7 +224,14 @@ export function HostFamilies() {
       });
     }
 
-    const rows: Record<string, unknown>[] = [];
+    const rows: {
+      code: string;
+      guest_name: string;
+      email: string | null;
+      gender: string | null;
+      household: string;
+      family_id: string;
+    }[] = [];
     const patches: { id: string; email?: string | null; gender?: string | null }[] = [];
 
     for (const g of groups) {
