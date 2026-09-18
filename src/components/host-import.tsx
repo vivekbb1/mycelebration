@@ -61,6 +61,7 @@ export function HostImport() {
 
   const [eventId, setEventId] = useState("");
   const [boutiqueId, setBoutiqueId] = useState("");
+  const [gender, setGender] = useState("auto");
 
   const [url, setUrl] = useState("");
   const [single, setSingle] = useState<PerniaLook | null>(null);
