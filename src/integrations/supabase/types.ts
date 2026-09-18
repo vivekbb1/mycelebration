@@ -127,6 +127,39 @@ export type Database = {
         }
         Relationships: []
       }
+      host_invites: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          code: string
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          invited_by: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code: string
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          invited_by?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code?: string
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          invited_by?: string | null
+        }
+        Relationships: []
+      }
       household_event_invites: {
         Row: {
           created_at: string
