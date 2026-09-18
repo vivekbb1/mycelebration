@@ -49,9 +49,7 @@ export function SiteNav() {
           {t("nav.brand", "Our Wedding")}
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
-          <Link to="/invitation" className={linkClass}>
-            {t("nav.invitation", "Your invitation")}
-          </Link>
+          <GuestTabs />
           {isStylist ? (
             <Link to="/atelier" className={linkClass}>
               Atelier
@@ -68,7 +66,6 @@ export function SiteNav() {
           </Button>
         </nav>
       </div>
-      <GuestTabs />
     </header>
   );
 }

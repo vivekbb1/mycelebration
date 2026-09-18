@@ -20,26 +20,24 @@ export function GuestTabs() {
   ] as const;
 
   return (
-    <div className="border-b border-border/70 bg-background/70">
-      <nav className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2 text-sm">
+    <nav className="flex items-center gap-1 overflow-x-auto text-sm">
         {tabs.map((tab) => {
           const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`);
           return (
             <Link
               key={tab.to}
               to={tab.to}
-              className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 transition-colors ${
+              className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 transition-colors ${
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
               }`}
             >
               <tab.icon className="size-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
             </Link>
           );
-        })}
-      </nav>
-    </div>
+      })}
+    </nav>
   );
 }
