@@ -178,7 +178,7 @@ export function HostFamilies() {
     setBusy(false);
     if (!created) return;
     toast.success(
-      `${parsed.data.name} invited — their family code is ${created[parsed.data.name] ?? ""}.`,
+      `${parsed.data.name} invited — their family code is ${created.codes[parsed.data.name] ?? ""}.`,
     );
     setFamilyName("");
     setMembers([
