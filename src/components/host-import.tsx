@@ -215,15 +215,17 @@ export function HostImport() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Wardrobe</Label>
+            <Label>For</Label>
             <Select value={gender} onValueChange={setGender}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="auto">As the shop lists it</SelectItem>
-                <SelectItem value="women">Womenswear</SelectItem>
-                <SelectItem value="men">Menswear</SelectItem>
+                <SelectItem value="women">Women</SelectItem>
+                <SelectItem value="men">Men</SelectItem>
+                <SelectItem value="unisex">Anyone</SelectItem>
+                <SelectItem value="kids">Kids</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
