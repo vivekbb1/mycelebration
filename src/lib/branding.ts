@@ -43,6 +43,8 @@ export const BRANDING_DEFAULTS: Omit<Branding, "id"> = {
   logo_url: null,
   logo_height: 40,
   favicon_url: null,
+  cover_logo_url: null,
+  cover_logo_height: 96,
 };
 
 /** Headings and body text the host can pick from — all loaded from Google Fonts. */
