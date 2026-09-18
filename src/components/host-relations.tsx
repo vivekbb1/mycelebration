@@ -91,6 +91,12 @@ export function HostRelations() {
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [thinking, setThinking] = useState<string | null>(null);
   const [advice, setAdvice] = useState<Record<string, FollowUpSuggestion>>({});
+  const [openHandover, setOpenHandover] = useState<string | null>(null);
+  const [handoverDraft, setHandoverDraft] = useState<{
+    to: string;
+    reason: string;
+    effective: string;
+  }>({ to: "", reason: "", effective: new Date().toISOString().slice(0, 10) });
   const [draft, setDraft] = useState<{
     channel: string;
     outcome: string;
