@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { Copy, Trash2, Search, Mail, Eye } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +40,7 @@ function GuestListPage() {
   const queryClient = useQueryClient();
   const emailInvite = useServerFn(sendInviteEmail);
   const [filter, setFilter] = useState("");
-  const [busy, setBusy] = useState(false);
+
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
