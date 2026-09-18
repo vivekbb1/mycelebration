@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useFeatures } from "@/lib/features";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -182,6 +183,7 @@ function HostPage() {
 
 function HostDashboard() {
   const queryClient = useQueryClient();
+  const { has, isPlatformAdmin } = useFeatures();
   const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
@@ -448,10 +450,11 @@ function HostDashboard() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="invitations">Event</TabsTrigger>
-          <TabsTrigger value="functions">Functions</TabsTrigger>
-          <TabsTrigger value="guests">Guests</TabsTrigger>
-          <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
+          {has("functions") ? <TabsTrigger value="functions">Functions</TabsTrigger> : null}
+          {has("guest_list") ? <TabsTrigger value="guests">Guests</TabsTrigger> : null}
+          {has("wardrobe_picker") ? <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger> : null}
           <TabsTrigger value="setup">Setup</TabsTrigger>
+          {isPlatformAdmin ? <TabsTrigger value="platform">Platform</TabsTrigger> : null}
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 space-y-8">
@@ -584,16 +587,22 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="invited">Invited to what</TabsTrigger>
               <TabsTrigger value="replies">Replies</TabsTrigger>
-              <TabsTrigger value="picks">Outfit picks</TabsTrigger>
-              <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
-              <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
+              {has("wardrobe_picker") ? (
+                <TabsTrigger value="picks">Outfit picks</TabsTrigger>
+              ) : null}
+              {has("rsvp_extended") ? (
+                <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
+              ) : null}
+              {has("guest_tracker") || has("guest_communication") ? (
+                <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
+              ) : null}
             </TabsList>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
             <TabsContent value="replies" className="mt-6 space-y-8">
               <HostRsvp />
-              <HostMessages />
+              {has("messaging") ? <HostMessages /> : null}
             </TabsContent>
             <TabsContent value="picks" className="mt-6">
               <HostPicks />
@@ -607,6 +616,20 @@ function HostDashboard() {
             </TabsContent>
           </Tabs>
         </TabsContent>
+
+        {isPlatformAdmin ? (
+          <TabsContent value="platform" className="mt-6">
+            <div className="panel p-4 sm:p-6">
+              <h2 className="text-xl">Packages &amp; features</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Decide what each package includes and which hosts are on it.
+              </p>
+              <Button asChild className="mt-4">
+                <Link to="/platform">Open platform admin</Link>
+              </Button>
+            </div>
+          </TabsContent>
+        ) : null}
 
         <TabsContent value="invitations" className="mt-6">
           <HostInvites />
@@ -630,7 +653,7 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="outfits">Outfits</TabsTrigger>
               <TabsTrigger value="import">Add from a shop</TabsTrigger>
-              <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+              {has("delivery") ? <TabsTrigger value="logistics">Delivery plan</TabsTrigger> : null}
             </TabsList>
 
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
@@ -943,10 +966,12 @@ function HostDashboard() {
         <TabsContent value="setup" className="mt-6">
           <Tabs defaultValue="boutiques">
             <TabsList>
-              <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+              {has("vendor_management") ? (
+                <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
+              ) : null}
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
-              <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="look">Look &amp; wording</TabsTrigger>
+              {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
+              {has("branding") ? <TabsTrigger value="look">Look &amp; wording</TabsTrigger> : null}
             </TabsList>
             <TabsContent value="boutiques" className="mt-6 space-y-8">
               <HostBoutiques />

@@ -14,7 +14,7 @@ const linkClass =
 const GUEST_TAB_PATHS = ["/invitation", "/event", "/lookbook", "/measurements", "/plan"];
 
 /** Host-side pages belong back on the host page; everything else on the invitation. */
-const HOST_PATHS = ["/guests", "/guest", "/host"];
+const HOST_PATHS = ["/guests", "/guest", "/host", "/platform"];
 
 export function SiteNav() {
   const navigate = useNavigate();
