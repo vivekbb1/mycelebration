@@ -153,7 +153,9 @@ export function HostRelations() {
     queryFn: async (): Promise<Note[]> => {
       const { data, error } = await supabase
         .from("guest_communications")
-        .select("id, invite_id, host_id, channel, outcome, notes, follow_up_on, contacted_at")
+        .select(
+          "id, invite_id, host_id, channel, outcome, notes, follow_up_on, contacted_at, reminder_sent_at",
+        )
         .order("contacted_at", { ascending: false });
       if (error) throw error;
       return data as Note[];
