@@ -446,7 +446,7 @@ function Lookbook() {
               if (people.length <= 1) void saveGender(next);
             }}
           >
-            Showing {wardrobe === "men" ? "menswear" : "womenswear"} — switch
+            Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
           </button>
           <Button asChild size="sm" variant="outline">
             <Link to="/event">Dates, venues &amp; RSVP</Link>
