@@ -67,7 +67,7 @@ const prettyDate = (iso: string | null) => {
 export function HostRelations() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [onlyMine, setOnlyMine] = useState(false);
+  const [scope, setScope] = useState<"mine" | "all">("mine");
   const [openLog, setOpenLog] = useState<string | null>(null);
   const [draft, setDraft] = useState<{
     channel: string;
