@@ -11,6 +11,7 @@ import { scheduleSummary } from "@/lib/schedule";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { GuestMessages } from "@/components/guest-messages";
+import { useBranding } from "@/lib/branding";
 import { useDeliveryPlan } from "@/lib/logistics";
 
 const travelDate = (value: string | null) =>
