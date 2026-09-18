@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { ArrowRight, CalendarCheck, Check, Ruler, Sparkles, Truck } from "lucide-react";
+import { ArrowRight, CalendarCheck, Check, Plane, Ruler, Sparkles, Truck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,15 @@ import { FunctionCard, type WeddingFunction } from "@/components/function-card";
 import { scheduleSummary } from "@/lib/schedule";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
+import { GuestMessages } from "@/components/guest-messages";
+
+const travelDate = (value: string | null) =>
+  value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+      })
+    : "date to come";
 
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
@@ -122,6 +131,20 @@ function InvitationPage() {
     const row = (myAccess.data ?? []).find((r) => r.event_id === event.id);
     return row ? row.outfit_selection !== false : true;
   };
+
+  const travel = useQuery({
+    queryKey: ["my-travel", "invitation"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("travel_plans")
+        .select(
+          "id, guest_name, arrival_date, arrival_time, arrival_flight, departure_date, departure_time, departure_flight",
+        )
+        .order("arrival_date");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const { needsWardrobe } = useNeedsWardrobe();
   const firstName = (profile.data?.full_name ?? "").trim().split(" ")[0] ?? "";
@@ -338,6 +361,42 @@ function InvitationPage() {
             ) : null}
           </div>
         )}
+
+        <section className="panel mt-12 p-4 sm:p-6">
+          <p className="text-eyebrow">Your travel</p>
+          <h2 className="mt-2 flex items-center gap-2 text-xl">
+            <Plane className="size-4 shrink-0 text-primary" /> Arriving and leaving
+          </h2>
+          {(travel.data ?? []).length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              We don't have your travel dates yet — add them with your reply so we can plan the
+              pick-ups and your fittings.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {(travel.data ?? []).map((row) => (
+                <li key={row.id} className="rounded-lg border border-border p-3 text-sm">
+                  <p className="truncate">{row.guest_name || "Whole family"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Arrives {travelDate(row.arrival_date)}
+                    {row.arrival_time ? ` at ${row.arrival_time}` : ""}
+                    {row.arrival_flight ? ` · ${row.arrival_flight}` : ""} · Leaves{" "}
+                    {travelDate(row.departure_date)}
+                    {row.departure_time ? ` at ${row.departure_time}` : ""}
+                    {row.departure_flight ? ` · ${row.departure_flight}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button asChild variant="outline" size="sm" className="mt-4">
+            <Link to="/event">Add or change travel dates</Link>
+          </Button>
+        </section>
+
+        <div className="mt-8">
+          <GuestMessages />
+        </div>
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="sm">

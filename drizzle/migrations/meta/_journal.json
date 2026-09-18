@@ -176,6 +176,13 @@
       "when": 1789732946907,
       "tag": "0024_measurements_per_person",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1789733188727,
+      "tag": "0025_rsvp_tracking_and_guest_messages",
+      "breakpoints": true
     }
   ]
 }
