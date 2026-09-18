@@ -30,6 +30,7 @@ import { HostPicks } from "@/components/host-picks";
 import { HostOverview } from "@/components/host-overview";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
+import { HostEmail } from "@/components/host-email";
 import { HostBoutiques } from "@/components/host-boutiques";
 
 
@@ -447,6 +448,7 @@ function HostDashboard() {
           <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
           <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
           <TabsTrigger value="hosts">Hosts</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
 
         </TabsList>
 
@@ -904,6 +906,10 @@ function HostDashboard() {
 
         <TabsContent value="hosts" className="mt-6">
           <HostTeam />
+        </TabsContent>
+
+        <TabsContent value="email" className="mt-6">
+          <HostEmail />
         </TabsContent>
 
       </Tabs>

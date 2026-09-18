@@ -57,6 +57,13 @@
       "when": 1789720809875,
       "tag": "0007_host_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789724689339,
+      "tag": "0008_email_settings",
+      "breakpoints": true
     }
   ]
 }

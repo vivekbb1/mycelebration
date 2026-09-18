@@ -82,6 +82,30 @@ export type Database = {
         }
         Relationships: []
       }
+      email_settings: {
+        Row: {
+          from_email: string | null
+          from_name: string | null
+          id: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          provider?: string
+          updated_at?: string
+        }
+        Update: {
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
