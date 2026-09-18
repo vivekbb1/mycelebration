@@ -48,6 +48,7 @@ const formatDate = (value: string | null) =>
 function EventPage() {
   const { t } = useSiteContent();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [noteTouched, setNoteTouched] = useState(false);
