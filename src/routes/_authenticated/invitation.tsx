@@ -310,7 +310,9 @@ function InvitationPage() {
 
         <div className="gold-rule my-12" />
 
-        <p className="text-center text-eyebrow">Your functions</p>
+        <p className="text-center text-eyebrow">
+          {t("invitation.functions_title", "Your functions")}
+        </p>
 
         {events.isLoading ? (
           <p className="mt-6 text-center text-sm text-muted-foreground">Opening your invitation…</p>
