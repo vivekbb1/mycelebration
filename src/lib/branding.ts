@@ -20,6 +20,8 @@ export type Branding = {
   logo_url: string | null;
   logo_height: number;
   favicon_url: string | null;
+  /** Set by the database on every save; used to spot two hosts saving at once. */
+  updated_at?: string | null;
 };
 
 export const BRANDING_DEFAULTS: Omit<Branding, "id"> = {
