@@ -337,7 +337,8 @@ function InvitationPage() {
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="sm">
             <Link to="/delivery">
-              <Truck className="size-4" /> How your outfit reaches you
+              <Truck className="size-4" />{" "}
+              {t("invitation.delivery_cta", "How your outfit reaches you")}
             </Link>
           </Button>
         </div>
