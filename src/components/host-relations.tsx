@@ -320,6 +320,8 @@ export function HostRelations() {
                 const latest = history[0];
                 const followUp = history.find((n) => n.follow_up_on);
                 const isOpen = openLog === g.id;
+                const isMine = me.data ? assigned.includes(me.data) : false;
+                const someoneElse = !isMine && assigned.length > 0;
                 return (
                   <div key={g.id} className="rounded-xl border border-border/60 p-4">
                     <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
@@ -331,10 +333,12 @@ export function HostRelations() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           {(hosts.data ?? []).map((h) => {
                             const on = assigned.includes(h.id);
+                            const canChange = !someoneElse || h.id === me.data;
                             return (
                               <button
                                 key={h.id}
                                 type="button"
+                                disabled={!canChange}
                                 onClick={() =>
                                   toggleHost.mutate({ inviteId: g.id, hostId: h.id })
                                 }
@@ -342,7 +346,7 @@ export function HostRelations() {
                                   on
                                     ? "border-primary bg-primary text-primary-foreground"
                                     : "border-border text-muted-foreground hover:text-foreground"
-                                }`}
+                                } ${canChange ? "" : "cursor-default opacity-70"}`}
                               >
                                 {on ? <Check className="mr-1 inline size-3" /> : null}
                                 {h.name}
@@ -355,31 +359,48 @@ export function HostRelations() {
                         </div>
                       </div>
                       <div className="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-0">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setOpenLog(isOpen ? null : g.id)}
-                        >
-                          <MessageCircle className="mr-2 size-4" />
-                          {isOpen ? "Close" : "Record a talk"}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={g.personally_invited ? "default" : "outline"}
-                          onClick={() =>
-                            togglePersonal.mutate({ guest: g, next: !g.personally_invited })
-                          }
-                        >
-                          {g.personally_invited ? (
-                            <>
-                              <Check className="mr-2 size-4" /> Invited personally
-                            </>
-                          ) : (
-                            "Mark invited personally"
-                          )}
-                        </Button>
+                        {someoneElse ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              me.data
+                                ? toggleHost.mutate({ inviteId: g.id, hostId: me.data })
+                                : undefined
+                            }
+                          >
+                            <UserPlus className="mr-2 size-4" /> Help with this guest
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setOpenLog(isOpen ? null : g.id)}
+                            >
+                              <MessageCircle className="mr-2 size-4" />
+                              {isOpen ? "Close" : "Record a talk"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={g.personally_invited ? "default" : "outline"}
+                              onClick={() =>
+                                togglePersonal.mutate({ guest: g, next: !g.personally_invited })
+                              }
+                            >
+                              {g.personally_invited ? (
+                                <>
+                                  <Check className="mr-2 size-4" /> Invited personally
+                                </>
+                              ) : (
+                                "Mark invited personally"
+                              )}
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
 
