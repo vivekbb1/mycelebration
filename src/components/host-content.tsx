@@ -27,24 +27,38 @@ export function HostContent() {
     });
   }, [rows]);
 
-  const groups = useMemo(() => {
+  const [page, setPage] = useState<string | null>(null);
+
+  const matched = useMemo(() => {
     const term = filter.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter(
+      (row) =>
+        row.label.toLowerCase().includes(term) ||
+        row.value.toLowerCase().includes(term) ||
+        row.group_name.toLowerCase().includes(term) ||
+        row.page_name.toLowerCase().includes(term),
+    );
+  }, [rows, filter]);
+
+  const pages = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of matched) map.set(row.page_name, (map.get(row.page_name) ?? 0) + 1);
+    return [...map.entries()];
+  }, [matched]);
+
+  const activePage = page && pages.some(([name]) => name === page) ? page : (pages[0]?.[0] ?? null);
+
+  const groups = useMemo(() => {
     const map = new Map<string, ContentRow[]>();
-    for (const row of rows) {
-      if (
-        term &&
-        !row.label.toLowerCase().includes(term) &&
-        !row.value.toLowerCase().includes(term) &&
-        !row.group_name.toLowerCase().includes(term)
-      ) {
-        continue;
-      }
+    for (const row of matched) {
+      if (row.page_name !== activePage) continue;
       const list = map.get(row.group_name) ?? [];
       list.push(row);
       map.set(row.group_name, list);
     }
     return [...map.entries()];
-  }, [rows, filter]);
+  }, [matched, activePage]);
 
   const changed = rows.filter((r) => (draft[r.key] ?? r.value) !== r.value);
 
