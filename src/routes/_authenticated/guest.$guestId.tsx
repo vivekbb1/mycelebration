@@ -151,7 +151,7 @@ function GuestViewPage() {
 
   const guestName = profile.data?.full_name || "This guest";
   const rsvp = profile.data?.rsvp_status ?? "pending";
-  const unit = measurements.data?.unit ?? "cm";
+  const measureSets = measurements.data ?? [];
   const outfitOf = (id: string) => outfits.data?.find((o) => o.id === id);
   const eventName = (id: string | null) =>
     id ? (events.data?.find((e) => e.id === id)?.name ?? null) : null;
