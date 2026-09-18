@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -64,38 +64,90 @@ function Measurements() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [busy, setBusy] = useState(false);
+  const [activePerson, setActivePerson] = useState<string | null>(null);
 
-  const existing = useQuery({
-    queryKey: ["measurements"],
+  const me = useQuery({
+    queryKey: ["me"],
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return null;
       const { data } = await supabase
-        .from("measurements")
-        .select("*")
-        .eq("guest_id", userData.user.id)
+        .from("profiles")
+        .select("id, full_name, household")
+        .eq("id", userData.user.id)
         .maybeSingle();
       return data;
     },
   });
 
+  // Everyone invited under this invitation code, by name.
+  const household = useQuery({
+    queryKey: ["household-members"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("household_members");
+      if (error) throw error;
+      return (data ?? []) as { name: string; gender: string | null }[];
+    },
+  });
+
+  const rows = useQuery({
+    queryKey: ["measurements"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return [];
+      const { data, error } = await supabase
+        .from("measurements")
+        .select("*")
+        .eq("guest_id", userData.user.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const people = useMemo(() => {
+    const named = (household.data ?? []).filter((p) => p.name && p.name !== "Guest");
+    if (named.length > 0) return named.map((p) => p.name);
+    return [(me.data?.full_name ?? "").trim() || "You"];
+  }, [household.data, me.data?.full_name]);
+
+  const activeName =
+    (activePerson && people.includes(activePerson) ? activePerson : null) ??
+    people.find((n) => n === (me.data?.full_name ?? "").trim()) ??
+    people[0] ??
+    "You";
+
+  // A single guest keeps their existing row (no name against it); families get one per person.
+  const storedName = people.length > 1 ? activeName : "";
+  const rowFor = (name: string) => {
+    const list = rows.data ?? [];
+    const key = people.length > 1 ? name : "";
+    return (
+      list.find((r) => (r.guest_name ?? "") === key) ??
+      (people.length <= 1 ? list[0] : undefined)
+    );
+  };
+  const existing = rowFor(activeName);
+
   useEffect(() => {
-    const row = existing.data;
-    if (!row) return;
+    if (!existing) {
+      setForm(emptyForm);
+      return;
+    }
     setForm({
-      unit: (row.unit as "cm" | "in") ?? "cm",
-      height: row.height?.toString() ?? "",
-      bust: row.bust?.toString() ?? "",
-      waist: row.waist?.toString() ?? "",
-      hip: row.hip?.toString() ?? "",
-      shoulder: row.shoulder?.toString() ?? "",
-      sleeve_length: row.sleeve_length?.toString() ?? "",
-      top_length: row.top_length?.toString() ?? "",
-      bottom_length: row.bottom_length?.toString() ?? "",
-      inseam: row.inseam?.toString() ?? "",
-      notes: row.notes ?? "",
+      unit: (existing.unit as "cm" | "in") ?? "cm",
+      height: existing.height?.toString() ?? "",
+      bust: existing.bust?.toString() ?? "",
+      waist: existing.waist?.toString() ?? "",
+      hip: existing.hip?.toString() ?? "",
+      shoulder: existing.shoulder?.toString() ?? "",
+      sleeve_length: existing.sleeve_length?.toString() ?? "",
+      top_length: existing.top_length?.toString() ?? "",
+      bottom_length: existing.bottom_length?.toString() ?? "",
+      inseam: existing.inseam?.toString() ?? "",
+      notes: existing.notes ?? "",
     });
-  }, [existing.data]);
+    // Switching person loads that person's numbers.
+  }, [existing?.id, activeName]);
 
   const save = async () => {
     for (const field of FIELDS) {
@@ -120,6 +172,7 @@ function Measurements() {
     const { error } = await supabase.from("measurements").upsert(
       {
         guest_id: userData.user.id,
+        guest_name: storedName,
         unit: form.unit,
         notes: form.notes.trim() || null,
         height: num("height"),
@@ -132,27 +185,73 @@ function Measurements() {
         bottom_length: num("bottom_length"),
         inseam: num("inseam"),
       },
-      { onConflict: "guest_id" },
+      { onConflict: "guest_id,guest_name" },
     );
     setBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Measurements saved — thank you!");
+    toast.success(
+      people.length > 1
+        ? `${activeName}'s measurements saved — thank you!`
+        : "Measurements saved — thank you!",
+    );
     await queryClient.invalidateQueries({ queryKey: ["measurements"] });
+  };
+
+  const filledCount = (name: string) => {
+    const row = rowFor(name);
+    if (!row) return 0;
+    return FIELDS.filter((f) => row[f.key] !== null && row[f.key] !== undefined).length;
   };
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <p className="text-eyebrow">For the tailor</p>
-      <h1 className="mt-3 text-4xl">Your measurements</h1>
+      <h1 className="mt-3 text-4xl">Measurements</h1>
       <p className="mt-3 text-sm text-muted-foreground">
         Have someone help you and measure over light clothing. Leave anything blank if you're not
         sure — we'll follow up. Only you and the hosts can see these.
       </p>
 
-      <div className="panel mt-8 p-6">
+      {people.length > 1 ? (
+        <section className="panel mt-6 p-4">
+          <p className="text-eyebrow">Whose measurements are these?</p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {people.map((name) => {
+              const active = name === activeName;
+              const done = filledCount(name);
+              return (
+                <li key={name}>
+                  <button
+                    onClick={() => setActivePerson(name)}
+                    aria-pressed={active}
+                    className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                      active
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    {name}
+                    <span className="ml-2 text-xs opacity-80">
+                      {done > 0 ? `${done} filled in` : "not yet"}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Each person is saved separately — fill one in, save, then choose the next name.
+          </p>
+        </section>
+      ) : null}
+
+      <div className="panel mt-6 p-6">
+        {people.length > 1 ? (
+          <h2 className="mb-4 text-xl">{activeName}</h2>
+        ) : null}
         <div className="flex items-center gap-3">
           <Label className="text-sm">Units</Label>
           <div className="flex gap-2">
@@ -204,7 +303,15 @@ function Measurements() {
         </div>
 
         <Button className="mt-6" onClick={save} disabled={busy}>
-          {busy ? "Saving…" : existing.data ? "Update measurements" : "Save measurements"}
+          {busy
+            ? "Saving…"
+            : existing
+              ? people.length > 1
+                ? `Update ${activeName}'s measurements`
+                : "Update measurements"
+              : people.length > 1
+                ? `Save ${activeName}'s measurements`
+                : "Save measurements"}
         </Button>
       </div>
     </main>

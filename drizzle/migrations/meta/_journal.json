@@ -169,6 +169,13 @@
       "when": 1789732446237,
       "tag": "0023_central_save_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789732946907,
+      "tag": "0024_measurements_per_person",
+      "breakpoints": true
     }
   ]
 }

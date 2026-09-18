@@ -377,7 +377,7 @@ function Lookbook() {
           ) : (
             <>
               <p className="mt-2 text-sm text-muted-foreground">
-                Which looks should we show{chosen ? ` ${chosen.name}` : ""}?
+                Which rail should we open for {chosen ? chosen.name : "you"}?
               </p>
               <div className="mt-5 grid gap-3">
                 <Button
@@ -387,7 +387,7 @@ function Lookbook() {
                       : saveGender("women")
                   }
                 >
-                  Womenswear
+                  {chosen ? `${chosen.name} — women's looks` : "Women's looks"}
                 </Button>
                 <Button
                   variant="outline"
@@ -397,7 +397,7 @@ function Lookbook() {
                       : saveGender("men")
                   }
                 >
-                  Menswear
+                  {chosen ? `${chosen.name} — men's looks` : "Men's looks"}
                 </Button>
                 {chosen ? (
                   <Button variant="ghost" onClick={() => setActivePerson(null)}>
@@ -446,7 +446,7 @@ function Lookbook() {
               if (people.length <= 1) void saveGender(next);
             }}
           >
-            Showing {wardrobe === "men" ? "menswear" : "womenswear"} — switch
+            Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
           </button>
           <Button asChild size="sm" variant="outline">
             <Link to="/event">Dates, venues &amp; RSVP</Link>
