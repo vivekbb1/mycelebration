@@ -27,24 +27,38 @@ export function HostContent() {
     });
   }, [rows]);
 
-  const groups = useMemo(() => {
+  const [page, setPage] = useState<string | null>(null);
+
+  const matched = useMemo(() => {
     const term = filter.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter(
+      (row) =>
+        row.label.toLowerCase().includes(term) ||
+        row.value.toLowerCase().includes(term) ||
+        row.group_name.toLowerCase().includes(term) ||
+        row.page_name.toLowerCase().includes(term),
+    );
+  }, [rows, filter]);
+
+  const pages = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of matched) map.set(row.page_name, (map.get(row.page_name) ?? 0) + 1);
+    return [...map.entries()];
+  }, [matched]);
+
+  const activePage = page && pages.some(([name]) => name === page) ? page : (pages[0]?.[0] ?? null);
+
+  const groups = useMemo(() => {
     const map = new Map<string, ContentRow[]>();
-    for (const row of rows) {
-      if (
-        term &&
-        !row.label.toLowerCase().includes(term) &&
-        !row.value.toLowerCase().includes(term) &&
-        !row.group_name.toLowerCase().includes(term)
-      ) {
-        continue;
-      }
+    for (const row of matched) {
+      if (row.page_name !== activePage) continue;
       const list = map.get(row.group_name) ?? [];
       list.push(row);
       map.set(row.group_name, list);
     }
     return [...map.entries()];
-  }, [rows, filter]);
+  }, [matched, activePage]);
 
   const changed = rows.filter((r) => (draft[r.key] ?? r.value) !== r.value);
 
@@ -83,8 +97,8 @@ export function HostContent() {
       <div className="panel p-6">
         <h2 className="text-xl">Wording</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every headline, paragraph and button guests see. Edit the wording, then save — the site
-          updates immediately.
+          Choose a page, then edit its headlines, paragraphs and buttons. Save and guests see the
+          new wording straight away.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Input
@@ -115,6 +129,29 @@ export function HostContent() {
             </Button>
           ) : null}
         </div>
+
+        {pages.length > 0 ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {pages.map(([name, count]) => {
+              const active = name === activePage;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setPage(name)}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+                  }`}
+                >
+                  {name}
+                  <span className={active ? "opacity-80" : "opacity-60"}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading the wording…</p> : null}
