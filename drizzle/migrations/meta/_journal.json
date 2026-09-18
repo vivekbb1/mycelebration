@@ -64,6 +64,13 @@
       "when": 1789724689339,
       "tag": "0008_email_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789726151829,
+      "tag": "0009_site_content_cms",
+      "breakpoints": true
     }
   ]
 }
