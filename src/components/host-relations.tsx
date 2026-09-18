@@ -245,6 +245,59 @@ export function HostRelations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const transfers = useQuery({
+    queryKey: ["relations-transfers"],
+    queryFn: async (): Promise<Transfer[]> => {
+      const { data, error } = await supabase
+        .from("guest_host_transfers")
+        .select("id, invite_id, from_host, to_host, reason, effective_on, applied_at, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Transfer[];
+    },
+  });
+
+  const transfersFor = useMemo(() => {
+    const map = new Map<string, Transfer[]>();
+    for (const row of transfers.data ?? []) {
+      map.set(row.invite_id, [...(map.get(row.invite_id) ?? []), row]);
+    }
+    return map;
+  }, [transfers.data]);
+
+  const handOver = useMutation({
+    mutationFn: async (guest: Guest) => {
+      if (!handoverDraft.to) throw new Error("Choose the host taking over.");
+      const assigned = hostsFor.get(guest.id) ?? [];
+      const from = me.data && assigned.includes(me.data) ? me.data : (assigned[0] ?? null);
+      if (from === handoverDraft.to) throw new Error("They already look after this guest.");
+      const { error } = await supabase.from("guest_host_transfers").insert({
+        invite_id: guest.id,
+        from_host: from,
+        to_host: handoverDraft.to,
+        reason: handoverDraft.reason.trim() || null,
+        effective_on: handoverDraft.effective || new Date().toISOString().slice(0, 10),
+        created_by: me.data ?? null,
+      });
+      if (error) throw error;
+      const applied = await supabase.rpc("apply_due_guest_transfers");
+      if (applied.error) throw applied.error;
+      return handoverDraft.effective > new Date().toISOString().slice(0, 10);
+    },
+    onSuccess: (later) => {
+      setOpenHandover(null);
+      setHandoverDraft({ to: "", reason: "", effective: new Date().toISOString().slice(0, 10) });
+      qc.invalidateQueries({ queryKey: ["relations-links"] });
+      qc.invalidateQueries({ queryKey: ["relations-transfers"] });
+      toast.success(
+        later
+          ? "Hand-over booked — it takes effect on the date you chose."
+          : "Handed over. Every note stays on the guest's record.",
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const removeNote = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("guest_communications").delete().eq("id", id);
