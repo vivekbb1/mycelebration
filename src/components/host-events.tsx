@@ -379,6 +379,34 @@ export function HostEvents() {
               onCheckedChange={(v) => setForm((f) => ({ ...f, outfit_selection: v }))}
             />
           </div>
+          <div className="rounded-lg border border-border/70 p-4">
+            <p className="text-sm">Outfit slot</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              When the outfit for this function has to be ready, and what it involves — guests see
+              this next to their arrival and departure.
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="e-outfit-by">Outfit ready by</Label>
+                <Input
+                  id="e-outfit-by"
+                  type="date"
+                  value={form.outfit_ready_by}
+                  onChange={(e) => setForm((f) => ({ ...f, outfit_ready_by: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-outfit-note">Outfit details</Label>
+                <Input
+                  id="e-outfit-note"
+                  maxLength={400}
+                  placeholder="Fitting at the hotel, 4pm the day before"
+                  value={form.outfit_slot_note}
+                  onChange={(e) => setForm((f) => ({ ...f, outfit_slot_note: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
           <div className="flex gap-3">
             <Button onClick={save} disabled={busy} className="flex-1">
               {busy ? "Saving…" : editingId ? "Save changes" : "Add function"}
