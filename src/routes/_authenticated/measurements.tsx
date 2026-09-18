@@ -215,9 +215,9 @@ function Measurements() {
         sure — we'll follow up. Only you and the hosts can see these.
       </p>
 
-      {people.length > 1 ? (
-        <section className="panel mt-6 p-4">
-          <p className="text-eyebrow">Whose measurements are these?</p>
+      <section className="panel mt-6 p-4">
+        <p className="text-eyebrow">Whose measurements are these?</p>
+        {people.length > 1 ? (
           <ul className="mt-3 flex flex-wrap gap-2">
             {people.map((name) => {
               const active = name === activeName;
@@ -242,16 +242,23 @@ function Measurements() {
               );
             })}
           </ul>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Each person is saved separately — fill one in, save, then choose the next name.
+        ) : (
+          <p className="mt-2 text-lg">
+            {activeName}
+            <span className="ml-2 text-xs text-muted-foreground">
+              {filledCount(activeName) > 0 ? `${filledCount(activeName)} filled in` : "not yet"}
+            </span>
           </p>
-        </section>
-      ) : null}
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          {people.length > 1
+            ? "Each person is saved separately — fill one in, save, then choose the next name."
+            : "Only one name is on your invitation, so these are saved against you."}
+        </p>
+      </section>
 
       <div className="panel mt-6 p-6">
-        {people.length > 1 ? (
-          <h2 className="mb-4 text-xl">{activeName}</h2>
-        ) : null}
+        <h2 className="mb-4 text-xl">{activeName}</h2>
         <div className="flex items-center gap-3">
           <Label className="text-sm">Units</Label>
           <div className="flex gap-2">
