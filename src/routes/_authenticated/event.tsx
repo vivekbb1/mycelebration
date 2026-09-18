@@ -141,7 +141,7 @@ function EventPage() {
       <section className="panel mt-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl">Your RSVP</h2>
+            <h2 className="text-xl">{t("rsvp.title", "Your RSVP")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {rsvpBy ? `Please let us know by ${formatDate(rsvpBy)}.` : "Please let us know soon."}
             </p>
