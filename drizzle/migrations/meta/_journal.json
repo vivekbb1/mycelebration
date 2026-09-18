@@ -134,6 +134,13 @@
       "when": 1789730546981,
       "tag": "0018_event_images_bucket_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789730648052,
+      "tag": "0019_guest_host_transfers",
+      "breakpoints": true
     }
   ]
 }

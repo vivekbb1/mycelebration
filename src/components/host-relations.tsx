@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  ArrowRightLeft,
   BellRing,
   Check,
   Copy,
@@ -53,6 +54,17 @@ type Note = {
   reminder_sent_at: string | null;
 };
 
+type Transfer = {
+  id: string;
+  invite_id: string;
+  from_host: string | null;
+  to_host: string;
+  reason: string | null;
+  effective_on: string;
+  applied_at: string | null;
+  created_at: string;
+};
+
 const CHANNELS = [
   { value: "call", label: "Call" },
   { value: "whatsapp", label: "WhatsApp" },
@@ -91,6 +103,12 @@ export function HostRelations() {
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [thinking, setThinking] = useState<string | null>(null);
   const [advice, setAdvice] = useState<Record<string, FollowUpSuggestion>>({});
+  const [openHandover, setOpenHandover] = useState<string | null>(null);
+  const [handoverDraft, setHandoverDraft] = useState<{
+    to: string;
+    reason: string;
+    effective: string;
+  }>({ to: "", reason: "", effective: new Date().toISOString().slice(0, 10) });
   const [draft, setDraft] = useState<{
     channel: string;
     outcome: string;
@@ -239,6 +257,59 @@ export function HostRelations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const transfers = useQuery({
+    queryKey: ["relations-transfers"],
+    queryFn: async (): Promise<Transfer[]> => {
+      const { data, error } = await supabase
+        .from("guest_host_transfers")
+        .select("id, invite_id, from_host, to_host, reason, effective_on, applied_at, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Transfer[];
+    },
+  });
+
+  const transfersFor = useMemo(() => {
+    const map = new Map<string, Transfer[]>();
+    for (const row of transfers.data ?? []) {
+      map.set(row.invite_id, [...(map.get(row.invite_id) ?? []), row]);
+    }
+    return map;
+  }, [transfers.data]);
+
+  const handOver = useMutation({
+    mutationFn: async (guest: Guest) => {
+      if (!handoverDraft.to) throw new Error("Choose the host taking over.");
+      const assigned = hostsFor.get(guest.id) ?? [];
+      const from = me.data && assigned.includes(me.data) ? me.data : (assigned[0] ?? null);
+      if (from === handoverDraft.to) throw new Error("They already look after this guest.");
+      const { error } = await supabase.from("guest_host_transfers").insert({
+        invite_id: guest.id,
+        from_host: from,
+        to_host: handoverDraft.to,
+        reason: handoverDraft.reason.trim() || null,
+        effective_on: handoverDraft.effective || new Date().toISOString().slice(0, 10),
+        created_by: me.data ?? null,
+      });
+      if (error) throw error;
+      const applied = await supabase.rpc("apply_due_guest_transfers");
+      if (applied.error) throw applied.error;
+      return handoverDraft.effective > new Date().toISOString().slice(0, 10);
+    },
+    onSuccess: (later) => {
+      setOpenHandover(null);
+      setHandoverDraft({ to: "", reason: "", effective: new Date().toISOString().slice(0, 10) });
+      qc.invalidateQueries({ queryKey: ["relations-links"] });
+      qc.invalidateQueries({ queryKey: ["relations-transfers"] });
+      toast.success(
+        later
+          ? "Hand-over booked — it takes effect on the date you chose."
+          : "Handed over. Every note stays on the guest's record.",
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const removeNote = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("guest_communications").delete().eq("id", id);
@@ -349,6 +420,16 @@ export function HostRelations() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // Bring any booked hand-overs into effect once their date has arrived.
+  useEffect(() => {
+    void supabase.rpc("apply_due_guest_transfers").then(({ data }) => {
+      if (data && data > 0) {
+        qc.invalidateQueries({ queryKey: ["relations-links"] });
+        qc.invalidateQueries({ queryKey: ["relations-transfers"] });
+      }
+    });
+  }, [qc]);
 
   // Once a day, the first host to open this page sets the reminder emails going.
   useEffect(() => {
@@ -571,6 +652,8 @@ export function HostRelations() {
                 const isMine = me.data ? assigned.includes(me.data) : false;
                 const tip = advice[g.id];
                 const someoneElse = !isMine && assigned.length > 0;
+                const handovers = transfersFor.get(g.id) ?? [];
+                const handingOver = openHandover === g.id;
                 return (
                   <div key={g.id} className="rounded-xl border border-border/60 p-4">
                     <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
@@ -658,6 +741,17 @@ export function HostRelations() {
                                 "Mark invited personally"
                               )}
                             </Button>
+                            {(hosts.data ?? []).length > 1 && assigned.length > 0 ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setOpenHandover(handingOver ? null : g.id)}
+                              >
+                                <ArrowRightLeft className="mr-2 size-4" />
+                                {handingOver ? "Close" : "Hand over"}
+                              </Button>
+                            ) : null}
                           </>
                         )}
                       </div>
@@ -684,6 +778,88 @@ export function HostRelations() {
                         </Badge>
                       ) : null}
                     </div>
+
+                    {handingOver ? (
+                      <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface/60 p-4 text-sm">
+                        <p className="text-xs text-muted-foreground">
+                          Pass this guest to another host. Every talk and note already recorded
+                          stays with the guest, so whoever takes over sees the whole story.
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-1">
+                            <span className="text-xs text-muted-foreground">Taking over</span>
+                            <Select
+                              value={handoverDraft.to}
+                              onValueChange={(v) =>
+                                setHandoverDraft((d) => ({ ...d, to: v }))
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a host" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(hosts.data ?? [])
+                                  .filter((h) => !assigned.includes(h.id))
+                                  .map((h) => (
+                                    <SelectItem key={h.id} value={h.id}>
+                                      {h.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-xs text-muted-foreground">From this date</span>
+                            <Input
+                              type="date"
+                              value={handoverDraft.effective}
+                              onChange={(e) =>
+                                setHandoverDraft((d) => ({ ...d, effective: e.target.value }))
+                              }
+                            />
+                          </div>
+                        </div>
+                        <Textarea
+                          rows={2}
+                          placeholder="Why the change — travelling, closer to the family, sharing the load…"
+                          value={handoverDraft.reason}
+                          onChange={(e) =>
+                            setHandoverDraft((d) => ({ ...d, reason: e.target.value }))
+                          }
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={handOver.isPending || !handoverDraft.to}
+                            onClick={() => handOver.mutate(g)}
+                          >
+                            {handOver.isPending ? "Handing over…" : "Confirm hand-over"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setOpenHandover(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {handovers.length > 0 ? (
+                      <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                        {handovers.slice(0, 3).map((t) => (
+                          <li key={t.id}>
+                            {t.applied_at ? "Handed over" : "Hand-over booked"} —{" "}
+                            {hostName(t.from_host)} &rarr; {hostName(t.to_host)} ·{" "}
+                            {prettyDate(t.effective_on)}
+                            {t.reason ? ` · ${t.reason}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
 
                     {tip ? (
                       <div className="mt-4 space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
