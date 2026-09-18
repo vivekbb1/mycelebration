@@ -4,6 +4,7 @@ import { Plane, Users, AlertTriangle, CalendarClock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { HostBuild } from "@/components/host-build";
 
 const dateLabel = (value: string | null) =>
   value
