@@ -256,11 +256,17 @@ export function HostRelations() {
           <HeartHandshake className="size-4 text-primary" /> Who invited whom
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tick the guests you invited personally, put one or more hosts against each guest, and
-          record every call or message so nobody is chased twice — or forgotten.
+          You start on your own guests — the ones put against your name. Switch to everyone for the
+          full picture; guests looked after by another host are read-only until you offer to help.
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-border/60 p-4">
+            <p className="text-2xl">{myGuestIds.size}</p>
+            <p className="text-xs text-muted-foreground">
+              Your guests{myDue.length > 0 ? ` · ${myDue.length} to follow up` : ""}
+            </p>
+          </div>
           <div className="rounded-xl border border-border/60 p-4">
             <p className="text-2xl">{guests.data?.length ?? 0}</p>
             <p className="text-xs text-muted-foreground">Guests on the list</p>
@@ -268,10 +274,6 @@ export function HostRelations() {
           <div className="rounded-xl border border-border/60 p-4">
             <p className="text-2xl">{personallyCount}</p>
             <p className="text-xs text-muted-foreground">Invited personally</p>
-          </div>
-          <div className="rounded-xl border border-border/60 p-4">
-            <p className="text-2xl">{assignedCount}</p>
-            <p className="text-xs text-muted-foreground">Looked after by a host</p>
           </div>
           <div className="rounded-xl border border-border/60 p-4">
             <p className="text-2xl">{spokenCount}</p>
@@ -291,15 +293,31 @@ export function HostRelations() {
               className="pl-9"
             />
           </div>
-          <Button
-            type="button"
-            variant={onlyMine ? "default" : "outline"}
-            size="sm"
-            onClick={() => setOnlyMine((v) => !v)}
-          >
-            <UserCheck className="mr-2 size-4" /> Only my guests
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={showingMine ? "default" : "outline"}
+              size="sm"
+              onClick={() => setScope("mine")}
+            >
+              <UserCheck className="mr-2 size-4" /> My guests ({myGuestIds.size})
+            </Button>
+            <Button
+              type="button"
+              variant={showingMine ? "outline" : "default"}
+              size="sm"
+              onClick={() => setScope("all")}
+            >
+              <Users className="mr-2 size-4" /> Everyone ({guests.data?.length ?? 0})
+            </Button>
+          </div>
         </div>
+        {scope === "mine" && myGuestIds.size === 0 ? (
+          <p className="mt-3 text-xs text-muted-foreground">
+            No guests are against your name yet — showing everyone. Tap your own name on a guest to
+            take them on.
+          </p>
+        ) : null}
       </section>
 
       {hosts.data && hosts.data.length <= 1 ? (
