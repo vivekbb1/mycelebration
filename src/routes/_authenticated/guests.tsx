@@ -43,7 +43,38 @@ const inviteSchema = z.object({
     .trim()
     .max(255)
     .refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email address"),
+  household: z.string().trim().max(120),
+  gender: z.enum(["women", "men", ""]),
 });
+
+/**
+ * A pasted line can say who the person is: "Vivek Bhatia, vivek@x.com, husband"
+ * or "(m)" / "(f)". Anything else leaves the choice to the guest.
+ */
+const MEN_WORDS = ["m", "male", "man", "husband", "son", "boy", "menswear"];
+const WOMEN_WORDS = ["f", "female", "woman", "wife", "daughter", "girl", "womenswear"];
+
+function genderFrom(line: string): { gender: "women" | "men" | ""; cleaned: string } {
+  // Markers appear as a bracketed hint or the last comma-separated field.
+  const bracket = line.match(/\((m|f|male|female|husband|wife)\)/i);
+  let rest = line.replace(/\([^)]*\)/g, " ");
+  let marker = (bracket?.[1] ?? "").toLowerCase();
+
+  if (!marker) {
+    const parts = rest.split(/[,;]/).map((p) => p.trim());
+    const last = (parts[parts.length - 1] ?? "").toLowerCase();
+    if (parts.length > 1 && (MEN_WORDS.includes(last) || WOMEN_WORDS.includes(last))) {
+      marker = last;
+      parts.pop();
+      rest = parts.join(", ");
+    }
+  }
+
+  const cleaned = rest.replace(/\s{2,}/g, " ").trim();
+  if (MEN_WORDS.includes(marker)) return { gender: "men", cleaned };
+  if (WOMEN_WORDS.includes(marker)) return { gender: "women", cleaned };
+  return { gender: "", cleaned };
+}
 
 function makeCode(name: string) {
   const base =
@@ -59,11 +90,17 @@ function makeCode(name: string) {
 function GuestListPage() {
   const queryClient = useQueryClient();
   const emailInvite = useServerFn(sendInviteEmail);
-  const [form, setForm] = useState({ guest_name: "", email: "" });
+  const [form, setForm] = useState<{
+    guest_name: string;
+    email: string;
+    household: string;
+    gender: "women" | "men" | "";
+  }>({ guest_name: "", email: "", household: "", gender: "" });
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [bulk, setBulk] = useState("");
+  const [bulkHousehold, setBulkHousehold] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
 
 
@@ -88,7 +125,7 @@ function GuestListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, code, guest_name, email, claimed_by, claimed_at")
+        .select("id, code, guest_name, email, claimed_by, claimed_at, household, gender")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -101,7 +138,9 @@ function GuestListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, city, country, whatsapp, rsvp_status, rsvp_note");
+        .select(
+          "id, full_name, email, city, country, whatsapp, rsvp_status, rsvp_note, household, gender",
+        );
       if (error) throw error;
       return data;
     },
@@ -164,13 +203,22 @@ function GuestListPage() {
         rsvp: profile?.rsvp_status ?? "pending",
         rsvpNote: profile?.rsvp_note ?? null,
         looks,
+        household: profile?.household || inv.household || "",
+        gender: profile?.gender || inv.gender || "",
         measured: guestId ? Boolean(measurements.data?.some((m) => m.guest_id === guestId)) : false,
       };
     });
+    list.sort((a, b) =>
+      (a.household || "zzzz").localeCompare(b.household || "zzzz") || a.name.localeCompare(b.name),
+    );
     const q = filter.trim().toLowerCase();
     return q
       ? list.filter((r) =>
-          [r.name, r.email, r.code, ...r.looks].filter(Boolean).join(" ").toLowerCase().includes(q),
+          [r.name, r.email, r.code, r.household, ...r.looks]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
         )
       : list;
   }, [invites.data, profiles.data, reservations.data, outfits.data, measurements.data, filter]);
@@ -196,6 +244,8 @@ function GuestListPage() {
       code,
       guest_name: parsed.data.guest_name,
       email: parsed.data.email || null,
+      household: parsed.data.household || null,
+      gender: parsed.data.gender || null,
     });
     setBusy(false);
     if (error) {
@@ -203,7 +253,7 @@ function GuestListPage() {
       return;
     }
     toast.success(`Invitation created for ${parsed.data.guest_name} (${code}).`);
-    setForm({ guest_name: "", email: "" });
+    setForm((f) => ({ guest_name: "", email: "", household: f.household, gender: "" }));
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
@@ -300,15 +350,19 @@ function GuestListPage() {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
-      .map((line) => {
-        const emailMatch = line.match(/[^\s,;<>]+@[^\s,;<>]+\.[^\s,;<>]+/);
+      .map((rawLine) => {
+        // "Name, email, husband | Bhatia Family" — the family after a pipe is optional.
+        const [beforePipe, afterPipe] = rawLine.split("|");
+        const household = (afterPipe ?? "").trim() || bulkHousehold.trim();
+        const { gender, cleaned } = genderFrom(beforePipe ?? "");
+        const emailMatch = cleaned.match(/[^\s,;<>]+@[^\s,;<>]+\.[^\s,;<>]+/);
         const email = emailMatch ? emailMatch[0] : "";
-        const name = line
+        const name = cleaned
           .replace(email, "")
           .replace(/[<>]/g, "")
           .replace(/[,;\t]+/g, " ")
           .trim();
-        return { name, email };
+        return { name, email, gender, household };
       })
       .filter((r) => r.name.length >= 2);
 
@@ -323,6 +377,8 @@ function GuestListPage() {
         code: makeCode(r.name),
         guest_name: r.name,
         email: r.email || null,
+        gender: r.gender || null,
+        household: r.household || null,
       })),
     );
     setBulkBusy(false);
@@ -418,6 +474,42 @@ function GuestListPage() {
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="g-household">Family (optional)</Label>
+              <Input
+                id="g-household"
+                maxLength={120}
+                value={form.household}
+                placeholder="Mr & Mrs Bhatia and Family"
+                onChange={(e) => setForm((f) => ({ ...f, household: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Give everyone in one family the same name here — each person still gets their own
+                code and picks their own looks.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Wardrobe</Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: "", label: "Let them choose" },
+                  { value: "women", label: "Womenswear" },
+                  { value: "men", label: "Menswear" },
+                ].map((opt) => (
+                  <Button
+                    key={opt.value || "any"}
+                    type="button"
+                    size="sm"
+                    variant={form.gender === opt.value ? "default" : "outline"}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, gender: opt.value as "" | "women" | "men" }))
+                    }
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <Button className="w-full" disabled={busy} onClick={addInvite}>
               {busy ? "Creating…" : "Create invitation"}
             </Button>
@@ -425,16 +517,27 @@ function GuestListPage() {
 
           <div className="gold-rule my-6" />
 
-          <h2 className="text-xl">Invite in bulk</h2>
+          <h2 className="text-xl">Invite a family in bulk</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            One guest per line — paste straight from a spreadsheet. Name first, email after a comma,
-            tab or space. Everyone gets their own code.
+            One person per line: name, email, then <span className="text-foreground">husband</span>{" "}
+            or <span className="text-foreground">wife</span> (or m / f) so they see the right
+            wardrobe. Add <span className="text-foreground">| Family name</span> to group a couple
+            or family together.
           </p>
+          <Input
+            className="mt-3"
+            maxLength={120}
+            value={bulkHousehold}
+            placeholder="Family for everyone below (optional)"
+            onChange={(e) => setBulkHousehold(e.target.value)}
+          />
           <Textarea
             className="mt-3 font-mono text-xs"
             rows={7}
             value={bulk}
-            placeholder={"Emma Whitfield, emma@example.com\nDaniel Osei, daniel@example.com\nMarie Lambert"}
+            placeholder={
+              "Vivek Bhatia, vivek@example.com, husband | Mr & Mrs Bhatia\nPriya Bhatia, priya@example.com, wife | Mr & Mrs Bhatia\nMarie Lambert, marie@example.com, f"
+            }
             onChange={(e) => setBulk(e.target.value)}
           />
           <div className="mt-3 flex flex-wrap gap-2">
@@ -467,7 +570,17 @@ function GuestListPage() {
               <li key={r.key} className="py-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate">{r.name}</p>
+                    <p className="flex flex-wrap items-center gap-2 truncate">
+                      {r.name}
+                      {r.gender ? (
+                        <Badge variant="outline">
+                          {r.gender === "men" ? "Menswear" : "Womenswear"}
+                        </Badge>
+                      ) : null}
+                    </p>
+                    {r.household ? (
+                      <p className="truncate text-xs text-primary">{r.household}</p>
+                    ) : null}
                     <p className="truncate text-xs text-muted-foreground">
                       {r.code}
                       {r.email ? ` · ${r.email}` : ""}

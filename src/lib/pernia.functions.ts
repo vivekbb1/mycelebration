@@ -271,11 +271,19 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
 /** Saves the chosen looks into the wardrobe, with every photo they have. */
 export const importPerniaLooks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { slugs: string[]; eventId?: string | null; boutiqueId?: string | null }) => ({
-    slugs: (Array.isArray(data?.slugs) ? data.slugs : []).slice(0, 60).map((s) => String(s)),
-    eventId: data?.eventId ? String(data.eventId) : null,
-    boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
-  }))
+  .inputValidator(
+    (data: {
+      slugs: string[];
+      eventId?: string | null;
+      boutiqueId?: string | null;
+      gender?: string | null;
+    }) => ({
+      slugs: (Array.isArray(data?.slugs) ? data.slugs : []).slice(0, 60).map((s) => String(s)),
+      eventId: data?.eventId ? String(data.eventId) : null,
+      boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
+      gender: data?.gender === "men" || data?.gender === "women" ? data.gender : null,
+    }),
+  )
   .handler(async ({ data, context }) => {
     await assertHost(context as unknown as Ctx);
     if (!data.slugs.length) return { imported: 0, skipped: 0, failed: 0 };
@@ -305,7 +313,7 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
         price_note: look.price ? `₹${look.price}` : null,
         price_inr: look.priceInr || null,
         source_sku: look.sku || null,
-        gender: look.gender,
+        gender: data.gender ?? look.gender,
         notes: look.description || null,
         event_id: data.eventId,
         boutique_id: data.boutiqueId,

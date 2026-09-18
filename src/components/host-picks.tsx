@@ -23,7 +23,7 @@ export function HostPicks() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, rsvp_status")
+        .select("id, full_name, email, rsvp_status, household, gender")
         .order("full_name");
       if (error) throw error;
       return data;
@@ -70,6 +70,18 @@ export function HostPicks() {
     return map;
   }, [reservations.data, outfitById]);
 
+  /** Families stay together, so a couple's picks sit side by side. */
+  const sortedGuests = useMemo(
+    () =>
+      [...(guests.data ?? [])].sort(
+        (a, b) =>
+          ((a.household as string | null) ?? "zzzz").localeCompare(
+            (b.household as string | null) ?? "zzzz",
+          ) || (a.full_name ?? "").localeCompare(b.full_name ?? ""),
+      ),
+    [guests.data],
+  );
+
   const loading =
     events.isLoading || guests.isLoading || outfits.isLoading || reservations.isLoading;
 
@@ -107,14 +119,20 @@ export function HostPicks() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {(guests.data ?? []).map((g) => {
+                {sortedGuests.map((g) => {
                   const forGuest = picks.get(g.id);
                   const missing = pickable.filter((ev) => !forGuest?.get(ev.id)).length;
                   return (
                     <tr key={g.id}>
                       <td className="py-3 pr-4">
                         <p className="truncate">{g.full_name || g.email || "Guest"}</p>
-                        <p className="text-xs text-muted-foreground">{g.rsvp_status}</p>
+                        {g.household ? (
+                          <p className="truncate text-xs text-primary">{g.household}</p>
+                        ) : null}
+                        <p className="text-xs text-muted-foreground">
+                          {g.rsvp_status}
+                          {g.gender ? ` · ${g.gender === "men" ? "menswear" : "womenswear"}` : ""}
+                        </p>
                       </td>
                       {pickable.map((ev) => {
                         const title = forGuest?.get(ev.id);

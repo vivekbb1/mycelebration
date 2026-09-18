@@ -21,6 +21,7 @@ Open, for the host to do
 - [ ] Provide a domain you own for sending email
 
 ## Done (latest)
+- Couples/families: each person gets their own invitation code but shares a family name; men/women wardrobe per guest, guests can pick their own if unset; lookbook shows only matching looks with a switch; importer has a wardrobe override; guest list and picks group families together.
 - Host "By boutique" tab: looks grouped by atelier with reserving guest + measurement status.
 - Bulk invite guests (paste name/email per line) + "Email everyone pending" with clipboard fallback.
 - Bulk outfit edit: multi-select, set function/boutique, remove several looks.

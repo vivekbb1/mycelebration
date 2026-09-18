@@ -134,7 +134,9 @@ export type Database = {
           code: string
           created_at: string
           email: string | null
+          gender: string | null
           guest_name: string
+          household: string | null
           id: string
         }
         Insert: {
@@ -143,7 +145,9 @@ export type Database = {
           code: string
           created_at?: string
           email?: string | null
+          gender?: string | null
           guest_name: string
+          household?: string | null
           id?: string
         }
         Update: {
@@ -152,7 +156,9 @@ export type Database = {
           code?: string
           created_at?: string
           email?: string | null
+          gender?: string | null
           guest_name?: string
+          household?: string | null
           id?: string
         }
         Relationships: []
@@ -350,6 +356,8 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string
+          gender: string | null
+          household: string | null
           id: string
           invite_claimed: boolean
           rsvp_note: string | null
@@ -364,6 +372,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          gender?: string | null
+          household?: string | null
           id: string
           invite_claimed?: boolean
           rsvp_note?: string | null
@@ -378,6 +388,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          gender?: string | null
+          household?: string | null
           id?: string
           invite_claimed?: boolean
           rsvp_note?: string | null
