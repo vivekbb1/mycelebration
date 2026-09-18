@@ -444,6 +444,7 @@ function HostDashboard() {
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="guests">Guests</TabsTrigger>
           <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
           <TabsTrigger value="setup">Setup</TabsTrigger>
@@ -610,12 +611,27 @@ function HostDashboard() {
           </Tabs>
         </TabsContent>
 
+        <TabsContent value="functions" className="mt-6 space-y-6">
+          <div className="panel p-6">
+            <h2 className="text-xl">How to set up your celebration</h2>
+            <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+              <li>Create each function here — day, time, place and the card picture.</li>
+              <li>Add your families and their members under Guests.</li>
+              <li>
+                In Guests → Who's invited to what, tick the functions each family is invited to, say
+                whether you are dressing them and for which function, and add head counts.
+              </li>
+              <li>Send the invitation from the guest list once it all looks right.</li>
+            </ol>
+          </div>
+          <HostEvents />
+        </TabsContent>
+
         <TabsContent value="wardrobe" className="mt-6">
           <Tabs defaultValue="outfits">
             <TabsList>
               <TabsTrigger value="outfits">Outfits</TabsTrigger>
               <TabsTrigger value="import">Add from a shop</TabsTrigger>
-              <TabsTrigger value="functions">Functions</TabsTrigger>
               <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
             </TabsList>
 
@@ -919,9 +935,6 @@ function HostDashboard() {
 
             <TabsContent value="import" className="mt-6">
               <HostImport />
-            </TabsContent>
-            <TabsContent value="functions" className="mt-6">
-              <HostEvents />
             </TabsContent>
             <TabsContent value="logistics" className="mt-6">
               <HostLogistics />
