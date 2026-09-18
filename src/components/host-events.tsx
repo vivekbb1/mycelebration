@@ -166,6 +166,8 @@ export function HostEvents() {
       note: ev.note ?? "",
       rsvp_by: ev.rsvp_by ?? "",
       background_image_url: ev.background_image_url ?? "",
+      outfit_ready_by: ev.outfit_ready_by ?? "",
+      outfit_slot_note: ev.outfit_slot_note ?? "",
       sort_order: String(ev.sort_order ?? ""),
       outfit_selection: ev.outfit_selection ?? true,
       invite_id: ev.invite_id ?? "",
