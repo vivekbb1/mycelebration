@@ -120,6 +120,8 @@ export function HostEvents() {
       note: parsed.data.note || null,
       rsvp_by: parsed.data.rsvp_by || null,
       background_image_url: parsed.data.background_image_url || null,
+      outfit_ready_by: parsed.data.outfit_ready_by || null,
+      outfit_slot_note: parsed.data.outfit_slot_note || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
       invite_id: chosenInvite || null,
