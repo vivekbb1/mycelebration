@@ -574,6 +574,25 @@ export function HostFamilies() {
                 placeholder="Email (optional)"
                 onChange={(e) => setMember(i, { email: e.target.value })}
               />
+              <Input
+                className="mt-2"
+                maxLength={40}
+                value={m.phone}
+                placeholder="Mobile number (optional)"
+                onChange={(e) => setMember(i, { phone: e.target.value })}
+              />
+              <select
+                className="field-select mt-2"
+                value={m.category}
+                aria-label={`Guest group for person ${i + 1}`}
+                onChange={(e) => setMember(i, { category: e.target.value })}
+              >
+                {GUEST_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
               <div className="mt-2 flex flex-wrap gap-2">
                 {[
                   { value: "", label: "Let them choose" },
@@ -596,7 +615,12 @@ export function HostFamilies() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => setMembers((list) => [...list, { name: "", email: "", gender: "" }])}
+            onClick={() =>
+              setMembers((list) => [
+                ...list,
+                { name: "", email: "", phone: "", gender: "", category: "family" },
+              ])
+            }
           >
             <Plus className="size-4" /> Add another person
           </Button>
@@ -611,7 +635,8 @@ export function HostFamilies() {
         <h2 className="text-xl">Invite many families at once</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Upload a spreadsheet, or paste rows as{" "}
-          <span className="text-foreground">family, name, email, wardrobe</span> — one person per
+          <span className="text-foreground">family, name, email, mobile, category, wardrobe</span> —
+          one person per
           line. People sharing a family name share a code.
         </p>
 
@@ -643,7 +668,8 @@ export function HostFamilies() {
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           The template holds everyone already on your list — add the missing emails and upload it
-          back. Names already there are updated, not duplicated.
+          back. Names already there are updated, not duplicated — so you can fill in mobile numbers
+          and guest groups later.
         </p>
 
         <Textarea
@@ -651,7 +677,7 @@ export function HostFamilies() {
           rows={6}
           value={bulk}
           placeholder={
-            "Mr & Mrs Bhatia, Vivek Bhatia, vivek@example.com, husband\nMr & Mrs Bhatia, Priya Bhatia, priya@example.com, wife"
+            "Mr & Mrs Bhatia, Vivek Bhatia, vivek@example.com, +971501234567, family, husband\nMr & Mrs Bhatia, Priya Bhatia, priya@example.com, +971507654321, family, wife"
           }
           onChange={(e) => setBulk(e.target.value)}
         />
