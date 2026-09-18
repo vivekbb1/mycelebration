@@ -75,7 +75,7 @@ export function FunctionCard({
         </dl>
 
         {showOutfitAction ? (
-          <div className="mt-7 flex flex-col items-center gap-3">
+          <div className="mt-auto flex flex-col items-center gap-3 pt-7">
             {picksOutfit ? (
               <>
                 {chosenLook ? (
