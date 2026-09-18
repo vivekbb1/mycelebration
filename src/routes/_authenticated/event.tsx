@@ -107,7 +107,11 @@ function EventPage() {
       toast.error(error.message);
       return;
     }
-    toast.success(status === "yes" ? "Wonderful — you're on the list." : "Thank you for letting us know.");
+    toast.success(
+      status === "yes"
+        ? t("rsvp.thanks_yes", "Wonderful — you're on the list.")
+        : t("rsvp.thanks_no", "Thank you for letting us know."),
+    );
     setNoteTouched(false);
     await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
   };
