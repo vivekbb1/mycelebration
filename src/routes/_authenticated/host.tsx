@@ -575,28 +575,19 @@ function HostDashboard() {
                   );
                 })}
               </ul>
-              <Button asChild size="sm" variant="outline" className="mt-4">
-                <Link to="/guests">Open the guest list</Link>
-              </Button>
             </div>
           </section>
         </TabsContent>
 
         <TabsContent value="guests" className="mt-6">
-          <Tabs defaultValue="list">
+          <Tabs defaultValue="invited">
             <TabsList>
-              <TabsTrigger value="list">Guest list</TabsTrigger>
               <TabsTrigger value="invited">Invited to what</TabsTrigger>
               <TabsTrigger value="replies">Replies</TabsTrigger>
               <TabsTrigger value="picks">Outfit picks</TabsTrigger>
               <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
               <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
             </TabsList>
-            <TabsContent value="list" className="mt-6">
-              <Button asChild variant="outline" size="sm">
-                <Link to="/guests">Open the guest list</Link>
-              </Button>
-            </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
