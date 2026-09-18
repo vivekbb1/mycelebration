@@ -495,15 +495,17 @@ export function HostRelations() {
                                 </p>
                               ) : null}
                             </div>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              aria-label="Remove this note"
-                              onClick={() => removeNote.mutate(n.id)}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            {n.host_id && me.data && n.host_id === me.data ? (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                aria-label="Remove this note"
+                                onClick={() => removeNote.mutate(n.id)}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            ) : null}
                           </li>
                         ))}
                       </ul>
