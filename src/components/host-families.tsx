@@ -318,10 +318,9 @@ export function HostFamilies() {
     const created = await createFamilies([...groups.values()]);
     setBulkBusy(false);
     if (!created) return;
+    const famWord = groups.size === 1 ? "family" : "families";
     toast.success(
-      `${parsed.length} guest${parsed.length === 1 ? "" : "s"} added across ${groups.size} famil${
-        groups.size === 1 ? "y" : "ies"
-      }.`,
+      `${created.added} added and ${created.updated} updated across ${groups.size} ${famWord}.`,
     );
     setBulk("");
     await refresh();
