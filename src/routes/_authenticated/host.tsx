@@ -39,6 +39,8 @@ import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
 import { HostBranding } from "@/components/host-branding";
 import { HostBoutiques } from "@/components/host-boutiques";
+import { HostVendors } from "@/components/host-vendors";
+import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
 
@@ -969,6 +971,10 @@ function HostDashboard() {
               {has("vendor_management") ? (
                 <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
               ) : null}
+              {has("vendor_management") ? (
+                <TabsTrigger value="vendors">Vendors</TabsTrigger>
+              ) : null}
+              {has("budgeting") ? <TabsTrigger value="budget">Budget</TabsTrigger> : null}
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Look &amp; wording</TabsTrigger> : null}
@@ -977,7 +983,23 @@ function HostDashboard() {
               <HostBoutiques />
               <HostByBoutique />
             </TabsContent>
-            <TabsContent value="hosts" className="mt-6">
+            <TabsContent value="vendors" className="mt-6">
+              <HostVendors />
+            </TabsContent>
+            <TabsContent value="budget" className="mt-6">
+              <HostBudget />
+            </TabsContent>
+            <TabsContent value="hosts" className="mt-6 space-y-6">
+              <div className="panel p-4 sm:p-6">
+                <h3 className="text-xl">Host dashboard</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Every host account with their package, the replies still to come and the outfit
+                  slots still open.
+                </p>
+                <Button asChild variant="outline" className="mt-3">
+                  <Link to="/hosts">Open the host dashboard</Link>
+                </Button>
+              </div>
               <HostTeam />
             </TabsContent>
             <TabsContent value="email" className="mt-6">
