@@ -82,6 +82,20 @@ function DeliveryPage() {
 
   const outfits = mine.data?.outfits ?? [];
   const plan = logistics.data;
+  if (plan && plan.enabled === false) {
+    return (
+      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16 text-center">
+        <p className="text-eyebrow">Logistics</p>
+        <h1 className="mt-3 text-4xl">Nothing to arrange yet</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          The hosts haven't shared delivery details. They'll be in touch with you directly.
+        </p>
+        <Button asChild size="sm" className="mt-6">
+          <Link to="/invitation">Back to your invitation</Link>
+        </Button>
+      </main>
+    );
+  }
   const timeline: TimelineStep[] = parseTimeline(plan?.timeline);
 
   return (
