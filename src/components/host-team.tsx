@@ -1,11 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ShieldCheck, UserMinus } from "lucide-react";
+import { Copy, Mail, ShieldCheck, Trash2, UserMinus } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { inviteHostByEmail } from "@/lib/host-invite.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
