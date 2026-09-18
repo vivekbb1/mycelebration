@@ -183,6 +183,13 @@
       "when": 1789733188727,
       "tag": "0025_rsvp_tracking_and_guest_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1789733836191,
+      "tag": "0026_outfit_slot_and_build",
+      "breakpoints": true
     }
   ]
 }
