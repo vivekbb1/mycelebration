@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/invitation")({
 type StepTarget = "/event" | "/lookbook" | "/measurements";
 
 function InvitationPage() {
+  const { t } = useSiteContent();
   const profile = useQuery({
     queryKey: ["my-profile"],
     queryFn: async () => {
