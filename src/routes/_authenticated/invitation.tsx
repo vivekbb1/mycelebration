@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { CalendarCheck, Ruler, Sparkles, Truck } from "lucide-react";
+import { ArrowRight, CalendarCheck, Check, Ruler, Sparkles, Truck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +16,13 @@ export const Route = createFileRoute("/_authenticated/invitation")({
       {
         name: "description",
         content:
-          "Your personal wedding invitation: the functions you're invited to, your RSVP and the outfit chosen for you.",
+          "Your personal wedding invitation in three simple steps: reply, choose your outfit, send your measurements.",
       },
       { property: "og:title", content: "Your Invitation — Kush & Khyati" },
       {
         property: "og:description",
         content:
-          "Every function you're invited to, with timings, venues, attire, your RSVP and your outfit.",
+          "Three steps: tell us if you're coming, choose the outfit we've set aside for you, send your measurements.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/invitation")({
   }),
   component: InvitationPage,
 });
+
+type StepTarget = "/event" | "/lookbook" | "/measurements";
 
 function InvitationPage() {
   const profile = useQuery({
@@ -94,6 +96,15 @@ function InvitationPage() {
     },
   });
 
+  const myMeasurements = useQuery({
+    queryKey: ["my-measurements", "invitation"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("measurements").select("id").limit(1);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const lookByEvent = useMemo(() => {
     const map = new Map<string, string>();
     for (const row of myLooks.data ?? []) {
@@ -113,9 +124,71 @@ function InvitationPage() {
   const rsvp = profile.data?.rsvp_status ?? "pending";
   const list = events.data ?? [];
 
+  const outfitFunctions = list.filter((ev) => picksOutfit(ev));
+  const chosenCount = outfitFunctions.filter((ev) => lookByEvent.has(ev.id)).length;
+  const needsOutfits = outfitFunctions.length > 0;
+
+  const rsvpDone = rsvp === "yes" || rsvp === "no";
+  const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount === outfitFunctions.length);
+  const measurementsDone = (myMeasurements.data ?? []).length > 0;
+
+  const steps: {
+    to: StepTarget;
+    icon: typeof Sparkles;
+    title: string;
+    body: string;
+    done: boolean;
+    status: string;
+    cta: string;
+  }[] = [
+    {
+      to: "/event",
+      icon: CalendarCheck,
+      title: "Tell us if you're coming",
+      body: "A yes or no, plus anything we should know — arrival day, food, who's travelling with you.",
+      done: rsvpDone,
+      status:
+        rsvp === "yes"
+          ? "You've said yes"
+          : rsvp === "no"
+            ? "You've let us know you can't come"
+            : "Not answered yet",
+      cta: rsvpDone ? "Change your answer" : "Reply now",
+    },
+    {
+      to: "/lookbook",
+      icon: Sparkles,
+      title: "Choose your outfit",
+      body: needsOutfits
+        ? "Pick a look for each function where the outfit is our gift to you."
+        : "For your functions you'll wear your own outfit — nothing to choose here.",
+      done: outfitsDone,
+      status: !needsOutfits
+        ? "Not needed"
+        : chosenCount === 0
+          ? `Nothing chosen yet · ${outfitFunctions.length} to choose`
+          : chosenCount === outfitFunctions.length
+            ? "All chosen"
+            : `${chosenCount} of ${outfitFunctions.length} chosen`,
+      cta: chosenCount > 0 ? "See or change your looks" : "Choose a look",
+    },
+    {
+      to: "/measurements",
+      icon: Ruler,
+      title: "Send your measurements",
+      body: "So your outfit is tailored before you arrive. Every field has a tip to help you measure.",
+      done: measurementsDone,
+      status: measurementsDone ? "Sent — thank you" : "Not sent yet",
+      cta: measurementsDone ? "Update measurements" : "Send measurements",
+    },
+  ];
+
+  const doneCount = steps.filter((s) => s.done).length;
+  const nextStep = steps.find((s) => !s.done) ?? null;
+
   return (
     <main className="bg-zari">
-      <div className="mx-auto max-w-4xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-12">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
             <p className="text-eyebrow">Together with our families</p>
@@ -125,42 +198,75 @@ function InvitationPage() {
             <div className="gold-rule mx-auto mt-6 max-w-[16rem]" />
             <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
               {firstName ? `${firstName}, ` : ""}we would be honoured to have you with us.
-              {list.length > 0
-                ? ` ${scheduleSummary(list)} Below are the functions we've saved a place for you at.`
-                : " Your functions will appear here as soon as they're confirmed."}
+              {list.length > 0 ? ` ${scheduleSummary(list)}` : ""}
             </p>
-
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Badge variant={rsvp === "yes" ? "default" : "secondary"}>
-                {rsvp === "yes"
-                  ? "You've said yes"
-                  : rsvp === "no"
-                    ? "You've let us know you can't come"
-                    : "We're still waiting for your reply"}
-              </Badge>
-            </div>
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          <HubLink
-            to="/event"
-            icon={CalendarCheck}
-            title={rsvp === "pending" ? "RSVP" : "Update your RSVP"}
-            body="Tell us whether you'll join, and anything we should know."
-          />
-          <HubLink
-            to="/lookbook"
-            icon={Sparkles}
-            title="Choose your outfit"
-            body="Pick a look for each function — tailoring and delivery are on us."
-          />
-          <HubLink
-            to="/measurements"
-            icon={Ruler}
-            title="Send measurements"
-            body="A guided form with a tip for every measurement a tailor needs."
-          />
+        <section className="panel mt-8 p-6 sm:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-eyebrow">Three simple steps</p>
+              <h2 className="mt-3 text-2xl">
+                {doneCount === steps.length ? "You're all set" : "Here's what's left to do"}
+              </h2>
+            </div>
+            <Badge variant={doneCount === steps.length ? "default" : "secondary"}>
+              {doneCount} of {steps.length} done
+            </Badge>
+          </div>
+
+          <div className="mt-5 flex gap-2" aria-hidden>
+            {steps.map((s, i) => (
+              <span
+                key={i}
+                className={`h-1.5 flex-1 rounded-full ${s.done ? "bg-primary" : "bg-muted"}`}
+              />
+            ))}
+          </div>
+
+          <ol className="mt-7 space-y-4">
+            {steps.map((step, i) => (
+              <li key={step.to}>
+                <Link
+                  to={step.to}
+                  className="flex items-start gap-4 rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary/60"
+                >
+                  <span
+                    className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border text-sm ${
+                      step.done
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {step.done ? <Check className="size-4" /> : i + 1}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="font-display text-xl">{step.title}</span>
+                      <span className="text-xs text-muted-foreground">{step.status}</span>
+                    </span>
+                    <span className="mt-2 block text-sm leading-relaxed text-muted-foreground">
+                      {step.body}
+                    </span>
+                  </span>
+                  <step.icon className="mt-1 size-5 shrink-0 text-primary" />
+                </Link>
+              </li>
+            ))}
+          </ol>
+
+          {nextStep ? (
+            <Button asChild className="mt-6 w-full sm:w-auto">
+              <Link to={nextStep.to}>
+                {nextStep.cta} <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          ) : (
+            <p className="mt-6 text-sm text-muted-foreground">
+              Everything's done — we'll be in touch about delivery. You can still change any answer.
+            </p>
+          )}
         </section>
 
         <div className="gold-rule my-12" />
@@ -168,9 +274,7 @@ function InvitationPage() {
         <p className="text-center text-eyebrow">Your functions</p>
 
         {events.isLoading ? (
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Opening your invitation…
-          </p>
+          <p className="mt-6 text-center text-sm text-muted-foreground">Opening your invitation…</p>
         ) : (
           <div className="mt-8 space-y-7">
             {list.map((ev) => (
@@ -198,25 +302,5 @@ function InvitationPage() {
         </div>
       </div>
     </main>
-  );
-}
-
-function HubLink({
-  to,
-  icon: Icon,
-  title,
-  body,
-}: {
-  to: "/event" | "/lookbook" | "/measurements";
-  icon: typeof Sparkles;
-  title: string;
-  body: string;
-}) {
-  return (
-    <Link to={to} className="panel block p-6 transition-shadow hover:shadow-glow">
-      <Icon className="size-5 text-primary" />
-      <h2 className="mt-4 text-xl">{title}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-    </Link>
   );
 }
