@@ -45,8 +45,8 @@ export function FunctionCard({
   const eventName = /^the\s/i.test(event.name) ? event.name : `the ${event.name}`;
 
   return (
-    <article className="invite-card p-7 sm:p-9">
-      <div className="relative">
+    <article className="invite-card flex h-full flex-col p-6 sm:p-9">
+      <div className="relative flex flex-1 flex-col">
         <p className="invite-ornament text-[0.65rem] tracking-[0.3em] uppercase">
           <Sparkles className="size-3" />
         </p>
@@ -56,7 +56,7 @@ export function FunctionCard({
 
         <div className="gold-rule mx-auto mt-6 max-w-[14rem]" />
 
-        <dl className="mx-auto mt-6 grid max-w-md gap-4 text-sm">
+        <dl className="mx-auto mt-6 grid w-full max-w-sm gap-4 text-left text-sm">
           {event.start_time ? (
             <Row icon={Clock} label="Timings" value={event.start_time} />
           ) : null}
@@ -75,7 +75,7 @@ export function FunctionCard({
         </dl>
 
         {showOutfitAction ? (
-          <div className="mt-7 flex flex-col items-center gap-3">
+          <div className="mt-auto flex flex-col items-center gap-3 pt-7">
             {picksOutfit ? (
               <>
                 {chosenLook ? (
@@ -119,7 +119,7 @@ function Row({
   sub?: string | undefined;
 }) {
   return (
-    <div className="flex justify-center gap-3 text-center sm:text-left">
+    <div className="flex items-start gap-3 text-left">
       <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
       <div>
         <dt className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">{label}</dt>

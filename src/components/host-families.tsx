@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Plus, Trash2, Upload, Users } from "lucide-react";
+import { Copy, Download, Plus, Trash2, Upload, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -178,7 +178,7 @@ export function HostFamilies() {
     setBusy(false);
     if (!created) return;
     toast.success(
-      `${parsed.data.name} invited — their family code is ${created[parsed.data.name] ?? ""}.`,
+      `${parsed.data.name} invited — their family code is ${created.codes[parsed.data.name] ?? ""}.`,
     );
     setFamilyName("");
     setMembers([
@@ -191,7 +191,7 @@ export function HostFamilies() {
   /** Creates any missing families, then their members. Returns family name → code. */
   const createFamilies = async (
     groups: { family: string; people: MemberDraft[] }[],
-  ): Promise<Record<string, string> | null> => {
+  ): Promise<{ codes: Record<string, string>; added: number; updated: number } | null> => {
     const existing = new Map((families.data ?? []).map((f) => [f.name.toLowerCase(), f]));
     const toCreate = groups.filter((g) => !existing.has(g.family.toLowerCase()));
 
@@ -212,21 +212,62 @@ export function HostFamilies() {
     for (const f of families.data ?? []) byName.set(f.name.toLowerCase(), f);
     for (const f of inserted) byName.set(f.name.toLowerCase(), f);
 
-    const rows = groups.flatMap((g) => {
+    // People already on the list are updated (so a filled-in template can be
+    // uploaded again to add emails), never duplicated.
+    const known = new Map<string, { id: string; email: string | null; gender: string | null }>();
+    for (const m of memberRows.data ?? []) {
+      if (!m.family_id) continue;
+      known.set(`${m.family_id}|${(m.guest_name ?? "").trim().toLowerCase()}`, {
+        id: m.id,
+        email: m.email,
+        gender: m.gender,
+      });
+    }
+
+    const rows: {
+      code: string;
+      guest_name: string;
+      email: string | null;
+      gender: string | null;
+      household: string;
+      family_id: string;
+    }[] = [];
+    const patches: { id: string; email?: string | null; gender?: string | null }[] = [];
+
+    for (const g of groups) {
       const fam = byName.get(g.family.toLowerCase());
-      if (!fam) return [];
-      return g.people.map((p) => ({
-        code: makeMemberCode(p.name),
-        guest_name: p.name.trim(),
-        email: p.email.trim() || null,
-        gender: p.gender || null,
-        household: fam.name,
-        family_id: fam.id,
-      }));
-    });
+      if (!fam) continue;
+      for (const p of g.people) {
+        const name = p.name.trim();
+        const seen = known.get(`${fam.id}|${name.toLowerCase()}`);
+        if (seen) {
+          const patch: { id: string; email?: string | null; gender?: string | null } = { id: seen.id };
+          if (p.email.trim() && p.email.trim() !== seen.email) patch.email = p.email.trim();
+          if (p.gender && p.gender !== seen.gender) patch.gender = p.gender;
+          if (Object.keys(patch).length > 1) patches.push(patch);
+          continue;
+        }
+        rows.push({
+          code: makeMemberCode(name),
+          guest_name: name,
+          email: p.email.trim() || null,
+          gender: p.gender || null,
+          household: fam.name,
+          family_id: fam.id,
+        });
+      }
+    }
 
     if (rows.length > 0) {
       const { error } = await supabase.from("invite_codes").insert(rows);
+      if (error) {
+        toast.error(error.message);
+        return null;
+      }
+    }
+
+    for (const { id, ...patch } of patches) {
+      const { error } = await supabase.from("invite_codes").update(patch).eq("id", id);
       if (error) {
         toast.error(error.message);
         return null;
@@ -238,7 +279,35 @@ export function HostFamilies() {
       const fam = byName.get(g.family.toLowerCase());
       if (fam) codes[g.family] = fam.code;
     }
-    return codes;
+    return { codes, added: rows.length, updated: patches.length };
+  };
+
+  /** Spreadsheet of the current guest list (or a blank sample) to fill in and upload back. */
+  const downloadTemplate = async () => {
+    const XLSX = await import("xlsx");
+    const header = ["Family", "Name", "Email", "Wardrobe"];
+    const body = grouped.flatMap((f) =>
+      f.members.map((m) => [
+        f.name,
+        m.guest_name ?? "",
+        m.email ?? "",
+        m.gender === "men" ? "menswear" : m.gender === "women" ? "womenswear" : "",
+      ]),
+    );
+    const sample = [
+      ["Mr & Mrs Bhatia", "Vivek Bhatia", "vivek@example.com", "menswear"],
+      ["Mr & Mrs Bhatia", "Priya Bhatia", "priya@example.com", "womenswear"],
+    ];
+    const sheet = XLSX.utils.aoa_to_sheet([header, ...(body.length > 0 ? body : sample)]);
+    sheet["!cols"] = [{ wch: 30 }, { wch: 26 }, { wch: 32 }, { wch: 14 }];
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, sheet, "Guest list");
+    XLSX.writeFile(book, "guest-list.xlsx");
+    toast.success(
+      body.length > 0
+        ? "Downloaded your guest list — add the emails and upload it back."
+        : "Downloaded a blank guest list template.",
+    );
   };
 
   const importRows = async (parsed: ParsedRow[]) => {
@@ -256,10 +325,9 @@ export function HostFamilies() {
     const created = await createFamilies([...groups.values()]);
     setBulkBusy(false);
     if (!created) return;
+    const famWord = groups.size === 1 ? "family" : "families";
     toast.success(
-      `${parsed.length} guest${parsed.length === 1 ? "" : "s"} added across ${groups.size} famil${
-        groups.size === 1 ? "y" : "ies"
-      }.`,
+      `${created.added} added and ${created.updated} updated across ${groups.size} ${famWord}.`,
     );
     setBulk("");
     await refresh();
@@ -431,14 +499,18 @@ export function HostFamilies() {
             if (file) void importFile(file);
           }}
         />
-        <Button
-          variant="secondary"
-          className="mt-3 w-full"
-          disabled={bulkBusy}
-          onClick={() => fileRef.current?.click()}
-        >
-          <Upload className="size-4" /> Upload Excel or CSV
-        </Button>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Button variant="secondary" onClick={() => void downloadTemplate()}>
+            <Download className="size-4" /> Download template
+          </Button>
+          <Button variant="secondary" disabled={bulkBusy} onClick={() => fileRef.current?.click()}>
+            <Upload className="size-4" /> Upload filled file
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          The template holds everyone already on your list — add the missing emails and upload it
+          back. Names already there are updated, not duplicated.
+        </p>
 
         <Textarea
           className="mt-3 font-mono text-xs"

@@ -45,7 +45,7 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-3">
         <Link to="/invitation" className="font-display text-lg tracking-wide">
-          {t("nav.brand", "Kush & Khyati")}
+          {t("nav.brand", "Our Wedding")}
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
           <Link to="/invitation" className={linkClass}>

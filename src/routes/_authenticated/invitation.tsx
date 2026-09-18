@@ -13,13 +13,13 @@ import { useSiteContent } from "@/lib/site-content";
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
     meta: [
-      { title: "Your Invitation — Kush & Khyati" },
+      { title: "Your Invitation — Reply, Outfit & Measurements" },
       {
         name: "description",
         content:
           "Your personal wedding invitation in three simple steps: reply, choose your outfit, send your measurements.",
       },
-      { property: "og:title", content: "Your Invitation — Kush & Khyati" },
+      { property: "og:title", content: "Your Invitation — Reply, Outfit & Measurements" },
       {
         property: "og:description",
         content:
@@ -206,7 +206,7 @@ function InvitationPage() {
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
-  const couple = t("invitation.couple", "Kush & Khyati");
+  const couple = t("invitation.couple", "Our Wedding");
   const coupleParts = couple.split("&").map((part) => part.trim());
 
   return (
