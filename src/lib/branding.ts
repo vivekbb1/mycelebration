@@ -88,7 +88,25 @@ export function useBranding() {
     },
   });
 
-  return { branding: query.data ?? { id: "default", ...BRANDING_DEFAULTS }, query };
+  // A look chosen for this guest's own invitation wins over the main saved look.
+  const mine = useQuery({
+    queryKey: ["branding-mine"],
+    staleTime: 60_000,
+    queryFn: async (): Promise<Partial<Branding> | null> => {
+      const { data, error } = await supabase.rpc("my_branding");
+      if (error) return null;
+      return (data ?? null) as Partial<Branding> | null;
+    },
+  });
+
+  const branding = {
+    id: "default",
+    ...BRANDING_DEFAULTS,
+    ...(query.data ?? {}),
+    ...(mine.data ?? {}),
+  } as Branding;
+
+  return { branding, query };
 }
 
 /** Applies branding to the live document: colours, fonts, text size, corners, favicon. */
