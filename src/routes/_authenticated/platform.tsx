@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FEATURES, useFeatures } from "@/lib/features";
 import { HostContent } from "@/components/host-content";
 import { HostBranding } from "@/components/host-branding";
+import { HostFees } from "@/components/host-fees";
 import { SITE_CONTENT_KEY, useSiteContent } from "@/lib/site-content";
 import { guardedUpdate } from "@/lib/save-guard";
 
@@ -576,6 +577,15 @@ function PlatformAdmin() {
           ) : null}
         </ul>
       </section>
+
+      <h2 className="mt-12 text-2xl">Event fees</h2>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        What a host owes you for running an event — a flat fee, an amount per guest, or both. Hosts
+        set their own guest fees under Setup → Event fees.
+      </p>
+      <div className="mt-6">
+        <HostFees audience="host" />
+      </div>
 
       <h2 className="mt-12 text-2xl">The portal itself</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">

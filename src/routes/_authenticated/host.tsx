@@ -39,6 +39,7 @@ import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
 import { HostBoutiques } from "@/components/host-boutiques";
 import { HostVendors } from "@/components/host-vendors";
+import { HostFees } from "@/components/host-fees";
 import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
@@ -974,6 +975,7 @@ function HostDashboard() {
                 <TabsTrigger value="vendors">Vendors</TabsTrigger>
               ) : null}
               {has("budgeting") ? <TabsTrigger value="budget">Budget</TabsTrigger> : null}
+              <TabsTrigger value="fees">Event fees</TabsTrigger>
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
@@ -981,6 +983,9 @@ function HostDashboard() {
             <TabsContent value="boutiques" className="mt-6 space-y-8">
               <HostBoutiques />
               <HostByBoutique />
+            </TabsContent>
+            <TabsContent value="fees" className="mt-6">
+              <HostFees audience="guest" />
             </TabsContent>
             <TabsContent value="vendors" className="mt-6">
               <HostVendors />

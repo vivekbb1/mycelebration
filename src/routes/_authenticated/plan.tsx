@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { CalendarClock, Plane, Ruler, Scissors, Shirt } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { GuestFees } from "@/components/guest-fees";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -321,6 +322,7 @@ function PlanPage() {
           invitation page.
         </p>
       </div>
-    </main>
+          <GuestFees />
+</main>
   );
 }
