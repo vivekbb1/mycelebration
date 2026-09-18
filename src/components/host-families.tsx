@@ -430,14 +430,14 @@ export function HostFamilies() {
       >
 
         <div className="mt-5 space-y-2">
-          <Label htmlFor="f-invite">Which invitation</Label>
+          <Label htmlFor="f-invite">Which event</Label>
           <select
             id="f-invite"
             value={chosenInvite}
             onChange={(e) => setInviteId(e.target.value)}
             className="field-select"
           >
-            {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
+            {inviteList.length === 0 ? <option value="">No events yet</option> : null}
             {inviteList.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name}
@@ -445,7 +445,7 @@ export function HostFamilies() {
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            They will see that invitation's functions and its look.
+            Required — they will see that event's functions and its look.
           </p>
         </div>
 
@@ -622,7 +622,7 @@ export function HostFamilies() {
                       }}
                       className="field-select max-w-full text-xs"
                     >
-                      <option value="">Not on an invitation</option>
+                      <option value="">Not on an event</option>
                       {inviteList.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.name}
