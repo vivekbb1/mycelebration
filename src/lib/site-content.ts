@@ -29,7 +29,9 @@ export function useSiteContent() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("site_content")
-        .select("key, value, default_value, label, group_name, page_name, kind, sort_order")
+        .select(
+          "key, value, default_value, label, group_name, page_name, kind, sort_order, updated_at",
+        )
         .order("page_name")
         .order("group_name")
         .order("sort_order");
