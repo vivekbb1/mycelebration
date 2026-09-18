@@ -84,6 +84,14 @@ export function HostBudget() {
     },
   });
 
+  const itemList = useMemo(
+    () =>
+      (items.data ?? []).filter(
+        (i) => !selectedEvent || !i.invite_id || i.invite_id === selectedEvent,
+      ),
+    [items.data, selectedEvent],
+  );
+
   const totals = useMemo(() => {
     const list = itemList;
     const planned = list.reduce((s, i) => s + Number(i.planned_amount ?? 0), 0);
@@ -319,9 +327,9 @@ export function HostBudget() {
       </div>
 
       <div className="panel p-4 sm:p-6">
-        <h3 className="text-xl">Every cost ({(items.data ?? []).length})</h3>
+        <h3 className="text-xl">Every cost ({itemList.length})</h3>
         <ul className="mt-4 divide-y divide-border">
-          {(items.data ?? []).map((i) => (
+          {itemList.map((i) => (
             <li key={i.id} className="py-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -361,7 +369,7 @@ export function HostBudget() {
               </div>
             </li>
           ))}
-          {(items.data ?? []).length === 0 ? (
+          {itemList.length === 0 ? (
             <li className="py-4 text-sm text-muted-foreground">No costs yet.</li>
           ) : null}
         </ul>
