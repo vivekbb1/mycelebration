@@ -326,6 +326,50 @@ export type Database = {
           },
         ]
       }
+      guest_host_transfers: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          created_by: string | null
+          effective_on: string
+          from_host: string | null
+          id: string
+          invite_id: string
+          reason: string | null
+          to_host: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_on?: string
+          from_host?: string | null
+          id?: string
+          invite_id: string
+          reason?: string | null
+          to_host: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          effective_on?: string
+          from_host?: string | null
+          id?: string
+          invite_id?: string
+          reason?: string | null
+          to_host?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_host_transfers_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_hosts: {
         Row: {
           created_at: string
@@ -870,6 +914,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_due_guest_transfers: { Args: never; Returns: number }
       can_boutique_see_guest: { Args: { _guest_id: string }; Returns: boolean }
       can_boutique_see_outfit: {
         Args: { _outfit_id: string }
