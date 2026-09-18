@@ -219,6 +219,30 @@ export function HostFamilies() {
     await queryClient.invalidateQueries({ queryKey: ["families"] });
   };
 
+  /** Emergency contact details and the guest group, saved as the host types. */
+  const updateMember = async (
+    id: string,
+    patch: { email?: string; phone?: string; category?: string },
+  ) => {
+    const clean: { email?: string | null; phone?: string | null; category?: string } = {};
+    if (patch.email !== undefined) {
+      if (!emailOk(patch.email.trim())) {
+        toast.error("Check the email address.");
+        return;
+      }
+      clean.email = patch.email.trim() || null;
+    }
+    if (patch.phone !== undefined) clean.phone = patch.phone.trim() || null;
+    if (patch.category !== undefined) clean.category = patch.category;
+
+    const { error } = await supabase.from("invite_codes").update(clean).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["family-members"] });
+  };
+
   const refresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["families"] }),
@@ -739,22 +763,54 @@ export function HostFamilies() {
                       ))}
                     </select>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {f.members.length === 0
-                      ? "No one added yet"
-                      : f.members
-                          .map(
-                            (m) =>
-                              `${m.guest_name}${
-                                m.gender === "men"
-                                  ? " (menswear)"
-                                  : m.gender === "women"
-                                    ? " (womenswear)"
-                                    : ""
-                              }`,
-                          )
-                          .join(" · ")}
-                  </p>
+                  {f.members.length === 0 ? (
+                    <p className="mt-1 text-xs text-muted-foreground">No one added yet</p>
+                  ) : (
+                    <ul className="mt-3 space-y-3">
+                      {f.members.map((m) => (
+                        <li key={m.id} className="rounded-lg border border-border/60 p-3">
+                          <p className="text-sm">
+                            {m.guest_name}
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              {m.gender === "men"
+                                ? "menswear"
+                                : m.gender === "women"
+                                  ? "womenswear"
+                                  : "outfit not set"}
+                            </span>
+                          </p>
+                          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                            <Input
+                              defaultValue={m.email ?? ""}
+                              maxLength={255}
+                              placeholder="Email"
+                              aria-label={`Email for ${m.guest_name}`}
+                              onBlur={(e) => void updateMember(m.id, { email: e.target.value })}
+                            />
+                            <Input
+                              defaultValue={m.phone ?? ""}
+                              maxLength={40}
+                              placeholder="Mobile number"
+                              aria-label={`Mobile number for ${m.guest_name}`}
+                              onBlur={(e) => void updateMember(m.id, { phone: e.target.value })}
+                            />
+                            <select
+                              className="field-select text-xs"
+                              value={m.category ?? "family"}
+                              aria-label={`Guest group for ${m.guest_name}`}
+                              onChange={(e) => void updateMember(m.id, { category: e.target.value })}
+                            >
+                              {GUEST_CATEGORIES.map((c) => (
+                                <option key={c.value} value={c.value}>
+                                  {c.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <button
