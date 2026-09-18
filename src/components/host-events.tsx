@@ -47,6 +47,34 @@ export function HostEvents() {
   const [form, setForm] = useState<EventForm>({ ...emptyEvent });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function uploadImage(file: File) {
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("event-images").upload(path, file, {
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+      if (up.error) throw new Error(up.error.message);
+      const signed = await supabase.storage
+        .from("event-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed.error || !signed.data?.signedUrl) {
+        throw new Error(signed.error?.message ?? "Could not make a link for the picture.");
+      }
+      setForm((f) => ({ ...f, background_image_url: signed.data.signedUrl }));
+      toast.success("Picture uploaded — remember to save the function.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "The picture could not be uploaded.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
 
   const events = useQuery({
     queryKey: ["events"],
