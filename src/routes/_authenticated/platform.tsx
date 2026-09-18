@@ -588,7 +588,7 @@ function PlatformAdmin() {
       <div className="mt-8">
         <HostContent
           only={["Welcome page", "Site-wide"]}
-          heading="Welcome page &amp; portal wording"
+          heading="Welcome page & portal wording"
           intro="Every line on the welcome page and the wording shown across the portal."
         />
       </div>
