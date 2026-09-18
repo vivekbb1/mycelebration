@@ -404,12 +404,14 @@ function InvitationPage() {
               <Check className="size-4" /> What's expected of you
             </Link>
           </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/delivery">
-              <Truck className="size-4" />{" "}
-              {t("invitation.delivery_cta", "How your outfit reaches you")}
-            </Link>
-          </Button>
+          {deliveryPlan.data?.enabled !== false ? (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/delivery">
+                <Truck className="size-4" />{" "}
+                {t("invitation.delivery_cta", "How your outfit reaches you")}
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </div>
     </main>

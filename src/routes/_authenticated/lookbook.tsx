@@ -493,9 +493,11 @@ function Lookbook() {
             <h2 className="text-xl">
               Reserved for {activeName} ({myOutfits.length})
             </h2>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/delivery">Pickup &amp; delivery plan</Link>
-            </Button>
+            {deliveryPlan.data?.enabled !== false ? (
+              <Button asChild size="sm" variant="outline">
+                <Link to="/delivery">Pickup &amp; delivery plan</Link>
+              </Button>
+            ) : null}
           </div>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2">
             {myOutfits.map((o) => (
