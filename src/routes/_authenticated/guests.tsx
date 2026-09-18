@@ -377,6 +377,8 @@ function GuestListPage() {
         code: makeCode(r.name),
         guest_name: r.name,
         email: r.email || null,
+        gender: r.gender || null,
+        household: r.household || null,
       })),
     );
     setBulkBusy(false);
