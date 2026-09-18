@@ -219,6 +219,50 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_communications: {
+        Row: {
+          channel: string
+          contacted_at: string
+          created_at: string
+          follow_up_on: string | null
+          host_id: string | null
+          id: string
+          invite_id: string
+          notes: string | null
+          outcome: string
+        }
+        Insert: {
+          channel?: string
+          contacted_at?: string
+          created_at?: string
+          follow_up_on?: string | null
+          host_id?: string | null
+          id?: string
+          invite_id: string
+          notes?: string | null
+          outcome?: string
+        }
+        Update: {
+          channel?: string
+          contacted_at?: string
+          created_at?: string
+          follow_up_on?: string | null
+          host_id?: string | null
+          id?: string
+          invite_id?: string
+          notes?: string | null
+          outcome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_communications_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_hosts: {
         Row: {
           created_at: string
