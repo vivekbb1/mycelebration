@@ -7,6 +7,8 @@ import {
   Search,
   Trash2,
   UserCheck,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
