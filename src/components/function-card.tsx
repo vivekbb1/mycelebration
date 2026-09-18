@@ -81,7 +81,9 @@ export function FunctionCard({
                 )}
                 <Button asChild variant="outline" size="sm">
                   <Link to="/lookbook">
-                    {chosenLook ? "Change your look" : `Choose your look for the ${event.name}`}
+                    {chosenLook
+                      ? "Change your look"
+                      : `Choose your look for ${/^the\s/i.test(event.name) ? event.name : `the ${event.name}`}`}
                   </Link>
                 </Button>
               </>
