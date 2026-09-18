@@ -11,6 +11,7 @@ const linkClass =
 
 export function SiteNav() {
   const navigate = useNavigate();
+  const { t } = useSiteContent();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin"],
