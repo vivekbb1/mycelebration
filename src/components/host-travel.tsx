@@ -116,6 +116,8 @@ export function HostTravel() {
 
   return (
     <div className="space-y-6">
+      <HostBuild />
+
       <section className="panel p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <CalendarClock className="size-4 text-primary" /> Guest timeline
