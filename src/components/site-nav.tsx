@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,23 @@ import { GuestTabs } from "@/components/guest-tabs";
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
+const GUEST_TAB_PATHS = ["/invitation", "/event", "/lookbook", "/measurements"];
+
+/** Host-side pages belong back on the host page; everything else on the invitation. */
+const HOST_PATHS = ["/guests", "/guest", "/host"];
+
 export function SiteNav() {
   const navigate = useNavigate();
   const { t } = useSiteContent();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const onGuestTab = GUEST_TAB_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+  const isHostPage = HOST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const backTo = isHostPage && pathname !== "/host" ? "/host" : "/invitation";
+  const backLabel =
+    backTo === "/host" ? "Back to host" : t("nav.back", "Back to your invitation");
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin"],
@@ -52,8 +66,18 @@ export function SiteNav() {
           {t("nav.brand", "Our Wedding")}
         </Link>
 
-        <div className="mx-auto">
-          <GuestTabs />
+        <div className="mx-auto min-w-0">
+          {onGuestTab ? (
+            <GuestTabs />
+          ) : pathname === "/host" ? null : (
+            <Link
+              to={backTo}
+              className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
+            >
+              <ArrowLeft className="size-4" />
+              <span className="truncate">{backLabel}</span>
+            </Link>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
