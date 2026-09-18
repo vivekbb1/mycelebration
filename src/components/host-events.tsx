@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 const eventSchema = z.object({
@@ -60,7 +61,8 @@ export function HostEvents() {
   const fileRef = useRef<HTMLInputElement>(null);
   const invites = useInvites();
   const inviteList = invites.data ?? [];
-  const chosenInvite = form.invite_id || inviteList[0]?.id || "";
+  const { inviteId: selectedEvent } = useSelectedEvent();
+  const chosenInvite = form.invite_id || selectedEvent || inviteList[0]?.id || "";
 
   async function uploadImage(file: File) {
     setUploading(true);

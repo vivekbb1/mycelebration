@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { VENDOR_CATEGORIES, vendorCategoryLabel } from "@/components/host-vendors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ const num = (v: string) => (v.trim() ? Number(v) : null);
 export function HostBudget() {
   const qc = useQueryClient();
   const invites = useInvites();
+  const { inviteId: selectedEvent } = useSelectedEvent();
   const [draft, setDraft] = useState<Draft>(empty);
   const [busy, setBusy] = useState(false);
 
@@ -113,7 +115,7 @@ export function HostBudget() {
     const { error } = await supabase.from("budget_items").insert({
       label,
       category: draft.category,
-      invite_id: draft.invite_id || null,
+      invite_id: draft.invite_id || selectedEvent || null,
       event_id: draft.event_id || null,
       vendor_id: draft.vendor_id || null,
       planned_amount: num(draft.planned_amount) ?? 0,

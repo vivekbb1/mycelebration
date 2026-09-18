@@ -5,6 +5,7 @@ import { Plus, Trash2, Wallet } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useInvites } from "@/components/host-invites";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,7 @@ export function useFeeRules(audience: "guest" | "host") {
 export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" } = {}) {
   const qc = useQueryClient();
   const invites = useInvites();
+  const { inviteId: selectedEvent } = useSelectedEvent();
   const rules = useFeeRules(audience);
   const [draft, setDraft] = useState<Draft>(empty);
   const [busy, setBusy] = useState(false);
@@ -136,7 +138,9 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
 
   const owing = useMemo(() => {
     const list = families.data ?? [];
-    return list.map((family) => {
+    return list
+      .filter((family) => !selectedEvent || family.invite_id === selectedEvent)
+      .map((family) => {
       const heads = new Map<string, number>();
       for (const a of attendance.data ?? []) {
         if (a.household !== family.name || !a.attending) continue;
@@ -155,9 +159,10 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
         .reduce((s, p) => s + Number(p.amount_paid ?? 0), 0);
       return { family, lines, totals: totalByCurrency(lines), paid };
     });
-  }, [families.data, attendance.data, members.data, rules.data, payments.data, eventNames]);
+  }, [families.data, attendance.data, members.data, rules.data, payments.data, eventNames, selectedEvent]);
 
   const add = async () => {
+    if (!draft.invite_id && selectedEvent) draft.invite_id = selectedEvent;
     if (!draft.invite_id) return void toast.error("Choose the event this fee belongs to.");
     if (num(draft.base_amount) <= 0 && num(draft.per_guest_amount) <= 0)
       return void toast.error("Set a flat amount, an amount per person, or both.");
@@ -219,8 +224,12 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
     await qc.invalidateQueries({ queryKey: ["fee-payments", audience] });
   };
 
+  const activeInvite = draft.invite_id || selectedEvent;
   const eventsForInvite = (events.data ?? []).filter(
-    (e) => !draft.invite_id || e.invite_id === draft.invite_id,
+    (e) => !activeInvite || e.invite_id === activeInvite,
+  );
+  const ruleList = (rules.data ?? []).filter(
+    (r) => !selectedEvent || r.invite_id === selectedEvent,
   );
 
   const collected = useMemo(
@@ -266,7 +275,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
             <select
               id="fee-invite"
               className="field-select w-full"
-              value={draft.invite_id}
+              value={draft.invite_id || selectedEvent}
               onChange={(e) => setDraft({ ...draft, invite_id: e.target.value, event_id: "" })}
             >
               <option value="">Choose the event…</option>
@@ -353,9 +362,9 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
       </CollapsiblePanel>
 
       <div className="panel p-4 sm:p-6">
-        <h3 className="text-xl">Fees in place ({(rules.data ?? []).length})</h3>
+        <h3 className="text-xl">Fees in place ({ruleList.length})</h3>
         <ul className="mt-4 divide-y divide-border">
-          {(rules.data ?? []).map((r) => (
+          {ruleList.map((r) => (
             <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 py-4">
               <div className="min-w-0">
                 <p className="text-sm">{r.label}</p>
@@ -393,7 +402,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
               </div>
             </li>
           ))}
-          {(rules.data ?? []).length === 0 ? (
+          {ruleList.length === 0 ? (
             <li className="py-4 text-sm text-muted-foreground">No fees yet — this event is free.</li>
           ) : null}
         </ul>
