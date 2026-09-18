@@ -14,6 +14,7 @@ export type WeddingFunction = {
   venue_address: string | null;
   dress_code: string | null;
   note: string | null;
+  background_image_url?: string | null;
 };
 
 export const formatEventDate = (value: string | null) =>
@@ -44,8 +45,21 @@ export function FunctionCard({
   const { t } = useSiteContent();
   const eventName = /^the\s/i.test(event.name) ? event.name : `the ${event.name}`;
 
+  const background = event.background_image_url?.trim() || null;
+
   return (
-    <article className="invite-card flex h-full flex-col p-6 sm:p-9">
+    <article className="invite-card flex h-full flex-col overflow-hidden p-6 sm:p-9">
+      {background ? (
+        <>
+          <img
+            src={background}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute inset-0 size-full rounded-[inherit] object-cover"
+          />
+          <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-surface/80 backdrop-blur-[1px]" />
+        </>
+      ) : null}
       <div className="relative flex flex-1 flex-col">
         <p className="invite-ornament text-[0.65rem] tracking-[0.3em] uppercase">
           <Sparkles className="size-3" />

@@ -108,6 +108,7 @@ export type Database = {
       }
       events: {
         Row: {
+          background_image_url: string | null
           created_at: string
           dress_code: string | null
           event_date: string | null
@@ -122,6 +123,7 @@ export type Database = {
           venue_address: string | null
         }
         Insert: {
+          background_image_url?: string | null
           created_at?: string
           dress_code?: string | null
           event_date?: string | null
@@ -136,6 +138,7 @@ export type Database = {
           venue_address?: string | null
         }
         Update: {
+          background_image_url?: string | null
           created_at?: string
           dress_code?: string | null
           event_date?: string | null

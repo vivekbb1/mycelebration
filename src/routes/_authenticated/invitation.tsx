@@ -66,7 +66,7 @@ function InvitationPage() {
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id, name, event_date, start_time, venue, venue_address, dress_code, note, outfit_selection, sort_order",
+          "id, name, event_date, start_time, venue, venue_address, dress_code, note, outfit_selection, sort_order, background_image_url",
         )
         .order("sort_order");
       if (error) throw error;

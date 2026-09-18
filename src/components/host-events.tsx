@@ -20,6 +20,7 @@ const eventSchema = z.object({
   dress_code: z.string().trim().max(200),
   note: z.string().trim().max(600),
   rsvp_by: z.string().trim().max(20),
+  background_image_url: z.string().trim().max(500),
 });
 
 type EventForm = z.infer<typeof eventSchema> & {
@@ -36,6 +37,7 @@ const emptyEvent: EventForm = {
   dress_code: "",
   note: "",
   rsvp_by: "",
+  background_image_url: "",
   sort_order: "",
   outfit_selection: true,
 };
@@ -77,6 +79,7 @@ export function HostEvents() {
       dress_code: parsed.data.dress_code || null,
       note: parsed.data.note || null,
       rsvp_by: parsed.data.rsvp_by || null,
+      background_image_url: parsed.data.background_image_url || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
     };
@@ -106,6 +109,7 @@ export function HostEvents() {
       dress_code: ev.dress_code ?? "",
       note: ev.note ?? "",
       rsvp_by: ev.rsvp_by ?? "",
+      background_image_url: ev.background_image_url ?? "",
       sort_order: String(ev.sort_order ?? ""),
       outfit_selection: ev.outfit_selection ?? true,
     });
@@ -226,6 +230,28 @@ export function HostEvents() {
                 onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))}
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="e-bg">Card background image (link)</Label>
+            <Input
+              id="e-bg"
+              maxLength={500}
+              value={form.background_image_url}
+              placeholder="https://…/mehndi-card.jpg"
+              onChange={(e) => setForm((f) => ({ ...f, background_image_url: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Best size: 1200 × 1600 px (portrait, 3:4), at least 900 × 1200 px, under 500 KB. It
+              sits behind the card text with a soft wash over it, so a calm, uncluttered picture
+              works best. Leave empty for the plain watercolour card.
+            </p>
+            {form.background_image_url.trim() ? (
+              <img
+                src={form.background_image_url.trim()}
+                alt=""
+                className="h-32 w-full rounded-lg border border-border object-cover"
+              />
+            ) : null}
           </div>
           <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
             <div className="space-y-1">
