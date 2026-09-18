@@ -153,7 +153,12 @@ export function HostImport() {
     setImportBusy(true);
     try {
       const res = await importLooks({
-        data: { slugs, eventId: eventId || null, boutiqueId: boutiqueId || null },
+        data: {
+          slugs,
+          eventId: eventId || null,
+          boutiqueId: boutiqueId || null,
+          gender: gender === "auto" ? null : gender,
+        },
       });
       const bits = [
         res.imported ? `${res.imported} added` : null,
