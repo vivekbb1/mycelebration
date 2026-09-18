@@ -244,6 +244,14 @@ function InvitationPage() {
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
+            {branding.cover_logo_url ? (
+              <img
+                src={branding.cover_logo_url}
+                alt={couple}
+                style={{ height: branding.cover_logo_height }}
+                className="mx-auto mb-6 w-auto"
+              />
+            ) : null}
             <p className="text-eyebrow">
               {t("invitation.eyebrow", "Together with our families")}
             </p>
