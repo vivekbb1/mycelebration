@@ -125,7 +125,7 @@ function GuestListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, code, guest_name, email, claimed_by, claimed_at")
+        .select("id, code, guest_name, email, claimed_by, claimed_at, household, gender")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
