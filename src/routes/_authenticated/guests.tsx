@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/components/host-families";
+import { useFeatures } from "@/lib/features";
 import { HostFamilies } from "@/components/host-families";
 
 
@@ -304,6 +305,22 @@ function GuestListPage() {
           </p>
           <Button asChild className="mt-5">
             <Link to="/lookbook">Back to the lookbook</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!features.has("guest_list")) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+        <div className="panel p-4 sm:p-6">
+          <h1 className="text-2xl">Not in your package</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            The guest list isn't part of your current package.
+          </p>
+          <Button asChild className="mt-5" variant="outline">
+            <Link to="/host">Back to your event</Link>
           </Button>
         </div>
       </main>
