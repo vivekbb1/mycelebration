@@ -114,7 +114,13 @@ export function HostPicks() {
                     <tr key={g.id}>
                       <td className="py-3 pr-4">
                         <p className="truncate">{g.full_name || g.email || "Guest"}</p>
-                        <p className="text-xs text-muted-foreground">{g.rsvp_status}</p>
+                        {g.household ? (
+                          <p className="truncate text-xs text-primary">{g.household}</p>
+                        ) : null}
+                        <p className="text-xs text-muted-foreground">
+                          {g.rsvp_status}
+                          {g.gender ? ` · ${g.gender === "men" ? "menswear" : "womenswear"}` : ""}
+                        </p>
                       </td>
                       {pickable.map((ev) => {
                         const title = forGuest?.get(ev.id);
