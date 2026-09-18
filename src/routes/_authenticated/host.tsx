@@ -30,6 +30,7 @@ import { HostPicks } from "@/components/host-picks";
 import { HostOverview } from "@/components/host-overview";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
+import { HostEmail } from "@/components/host-email";
 import { HostBoutiques } from "@/components/host-boutiques";
 
 
