@@ -570,7 +570,17 @@ function GuestListPage() {
               <li key={r.key} className="py-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate">{r.name}</p>
+                    <p className="flex flex-wrap items-center gap-2 truncate">
+                      {r.name}
+                      {r.gender ? (
+                        <Badge variant="outline">
+                          {r.gender === "men" ? "Menswear" : "Womenswear"}
+                        </Badge>
+                      ) : null}
+                    </p>
+                    {r.household ? (
+                      <p className="truncate text-xs text-primary">{r.household}</p>
+                    ) : null}
                     <p className="truncate text-xs text-muted-foreground">
                       {r.code}
                       {r.email ? ` · ${r.email}` : ""}
