@@ -571,9 +571,106 @@ function PlatformAdmin() {
         </ul>
       </section>
 
+      <h2 className="mt-12 text-2xl">The portal itself</h2>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        The portal name, the welcome page wording and the look of the whole site. Hosts can't change
+        these — they only reword their own event pages.
+      </p>
+
+      <PortalName />
+
+      <div className="mt-8">
+        <HostContent
+          only={["Welcome page", "Site-wide"]}
+          heading="Welcome page &amp; portal wording"
+          intro="Every line on the welcome page and the wording shown across the portal."
+        />
+      </div>
+
+      <div className="mt-8">
+        <HostBranding />
+      </div>
+
       <div className="mt-6">
         <Badge variant="outline">You see everything as the platform owner</Badge>
       </div>
     </main>
+  );
+}
+
+/** One-line rename for the portal, shown on the welcome page and in emails. */
+function PortalName() {
+  const queryClient = useQueryClient();
+  const { rows } = useSiteContent();
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+
+  const keys = ["landing.brand", "landing.body", "nav.brand"];
+  const editable = rows.filter((r) => keys.includes(r.key));
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      for (const row of editable) {
+        const value = (draft[row.key] ?? row.value).trim();
+        if (value === row.value) continue;
+        if (!value) {
+          toast.error(`“${row.label}” can't be empty.`);
+          return;
+        }
+        await guardedUpdate({
+          table: "site_content",
+          idColumn: "key",
+          id: row.key,
+          expectedUpdatedAt: row.updated_at,
+          patch: { value },
+          label: `“${row.label}”`,
+        });
+      }
+      toast.success("Saved — the new name shows everywhere straight away.");
+      await queryClient.invalidateQueries({ queryKey: SITE_CONTENT_KEY });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="panel mt-6 p-4 sm:p-6">
+      <h3 className="text-xl">Rename the portal</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        The name guests see at the top of the welcome page and in the menu.
+      </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {editable.map((row) => (
+          <div key={row.key} className={row.kind === "multiline" ? "sm:col-span-2" : ""}>
+            <Label htmlFor={`portal-${row.key}`}>{row.label}</Label>
+            {row.kind === "multiline" ? (
+              <Textarea
+                id={`portal-${row.key}`}
+                rows={3}
+                maxLength={1200}
+                value={draft[row.key] ?? row.value}
+                onChange={(e) => setDraft((p) => ({ ...p, [row.key]: e.target.value }))}
+              />
+            ) : (
+              <Input
+                id={`portal-${row.key}`}
+                maxLength={200}
+                value={draft[row.key] ?? row.value}
+                onChange={(e) => setDraft((p) => ({ ...p, [row.key]: e.target.value }))}
+              />
+            )}
+          </div>
+        ))}
+        {editable.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : null}
+      </div>
+      <Button className="mt-4" disabled={busy} onClick={() => void save()}>
+        {busy ? "Saving…" : "Save the portal name"}
+      </Button>
+    </section>
   );
 }
