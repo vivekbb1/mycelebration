@@ -7,6 +7,8 @@ import {
   Search,
   Trash2,
   UserCheck,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,7 +69,7 @@ const prettyDate = (iso: string | null) => {
 export function HostRelations() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [onlyMine, setOnlyMine] = useState(false);
+  const [scope, setScope] = useState<"mine" | "all">("mine");
   const [openLog, setOpenLog] = useState<string | null>(null);
   const [draft, setDraft] = useState<{
     channel: string;
@@ -221,6 +223,17 @@ export function HostRelations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const myGuestIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!me.data) return set;
+    for (const row of links.data ?? []) {
+      if (row.host_id === me.data) set.add(row.invite_id);
+    }
+    return set;
+  }, [links.data, me.data]);
+
+  const showingMine = scope === "mine" && myGuestIds.size > 0;
+
   const term = search.trim().toLowerCase();
   const matched = (guests.data ?? []).filter((g) => {
     const hit =
@@ -228,7 +241,7 @@ export function HostRelations() {
       g.guest_name.toLowerCase().includes(term) ||
       (g.household ?? "").toLowerCase().includes(term) ||
       (g.email ?? "").toLowerCase().includes(term);
-    const mine = !onlyMine || (me.data ? (hostsFor.get(g.id) ?? []).includes(me.data) : false);
+    const mine = !showingMine || myGuestIds.has(g.id);
     return hit && mine;
   });
 
@@ -242,12 +255,12 @@ export function HostRelations() {
   }, [matched]);
 
   const personallyCount = (guests.data ?? []).filter((g) => g.personally_invited).length;
-  const assignedCount = new Set((links.data ?? []).map((r) => r.invite_id)).size;
   const spokenCount = new Set((notes.data ?? []).map((r) => r.invite_id)).size;
   const today = new Date().toISOString().slice(0, 10);
   const dueFollowUps = (notes.data ?? []).filter(
     (n) => n.follow_up_on && n.follow_up_on <= today,
   );
+  const myDue = dueFollowUps.filter((n) => myGuestIds.has(n.invite_id));
 
   return (
     <div className="space-y-6">
@@ -256,11 +269,17 @@ export function HostRelations() {
           <HeartHandshake className="size-4 text-primary" /> Who invited whom
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tick the guests you invited personally, put one or more hosts against each guest, and
-          record every call or message so nobody is chased twice — or forgotten.
+          You start on your own guests — the ones put against your name. Switch to everyone for the
+          full picture; guests looked after by another host are read-only until you offer to help.
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-border/60 p-4">
+            <p className="text-2xl">{myGuestIds.size}</p>
+            <p className="text-xs text-muted-foreground">
+              Your guests{myDue.length > 0 ? ` · ${myDue.length} to follow up` : ""}
+            </p>
+          </div>
           <div className="rounded-xl border border-border/60 p-4">
             <p className="text-2xl">{guests.data?.length ?? 0}</p>
             <p className="text-xs text-muted-foreground">Guests on the list</p>
@@ -268,10 +287,6 @@ export function HostRelations() {
           <div className="rounded-xl border border-border/60 p-4">
             <p className="text-2xl">{personallyCount}</p>
             <p className="text-xs text-muted-foreground">Invited personally</p>
-          </div>
-          <div className="rounded-xl border border-border/60 p-4">
-            <p className="text-2xl">{assignedCount}</p>
-            <p className="text-xs text-muted-foreground">Looked after by a host</p>
           </div>
           <div className="rounded-xl border border-border/60 p-4">
             <p className="text-2xl">{spokenCount}</p>
@@ -291,15 +306,31 @@ export function HostRelations() {
               className="pl-9"
             />
           </div>
-          <Button
-            type="button"
-            variant={onlyMine ? "default" : "outline"}
-            size="sm"
-            onClick={() => setOnlyMine((v) => !v)}
-          >
-            <UserCheck className="mr-2 size-4" /> Only my guests
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={showingMine ? "default" : "outline"}
+              size="sm"
+              onClick={() => setScope("mine")}
+            >
+              <UserCheck className="mr-2 size-4" /> My guests ({myGuestIds.size})
+            </Button>
+            <Button
+              type="button"
+              variant={showingMine ? "outline" : "default"}
+              size="sm"
+              onClick={() => setScope("all")}
+            >
+              <Users className="mr-2 size-4" /> Everyone ({guests.data?.length ?? 0})
+            </Button>
+          </div>
         </div>
+        {scope === "mine" && myGuestIds.size === 0 ? (
+          <p className="mt-3 text-xs text-muted-foreground">
+            No guests are against your name yet — showing everyone. Tap your own name on a guest to
+            take them on.
+          </p>
+        ) : null}
       </section>
 
       {hosts.data && hosts.data.length <= 1 ? (
@@ -320,6 +351,8 @@ export function HostRelations() {
                 const latest = history[0];
                 const followUp = history.find((n) => n.follow_up_on);
                 const isOpen = openLog === g.id;
+                const isMine = me.data ? assigned.includes(me.data) : false;
+                const someoneElse = !isMine && assigned.length > 0;
                 return (
                   <div key={g.id} className="rounded-xl border border-border/60 p-4">
                     <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
@@ -331,10 +364,12 @@ export function HostRelations() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           {(hosts.data ?? []).map((h) => {
                             const on = assigned.includes(h.id);
+                            const canChange = !someoneElse || h.id === me.data;
                             return (
                               <button
                                 key={h.id}
                                 type="button"
+                                disabled={!canChange}
                                 onClick={() =>
                                   toggleHost.mutate({ inviteId: g.id, hostId: h.id })
                                 }
@@ -342,7 +377,7 @@ export function HostRelations() {
                                   on
                                     ? "border-primary bg-primary text-primary-foreground"
                                     : "border-border text-muted-foreground hover:text-foreground"
-                                }`}
+                                } ${canChange ? "" : "cursor-default opacity-70"}`}
                               >
                                 {on ? <Check className="mr-1 inline size-3" /> : null}
                                 {h.name}
@@ -355,31 +390,48 @@ export function HostRelations() {
                         </div>
                       </div>
                       <div className="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-0">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setOpenLog(isOpen ? null : g.id)}
-                        >
-                          <MessageCircle className="mr-2 size-4" />
-                          {isOpen ? "Close" : "Record a talk"}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={g.personally_invited ? "default" : "outline"}
-                          onClick={() =>
-                            togglePersonal.mutate({ guest: g, next: !g.personally_invited })
-                          }
-                        >
-                          {g.personally_invited ? (
-                            <>
-                              <Check className="mr-2 size-4" /> Invited personally
-                            </>
-                          ) : (
-                            "Mark invited personally"
-                          )}
-                        </Button>
+                        {someoneElse ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              me.data
+                                ? toggleHost.mutate({ inviteId: g.id, hostId: me.data })
+                                : undefined
+                            }
+                          >
+                            <UserPlus className="mr-2 size-4" /> Help with this guest
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setOpenLog(isOpen ? null : g.id)}
+                            >
+                              <MessageCircle className="mr-2 size-4" />
+                              {isOpen ? "Close" : "Record a talk"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={g.personally_invited ? "default" : "outline"}
+                              onClick={() =>
+                                togglePersonal.mutate({ guest: g, next: !g.personally_invited })
+                              }
+                            >
+                              {g.personally_invited ? (
+                                <>
+                                  <Check className="mr-2 size-4" /> Invited personally
+                                </>
+                              ) : (
+                                "Mark invited personally"
+                              )}
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -495,15 +547,17 @@ export function HostRelations() {
                                 </p>
                               ) : null}
                             </div>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              aria-label="Remove this note"
-                              onClick={() => removeNote.mutate(n.id)}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                            {n.host_id && me.data && n.host_id === me.data ? (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                aria-label="Remove this note"
+                                onClick={() => removeNote.mutate(n.id)}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            ) : null}
                           </li>
                         ))}
                       </ul>
