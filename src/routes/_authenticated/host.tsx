@@ -570,7 +570,40 @@ function HostDashboard() {
           </section>
         </TabsContent>
 
+        <TabsContent value="guests" className="mt-6">
+          <div className="mb-5 flex flex-wrap items-center gap-3">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/guests">Guest list &amp; invitations</Link>
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Add guests and families, and send their invitations.
+            </p>
+          </div>
+          <Tabs defaultValue="invited">
+            <TabsList>
+              <TabsTrigger value="invited">Who's invited to what</TabsTrigger>
+              <TabsTrigger value="picks">Guest picks</TabsTrigger>
+            </TabsList>
+            <TabsContent value="invited" className="mt-6">
+              <HostFunctionAccess />
+            </TabsContent>
+            <TabsContent value="picks" className="mt-6">
+              <HostPicks />
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="wardrobe" className="mt-6">
+          <Tabs defaultValue="outfits">
+            <TabsList>
+              <TabsTrigger value="outfits">Outfits</TabsTrigger>
+              <TabsTrigger value="import">Add from a shop</TabsTrigger>
+              <TabsTrigger value="functions">Functions</TabsTrigger>
+              <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
+            </TabsList>
+
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+
           <div className="panel h-fit p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
