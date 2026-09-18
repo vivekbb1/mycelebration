@@ -124,8 +124,12 @@ function EventPage() {
       <p className="text-eyebrow">The wedding weekend</p>
       <h1 className="mt-3 text-4xl">{scheduleHeadline(events.data ?? [])}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        {scheduleSummary(events.data ?? [])} Dress codes are guidance, not rules — but red and ivory
-        are reserved for the couple. Once you know which functions you'll join,{" "}
+        {scheduleSummary(events.data ?? [])}{" "}
+        {t(
+          "rsvp.dress_note",
+          "Dress codes are guidance, not rules — but red and ivory are reserved for the couple.",
+        )}{" "}
+        Once you know which functions you'll join,{" "}
         <Link to="/lookbook" className="text-primary underline-offset-4 hover:underline">
           reserve your looks in the lookbook
         </Link>
