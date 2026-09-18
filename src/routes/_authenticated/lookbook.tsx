@@ -199,7 +199,7 @@ function Lookbook() {
     const { error } = await supabase.from("reservations").insert({
       outfit_id: outfit.id,
       guest_id: user.id,
-      guest_name: me.data?.full_name || null,
+      guest_name: activeName || me.data?.full_name || null,
     });
     if (error) {
       setBusyId(null);
