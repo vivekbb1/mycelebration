@@ -68,14 +68,14 @@ function DeliveryPage() {
         .from("measurements")
         .select("id")
         .eq("guest_id", user.id)
-        .maybeSingle();
+        .limit(1);
 
       return {
         outfits: (outfits ?? []).map((o) => ({
           ...o,
           eventName: (events ?? []).find((e) => e.id === o.event_id)?.name ?? null,
         })),
-        measured: Boolean(measurement),
+        measured: (measurement ?? []).length > 0,
       };
     },
   });
