@@ -396,11 +396,15 @@ function GuestListPage() {
 
 
 
-  const removeInvite = async (id: string, registered: boolean) => {
-    if (registered) {
-      toast.error("This guest already registered — their invitation can't be removed.");
+  const removeInvite = async (id: string, registered: boolean, name: string) => {
+    if (registered && confirmRemove !== id) {
+      setConfirmRemove(id);
+      toast.warning(
+        `${name} has already registered. Click remove again to take them off the guest list — anything they chose stays on record.`,
+      );
       return;
     }
+    setConfirmRemove(null);
     const { error } = await supabase.from("invite_codes").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
