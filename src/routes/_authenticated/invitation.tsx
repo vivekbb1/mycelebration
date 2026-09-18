@@ -212,13 +212,22 @@ function InvitationPage() {
       <div className="mx-auto max-w-3xl px-4 py-12">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
-            <p className="text-eyebrow">Together with our families</p>
+            <p className="text-eyebrow">
+              {t("invitation.eyebrow", "Together with our families")}
+            </p>
             <h1 className="mt-6 text-5xl leading-none sm:text-6xl">
-              Kush <span className="text-primary">&</span> Khyati
+              {coupleParts.length === 2 ? (
+                <>
+                  {coupleParts[0]} <span className="text-primary">&</span> {coupleParts[1]}
+                </>
+              ) : (
+                couple
+              )}
             </h1>
             <div className="gold-rule mx-auto mt-6 max-w-[16rem]" />
             <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              {firstName ? `${firstName}, ` : ""}we would be honoured to have you with us.
+              {firstName ? `${firstName}, ` : ""}
+              {t("invitation.greeting", "we would be honoured to have you with us.")}
               {list.length > 0 ? ` ${scheduleSummary(list)}` : ""}
             </p>
           </div>
