@@ -107,7 +107,7 @@ export function HostRelations() {
         .update({
           personally_invited: next,
           personally_invited_at: next ? new Date().toISOString() : null,
-          personally_invited_by: next ? me.data : null,
+          personally_invited_by: next ? (me.data ?? null) : null,
         })
         .eq("id", guest.id);
       if (error) throw error;
