@@ -37,71 +37,13 @@ export const Route = createFileRoute("/_authenticated/guests")({
   component: GuestListPage,
 });
 
-const inviteSchema = z.object({
-  guest_name: z.string().trim().min(2, "Enter the guest's name").max(100),
-  email: z
-    .string()
-    .trim()
-    .max(255)
-    .refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email address"),
-  household: z.string().trim().max(120),
-  gender: z.enum(["women", "men", ""]),
-});
-
-/**
- * A pasted line can say who the person is: "Vivek Bhatia, vivek@x.com, husband"
- * or "(m)" / "(f)". Anything else leaves the choice to the guest.
- */
-const MEN_WORDS = ["m", "male", "man", "husband", "son", "boy", "menswear"];
-const WOMEN_WORDS = ["f", "female", "woman", "wife", "daughter", "girl", "womenswear"];
-
-function genderFrom(line: string): { gender: "women" | "men" | ""; cleaned: string } {
-  // Markers appear as a bracketed hint or the last comma-separated field.
-  const bracket = line.match(/\((m|f|male|female|husband|wife)\)/i);
-  let rest = line.replace(/\([^)]*\)/g, " ");
-  let marker = (bracket?.[1] ?? "").toLowerCase();
-
-  if (!marker) {
-    const parts = rest.split(/[,;]/).map((p) => p.trim());
-    const last = (parts[parts.length - 1] ?? "").toLowerCase();
-    if (parts.length > 1 && (MEN_WORDS.includes(last) || WOMEN_WORDS.includes(last))) {
-      marker = last;
-      parts.pop();
-      rest = parts.join(", ");
-    }
-  }
-
-  const cleaned = rest.replace(/\s{2,}/g, " ").trim();
-  if (MEN_WORDS.includes(marker)) return { gender: "men", cleaned };
-  if (WOMEN_WORDS.includes(marker)) return { gender: "women", cleaned };
-  return { gender: "", cleaned };
-}
-
-function makeCode(name: string) {
-  const base =
-    name
-      .trim()
-      .split(/\s+/)[0]
-      ?.replace(/[^a-zA-Z]/g, "")
-      .toUpperCase()
-      .slice(0, 8) || "GUEST";
-  return `${base}-${Math.floor(1000 + Math.random() * 9000)}`;
-}
 
 function GuestListPage() {
   const queryClient = useQueryClient();
   const emailInvite = useServerFn(sendInviteEmail);
-  const [form, setForm] = useState<{
-    guest_name: string;
-    email: string;
-    household: string;
-    gender: "women" | "men" | "";
-  }>({ guest_name: "", email: "", household: "", gender: "" });
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [bulk, setBulk] = useState("");
-  const [bulkHousehold, setBulkHousehold] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
@@ -234,30 +176,6 @@ function GuestListPage() {
     return { all, registered, reserved, measured, attending, silent: all - registered };
   }, [invites.data, reservations.data, measurements.data, profiles.data]);
 
-  const addInvite = async () => {
-    const parsed = inviteSchema.safeParse(form);
-    if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
-      return;
-    }
-    setBusy(true);
-    const code = makeCode(parsed.data.guest_name);
-    const { error } = await supabase.from("invite_codes").insert({
-      code,
-      guest_name: parsed.data.guest_name,
-      email: parsed.data.email || null,
-      household: parsed.data.household || null,
-      gender: parsed.data.gender || null,
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(`Invitation created for ${parsed.data.guest_name} (${code}).`);
-    setForm((f) => ({ guest_name: "", email: "", household: f.household, gender: "" }));
-    await queryClient.invalidateQueries({ queryKey: ["invites"] });
-  };
 
   const copyInvite = async (code: string, guestName: string) => {
     const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
@@ -347,53 +265,6 @@ function GuestListPage() {
     }
   };
 
-  const addBulk = async () => {
-    const parsedRows = bulk
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((rawLine) => {
-        // "Name, email, husband | Bhatia Family" — the family after a pipe is optional.
-        const [beforePipe, afterPipe] = rawLine.split("|");
-        const household = (afterPipe ?? "").trim() || bulkHousehold.trim();
-        const { gender, cleaned } = genderFrom(beforePipe ?? "");
-        const emailMatch = cleaned.match(/[^\s,;<>]+@[^\s,;<>]+\.[^\s,;<>]+/);
-        const email = emailMatch ? emailMatch[0] : "";
-        const name = cleaned
-          .replace(email, "")
-          .replace(/[<>]/g, "")
-          .replace(/[,;\t]+/g, " ")
-          .trim();
-        return { name, email, gender, household };
-      })
-      .filter((r) => r.name.length >= 2);
-
-    if (parsedRows.length === 0) {
-      toast.error("Add one guest per line, e.g. Emma Whitfield, emma@example.com");
-      return;
-    }
-
-    setBulkBusy(true);
-    const { error } = await supabase.from("invite_codes").insert(
-      parsedRows.map((r) => ({
-        code: makeCode(r.name),
-        guest_name: r.name,
-        email: r.email || null,
-        gender: r.gender || null,
-        household: r.household || null,
-      })),
-    );
-    setBulkBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(
-      `${parsedRows.length} invitation${parsedRows.length === 1 ? "" : "s"} created.`,
-    );
-    setBulk("");
-    await queryClient.invalidateQueries({ queryKey: ["invites"] });
-  };
 
 
 
