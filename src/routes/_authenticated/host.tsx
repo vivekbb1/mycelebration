@@ -948,6 +948,9 @@ function HostDashboard() {
             <TabsContent value="wording" className="mt-6">
               <HostContent />
             </TabsContent>
+            <TabsContent value="branding" className="mt-6">
+              <HostBranding />
+            </TabsContent>
           </Tabs>
         </TabsContent>
       </Tabs>
