@@ -5,6 +5,7 @@ import { ArrowLeft, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
+import { useBranding } from "@/lib/branding";
 import { GuestTabs } from "@/components/guest-tabs";
 
 const linkClass =
