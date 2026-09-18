@@ -198,26 +198,3 @@ function EventPage() {
     </main>
   );
 }
-
-function Detail({
-  icon: Icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: typeof Clock;
-  label: string;
-  value: string;
-  sub?: string | undefined;
-}) {
-  return (
-    <div className="flex gap-3">
-      <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-      <div>
-        <dt className="text-xs tracking-wide text-muted-foreground uppercase">{label}</dt>
-        <dd className="mt-1 leading-relaxed">{value}</dd>
-        {sub ? <dd className="mt-0.5 text-xs text-muted-foreground">{sub}</dd> : null}
-      </div>
-    </div>
-  );
-}
