@@ -209,6 +209,10 @@ export function HostFamilies() {
   const createFamilies = async (
     groups: { family: string; people: MemberDraft[] }[],
   ): Promise<{ codes: Record<string, string>; added: number; updated: number } | null> => {
+    if (!chosenInvite) {
+      toast.error("Choose the event first — create one under the Event tab.");
+      return null;
+    }
     const existing = new Map((families.data ?? []).map((f) => [f.name.toLowerCase(), f]));
     const toCreate = groups.filter((g) => !existing.has(g.family.toLowerCase()));
 
@@ -220,7 +224,7 @@ export function HostFamilies() {
           toCreate.map((g) => ({
             name: g.family,
             code: makeFamilyCode(g.family),
-            invite_id: chosenInvite || null,
+            invite_id: chosenInvite,
           })),
         )
         .select("id, name, code");
@@ -281,7 +285,7 @@ export function HostFamilies() {
           gender: p.gender || null,
           household: fam.name,
           family_id: fam.id,
-          invite_id: chosenInvite || null,
+          invite_id: chosenInvite,
         });
       }
     }
@@ -430,14 +434,14 @@ export function HostFamilies() {
       >
 
         <div className="mt-5 space-y-2">
-          <Label htmlFor="f-invite">Which invitation</Label>
+          <Label htmlFor="f-invite">Which event</Label>
           <select
             id="f-invite"
             value={chosenInvite}
             onChange={(e) => setInviteId(e.target.value)}
             className="field-select"
           >
-            {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
+            {inviteList.length === 0 ? <option value="">No events yet</option> : null}
             {inviteList.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name}
@@ -445,7 +449,7 @@ export function HostFamilies() {
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            They will see that invitation's functions and its look.
+            Required — they will see that event's functions and its look.
           </p>
         </div>
 
@@ -622,7 +626,7 @@ export function HostFamilies() {
                       }}
                       className="field-select max-w-full text-xs"
                     >
-                      <option value="">Not on an invitation</option>
+                      <option value="">Not on an event</option>
                       {inviteList.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.name}

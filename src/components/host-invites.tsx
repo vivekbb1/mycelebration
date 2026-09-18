@@ -67,7 +67,7 @@ function useSetTheme() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invite-sets"] });
-      toast.success("Saved — everyone on that invitation sees the new look.");
+      toast.success("Saved — everyone on that event sees the new look.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -128,7 +128,7 @@ function Swatches({ theme }: { theme: Theme | undefined }) {
   );
 }
 
-/** Create an invitation (a celebration of its own), see what hangs off it, set its look. */
+/** Create an event (a celebration of its own), see what hangs off it, set its look. */
 export function HostInvites() {
   const qc = useQueryClient();
   const invites = useInvites();
@@ -159,7 +159,7 @@ export function HostInvites() {
   const create = useMutation({
     mutationFn: async () => {
       const clean = name.trim();
-      if (clean.length < 2) throw new Error("Give the invitation a name first.");
+      if (clean.length < 2) throw new Error("Give the event a name first.");
       const { error } = await supabase
         .from("invites")
         .insert({ name: clean, note: note.trim() || null });
@@ -169,7 +169,7 @@ export function HostInvites() {
       setName("");
       setNote("");
       qc.invalidateQueries({ queryKey: ["invite-sets"] });
-      toast.success("Invitation created — now add its functions and guests.");
+      toast.success("Event created — now add its functions and guests.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -182,7 +182,7 @@ export function HostInvites() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invite-sets"] });
       qc.invalidateQueries({ queryKey: ["invite-counts"] });
-      toast.success("Invitation removed — its functions and guests stay, unattached.");
+      toast.success("Event removed — its functions and guests stay, unattached.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -193,10 +193,10 @@ export function HostInvites() {
     <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
       <div className="panel h-fit p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
-          <Mail className="size-4 text-primary" /> Add an invitation
+          <Mail className="size-4 text-primary" /> Add an event
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          One invitation is one celebration — its own functions, its own guest list and its own look.
+          One event is one celebration — its own functions, its own guest list and its own look.
           Run as many side by side as you like.
         </p>
         <div className="mt-5 space-y-3">
@@ -219,16 +219,16 @@ export function HostInvites() {
             />
           </label>
           <Button type="button" disabled={create.isPending} onClick={() => create.mutate()}>
-            Create invitation
+            Create event
           </Button>
         </div>
       </div>
 
       <div className="panel h-fit p-4 sm:p-6">
-        <h2 className="text-xl">Your invitations ({invites.data?.length ?? 0})</h2>
+        <h2 className="text-xl">Your events ({invites.data?.length ?? 0})</h2>
         {(invites.data ?? []).length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
-            None yet — create your first invitation on the left.
+            None yet — create your first event on the left.
           </p>
         ) : (
           <ul className="mt-4 space-y-3">
@@ -284,7 +284,7 @@ export function HostInvites() {
   );
 }
 
-/** Compact list on the Branding page: which invitation wears which saved theme. */
+/** Compact list on the Branding page: which event wears which saved theme. */
 export function InviteThemes() {
   const invites = useInvites();
   const themes = useThemes();
@@ -294,20 +294,20 @@ export function InviteThemes() {
   return (
     <section className="panel p-4 sm:p-6">
       <h3 className="flex items-center gap-2 text-lg">
-        <Mail className="size-4 text-primary" /> The look for each invitation
+        <Mail className="size-4 text-primary" /> The look for each event
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        A saved theme belongs to an invitation, so each celebration can look entirely its own.
-        Guests on an invitation with no theme of its own see the main saved look above.
+        A saved theme belongs to an event, so each celebration can look entirely its own.
+        Guests on an event with no theme of its own see the main saved look above.
       </p>
 
       {themeList.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
-          Save a theme above first, then you can give it to an invitation.
+          Save a theme above first, then you can give it to an event.
         </p>
       ) : (invites.data ?? []).length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
-          No invitations yet — create one under the Invitations tab.
+          No events yet — create one under the Event tab.
         </p>
       ) : (
         <ul className="mt-4 space-y-3">
