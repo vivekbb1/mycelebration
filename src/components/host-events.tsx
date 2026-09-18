@@ -196,14 +196,14 @@ export function HostEvents() {
       >
         <div className="mt-5 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="e-invite">Part of which invitation</Label>
+            <Label htmlFor="e-invite">Which event is this function part of?</Label>
             <select
               id="e-invite"
               value={chosenInvite}
               onChange={(e) => setForm((f) => ({ ...f, invite_id: e.target.value }))}
               className="field-select"
             >
-              {inviteList.length === 0 ? <option value="">No invitations yet</option> : null}
+              {inviteList.length === 0 ? <option value="">No events yet</option> : null}
               {inviteList.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
@@ -211,7 +211,8 @@ export function HostEvents() {
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              Only the guests on this invitation will see this function.
+              Required — only the guests on this event will see this function. Create events under
+              the Event tab.
             </p>
           </div>
           <div className="space-y-2">
