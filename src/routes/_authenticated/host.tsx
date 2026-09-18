@@ -447,6 +447,7 @@ function HostDashboard() {
           <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
           <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
           <TabsTrigger value="hosts">Hosts</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
 
         </TabsList>
 
