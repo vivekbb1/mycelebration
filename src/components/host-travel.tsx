@@ -146,7 +146,7 @@ export function HostTravel() {
                         </span>
                         {p.arrivesToday ? (
                           <Badge variant="outline" className="text-primary">
-                            arrives today{p.arrival ? "" : ""}
+                            arrives today
                           </Badge>
                         ) : null}
                         {p.leavesToday ? <Badge variant="outline">flies out today</Badge> : null}
