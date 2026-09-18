@@ -164,13 +164,18 @@ function EventPage() {
         </div>
 
         <div className="mt-5 space-y-2">
-          <Label htmlFor="rsvp-note">Anything we should know? (optional)</Label>
+          <Label htmlFor="rsvp-note">
+            {t("rsvp.note_label", "Anything we should know? (optional)")}
+          </Label>
           <Textarea
             id="rsvp-note"
             rows={3}
             maxLength={600}
             value={currentNote}
-            placeholder="Arrival date, dietary needs, travelling with family…"
+            placeholder={t(
+              "rsvp.note_placeholder",
+              "Arrival date, dietary needs, travelling with family…",
+            )}
             onChange={(e) => {
               setNoteTouched(true);
               setNote(e.target.value);
@@ -180,10 +185,12 @@ function EventPage() {
 
         <div className="mt-4 flex flex-wrap gap-3">
           <Button disabled={busy} onClick={() => saveRsvp("yes")}>
-            {rsvp === "yes" ? "Update — I'll be there" : "I'll be there"}
+            {rsvp === "yes"
+              ? t("rsvp.yes_update", "Update — I'll be there")
+              : t("rsvp.yes_cta", "I'll be there")}
           </Button>
           <Button variant="outline" disabled={busy} onClick={() => saveRsvp("no")}>
-            Sadly can't make it
+            {t("rsvp.no_cta", "Sadly can't make it")}
           </Button>
         </div>
       </section>
