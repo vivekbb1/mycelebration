@@ -288,7 +288,12 @@ export function HostFamilies() {
     if (rows.length > 0) {
       const { error } = await supabase.from("invite_codes").insert(rows);
       if (error) {
-        toast.error(error.message);
+        toast.error(
+          error.code === "23505"
+            ? "Someone on this list is already on the guest list — refresh the page and add only the new names."
+            : error.message,
+        );
+        await refresh();
         return null;
       }
     }
