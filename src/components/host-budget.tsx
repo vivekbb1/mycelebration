@@ -85,7 +85,7 @@ export function HostBudget() {
   });
 
   const totals = useMemo(() => {
-    const list = items.data ?? [];
+    const list = itemList;
     const planned = list.reduce((s, i) => s + Number(i.planned_amount ?? 0), 0);
     const actual = list.reduce(
       (s, i) => s + Number(i.actual_amount ?? i.planned_amount ?? 0),
@@ -93,11 +93,11 @@ export function HostBudget() {
     );
     const paid = list.reduce((s, i) => s + Number(i.paid_amount ?? 0), 0);
     return { planned, actual, paid, left: actual - paid };
-  }, [items.data]);
+  }, [itemList]);
 
   const byCategory = useMemo(() => {
     const map = new Map<string, { planned: number; actual: number; paid: number }>();
-    for (const i of items.data ?? []) {
+    for (const i of itemList) {
       const row = map.get(i.category) ?? { planned: 0, actual: 0, paid: 0 };
       row.planned += Number(i.planned_amount ?? 0);
       row.actual += Number(i.actual_amount ?? i.planned_amount ?? 0);
@@ -105,7 +105,7 @@ export function HostBudget() {
       map.set(i.category, row);
     }
     return [...map.entries()].sort((a, b) => b[1].actual - a[1].actual);
-  }, [items.data]);
+  }, [itemList]);
 
   const add = async () => {
     const label = draft.label.trim();
