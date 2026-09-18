@@ -50,6 +50,13 @@
       "when": 1789718124771,
       "tag": "0006_household_event_outfit_selection",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789720809875,
+      "tag": "0007_host_invites",
+      "breakpoints": true
     }
   ]
 }
