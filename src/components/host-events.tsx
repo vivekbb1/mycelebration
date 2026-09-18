@@ -447,6 +447,12 @@ export function HostEvents() {
                 {ev.dress_code ? (
                   <p className="mt-1 truncate text-xs text-primary">{ev.dress_code}</p>
                 ) : null}
+                {ev.outfit_ready_by || ev.outfit_slot_note ? (
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                    Outfit{ev.outfit_ready_by ? ` ready by ${ev.outfit_ready_by}` : ""}
+                    {ev.outfit_slot_note ? ` · ${ev.outfit_slot_note}` : ""}
+                  </p>
+                ) : null}
               </div>
               <Button
                 variant="ghost"
