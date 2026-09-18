@@ -260,13 +260,25 @@ export function HostFunctionAccess() {
                   ) : null}
                 </td>
                 {(events.data ?? []).map((ev) => (
-                  <td key={ev.id} className="p-4">
+                  <td key={ev.id} className="p-4 align-top">
                     <Checkbox
                       checked={isTicked(f.household, ev.id)}
                       disabled={busy}
                       aria-label={`${f.household} invited to ${ev.name}`}
                       onCheckedChange={() => toggle(f.household, ev.id)}
                     />
+                    {isTicked(f.household, ev.id) ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => toggleOutfit(f.household, ev.id)}
+                        className={`mt-2 block text-xs underline-offset-4 hover:underline ${
+                          picksOutfit(f.household, ev.id) ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {picksOutfit(f.household, ev.id) ? "Outfit from you" : "Own outfit"}
+                      </button>
+                    ) : null}
                   </td>
                 ))}
                 <td className="p-4">
