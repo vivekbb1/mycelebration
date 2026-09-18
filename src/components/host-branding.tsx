@@ -75,7 +75,7 @@ export function HostBranding() {
 
   useEffect(() => {
     if (!loaded && query.data) {
-      const { id: _id, ...rest } = query.data;
+      const { id: _id, updated_at: _u, ...rest } = query.data;
       setDraft(rest);
       setLoaded(true);
     }
