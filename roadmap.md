@@ -27,3 +27,9 @@ Open, for the host to do
 - Bulk invite guests (paste name/email per line) + "Email everyone pending" with clipboard fallback.
 - Bulk outfit edit: multi-select, set function/boutique, remove several looks.
 - Invitation email falls back to the host's own mail app until a sending domain is verified.
+
+## Payments (waiting on the user's go-ahead)
+- [ ] Card payments via Stripe (built-in, Lovable-managed). Not enabled yet — user said "not yet".
+- [ ] Hosts pay for a package + add-ons: subscription and one-off (per-event) charges.
+- [ ] Hosts can also collect payments from their own guests for paid events (host-as-seller payouts).
+- Note: Paddle ruled out (physical attire in the offering); seller country AE, so Stripe with tax calculation and collection only (automatic_tax), not managed_payments.
