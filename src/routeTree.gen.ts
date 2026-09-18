@@ -21,6 +21,7 @@ import { Route as AuthenticatedInvitationRouteImport } from './routes/_authentic
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
+import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -83,6 +84,12 @@ const AuthenticatedGuestGuestIdRoute =
     path: '/guest/$guestId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicFollowupRemindersRoute =
+  ApiPublicFollowupRemindersRouteImport.update({
+    id: '/api/public/followup-reminders',
+    path: '/api/public/followup-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +133,7 @@ export interface FileRoutesById {
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/lookbook'
     | '/measurements'
     | '/guest/$guestId'
+    | '/api/public/followup-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/lookbook'
     | '/measurements'
     | '/guest/$guestId'
+    | '/api/public/followup-reminders'
   id:
     | '__root__'
     | '/'
@@ -166,12 +178,14 @@ export interface FileRouteTypes {
     | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
     | '/_authenticated/guest/$guestId'
+    | '/api/public/followup-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -260,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGuestGuestIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/followup-reminders': {
+      id: '/api/public/followup-reminders'
+      path: '/api/public/followup-reminders'
+      fullPath: '/api/public/followup-reminders'
+      preLoaderRoute: typeof ApiPublicFollowupRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -294,6 +315,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

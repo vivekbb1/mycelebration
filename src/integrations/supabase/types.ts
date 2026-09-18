@@ -290,6 +290,7 @@ export type Database = {
           invite_id: string
           notes: string | null
           outcome: string
+          reminder_sent_at: string | null
         }
         Insert: {
           channel?: string
@@ -301,6 +302,7 @@ export type Database = {
           invite_id: string
           notes?: string | null
           outcome?: string
+          reminder_sent_at?: string | null
         }
         Update: {
           channel?: string
@@ -312,6 +314,7 @@ export type Database = {
           invite_id?: string
           notes?: string | null
           outcome?: string
+          reminder_sent_at?: string | null
         }
         Relationships: [
           {

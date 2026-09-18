@@ -1,10 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
+  BellRing,
   Check,
+  Copy,
   HeartHandshake,
   MessageCircle,
   Search,
+  Sparkles,
   Trash2,
   UserCheck,
   UserPlus,
@@ -17,6 +21,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { suggestFollowUp, type FollowUpSuggestion } from "@/lib/followup.functions";
+import { sendFollowUpReminders } from "@/lib/followup-reminders.functions";
 
 type Guest = {
   id: string;
@@ -37,6 +50,7 @@ type Note = {
   notes: string | null;
   follow_up_on: string | null;
   contacted_at: string;
+  reminder_sent_at: string | null;
 };
 
 const CHANNELS = [
@@ -71,12 +85,21 @@ export function HostRelations() {
   const [search, setSearch] = useState("");
   const [scope, setScope] = useState<"mine" | "all">("mine");
   const [openLog, setOpenLog] = useState<string | null>(null);
+  const [hostFilter, setHostFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState("all");
+  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [thinking, setThinking] = useState<string | null>(null);
+  const [advice, setAdvice] = useState<Record<string, FollowUpSuggestion>>({});
   const [draft, setDraft] = useState<{
     channel: string;
     outcome: string;
     notes: string;
     follow_up_on: string;
   }>({ channel: "call", outcome: "reached", notes: "", follow_up_on: "" });
+
+  const askAi = useServerFn(suggestFollowUp);
+  const runReminders = useServerFn(sendFollowUpReminders);
 
   const me = useQuery({
     queryKey: ["relations-me"],
@@ -130,7 +153,9 @@ export function HostRelations() {
     queryFn: async (): Promise<Note[]> => {
       const { data, error } = await supabase
         .from("guest_communications")
-        .select("id, invite_id, host_id, channel, outcome, notes, follow_up_on, contacted_at")
+        .select(
+          "id, invite_id, host_id, channel, outcome, notes, follow_up_on, contacted_at, reminder_sent_at",
+        )
         .order("contacted_at", { ascending: false });
       if (error) throw error;
       return data as Note[];
@@ -233,6 +258,8 @@ export function HostRelations() {
   }, [links.data, me.data]);
 
   const showingMine = scope === "mine" && myGuestIds.size > 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const soon = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
 
   const term = search.trim().toLowerCase();
   const matched = (guests.data ?? []).filter((g) => {
@@ -242,7 +269,24 @@ export function HostRelations() {
       (g.household ?? "").toLowerCase().includes(term) ||
       (g.email ?? "").toLowerCase().includes(term);
     const mine = !showingMine || myGuestIds.has(g.id);
-    return hit && mine;
+
+    const assigned = hostsFor.get(g.id) ?? [];
+    const byHost =
+      hostFilter === "all" ||
+      (hostFilter === "none" ? assigned.length === 0 : assigned.includes(hostFilter));
+
+    const history = notesFor.get(g.id) ?? [];
+    const byStatus =
+      statusFilter === "all" ||
+      (statusFilter === "none"
+        ? history.length === 0
+        : history[0]?.outcome === statusFilter);
+    const byChannel =
+      channelFilter === "all" || history.some((n) => n.channel === channelFilter);
+    const byOverdue =
+      !overdueOnly || history.some((n) => n.follow_up_on && n.follow_up_on <= today);
+
+    return hit && mine && byHost && byStatus && byChannel && byOverdue;
   });
 
   const families = useMemo(() => {
@@ -256,11 +300,66 @@ export function HostRelations() {
 
   const personallyCount = (guests.data ?? []).filter((g) => g.personally_invited).length;
   const spokenCount = new Set((notes.data ?? []).map((r) => r.invite_id)).size;
-  const today = new Date().toISOString().slice(0, 10);
   const dueFollowUps = (notes.data ?? []).filter(
     (n) => n.follow_up_on && n.follow_up_on <= today,
   );
+  const comingUp = (notes.data ?? []).filter(
+    (n) => n.follow_up_on && n.follow_up_on > today && n.follow_up_on <= soon,
+  );
   const myDue = dueFollowUps.filter((n) => myGuestIds.has(n.invite_id));
+  const guestName = (inviteId: string) =>
+    (guests.data ?? []).find((g) => g.id === inviteId)?.guest_name ?? "A guest";
+  const myReminders = [...dueFollowUps, ...comingUp].filter(
+    (n) => myGuestIds.size === 0 || myGuestIds.has(n.invite_id),
+  );
+
+  const suggest = useMutation({
+    mutationFn: async (inviteId: string) => {
+      setThinking(inviteId);
+      return await askAi({ data: { inviteId } });
+    },
+    onSettled: () => setThinking(null),
+    onSuccess: (result, inviteId) => {
+      if (!result.ok || !result.suggestion) {
+        toast.error(result.error ?? "No suggestion came back.");
+        return;
+      }
+      setAdvice((prev) => ({ ...prev, [inviteId]: result.suggestion! }));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remind = useMutation({
+    mutationFn: async () => await runReminders({ data: undefined }),
+    onSuccess: (result) => {
+      if (!result.ok) {
+        toast.error(result.error ?? "Reminders could not go out.");
+        return;
+      }
+      if ((result.sent ?? 0) === 0) {
+        toast.message(
+          result.due === 0
+            ? "Nothing due — no reminders needed."
+            : "No reminder went out. Check the sending address under Setup → Email.",
+        );
+      } else {
+        toast.success(`Reminder sent to ${result.sent} host${result.sent === 1 ? "" : "s"}.`);
+      }
+      qc.invalidateQueries({ queryKey: ["relations-notes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Once a day, the first host to open this page sets the reminder emails going.
+  useEffect(() => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem("followup-reminders-run") === stamp) return;
+    window.localStorage.setItem("followup-reminders-run", stamp);
+    void runReminders({ data: undefined }).catch(() => undefined);
+  }, [runReminders]);
+
+
 
   return (
     <div className="space-y-6">
@@ -331,6 +430,123 @@ export function HostRelations() {
             take them on.
           </p>
         ) : null}
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-xs text-muted-foreground">
+            Looked after by
+            <Select value={hostFilter} onValueChange={setHostFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any host</SelectItem>
+                <SelectItem value="none">No host yet</SelectItem>
+                {(hosts.data ?? []).map((h) => (
+                  <SelectItem key={h.id} value={h.id}>
+                    {h.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            Where the talk stands
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any status</SelectItem>
+                <SelectItem value="none">Not contacted yet</SelectItem>
+                {OUTCOMES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <label className="text-xs text-muted-foreground">
+            How they were contacted
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any way</SelectItem>
+                {CHANNELS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+          <div className="flex items-end">
+            <Button
+              type="button"
+              variant={overdueOnly ? "default" : "outline"}
+              size="sm"
+              className="w-full"
+              onClick={() => setOverdueOnly((v) => !v)}
+            >
+              Only follow-ups due ({dueFollowUps.length})
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel p-6">
+        <div className="sm:flex sm:items-start sm:justify-between sm:gap-6">
+          <div>
+            <h3 className="flex items-center gap-2 text-lg">
+              <BellRing className="size-4 text-primary" /> Reminders
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Every host gets an email when a guest they look after is due a word — the day it
+              falls, two days before, and again if it slips. Nobody is reminded twice about the
+              same note.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="mt-3 shrink-0 sm:mt-0"
+            disabled={remind.isPending}
+            onClick={() => remind.mutate()}
+          >
+            {remind.isPending ? "Sending…" : "Send reminders now"}
+          </Button>
+        </div>
+        {myReminders.length > 0 ? (
+          <ul className="mt-4 space-y-2">
+            {myReminders.slice(0, 8).map((n) => {
+              const overdue = !!n.follow_up_on && n.follow_up_on <= today;
+              return (
+                <li
+                  key={n.id}
+                  className="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 p-3 text-xs"
+                >
+                  <Badge variant={overdue ? "destructive" : "outline"}>
+                    {overdue ? "Due" : "Coming up"} {prettyDate(n.follow_up_on)}
+                  </Badge>
+                  <span>{guestName(n.invite_id)}</span>
+                  <span className="text-muted-foreground">
+                    {labelOf(OUTCOMES, n.outcome)} · {labelOf(CHANNELS, n.channel)}
+                  </span>
+                  {n.reminder_sent_at ? (
+                    <span className="text-muted-foreground">· reminder sent</span>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Nothing waiting — set a follow-up date when you record a talk and it will show here.
+          </p>
+        )}
       </section>
 
       {hosts.data && hosts.data.length <= 1 ? (
@@ -339,6 +555,7 @@ export function HostRelations() {
           appear here to share the guests with.
         </p>
       ) : null}
+
 
       <div className="space-y-4">
         {families.map(([family, members]) => (
@@ -352,6 +569,7 @@ export function HostRelations() {
                 const followUp = history.find((n) => n.follow_up_on);
                 const isOpen = openLog === g.id;
                 const isMine = me.data ? assigned.includes(me.data) : false;
+                const tip = advice[g.id];
                 const someoneElse = !isMine && assigned.length > 0;
                 return (
                   <div key={g.id} className="rounded-xl border border-border/60 p-4">
@@ -417,6 +635,16 @@ export function HostRelations() {
                             <Button
                               type="button"
                               size="sm"
+                              variant="outline"
+                              disabled={thinking === g.id}
+                              onClick={() => suggest.mutate(g.id)}
+                            >
+                              <Sparkles className="mr-2 size-4" />
+                              {thinking === g.id ? "Thinking…" : "Suggest a follow-up"}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
                               variant={g.personally_invited ? "default" : "outline"}
                               onClick={() =>
                                 togglePersonal.mutate({ guest: g, next: !g.personally_invited })
@@ -456,6 +684,69 @@ export function HostRelations() {
                         </Badge>
                       ) : null}
                     </div>
+
+                    {tip ? (
+                      <div className="mt-4 space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="secondary">{tip.status}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            Suggested for you — change anything before you send it.
+                          </span>
+                        </div>
+                        <p>{tip.next_step}</p>
+                        <p className="whitespace-pre-wrap rounded-md border border-border/60 bg-background/60 p-3">
+                          {tip.message}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(tip.message);
+                              toast.success("Message copied.");
+                            }}
+                          >
+                            <Copy className="mr-2 size-4" /> Copy message
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const when = new Date(
+                                Date.now() + tip.suggested_follow_up_days * 86400000,
+                              )
+                                .toISOString()
+                                .slice(0, 10);
+                              setDraft((d) => ({
+                                ...d,
+                                notes: tip.message,
+                                follow_up_on: when,
+                              }));
+                              setOpenLog(g.id);
+                            }}
+                          >
+                            Use it in a note
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              setAdvice((prev) => {
+                                const next = { ...prev };
+                                delete next[g.id];
+                                return next;
+                              })
+                            }
+                          >
+                            Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+
 
                     {isOpen ? (
                       <div className="mt-4 space-y-3 rounded-lg border border-border/60 bg-background/40 p-4">
