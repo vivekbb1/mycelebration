@@ -108,7 +108,6 @@ export function HostBranding() {
       toast.error(e.message);
       qc.invalidateQueries({ queryKey: ["branding"] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   const savePreset = useMutation({
