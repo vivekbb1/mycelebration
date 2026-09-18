@@ -48,8 +48,19 @@ function EventPage() {
   const [busy, setBusy] = useState(false);
   const [noteTouched, setNoteTouched] = useState(false);
 
+  // Only the functions this family is invited to.
+  const myEventIds = useQuery({
+    queryKey: ["my-event-ids"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("my_event_ids");
+      if (error) throw error;
+      return new Set(((data ?? []) as { event_id: string }[]).map((r) => r.event_id));
+    },
+  });
+
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", "mine", [...(myEventIds.data ?? [])].sort().join(",")],
+    enabled: myEventIds.isSuccess,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
@@ -58,7 +69,8 @@ function EventPage() {
         )
         .order("sort_order");
       if (error) throw error;
-      return data;
+      const allowed = myEventIds.data;
+      return allowed ? data.filter((e) => allowed.has(e.id)) : data;
     },
   });
 

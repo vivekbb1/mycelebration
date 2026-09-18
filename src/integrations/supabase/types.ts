@@ -127,6 +127,35 @@ export type Database = {
         }
         Relationships: []
       }
+      household_event_invites: {
+        Row: {
+          created_at: string
+          event_id: string
+          household: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          household: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          household?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_event_invites_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_codes: {
         Row: {
           claimed_at: string | null
@@ -489,6 +518,12 @@ export type Database = {
         }[]
       }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
+      my_event_ids: {
+        Args: never
+        Returns: {
+          event_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "guest"

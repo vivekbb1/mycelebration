@@ -36,6 +36,13 @@
       "when": 1789716429810,
       "tag": "0004_household_members_function",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789717761008,
+      "tag": "0005_household_event_invites",
+      "breakpoints": true
     }
   ]
 }
