@@ -129,6 +129,29 @@ export function HostContent() {
             </Button>
           ) : null}
         </div>
+
+        {pages.length > 0 ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {pages.map(([name, count]) => {
+              const active = name === activePage;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setPage(name)}
+                  className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+                  }`}
+                >
+                  {name}
+                  <span className={active ? "opacity-80" : "opacity-60"}>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading the wording…</p> : null}
