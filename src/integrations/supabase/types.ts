@@ -542,6 +542,44 @@ export type Database = {
         }
         Relationships: []
       }
+      host_subscriptions: {
+        Row: {
+          created_at: string
+          features_extra: Json
+          note: string | null
+          plan_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          features_extra?: Json
+          note?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          features_extra?: Json
+          note?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_event_invites: {
         Row: {
           created_at: string
@@ -898,6 +936,51 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          blurb: string | null
+          created_at: string
+          features: Json
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          blurb?: string | null
+          created_at?: string
+          features?: Json
+          id: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          blurb?: string | null
+          created_at?: string
+          features?: Json
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           city: string | null
@@ -1138,6 +1221,7 @@ export type Database = {
         }[]
       }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
       my_branding: { Args: never; Returns: Json }
       my_event_ids: {
         Args: never
@@ -1146,6 +1230,7 @@ export type Database = {
         }[]
       }
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
+      my_features: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "guest"
