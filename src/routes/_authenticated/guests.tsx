@@ -84,7 +84,7 @@ function GuestListPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, email, city, country, whatsapp, rsvp_status, rsvp_note, household, gender",
+          "id, full_name, email, phone, city, country, whatsapp, rsvp_status, rsvp_note, household, gender",
         );
       if (error) throw error;
       return data;
