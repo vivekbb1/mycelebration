@@ -508,7 +508,9 @@ function HostDashboard() {
               <ul className="mt-4 space-y-3">
                 {(measurements.data ?? []).map((m) => (
                   <li key={m.id} className="rounded-lg border border-border p-4">
-                    <p className="text-sm text-primary">{guestName(m.guest_id, null)}</p>
+                    <p className="text-sm text-primary">
+                      {(m.guest_name ?? "").trim() || guestName(m.guest_id, null)}
+                    </p>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {(
                         [

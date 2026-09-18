@@ -152,7 +152,13 @@ function AtelierPage() {
         const outfit = outfits.data?.find((x) => x.id === o.outfit_id);
         if (!outfit || !outfit.boutique_id || !boutiqueIds.has(outfit.boutique_id)) return null;
         const ev = outfit.event_id ? events.data?.find((e) => e.id === outfit.event_id) : undefined;
-        const m = measurements.data?.find((x) => x.guest_id === o.guest_id);
+        // A family fills in one set per person; match the person the look is for.
+        const sets = (measurements.data ?? []).filter((x) => x.guest_id === o.guest_id);
+        const wanted = (o.guest_name ?? "").trim().toLowerCase();
+        const m =
+          sets.find((x) => (x.guest_name ?? "").trim().toLowerCase() === wanted) ??
+          (sets.length === 1 ? sets[0] : sets.find((x) => !(x.guest_name ?? "").trim())) ??
+          null;
         return {
           id: o.id,
           guest: o.guest_name || "Guest",
