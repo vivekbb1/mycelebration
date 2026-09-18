@@ -45,8 +45,8 @@ export function FunctionCard({
   const eventName = /^the\s/i.test(event.name) ? event.name : `the ${event.name}`;
 
   return (
-    <article className="invite-card p-7 sm:p-9">
-      <div className="relative">
+    <article className="invite-card flex h-full flex-col p-6 sm:p-9">
+      <div className="relative flex flex-1 flex-col">
         <p className="invite-ornament text-[0.65rem] tracking-[0.3em] uppercase">
           <Sparkles className="size-3" />
         </p>
