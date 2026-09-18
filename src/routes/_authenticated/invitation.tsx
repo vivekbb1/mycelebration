@@ -12,6 +12,7 @@ import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { GuestMessages } from "@/components/guest-messages";
 import { useBranding } from "@/lib/branding";
+import { GuestContact } from "@/components/guest-contact";
 import { useDeliveryPlan } from "@/lib/logistics";
 
 const travelDate = (value: string | null) =>
@@ -374,6 +375,8 @@ function InvitationPage() {
             </p>
           )}
         </section>
+
+        <GuestContact />
 
         <section className="panel mt-12 p-4 sm:p-6">
           <p className="text-eyebrow">Your travel</p>
