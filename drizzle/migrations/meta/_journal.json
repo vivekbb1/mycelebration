@@ -232,6 +232,13 @@
       "when": 1789736706628,
       "tag": "0032_platform_admin_and_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1789740023210,
+      "tag": "0033_addons_and_plan_management",
+      "breakpoints": true
     }
   ]
 }
