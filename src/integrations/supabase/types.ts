@@ -133,18 +133,21 @@ export type Database = {
           event_id: string
           household: string
           id: string
+          outfit_selection: boolean
         }
         Insert: {
           created_at?: string
           event_id: string
           household: string
           id?: string
+          outfit_selection?: boolean
         }
         Update: {
           created_at?: string
           event_id?: string
           household?: string
           id?: string
+          outfit_selection?: boolean
         }
         Relationships: [
           {
