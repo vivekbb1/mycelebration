@@ -620,7 +620,7 @@ export function HostFamilies() {
                         toast.success(`${f.name} moved.`);
                         await refresh();
                       }}
-                      className="h-8 rounded-md border border-border bg-surface px-2 text-xs"
+                      className="field-select max-w-full text-xs"
                     >
                       <option value="">Not on an invitation</option>
                       {inviteList.map((v) => (
