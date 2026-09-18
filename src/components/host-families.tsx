@@ -492,14 +492,18 @@ export function HostFamilies() {
             if (file) void importFile(file);
           }}
         />
-        <Button
-          variant="secondary"
-          className="mt-3 w-full"
-          disabled={bulkBusy}
-          onClick={() => fileRef.current?.click()}
-        >
-          <Upload className="size-4" /> Upload Excel or CSV
-        </Button>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Button variant="secondary" onClick={() => void downloadTemplate()}>
+            <Download className="size-4" /> Download template
+          </Button>
+          <Button variant="secondary" disabled={bulkBusy} onClick={() => fileRef.current?.click()}>
+            <Upload className="size-4" /> Upload filled file
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          The template holds everyone already on your list — add the missing emails and upload it
+          back. Names already there are updated, not duplicated.
+        </p>
 
         <Textarea
           className="mt-3 font-mono text-xs"
