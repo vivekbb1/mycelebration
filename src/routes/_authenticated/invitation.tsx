@@ -238,9 +238,13 @@ function InvitationPage() {
         <section className="panel mt-8 p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-eyebrow">Three simple steps</p>
+              <p className="text-eyebrow">
+                {t("invitation.steps_eyebrow", "Three simple steps")}
+              </p>
               <h2 className="mt-3 text-2xl">
-                {doneCount === steps.length ? "You're all set" : "Here's what's left to do"}
+                {doneCount === steps.length
+                  ? t("invitation.steps_title_done", "You're all set")
+                  : t("invitation.steps_title_open", "Here's what's left to do")}
               </h2>
             </div>
             <Badge variant={doneCount === steps.length ? "default" : "secondary"}>
