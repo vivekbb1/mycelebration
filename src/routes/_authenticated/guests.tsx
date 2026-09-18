@@ -244,6 +244,8 @@ function GuestListPage() {
       code,
       guest_name: parsed.data.guest_name,
       email: parsed.data.email || null,
+      household: parsed.data.household || null,
+      gender: parsed.data.gender || null,
     });
     setBusy(false);
     if (error) {
@@ -251,7 +253,7 @@ function GuestListPage() {
       return;
     }
     toast.success(`Invitation created for ${parsed.data.guest_name} (${code}).`);
-    setForm({ guest_name: "", email: "" });
+    setForm((f) => ({ guest_name: "", email: "", household: f.household, gender: "" }));
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
