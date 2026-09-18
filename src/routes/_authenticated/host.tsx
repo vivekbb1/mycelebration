@@ -182,6 +182,7 @@ function HostPage() {
 
 function HostDashboard() {
   const queryClient = useQueryClient();
+  const { has, isPlatformAdmin } = useFeatures();
   const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
