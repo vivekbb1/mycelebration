@@ -474,6 +474,42 @@ function GuestListPage() {
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="g-household">Family (optional)</Label>
+              <Input
+                id="g-household"
+                maxLength={120}
+                value={form.household}
+                placeholder="Mr & Mrs Bhatia and Family"
+                onChange={(e) => setForm((f) => ({ ...f, household: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Give everyone in one family the same name here — each person still gets their own
+                code and picks their own looks.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Wardrobe</Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: "", label: "Let them choose" },
+                  { value: "women", label: "Womenswear" },
+                  { value: "men", label: "Menswear" },
+                ].map((opt) => (
+                  <Button
+                    key={opt.value || "any"}
+                    type="button"
+                    size="sm"
+                    variant={form.gender === opt.value ? "default" : "outline"}
+                    onClick={() =>
+                      setForm((f) => ({ ...f, gender: opt.value as "" | "women" | "men" }))
+                    }
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <Button className="w-full" disabled={busy} onClick={addInvite}>
               {busy ? "Creating…" : "Create invitation"}
             </Button>
@@ -481,16 +517,27 @@ function GuestListPage() {
 
           <div className="gold-rule my-6" />
 
-          <h2 className="text-xl">Invite in bulk</h2>
+          <h2 className="text-xl">Invite a family in bulk</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            One guest per line — paste straight from a spreadsheet. Name first, email after a comma,
-            tab or space. Everyone gets their own code.
+            One person per line: name, email, then <span className="text-foreground">husband</span>{" "}
+            or <span className="text-foreground">wife</span> (or m / f) so they see the right
+            wardrobe. Add <span className="text-foreground">| Family name</span> to group a couple
+            or family together.
           </p>
+          <Input
+            className="mt-3"
+            maxLength={120}
+            value={bulkHousehold}
+            placeholder="Family for everyone below (optional)"
+            onChange={(e) => setBulkHousehold(e.target.value)}
+          />
           <Textarea
             className="mt-3 font-mono text-xs"
             rows={7}
             value={bulk}
-            placeholder={"Emma Whitfield, emma@example.com\nDaniel Osei, daniel@example.com\nMarie Lambert"}
+            placeholder={
+              "Vivek Bhatia, vivek@example.com, husband | Mr & Mrs Bhatia\nPriya Bhatia, priya@example.com, wife | Mr & Mrs Bhatia\nMarie Lambert, marie@example.com, f"
+            }
             onChange={(e) => setBulk(e.target.value)}
           />
           <div className="mt-3 flex flex-wrap gap-2">
