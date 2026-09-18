@@ -100,7 +100,7 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
       html,
     });
 
-    return { ok: true, code, link, sent: result.sent, reason: result.reason };
+    return { ok: true, code, link, sent: result.sent, ...(result.reason ? { reason: result.reason } : {}) };
   });
 
 /** Turns a host invitation code into host access for the signed-in user. */
