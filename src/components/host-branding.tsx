@@ -215,6 +215,170 @@ export function HostBranding() {
       </section>
 
       <section className="panel p-6">
+        <h3 className="flex items-center gap-2 text-lg">
+          <AlertTriangle className="size-4 text-primary" /> Easy to read
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          We check every pairing of your colours the way guests' eyes see them — pale gold on cream
+          looks lovely on your screen and disappears on a phone in daylight.
+        </p>
+
+        {issues.length === 0 ? (
+          <p className="mt-4 flex items-center gap-2 text-sm">
+            <Check className="size-4 text-emerald" /> Every colour pairing reads clearly.
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 space-y-3">
+              {issues.map((issue) => (
+                <div
+                  key={`${String(issue.key)}-${issue.onLabel}`}
+                  className="flex flex-wrap items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm"
+                >
+                  <Badge variant="destructive">{issue.ratio.toFixed(1)}:1</Badge>
+                  <span className="min-w-0">
+                    <strong className="font-normal">{issue.label}</strong> on {issue.onLabel} is too
+                    faint — needs {issue.target}:1{issue.large ? " for large text" : ""}.
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className="size-6 rounded-md border border-border"
+                      style={{ background: issue.suggestion }}
+                    />
+                    <code className="text-xs text-muted-foreground">{issue.suggestion}</code>
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="ml-auto"
+                    onClick={() => set(issue.key, issue.suggestion as Draft[typeof issue.key])}
+                  >
+                    Use this shade
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Button type="button" size="sm" className="mt-4" onClick={fixAll}>
+              Fix them all for me
+            </Button>
+          </>
+        )}
+      </section>
+
+      <section className="panel p-6">
+        <h3 className="flex items-center gap-2 text-lg">
+          <BookmarkPlus className="size-4 text-primary" /> Saved themes
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Keep a look for each celebration — one for the mehendi, another for the reception — and
+          switch between them in a tap. Switching only changes what's on screen; press Save branding
+          to put it in front of your guests.
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-end gap-2">
+          <label className="text-sm">
+            Name this look
+            <Input
+              value={presetName}
+              onChange={(e) => setPresetName(e.target.value)}
+              placeholder="Mehendi morning"
+              className="mt-1 w-56"
+            />
+          </label>
+          <Button
+            type="button"
+            size="sm"
+            disabled={savePreset.isPending}
+            onClick={() => savePreset.mutate({ name: presetName, settings: draft })}
+          >
+            Save as a theme
+          </Button>
+        </div>
+
+        {(presets.data ?? []).length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            No saved themes yet — set the colours and lettering you like, then save them here.
+          </p>
+        ) : (
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(presets.data ?? []).map((preset) => (
+              <div key={preset.id} className="rounded-xl border border-border/60 p-4">
+                <p style={{ fontFamily: fontStack(preset.settings.heading_font, true) }}>
+                  {preset.name}
+                </p>
+                <div className="mt-3 flex gap-1.5">
+                  {[
+                    preset.settings.color_background,
+                    preset.settings.color_surface,
+                    preset.settings.color_primary,
+                    preset.settings.color_accent,
+                    preset.settings.color_foreground,
+                  ].map((c, i) => (
+                    <span
+                      key={i}
+                      aria-hidden="true"
+                      className="size-6 rounded-md border border-border"
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {preset.settings.heading_font} &amp; {preset.settings.body_font}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setDraft({ ...preset.settings });
+                      setConfirmSave(false);
+                      toast.message(`${preset.name} is on screen — press Save branding to keep it.`);
+                    }}
+                  >
+                    <Eye className="mr-2 size-4" /> Try it
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      savePreset.mutate({
+                        name: `${preset.name} copy`,
+                        settings: preset.settings,
+                      })
+                    }
+                  >
+                    <Copy className="mr-2 size-4" /> Duplicate
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => updatePreset.mutate(preset)}
+                  >
+                    Update
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={`Remove ${preset.name}`}
+                    className="text-destructive"
+                    onClick={() => removePreset.mutate(preset.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="panel p-6">
         <h3 className="text-lg">Lettering</h3>
         <div className="mt-4 grid gap-5 sm:grid-cols-2">
           <div>
