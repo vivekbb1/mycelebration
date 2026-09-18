@@ -907,6 +907,10 @@ function HostDashboard() {
           <HostTeam />
         </TabsContent>
 
+        <TabsContent value="email" className="mt-6">
+          <HostEmail />
+        </TabsContent>
+
       </Tabs>
     </main>
   );
