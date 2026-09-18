@@ -293,9 +293,17 @@ function Lookbook() {
           <MapPin className="size-4 text-primary" />
           {scheduleHeadline(events.data ?? [])} — {scheduleSummary(events.data ?? [])}
         </p>
-        <Button asChild size="sm" variant="outline">
-          <Link to="/event">Dates, venues &amp; RSVP</Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <button
+            className="text-xs text-primary underline-offset-4 hover:underline"
+            onClick={() => saveGender(myGender === "men" ? "women" : "men")}
+          >
+            Showing {myGender === "men" ? "menswear" : "womenswear"} — switch
+          </button>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/event">Dates, venues &amp; RSVP</Link>
+          </Button>
+        </div>
       </div>
 
       {myOutfits.length > 0 ? (
