@@ -134,9 +134,9 @@ function Lookbook() {
   // Only your own reservations are readable; other guests stay anonymous and
   // an outfit taken by someone else simply shows as unavailable.
   const mineByOutfit = useMemo(() => {
-    const set = new Set<string>();
-    for (const r of reservations.data ?? []) set.add(r.outfit_id);
-    return set;
+    const map = new Map<string, string | null>();
+    for (const r of reservations.data ?? []) map.set(r.outfit_id, r.guest_name ?? null);
+    return map;
   }, [reservations.data]);
 
   // Functions where the hosts dress the guests, and the ones where guests wear their own.
