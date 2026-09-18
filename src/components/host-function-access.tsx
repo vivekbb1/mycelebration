@@ -46,7 +46,7 @@ export function HostFunctionAccess() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("household_event_invites")
-        .select("id, household, event_id");
+        .select("id, household, event_id, outfit_selection");
       if (error) throw error;
       return data;
     },
@@ -82,6 +82,52 @@ export function HostFunctionAccess() {
     const rows = rowsFor(household);
     if (rows.length === 0) return true; // no choices made yet = invited to all
     return rows.some((r) => r.event_id === eventId);
+  };
+
+  /** Does this family get to choose an outfit for this function? Default: yes. */
+  const picksOutfit = (household: string, eventId: string) => {
+    const row = rowsFor(household).find((r) => r.event_id === eventId);
+    return row ? row.outfit_selection !== false : true;
+  };
+
+  const toggleOutfit = async (household: string, eventId: string) => {
+    const rows = rowsFor(household);
+    setBusy(true);
+
+    // No explicit choices yet: write a row for every function first, so the
+    // "no outfit selection" flag has somewhere to live.
+    if (rows.length === 0) {
+      const { error } = await supabase.from("household_event_invites").insert(
+        (events.data ?? []).map((e) => ({
+          household,
+          event_id: e.id,
+          outfit_selection: e.id !== eventId,
+        })),
+      );
+      setBusy(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      await refresh();
+      return;
+    }
+
+    const existing = rows.find((r) => r.event_id === eventId);
+    const { error } = existing
+      ? await supabase
+          .from("household_event_invites")
+          .update({ outfit_selection: existing.outfit_selection === false })
+          .eq("id", existing.id)
+      : await supabase
+          .from("household_event_invites")
+          .insert({ household, event_id: eventId, outfit_selection: false });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await refresh();
   };
 
   const refresh = async () => {
@@ -165,7 +211,9 @@ export function HostFunctionAccess() {
         <h2 className="text-xl">Who is invited to what</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Tick the functions each family is invited to. They'll only see those functions — and only
-          the outfits for those functions. A family with nothing ticked sees every function.
+          the outfits for those functions. A family with nothing ticked sees every function. Under
+          each tick you can also decide whether that family chooses an outfit from you for that
+          function, or wears their own.
         </p>
         <div className="mt-4 max-w-sm">
           <Input
@@ -212,13 +260,25 @@ export function HostFunctionAccess() {
                   ) : null}
                 </td>
                 {(events.data ?? []).map((ev) => (
-                  <td key={ev.id} className="p-4">
+                  <td key={ev.id} className="p-4 align-top">
                     <Checkbox
                       checked={isTicked(f.household, ev.id)}
                       disabled={busy}
                       aria-label={`${f.household} invited to ${ev.name}`}
                       onCheckedChange={() => toggle(f.household, ev.id)}
                     />
+                    {isTicked(f.household, ev.id) ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => toggleOutfit(f.household, ev.id)}
+                        className={`mt-2 block text-xs underline-offset-4 hover:underline ${
+                          picksOutfit(f.household, ev.id) ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {picksOutfit(f.household, ev.id) ? "Outfit from you" : "Own outfit"}
+                      </button>
+                    ) : null}
                   </td>
                 ))}
                 <td className="p-4">
