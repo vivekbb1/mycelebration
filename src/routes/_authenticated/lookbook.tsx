@@ -251,6 +251,28 @@ function Lookbook() {
     );
   }
 
+  if (me.data && !myGender) {
+    return (
+      <main className="mx-auto max-w-md px-4 py-16">
+        <div className="panel p-6">
+          <p className="text-eyebrow">Almost there</p>
+          <h1 className="mt-3 text-2xl">Who are we dressing?</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Tell us which wardrobe to show you{me.data.household ? ` for the ${me.data.household}` : ""}.
+            Every person invited has their own link, so a husband and wife each choose their own
+            looks and send their own measurements.
+          </p>
+          <div className="mt-5 grid gap-3">
+            <Button onClick={() => saveGender("women")}>Womenswear</Button>
+            <Button variant="outline" onClick={() => saveGender("men")}>
+              Menswear
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const myOutfits = (outfits.data ?? []).filter((o) => mineByOutfit.has(o.id));
 
   return (
