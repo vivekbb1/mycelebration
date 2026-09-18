@@ -13,7 +13,7 @@ import { useSiteContent } from "@/lib/site-content";
 export const Route = createFileRoute("/_authenticated/invitation")({
   head: () => ({
     meta: [
-      { title: "Your Invitation — Kush & Khyati" },
+      { title: "Your Invitation — Reply, Outfit & Measurements" },
       {
         name: "description",
         content:
