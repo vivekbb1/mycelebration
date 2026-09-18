@@ -242,32 +242,44 @@ function GuestViewPage() {
         <h2 className="text-xl">Measurements</h2>
         {measurements.isLoading ? (
           <p className="mt-3 text-sm text-muted-foreground">Loading…</p>
-        ) : !measurements.data ? (
+        ) : measureSets.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             {guestName} hasn't sent measurements yet — a nudge on WhatsApp usually does it.
           </p>
         ) : (
-          <>
-            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-primary">
-              In {unit === "in" ? "inches" : "centimetres"}
-            </p>
-            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-              {MEASURE_FIELDS.map((f) => {
-                const value = (measurements.data as Record<string, unknown>)[f.key];
-                return (
-                  <div key={f.key} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-muted-foreground">{f.label}</dt>
-                    <dd>{value === null || value === undefined ? "—" : `${String(value)} ${unit}`}</dd>
-                  </div>
-                );
-              })}
-            </dl>
-            {measurements.data.notes ? (
-              <p className="mt-5 text-sm text-muted-foreground">
-                Note for the tailor: {measurements.data.notes}
-              </p>
-            ) : null}
-          </>
+          <div className="mt-4 grid gap-6">
+            {measureSets.map((set) => {
+              const unit = set.unit ?? "cm";
+              return (
+                <div key={set.id} className="rounded-lg border border-border p-4">
+                  <p className="text-sm">{(set.guest_name ?? "").trim() || guestName}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-primary">
+                    In {unit === "in" ? "inches" : "centimetres"}
+                  </p>
+                  <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                    {MEASURE_FIELDS.map((f) => {
+                      const value = (set as Record<string, unknown>)[f.key];
+                      return (
+                        <div key={f.key} className="flex items-baseline justify-between gap-3">
+                          <dt className="text-muted-foreground">{f.label}</dt>
+                          <dd>
+                            {value === null || value === undefined
+                              ? "—"
+                              : `${String(value)} ${unit}`}
+                          </dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                  {set.notes ? (
+                    <p className="mt-5 text-sm text-muted-foreground">
+                      Note for the tailor: {set.notes}
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         )}
       </section>
     </main>
