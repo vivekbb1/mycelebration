@@ -350,6 +350,17 @@ export function HostRelations() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Once a day, the first host to open this page sets the reminder emails going.
+  useEffect(() => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem("followup-reminders-run") === stamp) return;
+    window.localStorage.setItem("followup-reminders-run", stamp);
+    void runReminders({ data: undefined }).catch(() => undefined);
+  }, [runReminders]);
+
+
+
   return (
     <div className="space-y-6">
       <section className="panel p-6">
