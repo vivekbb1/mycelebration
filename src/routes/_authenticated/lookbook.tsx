@@ -58,6 +58,8 @@ function Lookbook() {
   const [activeEvent, setActiveEvent] = useState<string>("all");
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [activePerson, setActivePerson] = useState<string | null>(null);
+  const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
 
   const me = useQuery({
     queryKey: ["me"],
@@ -113,18 +115,28 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id");
+        .select("id, outfit_id, guest_id, guest_name");
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Everyone invited under the same family name, so a couple can choose one after the other.
+  const household = useQuery({
+    queryKey: ["household-members"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("household_members");
+      if (error) throw error;
+      return (data ?? []) as { name: string; gender: string | null }[];
     },
   });
 
   // Only your own reservations are readable; other guests stay anonymous and
   // an outfit taken by someone else simply shows as unavailable.
   const mineByOutfit = useMemo(() => {
-    const set = new Set<string>();
-    for (const r of reservations.data ?? []) set.add(r.outfit_id);
-    return set;
+    const map = new Map<string, string | null>();
+    for (const r of reservations.data ?? []) map.set(r.outfit_id, r.guest_name ?? null);
+    return map;
   }, [reservations.data]);
 
   // Functions where the hosts dress the guests, and the ones where guests wear their own.
@@ -145,10 +157,31 @@ function Lookbook() {
     await queryClient.invalidateQueries({ queryKey: ["me"] });
   };
 
+  // Pick the person first: every name invited under this family becomes a capsule.
+  const people = useMemo(() => {
+    const list = household.data ?? [];
+    if (list.length > 0) return list;
+    return [
+      {
+        name: (me.data?.full_name ?? "").trim() || "You",
+        gender: myGender,
+      },
+    ];
+  }, [household.data, me.data?.full_name, myGender]);
+
+  const activeName =
+    (activePerson && people.some((p) => p.name === activePerson) ? activePerson : null) ??
+    people.find((p) => p.name === (me.data?.full_name ?? "").trim())?.name ??
+    people[0]?.name ??
+    "You";
+
+  const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
+  const wardrobe = wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender;
+
   const selectable = (outfits.data ?? []).filter(
     (o) =>
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
-      (!myGender || (o.gender ?? "women") === myGender),
+      (!wardrobe || (o.gender ?? "women") === wardrobe),
   );
 
   const visible = selectable.filter(
@@ -166,7 +199,7 @@ function Lookbook() {
     const { error } = await supabase.from("reservations").insert({
       outfit_id: outfit.id,
       guest_id: user.id,
-      guest_name: me.data?.full_name || null,
+      guest_name: activeName || me.data?.full_name || null,
     });
     if (error) {
       setBusyId(null);
@@ -251,7 +284,7 @@ function Lookbook() {
     );
   }
 
-  if (me.data && !myGender) {
+  if (me.data && !wardrobe && people.length <= 1) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
         <div className="panel p-6">
@@ -273,7 +306,12 @@ function Lookbook() {
     );
   }
 
-  const myOutfits = (outfits.data ?? []).filter((o) => mineByOutfit.has(o.id));
+  // Reservations are grouped by the person they were chosen for.
+  const outfitsFor = (name: string) =>
+    (outfits.data ?? []).filter(
+      (o) => mineByOutfit.has(o.id) && (mineByOutfit.get(o.id) ?? activeName) === name,
+    );
+  const myOutfits = outfitsFor(activeName);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -296,9 +334,13 @@ function Lookbook() {
         <div className="flex items-center gap-3">
           <button
             className="text-xs text-primary underline-offset-4 hover:underline"
-            onClick={() => saveGender(myGender === "men" ? "women" : "men")}
+            onClick={() => {
+              const next = wardrobe === "men" ? "women" : "men";
+              setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
+              if (people.length <= 1) void saveGender(next);
+            }}
           >
-            Showing {myGender === "men" ? "menswear" : "womenswear"} — switch
+            Showing {wardrobe === "men" ? "menswear" : "womenswear"} — switch
           </button>
           <Button asChild size="sm" variant="outline">
             <Link to="/event">Dates, venues &amp; RSVP</Link>
@@ -306,11 +348,44 @@ function Lookbook() {
         </div>
       </div>
 
+      <section className="panel mt-4 p-4">
+        <p className="text-eyebrow">Who are you choosing for?</p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {people.map((person) => {
+            const active = person.name === activeName;
+            const count = outfitsFor(person.name).length;
+            return (
+              <li key={person.name}>
+                <button
+                  onClick={() => setActivePerson(person.name)}
+                  aria-pressed={active}
+                  className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {person.name}
+                  <span className={`ml-2 text-xs ${active ? "opacity-80" : "opacity-70"}`}>
+                    {count > 0 ? `${count} chosen` : "nothing yet"}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Pick the person first — the looks below, and anything you reserve, belong to{" "}
+          <span className="text-foreground">{activeName}</span>.
+        </p>
+      </section>
+
+
       {myOutfits.length > 0 ? (
         <section className="panel mt-6 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">
-              Your reserved look{myOutfits.length > 1 ? "s" : ""} ({myOutfits.length})
+              Reserved for {activeName} ({myOutfits.length})
             </h2>
             <Button asChild size="sm" variant="outline">
               <Link to="/delivery">Pickup &amp; delivery plan</Link>
@@ -417,8 +492,11 @@ function Lookbook() {
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((outfit) => {
-            const mine = mineByOutfit.has(outfit.id);
-            const taken = mine || !outfit.is_available;
+            const heldBy = mineByOutfit.has(outfit.id)
+              ? (mineByOutfit.get(outfit.id) ?? activeName)
+              : null;
+            const mine = heldBy === activeName;
+            const taken = heldBy !== null || !outfit.is_available;
             const eventName = (events.data ?? []).find((e) => e.id === outfit.event_id)?.name;
             return (
               <article key={outfit.id} className="panel flex flex-col overflow-hidden">
@@ -429,7 +507,7 @@ function Lookbook() {
                       variant={mine ? "default" : "secondary"}
                       className="absolute top-3 left-3"
                     >
-                      {mine ? "Yours" : "Reserved"}
+                      {mine ? `For ${activeName}` : heldBy ? `For ${heldBy}` : "Reserved"}
                     </Badge>
                   ) : null}
                 </div>

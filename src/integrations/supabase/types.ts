@@ -481,6 +481,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      household_members: {
+        Args: never
+        Returns: {
+          gender: string
+          name: string
+        }[]
+      }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
     }
     Enums: {
