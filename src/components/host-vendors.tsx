@@ -138,7 +138,10 @@ export function HostVendors() {
     await qc.invalidateQueries({ queryKey: ["vendors"] });
   };
 
-  const patch = async (id: string, values: Record<string, unknown>) => {
+  const patch = async (
+    id: string,
+    values: { status?: string; agreed_amount?: number | null },
+  ) => {
     const { error } = await supabase.from("vendors").update(values).eq("id", id);
     if (error) return void toast.error(error.message);
     await qc.invalidateQueries({ queryKey: ["vendors"] });

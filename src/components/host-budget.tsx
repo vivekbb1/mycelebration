@@ -129,7 +129,10 @@ export function HostBudget() {
     await qc.invalidateQueries({ queryKey: ["budget-items"] });
   };
 
-  const patch = async (id: string, values: Record<string, unknown>) => {
+  const patch = async (
+    id: string,
+    values: { actual_amount?: number | null; paid_amount?: number },
+  ) => {
     const { error } = await supabase.from("budget_items").update(values).eq("id", id);
     if (error) return void toast.error(error.message);
     await qc.invalidateQueries({ queryKey: ["budget-items"] });
