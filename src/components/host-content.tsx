@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { RotateCcw } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { guardedUpdate } from "@/lib/save-guard";
 import { SITE_CONTENT_KEY, useSiteContent, type ContentRow } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
