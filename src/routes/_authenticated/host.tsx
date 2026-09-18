@@ -27,6 +27,7 @@ import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostPicks } from "@/components/host-picks";
+import { HostOverview } from "@/components/host-overview";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostBoutiques } from "@/components/host-boutiques";
@@ -451,6 +452,8 @@ function HostDashboard() {
 
 
         <TabsContent value="dashboard" className="mt-6 space-y-8">
+          <HostOverview />
+
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <Stat label="Outfits" value={stats.total} />
             <Stat label="Reserved" value={stats.reserved} />
