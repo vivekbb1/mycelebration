@@ -148,6 +148,13 @@
       "when": 1789730939454,
       "tag": "0020_branding_presets",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789731503926,
+      "tag": "0021_branding_per_invite",
+      "breakpoints": true
     }
   ]
 }
