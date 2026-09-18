@@ -120,7 +120,7 @@ function AuthPage() {
   };
 
   return (
-    <div className="bg-zari flex min-h-screen flex-col bg-background">
+    <div className="bg-zari flex min-h-dvh flex-col bg-background">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
         <Link to="/" className="font-display text-lg tracking-wide">
           The Wedding Wardrobe

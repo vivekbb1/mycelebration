@@ -17,7 +17,7 @@ import { BrandingProvider } from "@/lib/branding";
 
 function NotFoundComponent() {
   return (
-    <div className="bg-zari flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="bg-zari flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <p className="text-eyebrow">Not found</p>
         <h1 className="mt-3 text-5xl text-foreground">404</h1>
@@ -45,7 +45,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-2xl text-foreground">This page didn't load</h1>
         <p className="mt-2 text-sm text-muted-foreground">

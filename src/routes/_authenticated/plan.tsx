@@ -133,7 +133,7 @@ function PlanPage() {
 
   return (
     <main className="bg-zari">
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <p className="text-center text-eyebrow">Your plan</p>
         <h1 className="mt-3 text-center text-4xl">What's expected of you</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground">

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   return (
-    <div className="bg-zari min-h-screen bg-background">
+    <div className="bg-zari min-h-dvh bg-background">
       <SiteNav />
       <Outlet />
     </div>

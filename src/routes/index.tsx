@@ -66,7 +66,7 @@ function Landing() {
   ];
 
   return (
-    <div className="bg-zari min-h-screen bg-background">
+    <div className="bg-zari min-h-dvh bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
         <span className="font-display text-lg tracking-wide">
           {t("landing.brand", "The Wedding Wardrobe")}
@@ -119,7 +119,7 @@ function Landing() {
 
       <div className="gold-rule mx-auto max-w-6xl" />
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <h2 className="text-3xl sm:text-4xl">{t("landing.how_title", "How it works")}</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
           {steps.map((step) => (

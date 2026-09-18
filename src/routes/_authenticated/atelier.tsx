@@ -200,12 +200,12 @@ function AtelierPage() {
   };
 
   if (boutiques.isLoading) {
-    return <p className="mx-auto max-w-5xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!isStylist) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
         <div className="panel p-4 sm:p-6">
           <Scissors className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Atelier access</h1>
@@ -234,7 +234,7 @@ function AtelierPage() {
   const pending = rows.filter((r) => !r.measurements).length;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-xs uppercase tracking-[0.18em] text-primary">Atelier</p>
       <h1 className="mt-2 text-3xl">
         {(boutiques.data ?? []).map((b) => b.name).join(" · ")}

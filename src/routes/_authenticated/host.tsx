@@ -139,12 +139,12 @@ function HostPage() {
   });
 
   if (role.isLoading) {
-    return <p className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!role.data) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
         <div className="panel p-4 sm:p-6">
           <ShieldCheck className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Host access</h1>

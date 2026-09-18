@@ -207,7 +207,7 @@ function Measurements() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">For the tailor</p>
       <h1 className="mt-3 text-4xl">Measurements</h1>
       <p className="mt-3 text-sm text-muted-foreground">

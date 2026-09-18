@@ -239,7 +239,7 @@ function InvitationPage() {
 
   return (
     <main className="bg-zari">
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
             <p className="text-eyebrow">

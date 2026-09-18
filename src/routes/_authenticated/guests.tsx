@@ -286,12 +286,12 @@ function GuestListPage() {
   };
 
   if (role.isLoading) {
-    return <p className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!role.data) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
         <div className="panel p-4 sm:p-6">
           <h1 className="text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -306,7 +306,7 @@ function GuestListPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-eyebrow">Host area</p>
       <h1 className="mt-3 text-4xl">Guest list</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">

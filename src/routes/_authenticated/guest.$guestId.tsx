@@ -129,12 +129,12 @@ function GuestViewPage() {
   });
 
   if (role.isLoading) {
-    return <p className="mx-auto max-w-5xl px-4 py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!isHost) {
     return (
-      <main className="mx-auto max-w-md px-4 py-16">
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
         <div className="panel p-4 sm:p-6">
           <ShieldCheck className="size-5 text-primary" />
           <h1 className="mt-4 text-2xl">Hosts only</h1>
@@ -157,7 +157,7 @@ function GuestViewPage() {
     id ? (events.data?.find((e) => e.id === id)?.name ?? null) : null;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to="/guests">
           <ArrowLeft className="size-4" /> Back to the guest list
