@@ -166,3 +166,41 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
 }
+
+/* An invitation card: watercolour wash inside a double gold frame. */
+@utility invite-card {
+  position: relative;
+  background-color: var(--color-surface);
+  background-image:
+    radial-gradient(circle at 8% 6%, oklch(0.88 0.075 20 / 0.45), transparent 42%),
+    radial-gradient(circle at 96% 10%, oklch(0.86 0.06 150 / 0.38), transparent 40%),
+    radial-gradient(circle at 50% 104%, oklch(0.93 0.05 60 / 0.55), transparent 55%);
+  border: 1px solid color-mix(in oklab, var(--color-primary) 45%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid color-mix(in oklab, var(--color-primary) 28%, transparent);
+    border-radius: calc(var(--radius-lg));
+    pointer-events: none;
+  }
+}
+
+@utility invite-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--color-primary);
+
+  &::before,
+  &::after {
+    content: "";
+    height: 1px;
+    width: 2.5rem;
+    background-image: linear-gradient(to right, transparent, var(--color-primary), transparent);
+  }
+}
