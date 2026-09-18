@@ -126,7 +126,7 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, created_at")
+        .select("id, name, code, created_at, needs_wardrobe")
         .order("name");
       if (error) throw error;
       return data;
@@ -150,6 +150,16 @@ export function HostFamilies() {
       members: (memberRows.data ?? []).filter((m) => m.family_id === f.id),
     }));
   }, [families.data, memberRows.data]);
+
+  /** Local families only RSVP — the outfit and measurement steps vanish for them. */
+  const toggleWardrobe = async (id: string, next: boolean) => {
+    const { error } = await supabase.from("families").update({ needs_wardrobe: next }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["families"] });
+  };
 
   const refresh = async () => {
     await Promise.all([
@@ -565,6 +575,17 @@ export function HostFamilies() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleWardrobe(f.id, f.needs_wardrobe === false)}
+                    className={`rounded-full border px-3 py-1 text-xs ${
+                      f.needs_wardrobe === false
+                        ? "border-border text-muted-foreground"
+                        : "border-primary bg-primary/10 text-primary"
+                    }`}
+                  >
+                    {f.needs_wardrobe === false ? "RSVP only" : "Outfit from us"}
+                  </button>
                   <Button
                     variant="ghost"
                     size="icon"
