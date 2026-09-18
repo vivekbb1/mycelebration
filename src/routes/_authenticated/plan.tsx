@@ -317,12 +317,13 @@ function PlanPage() {
           </Button>
         </section>
 
+        <GuestFees />
+
         <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
           <Scissors className="size-3.5" /> Anything look wrong? Send the hosts a message from your
           invitation page.
         </p>
       </div>
-          <GuestFees />
-</main>
+    </main>
   );
 }
