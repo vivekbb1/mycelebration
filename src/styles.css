@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system: "Midnight Marigold"
- * A festive Indian wedding palette — midnight indigo ground, marigold gold
- * accents, deep emerald support, warm ivory text.
+ * Design system: "Blush Botanical"
+ * Taken from the invitation card — watercolour blush ground, antique gold
+ * script accents, garden-green support, deep rose-plum text.
  */
 
 @theme inline {
@@ -60,56 +60,56 @@
   --color-chart-4: var(--primary);
   --color-chart-5: var(--muted-foreground);
 
-  --shadow-glow: 0 0 0 1px oklch(0.78 0.14 82 / 0.28), 0 18px 50px -18px oklch(0.78 0.14 82 / 0.3);
-  --shadow-panel: 0 24px 60px -30px oklch(0.1 0.05 265 / 0.85);
+  --shadow-glow: 0 0 0 1px oklch(0.7 0.1 78 / 0.3), 0 18px 50px -18px oklch(0.7 0.1 78 / 0.28);
+  --shadow-panel: 0 20px 50px -28px oklch(0.55 0.08 25 / 0.28);
 }
 
 :root {
   --radius: 0.4rem;
 
-  --background: oklch(0.19 0.045 268);
-  --foreground: oklch(0.95 0.014 85);
+  --background: oklch(0.965 0.019 45);
+  --foreground: oklch(0.34 0.07 20);
 
-  --surface: oklch(0.24 0.048 268);
-  --surface-foreground: oklch(0.95 0.014 85);
+  --surface: oklch(0.985 0.012 60);
+  --surface-foreground: oklch(0.34 0.07 20);
 
-  --card: oklch(0.235 0.045 268);
-  --card-foreground: oklch(0.95 0.014 85);
+  --card: oklch(0.99 0.008 60);
+  --card-foreground: oklch(0.34 0.07 20);
 
-  --popover: oklch(0.225 0.045 268);
-  --popover-foreground: oklch(0.95 0.014 85);
+  --popover: oklch(0.99 0.008 60);
+  --popover-foreground: oklch(0.34 0.07 20);
 
-  --primary: oklch(0.79 0.145 82);
-  --primary-foreground: oklch(0.19 0.045 268);
+  --primary: oklch(0.62 0.095 74);
+  --primary-foreground: oklch(0.99 0.008 60);
 
-  --secondary: oklch(0.3 0.05 268);
-  --secondary-foreground: oklch(0.95 0.014 85);
+  --secondary: oklch(0.94 0.024 40);
+  --secondary-foreground: oklch(0.38 0.07 20);
 
-  --muted: oklch(0.28 0.042 268);
-  --muted-foreground: oklch(0.74 0.03 85);
+  --muted: oklch(0.945 0.02 45);
+  --muted-foreground: oklch(0.52 0.045 25);
 
-  --accent: oklch(0.45 0.11 158);
-  --accent-foreground: oklch(0.97 0.012 85);
+  --accent: oklch(0.55 0.08 150);
+  --accent-foreground: oklch(0.99 0.008 60);
 
-  --gold: oklch(0.79 0.145 82);
-  --emerald: oklch(0.48 0.115 158);
-  --rose: oklch(0.62 0.17 15);
+  --gold: oklch(0.62 0.095 74);
+  --emerald: oklch(0.52 0.08 150);
+  --rose: oklch(0.58 0.14 18);
 
-  --destructive: oklch(0.58 0.2 22);
-  --destructive-foreground: oklch(0.97 0.012 85);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.99 0.008 60);
 
-  --border: oklch(0.36 0.05 268);
-  --input: oklch(0.33 0.05 268);
-  --ring: oklch(0.79 0.145 82);
+  --border: oklch(0.88 0.028 45);
+  --input: oklch(0.88 0.028 45);
+  --ring: oklch(0.62 0.095 74);
 
-  --sidebar: oklch(0.22 0.045 268);
-  --sidebar-foreground: oklch(0.95 0.014 85);
-  --sidebar-primary: oklch(0.79 0.145 82);
-  --sidebar-primary-foreground: oklch(0.19 0.045 268);
-  --sidebar-accent: oklch(0.3 0.05 268);
-  --sidebar-accent-foreground: oklch(0.95 0.014 85);
-  --sidebar-border: oklch(0.36 0.05 268);
-  --sidebar-ring: oklch(0.79 0.145 82);
+  --sidebar: oklch(0.975 0.014 50);
+  --sidebar-foreground: oklch(0.34 0.07 20);
+  --sidebar-primary: oklch(0.62 0.095 74);
+  --sidebar-primary-foreground: oklch(0.99 0.008 60);
+  --sidebar-accent: oklch(0.94 0.024 40);
+  --sidebar-accent-foreground: oklch(0.38 0.07 20);
+  --sidebar-border: oklch(0.88 0.028 45);
+  --sidebar-ring: oklch(0.62 0.095 74);
 }
 
 @layer base {
@@ -145,9 +145,9 @@
 
 @utility bg-zari {
   background-image:
-    radial-gradient(circle at 12% 18%, oklch(0.79 0.145 82 / 0.13), transparent 42%),
-    radial-gradient(circle at 88% 8%, oklch(0.48 0.115 158 / 0.16), transparent 46%),
-    radial-gradient(circle at 50% 100%, oklch(0.62 0.17 15 / 0.1), transparent 55%);
+    radial-gradient(circle at 10% 12%, oklch(0.88 0.075 20 / 0.5), transparent 46%),
+    radial-gradient(circle at 92% 6%, oklch(0.86 0.06 150 / 0.42), transparent 44%),
+    radial-gradient(circle at 50% 100%, oklch(0.93 0.05 60 / 0.6), transparent 58%);
 }
 
 @utility gold-rule {
