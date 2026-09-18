@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      addons: {
+        Row: {
+          blurb: string | null
+          created_at: string
+          features: Json
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          blurb?: string | null
+          created_at?: string
+          features?: Json
+          id: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          blurb?: string | null
+          created_at?: string
+          features?: Json
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       boutique_members: {
         Row: {
           boutique_id: string
@@ -508,6 +538,38 @@ export type Database = {
           read_at?: string | null
         }
         Relationships: []
+      }
+      host_addons: {
+        Row: {
+          addon_id: string
+          created_at: string
+          id: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          addon_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          addon_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "host_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "addons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       host_invites: {
         Row: {
