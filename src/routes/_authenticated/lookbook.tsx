@@ -306,7 +306,12 @@ function Lookbook() {
     );
   }
 
-  const myOutfits = (outfits.data ?? []).filter((o) => mineByOutfit.has(o.id));
+  // Reservations are grouped by the person they were chosen for.
+  const outfitsFor = (name: string) =>
+    (outfits.data ?? []).filter(
+      (o) => mineByOutfit.has(o.id) && (mineByOutfit.get(o.id) ?? activeName) === name,
+    );
+  const myOutfits = outfitsFor(activeName);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
