@@ -208,6 +208,23 @@ export function HostImport() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Wardrobe</Label>
+            <Select value={gender} onValueChange={setGender}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">As the shop lists it</SelectItem>
+                <SelectItem value="women">Womenswear</SelectItem>
+                <SelectItem value="men">Menswear</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Guests only see the wardrobe that matches them, so set this when the shop guesses
+              wrong.
+            </p>
+          </div>
         </div>
       </section>
 
