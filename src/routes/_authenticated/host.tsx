@@ -436,24 +436,16 @@ function HostDashboard() {
         </Button>
       </div>
 
-      <Tabs defaultValue="dashboard" className="mt-8">
+      <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="outfits">Outfits</TabsTrigger>
-          <TabsTrigger value="import">Import</TabsTrigger>
-          <TabsTrigger value="functions">Functions</TabsTrigger>
-          <TabsTrigger value="invited">Invited to</TabsTrigger>
-          <TabsTrigger value="picks">Guest picks</TabsTrigger>
-          <TabsTrigger value="logistics">Delivery plan</TabsTrigger>
-          <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
-          <TabsTrigger value="by-boutique">By boutique</TabsTrigger>
-          <TabsTrigger value="hosts">Hosts</TabsTrigger>
-          <TabsTrigger value="email">Email</TabsTrigger>
-
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="guests">Guests</TabsTrigger>
+          <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger>
+          <TabsTrigger value="setup">Setup</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="overview" className="mt-6 space-y-8">
 
-        <TabsContent value="dashboard" className="mt-6 space-y-8">
           <HostOverview />
 
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
