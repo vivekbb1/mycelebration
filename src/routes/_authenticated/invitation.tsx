@@ -49,6 +49,7 @@ type StepTarget = "/event" | "/lookbook" | "/measurements";
 function InvitationPage() {
   const deliveryPlan = useDeliveryPlan();
   const { t } = useSiteContent();
+  const { branding } = useBranding();
   const profile = useQuery({
     queryKey: ["my-profile"],
     queryFn: async () => {
