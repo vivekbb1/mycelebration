@@ -35,6 +35,7 @@ type Preset = {
   name: string;
   settings: Draft;
   created_at: string;
+  updated_at: string | null;
 };
 
 const COLOURS: { key: keyof Draft; label: string; hint: string }[] = [
