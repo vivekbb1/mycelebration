@@ -11,6 +11,7 @@ import { scheduleSummary } from "@/lib/schedule";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { GuestMessages } from "@/components/guest-messages";
+import { useBranding } from "@/lib/branding";
 import { useDeliveryPlan } from "@/lib/logistics";
 
 const travelDate = (value: string | null) =>
@@ -48,6 +49,7 @@ type StepTarget = "/event" | "/lookbook" | "/measurements";
 function InvitationPage() {
   const deliveryPlan = useDeliveryPlan();
   const { t } = useSiteContent();
+  const { branding } = useBranding();
   const profile = useQuery({
     queryKey: ["my-profile"],
     queryFn: async () => {
@@ -244,6 +246,14 @@ function InvitationPage() {
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
+            {branding.cover_logo_url ? (
+              <img
+                src={branding.cover_logo_url}
+                alt={couple}
+                style={{ height: branding.cover_logo_height }}
+                className="mx-auto mb-6 w-auto"
+              />
+            ) : null}
             <p className="text-eyebrow">
               {t("invitation.eyebrow", "Together with our families")}
             </p>

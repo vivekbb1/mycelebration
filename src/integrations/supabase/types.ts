@@ -93,6 +93,8 @@ export type Database = {
           color_primary: string
           color_primary_foreground: string
           color_surface: string
+          cover_logo_height: number
+          cover_logo_url: string | null
           favicon_url: string | null
           heading_font: string
           heading_scale: number
@@ -112,6 +114,8 @@ export type Database = {
           color_primary?: string
           color_primary_foreground?: string
           color_surface?: string
+          cover_logo_height?: number
+          cover_logo_url?: string | null
           favicon_url?: string | null
           heading_font?: string
           heading_scale?: number
@@ -131,6 +135,8 @@ export type Database = {
           color_primary?: string
           color_primary_foreground?: string
           color_surface?: string
+          cover_logo_height?: number
+          cover_logo_url?: string | null
           favicon_url?: string | null
           heading_font?: string
           heading_scale?: number

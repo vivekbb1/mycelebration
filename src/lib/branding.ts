@@ -20,6 +20,9 @@ export type Branding = {
   logo_url: string | null;
   logo_height: number;
   favicon_url: string | null;
+  /** Logo shown on the invitation card itself (bigger than the header one). */
+  cover_logo_url: string | null;
+  cover_logo_height: number;
   /** Set by the database on every save; used to spot two hosts saving at once. */
   updated_at?: string | null;
 };
@@ -40,6 +43,8 @@ export const BRANDING_DEFAULTS: Omit<Branding, "id"> = {
   logo_url: null,
   logo_height: 40,
   favicon_url: null,
+  cover_logo_url: null,
+  cover_logo_height: 96,
 };
 
 /** Headings and body text the host can pick from — all loaded from Google Fonts. */

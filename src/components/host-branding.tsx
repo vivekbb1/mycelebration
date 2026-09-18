@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -57,6 +57,33 @@ export function HostBranding() {
   const [loaded, setLoaded] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [confirmSave, setConfirmSave] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const coverFileRef = useRef<HTMLInputElement>(null);
+
+  async function uploadCoverLogo(file: File) {
+    setUploadingLogo(true);
+    try {
+      const ext = (file.name.split(".").pop() ?? "png").toLowerCase().slice(0, 5);
+      const path = `logo-${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("event-images").upload(path, file, {
+        contentType: file.type || "image/png",
+        upsert: false,
+      });
+      if (up.error) throw new Error(up.error.message);
+      const signed = await supabase.storage
+        .from("event-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signed.error || !signed.data?.signedUrl) {
+        throw new Error(signed.error?.message ?? "Could not make a link for the logo.");
+      }
+      setDraft((d) => ({ ...d, cover_logo_url: signed.data.signedUrl }));
+      toast.success("Logo uploaded — press Save branding to show it to guests.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "The logo could not be uploaded.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
 
   const presets = useQuery({
     queryKey: ["branding-presets"],
@@ -558,6 +585,81 @@ export function HostBranding() {
               src={draft.logo_url}
               alt="Your logo"
               style={{ height: draft.logo_height }}
+              className="w-auto"
+            />
+          </div>
+        ) : null}
+      </section>
+
+      <section className="panel p-4 sm:p-6">
+        <h3 className="text-lg">Wedding logo on the invitation card</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Shown at the top of the first card guests see. Upload a PNG with a see-through background —
+          best around 600 × 600 px, under 500 KB — or paste a link. Leave it empty to show only your
+          names.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <input
+            ref={coverFileRef}
+            type="file"
+            accept="image/png,image/svg+xml,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void uploadCoverLogo(file);
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploadingLogo}
+            onClick={() => coverFileRef.current?.click()}
+          >
+            {uploadingLogo ? "Uploading…" : "Upload a logo (PNG)"}
+          </Button>
+          {draft.cover_logo_url ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => set("cover_logo_url", null)}
+            >
+              Remove logo
+            </Button>
+          ) : null}
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="text-sm">
+            Or paste a link
+            <Input
+              value={draft.cover_logo_url ?? ""}
+              onChange={(e) => set("cover_logo_url", e.target.value.trim() || null)}
+              placeholder="https://…/wedding-logo.png"
+              className="mt-1"
+            />
+          </label>
+          <label className="text-sm">
+            Size on the card
+            <span className="ml-2 text-xs text-muted-foreground">{draft.cover_logo_height}px</span>
+            <input
+              type="range"
+              min={48}
+              max={220}
+              step={4}
+              value={draft.cover_logo_height}
+              onChange={(e) => set("cover_logo_height", Number(e.target.value))}
+              className="mt-2 w-full accent-primary"
+            />
+          </label>
+        </div>
+        {draft.cover_logo_url ? (
+          <div className="invite-card mt-4 flex justify-center p-6">
+            <img
+              src={draft.cover_logo_url}
+              alt="Your wedding logo"
+              style={{ height: draft.cover_logo_height }}
               className="w-auto"
             />
           </div>
