@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { categoryLabel } from "@/components/host-families";
 import { HostFamilies } from "@/components/host-families";
 
 
@@ -67,7 +68,9 @@ function GuestListPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, code, guest_name, email, claimed_by, claimed_at, household, gender")
+        .select(
+          "id, code, guest_name, email, phone, category, claimed_by, claimed_at, household, gender",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -81,7 +84,7 @@ function GuestListPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, full_name, email, city, country, whatsapp, rsvp_status, rsvp_note, household, gender",
+          "id, full_name, email, phone, city, country, whatsapp, rsvp_status, rsvp_note, household, gender",
         );
       if (error) throw error;
       return data;
@@ -140,6 +143,8 @@ function GuestListPage() {
 
         name: profile?.full_name || inv.guest_name,
         email: profile?.email || inv.email,
+        phone: profile?.phone || inv.phone || "",
+        category: inv.category ?? "family",
         location: [profile?.city, profile?.country].filter(Boolean).join(", "),
         registered: Boolean(inv.claimed_by),
         rsvp: profile?.rsvp_status ?? "pending",
@@ -156,7 +161,7 @@ function GuestListPage() {
     const q = filter.trim().toLowerCase();
     return q
       ? list.filter((r) =>
-          [r.name, r.email, r.code, r.household, ...r.looks]
+          [r.name, r.email, r.phone, r.code, r.household, categoryLabel(r.category), ...r.looks]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
@@ -357,6 +362,7 @@ function GuestListPage() {
                           {r.gender === "men" ? "Menswear" : "Womenswear"}
                         </Badge>
                       ) : null}
+                      <Badge variant="secondary">{categoryLabel(r.category)}</Badge>
                     </p>
                     {r.household ? (
                       <p className="truncate text-xs text-primary">{r.household}</p>
@@ -364,6 +370,7 @@ function GuestListPage() {
                     <p className="truncate text-xs text-muted-foreground">
                       {r.code}
                       {r.email ? ` · ${r.email}` : ""}
+                      {r.phone ? ` · ${r.phone}` : ""}
                       {r.location ? ` · ${r.location}` : ""}
                     </p>
                   </div>

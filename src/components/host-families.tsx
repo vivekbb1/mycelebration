@@ -15,14 +15,35 @@ import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 type Wardrobe = "" | "women" | "men";
 
-type MemberDraft = { name: string; email: string; gender: Wardrobe };
+type MemberDraft = {
+  name: string;
+  email: string;
+  phone: string;
+  gender: Wardrobe;
+  category: string;
+};
+
+/** Groups a host can sort guests into — handy for seating, gifts and reminders. */
+export const GUEST_CATEGORIES = [
+  { value: "family", label: "Family" },
+  { value: "bride", label: "Bride's guest" },
+  { value: "groom", label: "Groom's guest" },
+  { value: "friends", label: "Friends" },
+  { value: "corporate", label: "Corporate" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const categoryLabel = (value: string | null | undefined) =>
+  GUEST_CATEGORIES.find((c) => c.value === (value ?? "family"))?.label ?? "Family";
 
 const emailOk = (v: string) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 const memberSchema = z.object({
   name: z.string().trim().min(2, "Every person needs a name").max(100),
   email: z.string().trim().max(255).refine(emailOk, "Check the email address"),
+  phone: z.string().trim().max(40),
   gender: z.enum(["", "women", "men"]),
+  category: z.string().trim().max(40),
 });
 
 const familySchema = z.object({
@@ -32,6 +53,20 @@ const familySchema = z.object({
 
 const MEN_WORDS = ["m", "male", "man", "husband", "son", "boy", "menswear", "men"];
 const WOMEN_WORDS = ["f", "female", "woman", "wife", "daughter", "girl", "womenswear", "women"];
+
+/** Reads a guest group from a spreadsheet cell; anything unknown stays "family". */
+function categoryFrom(value: string): string {
+  const v = value.trim().toLowerCase();
+  if (v === "") return "family";
+  const hit = GUEST_CATEGORIES.find((c) => c.value === v || c.label.toLowerCase() === v);
+  if (hit) return hit.value;
+  if (v.includes("corp") || v.includes("office") || v.includes("work")) return "corporate";
+  if (v.includes("groom")) return "groom";
+  if (v.includes("bride")) return "bride";
+  if (v.includes("friend")) return "friends";
+  if (v.includes("family") || v.includes("relative")) return "family";
+  return "other";
+}
 
 function wardrobeFrom(value: string): Wardrobe {
   const v = value.trim().toLowerCase();
@@ -53,7 +88,14 @@ function makeMemberCode(name: string) {
   return `${base}-${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
-type ParsedRow = { family: string; name: string; email: string; gender: Wardrobe };
+type ParsedRow = {
+  family: string;
+  name: string;
+  email: string;
+  phone: string;
+  gender: Wardrobe;
+  category: string;
+};
 
 /** Turns a grid of cells (spreadsheet or pasted text) into family members. */
 function rowsFromGrid(grid: string[][], fallbackFamily: string): ParsedRow[] {
@@ -68,6 +110,10 @@ function rowsFromGrid(grid: string[][], fallbackFamily: string): ParsedRow[] {
     family: header.findIndex((c) => ["family", "household", "family name"].includes(c)),
     name: header.findIndex((c) => ["name", "guest", "guest name"].includes(c)),
     email: header.findIndex((c) => ["email", "email address", "e-mail"].includes(c)),
+    phone: header.findIndex((c) =>
+      ["phone", "mobile", "mobile number", "phone number", "whatsapp"].includes(c),
+    ),
+    category: header.findIndex((c) => ["category", "group", "guest of", "side"].includes(c)),
     gender: header.findIndex((c) =>
       ["wardrobe", "gender", "menswear/womenswear", "male/female"].includes(c),
     ),
@@ -80,13 +126,16 @@ function rowsFromGrid(grid: string[][], fallbackFamily: string): ParsedRow[] {
       let family = looksLikeHeader ? pick(idx.family) : "";
       let name = looksLikeHeader ? pick(idx.name) : "";
       let email = looksLikeHeader ? pick(idx.email) : "";
+      let phone = looksLikeHeader ? pick(idx.phone) : "";
+      const category = categoryFrom(looksLikeHeader ? pick(idx.category) : "");
       let gender = wardrobeFrom(looksLikeHeader ? pick(idx.gender) : "");
 
       if (!looksLikeHeader) {
         // Free-form order: family, name, email, wardrobe — extra cells are ignored.
         const rest = [...cells];
         email = rest.find((c) => /@/.test(c)) ?? "";
-        const words = rest.filter((c) => c !== email);
+        phone = rest.find((c) => c !== email && /^[+()\d][\d\s\-()]{6,}$/.test(c)) ?? "";
+        const words = rest.filter((c) => c !== email && c !== phone);
         const marker = words.find((c) => wardrobeFrom(c) !== "");
         if (marker) gender = wardrobeFrom(marker);
         const names = words.filter((c) => c !== marker);
@@ -102,7 +151,9 @@ function rowsFromGrid(grid: string[][], fallbackFamily: string): ParsedRow[] {
         family: (family || fallbackFamily).trim(),
         name: name.trim(),
         email: emailOk(email) ? email.trim() : "",
+        phone: phone.trim(),
         gender,
+        category,
       };
     })
     .filter((r) => r.name.length >= 2 && r.family.length >= 2);
@@ -114,8 +165,8 @@ export function HostFamilies() {
 
   const [familyName, setFamilyName] = useState("");
   const [members, setMembers] = useState<MemberDraft[]>([
-    { name: "", email: "", gender: "women" },
-    { name: "", email: "", gender: "men" },
+    { name: "", email: "", phone: "", gender: "women", category: "family" },
+    { name: "", email: "", phone: "", gender: "men", category: "family" },
   ]);
   const [busy, setBusy] = useState(false);
 
@@ -145,7 +196,7 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, email, gender, family_id, claimed_by");
+        .select("id, guest_name, email, phone, category, gender, family_id, claimed_by");
       if (error) throw error;
       return data;
     },
@@ -166,6 +217,30 @@ export function HostFamilies() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["families"] });
+  };
+
+  /** Emergency contact details and the guest group, saved as the host types. */
+  const updateMember = async (
+    id: string,
+    patch: { email?: string; phone?: string; category?: string },
+  ) => {
+    const clean: { email?: string | null; phone?: string | null; category?: string } = {};
+    if (patch.email !== undefined) {
+      if (!emailOk(patch.email.trim())) {
+        toast.error("Check the email address.");
+        return;
+      }
+      clean.email = patch.email.trim() || null;
+    }
+    if (patch.phone !== undefined) clean.phone = patch.phone.trim() || null;
+    if (patch.category !== undefined) clean.category = patch.category;
+
+    const { error } = await supabase.from("invite_codes").update(clean).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["family-members"] });
   };
 
   const refresh = async () => {
@@ -199,8 +274,8 @@ export function HostFamilies() {
     );
     setFamilyName("");
     setMembers([
-      { name: "", email: "", gender: "women" },
-      { name: "", email: "", gender: "men" },
+      { name: "", email: "", phone: "", gender: "women", category: "family" },
+      { name: "", email: "", phone: "", gender: "men", category: "family" },
     ]);
     await refresh();
   };
@@ -241,13 +316,18 @@ export function HostFamilies() {
 
     // People already on the list are updated (so a filled-in template can be
     // uploaded again to add emails), never duplicated.
-    const known = new Map<string, { id: string; email: string | null; gender: string | null }>();
+    const known = new Map<
+      string,
+      { id: string; email: string | null; phone: string | null; gender: string | null; category: string | null }
+    >();
     for (const m of memberRows.data ?? []) {
       if (!m.family_id) continue;
       known.set(`${m.family_id}|${(m.guest_name ?? "").trim().toLowerCase()}`, {
         id: m.id,
         email: m.email,
+        phone: m.phone,
         gender: m.gender,
+        category: m.category,
       });
     }
 
@@ -255,12 +335,21 @@ export function HostFamilies() {
       code: string;
       guest_name: string;
       email: string | null;
+      phone: string | null;
+      category: string;
       gender: string | null;
       household: string;
       family_id: string;
       invite_id: string | null;
     }[] = [];
-    const patches: { id: string; email?: string | null; gender?: string | null }[] = [];
+    type Patch = {
+      id: string;
+      email?: string | null;
+      phone?: string | null;
+      gender?: string | null;
+      category?: string;
+    };
+    const patches: Patch[] = [];
 
     for (const g of groups) {
       const fam = byName.get(g.family.toLowerCase());
@@ -269,9 +358,11 @@ export function HostFamilies() {
         const name = p.name.trim();
         const seen = known.get(`${fam.id}|${name.toLowerCase()}`);
         if (seen) {
-          const patch: { id: string; email?: string | null; gender?: string | null } = { id: seen.id };
+          const patch: Patch = { id: seen.id };
           if (p.email.trim() && p.email.trim() !== seen.email) patch.email = p.email.trim();
+          if (p.phone.trim() && p.phone.trim() !== seen.phone) patch.phone = p.phone.trim();
           if (p.gender && p.gender !== seen.gender) patch.gender = p.gender;
+          if (p.category && p.category !== (seen.category ?? "family")) patch.category = p.category;
           if (Object.keys(patch).length > 1) patches.push(patch);
           continue;
         }
@@ -282,6 +373,8 @@ export function HostFamilies() {
           code: makeMemberCode(name),
           guest_name: name,
           email: p.email.trim() || null,
+          phone: p.phone.trim() || null,
+          category: p.category || "family",
           gender: p.gender || null,
           household: fam.name,
           family_id: fam.id,
@@ -322,21 +415,23 @@ export function HostFamilies() {
   /** Spreadsheet of the current guest list (or a blank sample) to fill in and upload back. */
   const downloadTemplate = async () => {
     const XLSX = await import("xlsx");
-    const header = ["Family", "Name", "Email", "Wardrobe"];
+    const header = ["Family", "Name", "Email", "Mobile", "Category", "Wardrobe"];
     const body = grouped.flatMap((f) =>
       f.members.map((m) => [
         f.name,
         m.guest_name ?? "",
         m.email ?? "",
+        m.phone ?? "",
+        categoryLabel(m.category),
         m.gender === "men" ? "menswear" : m.gender === "women" ? "womenswear" : "",
       ]),
     );
     const sample = [
-      ["Mr & Mrs Bhatia", "Vivek Bhatia", "vivek@example.com", "menswear"],
-      ["Mr & Mrs Bhatia", "Priya Bhatia", "priya@example.com", "womenswear"],
+      ["Mr & Mrs Bhatia", "Vivek Bhatia", "vivek@example.com", "+971 50 123 4567", "Family", "menswear"],
+      ["Mr & Mrs Bhatia", "Priya Bhatia", "priya@example.com", "+971 50 765 4321", "Family", "womenswear"],
     ];
     const sheet = XLSX.utils.aoa_to_sheet([header, ...(body.length > 0 ? body : sample)]);
-    sheet["!cols"] = [{ wch: 30 }, { wch: 26 }, { wch: 32 }, { wch: 14 }];
+    sheet["!cols"] = [{ wch: 30 }, { wch: 26 }, { wch: 32 }, { wch: 20 }, { wch: 16 }, { wch: 14 }];
     const book = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book, sheet, "Guest list");
     XLSX.writeFile(book, "guest-list.xlsx");
@@ -349,14 +444,22 @@ export function HostFamilies() {
 
   const importRows = async (parsed: ParsedRow[]) => {
     if (parsed.length === 0) {
-      toast.error("Nothing to import — check the columns: family, name, email, wardrobe.");
+      toast.error(
+        "Nothing to import — check the columns: family, name, email, mobile, category, wardrobe.",
+      );
       return;
     }
     const groups = new Map<string, { family: string; people: MemberDraft[] }>();
     for (const r of parsed) {
       const key = r.family.toLowerCase();
       if (!groups.has(key)) groups.set(key, { family: r.family, people: [] });
-      groups.get(key)?.people.push({ name: r.name, email: r.email, gender: r.gender });
+      groups.get(key)?.people.push({
+        name: r.name,
+        email: r.email,
+        phone: r.phone,
+        gender: r.gender,
+        category: r.category,
+      });
     }
     setBulkBusy(true);
     const created = await createFamilies([...groups.values()]);
@@ -495,6 +598,25 @@ export function HostFamilies() {
                 placeholder="Email (optional)"
                 onChange={(e) => setMember(i, { email: e.target.value })}
               />
+              <Input
+                className="mt-2"
+                maxLength={40}
+                value={m.phone}
+                placeholder="Mobile number (optional)"
+                onChange={(e) => setMember(i, { phone: e.target.value })}
+              />
+              <select
+                className="field-select mt-2"
+                value={m.category}
+                aria-label={`Guest group for person ${i + 1}`}
+                onChange={(e) => setMember(i, { category: e.target.value })}
+              >
+                {GUEST_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
               <div className="mt-2 flex flex-wrap gap-2">
                 {[
                   { value: "", label: "Let them choose" },
@@ -517,7 +639,12 @@ export function HostFamilies() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => setMembers((list) => [...list, { name: "", email: "", gender: "" }])}
+            onClick={() =>
+              setMembers((list) => [
+                ...list,
+                { name: "", email: "", phone: "", gender: "", category: "family" },
+              ])
+            }
           >
             <Plus className="size-4" /> Add another person
           </Button>
@@ -532,7 +659,8 @@ export function HostFamilies() {
         <h2 className="text-xl">Invite many families at once</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Upload a spreadsheet, or paste rows as{" "}
-          <span className="text-foreground">family, name, email, wardrobe</span> — one person per
+          <span className="text-foreground">family, name, email, mobile, category, wardrobe</span> —
+          one person per
           line. People sharing a family name share a code.
         </p>
 
@@ -564,7 +692,8 @@ export function HostFamilies() {
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           The template holds everyone already on your list — add the missing emails and upload it
-          back. Names already there are updated, not duplicated.
+          back. Names already there are updated, not duplicated — so you can fill in mobile numbers
+          and guest groups later.
         </p>
 
         <Textarea
@@ -572,7 +701,7 @@ export function HostFamilies() {
           rows={6}
           value={bulk}
           placeholder={
-            "Mr & Mrs Bhatia, Vivek Bhatia, vivek@example.com, husband\nMr & Mrs Bhatia, Priya Bhatia, priya@example.com, wife"
+            "Mr & Mrs Bhatia, Vivek Bhatia, vivek@example.com, +971501234567, family, husband\nMr & Mrs Bhatia, Priya Bhatia, priya@example.com, +971507654321, family, wife"
           }
           onChange={(e) => setBulk(e.target.value)}
         />
@@ -634,22 +763,54 @@ export function HostFamilies() {
                       ))}
                     </select>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {f.members.length === 0
-                      ? "No one added yet"
-                      : f.members
-                          .map(
-                            (m) =>
-                              `${m.guest_name}${
-                                m.gender === "men"
-                                  ? " (menswear)"
-                                  : m.gender === "women"
-                                    ? " (womenswear)"
-                                    : ""
-                              }`,
-                          )
-                          .join(" · ")}
-                  </p>
+                  {f.members.length === 0 ? (
+                    <p className="mt-1 text-xs text-muted-foreground">No one added yet</p>
+                  ) : (
+                    <ul className="mt-3 space-y-3">
+                      {f.members.map((m) => (
+                        <li key={m.id} className="rounded-lg border border-border/60 p-3">
+                          <p className="text-sm">
+                            {m.guest_name}
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              {m.gender === "men"
+                                ? "menswear"
+                                : m.gender === "women"
+                                  ? "womenswear"
+                                  : "outfit not set"}
+                            </span>
+                          </p>
+                          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                            <Input
+                              defaultValue={m.email ?? ""}
+                              maxLength={255}
+                              placeholder="Email"
+                              aria-label={`Email for ${m.guest_name}`}
+                              onBlur={(e) => void updateMember(m.id, { email: e.target.value })}
+                            />
+                            <Input
+                              defaultValue={m.phone ?? ""}
+                              maxLength={40}
+                              placeholder="Mobile number"
+                              aria-label={`Mobile number for ${m.guest_name}`}
+                              onBlur={(e) => void updateMember(m.id, { phone: e.target.value })}
+                            />
+                            <select
+                              className="field-select text-xs"
+                              value={m.category ?? "family"}
+                              aria-label={`Guest group for ${m.guest_name}`}
+                              onChange={(e) => void updateMember(m.id, { category: e.target.value })}
+                            >
+                              {GUEST_CATEGORIES.map((c) => (
+                                <option key={c.value} value={c.value}>
+                                  {c.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <button

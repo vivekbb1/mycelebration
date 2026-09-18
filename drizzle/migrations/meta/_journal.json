@@ -218,6 +218,13 @@
       "when": 1789735833676,
       "tag": "0030_branding_cover_logo",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1789736260687,
+      "tag": "0031_guest_contact_and_category",
+      "breakpoints": true
     }
   ]
 }
