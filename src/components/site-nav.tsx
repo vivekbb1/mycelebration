@@ -61,9 +61,18 @@ export function SiteNav() {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
         <Link
           to="/invitation"
-          className="font-display shrink-0 truncate text-base tracking-wide sm:text-lg"
+          className="font-display flex shrink-0 items-center truncate text-base tracking-wide sm:text-lg"
         >
-          {t("nav.brand", "Our Wedding")}
+          {branding.logo_url ? (
+            <img
+              src={branding.logo_url}
+              alt={t("nav.brand", "Our Wedding")}
+              style={{ height: Math.min(branding.logo_height, 40) }}
+              className="w-auto"
+            />
+          ) : (
+            t("nav.brand", "Our Wedding")
+          )}
         </Link>
 
         <div className="mx-auto min-w-0">
