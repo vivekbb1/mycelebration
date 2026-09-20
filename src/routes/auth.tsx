@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSiteContent } from "@/lib/site-content";
 
 const searchSchema = z.object({
   code: z.string().max(64).optional().catch(undefined),
@@ -52,6 +53,7 @@ const signInSchema = z.object({
 });
 
 function AuthPage() {
+  const { t } = useSiteContent();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
