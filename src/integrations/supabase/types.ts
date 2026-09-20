@@ -1230,6 +1230,8 @@ export type Database = {
           note: string | null
           outfits_paid_by_host: boolean
           pay_instructions: string | null
+          public_intro: string | null
+          slug: string | null
           updated_at: string
         }
         Insert: {
@@ -1242,6 +1244,8 @@ export type Database = {
           note?: string | null
           outfits_paid_by_host?: boolean
           pay_instructions?: string | null
+          public_intro?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -1254,6 +1258,8 @@ export type Database = {
           note?: string | null
           outfits_paid_by_host?: boolean
           pay_instructions?: string | null
+          public_intro?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1844,6 +1850,7 @@ export type Database = {
         Args: { _outfit_id: string }
         Returns: boolean
       }
+      celebration_by_slug: { Args: { _slug: string }; Returns: Json }
       claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
       has_role: {

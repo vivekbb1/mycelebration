@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, Palette, Trash2 } from "lucide-react";
+import { Copy, Globe, Mail, Palette, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { BRANDING_DEFAULTS, fontStack, type Branding } from "@/lib/branding";
+import { slugProblem, slugify } from "@/lib/celebration-slug";
 
 type Draft = Omit<Branding, "id">;
 
@@ -17,6 +19,8 @@ export type Invite = {
   note: string | null;
   branding_preset_id: string | null;
   created_at: string;
+  slug: string | null;
+  public_intro: string | null;
 };
 
 type Theme = { id: string; name: string; settings: Draft };
@@ -29,7 +33,7 @@ export function useInvites() {
     queryFn: async (): Promise<Invite[]> => {
       const { data, error } = await supabase
         .from("invites")
-        .select("id, name, note, branding_preset_id, created_at")
+        .select("id, name, note, branding_preset_id, created_at, slug, public_intro")
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as Invite[];
@@ -98,6 +102,113 @@ function ThemePicker({
         </option>
       ))}
     </select>
+  );
+}
+
+/** The celebration's own web address and the welcome line visitors read there. */
+function WebAddress({ invite }: { invite: Invite }) {
+  const qc = useQueryClient();
+  const [slug, setSlug] = useState(invite.slug ?? "");
+  const [intro, setIntro] = useState(invite.public_intro ?? "");
+
+  useEffect(() => {
+    setSlug(invite.slug ?? "");
+    setIntro(invite.public_intro ?? "");
+  }, [invite.slug, invite.public_intro]);
+
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const suggestion = slugify(invite.name);
+
+  const save = useMutation({
+    mutationFn: async (patch: { slug?: string | null; public_intro?: string | null }) => {
+      const { error } = await supabase
+        .from("invites")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", invite.id);
+      if (error) {
+        if (error.code === "23505")
+          throw new Error("Another celebration already uses that web address.");
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invite-sets"] });
+      toast.success("Saved.");
+    },
+    onError: (e: Error) => {
+      setSlug(invite.slug ?? "");
+      toast.error(e.message);
+    },
+  });
+
+  const commitSlug = () => {
+    const clean = slugify(slug);
+    if (!clean) {
+      if (invite.slug) save.mutate({ slug: null });
+      setSlug("");
+      return;
+    }
+    const problem = slugProblem(clean);
+    if (problem) {
+      toast.error(problem);
+      return;
+    }
+    setSlug(clean);
+    if (clean !== (invite.slug ?? "")) save.mutate({ slug: clean });
+  };
+
+  const link = slugify(slug) ? `${origin}/${slugify(slug)}` : "";
+
+  return (
+    <div className="mt-3 space-y-3 border-t border-border/50 pt-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Globe className="size-4 text-primary" />
+        <span className="text-sm text-muted-foreground">Web address</span>
+        <span className="text-xs text-muted-foreground">{origin}/</span>
+        <Input
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          onBlur={commitSlug}
+          placeholder={suggestion || "kush-khyati"}
+          maxLength={60}
+          aria-label={`Web address for ${invite.name}`}
+          className="h-9 w-44"
+        />
+        {!invite.slug && suggestion ? (
+          <Button type="button" size="sm" variant="ghost" onClick={() => save.mutate({ slug: suggestion })}>
+            Use {suggestion}
+          </Button>
+        ) : null}
+        {link ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              void navigator.clipboard?.writeText(link);
+              toast.success("Link copied — share it with your guests.");
+            }}
+          >
+            <Copy className="mr-1.5 size-3.5" /> Copy link
+          </Button>
+        ) : null}
+      </div>
+      <label className="block text-sm">
+        A welcome line for that page (optional)
+        <Textarea
+          value={intro}
+          onChange={(e) => setIntro(e.target.value)}
+          onBlur={() => {
+            const clean = intro.trim();
+            if (clean !== (invite.public_intro ?? "")) save.mutate({ public_intro: clean || null });
+          }}
+          rows={2}
+          maxLength={600}
+          placeholder="We can't wait to celebrate with you. Sign in with the code we sent you."
+          className="mt-1"
+        />
+      </label>
+    </div>
   );
 }
 
@@ -274,6 +385,7 @@ export function HostInvites() {
                       />
                     </span>
                   </div>
+                  <WebAddress invite={v} />
                 </li>
               );
             })}

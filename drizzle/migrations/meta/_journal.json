@@ -316,6 +316,13 @@
       "when": 1789906943194,
       "tag": "0044_guest_transport_and_stays",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1789910223332,
+      "tag": "0045_celebration_public_page",
+      "breakpoints": true
     }
   ]
 }
