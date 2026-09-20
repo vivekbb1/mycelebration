@@ -66,6 +66,22 @@ function ConfirmPage() {
     },
   });
 
+  const me = useQuery({
+    queryKey: ["summary-me"],
+    queryFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("household")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      return data ?? null;
+    },
+  });
+  const household = (me.data?.household ?? "").trim();
+
+
   const looks = useQuery({
     queryKey: ["confirm-looks"],
     queryFn: async () => {
