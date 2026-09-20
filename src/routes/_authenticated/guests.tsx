@@ -14,7 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/components/host-families";
 import { useFeatures } from "@/lib/features";
 import { HostFamilies } from "@/components/host-families";
-import { EventPicker, SelectedEventProvider } from "@/lib/selected-event";
+import {
+  EventPicker,
+  SelectedEventProvider,
+  matchesSelectedEvent,
+  useSelectedEvent,
+} from "@/lib/selected-event";
 
 
 export const Route = createFileRoute("/_authenticated/guests")({
@@ -53,6 +58,7 @@ function GuestListPage() {
   const features = useFeatures();
   const emailInvite = useServerFn(sendInviteEmail);
   const [filter, setFilter] = useState("");
+  const { inviteId: selectedEvent } = useSelectedEvent();
 
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -81,7 +87,7 @@ function GuestListPage() {
       const { data, error } = await supabase
         .from("invite_codes")
         .select(
-          "id, code, guest_name, email, phone, category, claimed_by, claimed_at, household, gender",
+          "id, code, guest_name, email, phone, category, claimed_by, claimed_at, household, gender, invite_id",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -138,9 +144,15 @@ function GuestListPage() {
     },
   });
 
+  // Only the guests belonging to the event the host is working on.
+  const scopedInvites = useMemo(
+    () => (invites.data ?? []).filter((i) => matchesSelectedEvent(i.invite_id, selectedEvent)),
+    [invites.data, selectedEvent],
+  );
+
   const rows = useMemo(() => {
     const outfitTitle = (id: string) => outfits.data?.find((o) => o.id === id)?.title ?? "Outfit";
-    const list = (invites.data ?? []).map((inv) => {
+    const list = scopedInvites.map((inv) => {
       const profile = inv.claimed_by
         ? profiles.data?.find((p) => p.id === inv.claimed_by)
         : undefined;
@@ -180,16 +192,23 @@ function GuestListPage() {
             .includes(q),
         )
       : list;
-  }, [invites.data, profiles.data, reservations.data, outfits.data, measurements.data, filter]);
+  }, [scopedInvites, profiles.data, reservations.data, outfits.data, measurements.data, filter]);
 
   const stats = useMemo(() => {
-    const all = (invites.data ?? []).length;
-    const registered = (invites.data ?? []).filter((i) => i.claimed_by).length;
-    const reserved = new Set((reservations.data ?? []).map((r) => r.guest_id)).size;
-    const measured = new Set((measurements.data ?? []).map((m) => m.guest_id)).size;
-    const attending = (profiles.data ?? []).filter((p) => p.rsvp_status === "yes").length;
+    const all = scopedInvites.length;
+    const registered = scopedInvites.filter((i) => i.claimed_by).length;
+    const mine = new Set(scopedInvites.map((i) => i.claimed_by).filter(Boolean) as string[]);
+    const reserved = new Set(
+      (reservations.data ?? []).filter((r) => mine.has(r.guest_id)).map((r) => r.guest_id),
+    ).size;
+    const measured = new Set(
+      (measurements.data ?? []).filter((m) => mine.has(m.guest_id)).map((m) => m.guest_id),
+    ).size;
+    const attending = (profiles.data ?? []).filter(
+      (p) => p.rsvp_status === "yes" && mine.has(p.id),
+    ).length;
     return { all, registered, reserved, measured, attending, silent: all - registered };
-  }, [invites.data, reservations.data, measurements.data, profiles.data]);
+  }, [scopedInvites, reservations.data, measurements.data, profiles.data]);
 
 
   const copyInvite = async (code: string, guestName: string) => {
