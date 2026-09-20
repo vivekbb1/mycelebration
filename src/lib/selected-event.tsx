@@ -92,7 +92,7 @@ export function EventPicker() {
         </select>
       )}
       <p className="w-full text-xs text-muted-foreground sm:w-auto">
-        Functions, guests, wardrobe and setup all apply to this event.
+        Events, guests, wardrobe and setup all apply to this celebration.
       </p>
     </div>
   );

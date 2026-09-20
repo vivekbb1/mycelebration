@@ -11,7 +11,7 @@ export const FEATURES = [
     blurb: "Head counts per event, travel dates and flights",
   },
   { key: "guest_list", label: "Guest list", blurb: "Families, codes and invitations" },
-  { key: "functions", label: "Functions", blurb: "The schedule of celebrations" },
+  { key: "functions", label: "Events", blurb: "The schedule of events" },
   {
     key: "guest_communication",
     label: "Guest communication",

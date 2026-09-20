@@ -196,7 +196,7 @@ export function HostInvites() {
           <Mail className="size-4 text-primary" /> Add an celebration
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          One celebration is one celebration — its own functions, its own guest list and its own look.
+          One celebration is a wedding of its own — its own events, its own guest list and its own look.
           Run as many side by side as you like.
         </p>
         <div className="mt-5 space-y-3">
@@ -242,7 +242,7 @@ export function HostInvites() {
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="min-w-0">{v.name}</span>
                     <Badge variant="secondary" className="text-xs">
-                      {evs} function{evs === 1 ? "" : "s"}
+                      {evs} event{evs === 1 ? "" : "s"}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {fams} famil{fams === 1 ? "y" : "ies"} · {pax} guest{pax === 1 ? "" : "s"}

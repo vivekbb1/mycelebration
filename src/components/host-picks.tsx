@@ -157,7 +157,7 @@ export function HostPicks() {
                           <span className="text-primary">All set</span>
                         ) : (
                           <span className="text-muted-foreground">
-                            {missing} function{missing > 1 ? "s" : ""}
+                            {missing} event{missing > 1 ? "s" : ""}
                           </span>
                         )}
                       </td>

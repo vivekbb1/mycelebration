@@ -601,7 +601,7 @@ function Lookbook() {
         <div className="panel mt-8 p-8 text-center">
           <h2 className="text-xl">Nothing here yet</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Outfits are still being curated for this function. Check back shortly.
+            Outfits are still being curated for this event. Check back shortly.
           </p>
         </div>
       ) : (

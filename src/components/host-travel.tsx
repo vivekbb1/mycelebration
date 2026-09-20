@@ -181,7 +181,7 @@ export function HostTravel() {
           <Users className="size-4 text-primary" /> Heads per event
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          What families have confirmed for each function.
+          What families have confirmed for each event.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((e) => (

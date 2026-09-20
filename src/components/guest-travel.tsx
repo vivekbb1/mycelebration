@@ -215,7 +215,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
           <Users className="size-4 text-primary" /> Who's coming, event by event
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Start with how many of you are coming, then say yes or no to each function. Change the
+          Start with how many of you are coming, then say yes or no to each event. Change the
           number on any event where it's different.
         </p>
 

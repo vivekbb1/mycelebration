@@ -222,7 +222,7 @@ export function HostEvents() {
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              Required — only the guests on this celebration will see this function. Create celebrations under
+              Required — only the guests on this celebration will see this event. Create celebrations under
               the Celebration tab.
             </p>
           </div>
