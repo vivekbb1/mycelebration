@@ -1005,7 +1005,11 @@ function HostDashboard() {
         )}
 
         <TabsContent value="setup" className="mt-6">
-          <Tabs defaultValue={has("vendor_management") ? "boutiques" : "fees"}>
+          <Tabs
+            defaultValue={
+              has("vendor_management") ? "boutiques" : has("fees") ? "fees" : "hosts"
+            }
+          >
             <TabsList>
               {has("vendor_management") ? (
                 <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
