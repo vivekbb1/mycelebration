@@ -112,16 +112,25 @@ export function HostFunctionAccess() {
 
   /** Add a hashtag to everyone in a family. */
   const addTag = async (ids: string[], raw: string) => {
-    const tag = normaliseTag(raw);
-    if (!tag) return;
+    // One box, many hashtags: "#bride #overseas, top table" all land at once.
+    const tags = [
+      ...new Set(
+        raw
+          .split(/[,#\n]+/)
+          .map((t) => normaliseTag(t))
+          .filter(Boolean),
+      ),
+    ];
+    if (tags.length === 0) return;
     setBusy(true);
     for (const id of ids) {
       const guest = (guests.data ?? []).find((g) => g.id === id);
       const current = splitTags(guest?.tags ?? null);
-      if (current.includes(tag)) continue;
+      const next = [...current, ...tags.filter((t) => !current.includes(t))];
+      if (next.length === current.length) continue;
       const { error } = await supabase
         .from("invite_codes")
-        .update({ tags: [...current, tag].join(", ") })
+        .update({ tags: next.join(", ") })
         .eq("id", id);
       if (error) {
         setBusy(false);
