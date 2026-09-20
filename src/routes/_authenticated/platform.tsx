@@ -165,7 +165,16 @@ function PlatformAdmin() {
     await refresh(["plans", "my-features"]);
   };
 
-  const patchPlan = async (id: string, patch: { name?: string; blurb?: string | null }) => {
+  const patchPlan = async (
+    id: string,
+    patch: {
+      name?: string;
+      blurb?: string | null;
+      price_amount?: number | null;
+      price_currency?: string;
+      price_period?: string;
+    },
+  ) => {
     const { error } = await supabase.from("plans").update(patch).eq("id", id);
     if (error) return void toast.error(error.message);
     await refresh(["plans"]);
