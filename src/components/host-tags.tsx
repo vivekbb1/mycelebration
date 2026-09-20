@@ -48,6 +48,32 @@ export function HostTags() {
     },
   });
 
+  /** The hosts helping with this celebration, for linking tags to people. */
+  const hosts = useQuery({
+    queryKey: ["tag-hosts-list"],
+    queryFn: async () => {
+      const roles = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (roles.error) throw roles.error;
+      const ids = (roles.data ?? []).map((r) => r.user_id);
+      if (ids.length === 0) return [] as { id: string; name: string }[];
+      const people = await supabase.from("profiles").select("id, full_name, email").in("id", ids);
+      if (people.error) throw people.error;
+      return ids.map((id) => {
+        const p = (people.data ?? []).find((row) => row.id === id);
+        return { id, name: (p?.full_name ?? "").trim() || (p?.email ?? "") || "Host" };
+      });
+    },
+  });
+
+  const tagHosts = useQuery({
+    queryKey: ["guest-tag-hosts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("guest_tag_hosts").select("id, tag_id, host_id");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   /** How many families carry each tag. */
   const usage = useMemo(() => {
     const map = new Map<string, Set<string>>();
