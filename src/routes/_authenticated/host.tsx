@@ -454,30 +454,16 @@ function HostDashboard() {
 
   return (
     <main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-10">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <p className="text-eyebrow">Host area</p>
-          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/upgrade">Your package</Link>
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <p className="text-eyebrow">Host area</p>
+        <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">{tabTitle}</h1>
       </div>
 
-      <EventPicker />
-
-      <Tabs defaultValue="overview" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">Celebration</TabsTrigger>
-          {has("functions") ? <TabsTrigger value="functions">Events</TabsTrigger> : null}
-          {has("guest_list") ? <TabsTrigger value="guests">Guests</TabsTrigger> : null}
-          {has("wardrobe_picker") ? <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger> : null}
-          <TabsTrigger value="setup">Setup</TabsTrigger>
-          {isPlatformAdmin ? <TabsTrigger value="platform">Platform</TabsTrigger> : null}
-        </TabsList>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => navigate({ to: "/host", search: { tab: v } })}
+        className="mt-8"
+      >
 
         <TabsContent value="overview" className="mt-6 space-y-8">
 
