@@ -983,6 +983,7 @@ export type Database = {
           id: string
           name: string
           note: string | null
+          outfits_paid_by_host: boolean
           pay_instructions: string | null
           updated_at: string
         }
@@ -993,6 +994,7 @@ export type Database = {
           id?: string
           name: string
           note?: string | null
+          outfits_paid_by_host?: boolean
           pay_instructions?: string | null
           updated_at?: string
         }
@@ -1003,6 +1005,7 @@ export type Database = {
           id?: string
           name?: string
           note?: string | null
+          outfits_paid_by_host?: boolean
           pay_instructions?: string | null
           updated_at?: string
         }
@@ -1612,6 +1615,7 @@ export type Database = {
       }
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
       my_features: { Args: never; Returns: Json }
+      my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
     }
     Enums: {
