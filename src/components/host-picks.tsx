@@ -1,8 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { Check, Minus } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
+import { Check, Mail, Minus } from "lucide-react";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
+
+const REMINDER_REASONS: Record<string, string> = {
+  no_email: "no email address saved for this guest",
+  already_chosen: "they've already chosen",
+  nothing_to_choose: "nothing to choose for them",
+  email_turned_off: "email sending is switched off",
+  lovable_domain_not_set_up: "your sender domain isn't set up yet",
+  from_address_missing: "no from address saved",
+  api_key_missing: "the email service key is missing",
+};
 
 /**
  * Who has picked a look for which event. Events where guests wear their
