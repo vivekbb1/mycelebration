@@ -13,13 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
-import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticated/confirm'
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
 import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
-import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
+import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
 import { Route as AuthenticatedOutfitsRouteImport } from './routes/_authenticated/outfits'
@@ -28,6 +27,7 @@ import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/p
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
+import { Route as AuthenticatedSummaryRouteImport } from './routes/_authenticated/summary'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
@@ -49,11 +49,6 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedAtelierRoute = AuthenticatedAtelierRouteImport.update({
   id: '/atelier',
   path: '/atelier',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedConfirmRoute = AuthenticatedConfirmRouteImport.update({
-  id: '/confirm',
-  path: '/confirm',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDeliveryRoute = AuthenticatedDeliveryRouteImport.update({
@@ -81,9 +76,9 @@ const AuthenticatedHostsRoute = AuthenticatedHostsRouteImport.update({
   path: '/hosts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedInvitationRoute = AuthenticatedInvitationRouteImport.update({
-  id: '/invitation',
-  path: '/invitation',
+const AuthenticatedInviteRoute = AuthenticatedInviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLookbookRoute = AuthenticatedLookbookRouteImport.update({
@@ -127,6 +122,11 @@ const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSummaryRoute = AuthenticatedSummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
@@ -149,13 +149,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/atelier': typeof AuthenticatedAtelierRoute
-  '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
-  '/invitation': typeof AuthenticatedInvitationRoute
+  '/invite': typeof AuthenticatedInviteRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/outfits': typeof AuthenticatedOutfitsRoute
@@ -164,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/schedule': typeof AuthenticatedScheduleRoute
+  '/summary': typeof AuthenticatedSummaryRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
@@ -172,13 +172,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/atelier': typeof AuthenticatedAtelierRoute
-  '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
-  '/invitation': typeof AuthenticatedInvitationRoute
+  '/invite': typeof AuthenticatedInviteRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/outfits': typeof AuthenticatedOutfitsRoute
@@ -187,6 +186,7 @@ export interface FileRoutesByTo {
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/schedule': typeof AuthenticatedScheduleRoute
+  '/summary': typeof AuthenticatedSummaryRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
@@ -197,13 +197,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
-  '/_authenticated/confirm': typeof AuthenticatedConfirmRoute
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
   '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
-  '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
+  '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
   '/_authenticated/outfits': typeof AuthenticatedOutfitsRoute
@@ -212,6 +211,7 @@ export interface FileRoutesById {
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
+  '/_authenticated/summary': typeof AuthenticatedSummaryRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
@@ -222,13 +222,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/atelier'
-    | '/confirm'
     | '/delivery'
     | '/event'
     | '/guests'
     | '/host'
     | '/hosts'
-    | '/invitation'
+    | '/invite'
     | '/lookbook'
     | '/measurements'
     | '/outfits'
@@ -237,6 +236,7 @@ export interface FileRouteTypes {
     | '/platform'
     | '/portal'
     | '/schedule'
+    | '/summary'
     | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
@@ -245,13 +245,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/atelier'
-    | '/confirm'
     | '/delivery'
     | '/event'
     | '/guests'
     | '/host'
     | '/hosts'
-    | '/invitation'
+    | '/invite'
     | '/lookbook'
     | '/measurements'
     | '/outfits'
@@ -260,6 +259,7 @@ export interface FileRouteTypes {
     | '/platform'
     | '/portal'
     | '/schedule'
+    | '/summary'
     | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
@@ -269,13 +269,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/atelier'
-    | '/_authenticated/confirm'
     | '/_authenticated/delivery'
     | '/_authenticated/event'
     | '/_authenticated/guests'
     | '/_authenticated/host'
     | '/_authenticated/hosts'
-    | '/_authenticated/invitation'
+    | '/_authenticated/invite'
     | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
     | '/_authenticated/outfits'
@@ -284,6 +283,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform'
     | '/_authenticated/portal'
     | '/_authenticated/schedule'
+    | '/_authenticated/summary'
     | '/_authenticated/upgrade'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
@@ -326,13 +326,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtelierRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/confirm': {
-      id: '/_authenticated/confirm'
-      path: '/confirm'
-      fullPath: '/confirm'
-      preLoaderRoute: typeof AuthenticatedConfirmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/delivery': {
       id: '/_authenticated/delivery'
       path: '/delivery'
@@ -368,11 +361,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHostsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/invitation': {
-      id: '/_authenticated/invitation'
-      path: '/invitation'
-      fullPath: '/invitation'
-      preLoaderRoute: typeof AuthenticatedInvitationRouteImport
+    '/_authenticated/invite': {
+      id: '/_authenticated/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof AuthenticatedInviteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/lookbook': {
@@ -431,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScheduleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/summary': {
+      id: '/_authenticated/summary'
+      path: '/summary'
+      fullPath: '/summary'
+      preLoaderRoute: typeof AuthenticatedSummaryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/upgrade': {
       id: '/_authenticated/upgrade'
       path: '/upgrade'
@@ -457,13 +457,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAtelierRoute: typeof AuthenticatedAtelierRoute
-  AuthenticatedConfirmRoute: typeof AuthenticatedConfirmRoute
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
   AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
-  AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
+  AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
   AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
   AuthenticatedOutfitsRoute: typeof AuthenticatedOutfitsRoute
@@ -472,19 +471,19 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
+  AuthenticatedSummaryRoute: typeof AuthenticatedSummaryRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtelierRoute: AuthenticatedAtelierRoute,
-  AuthenticatedConfirmRoute: AuthenticatedConfirmRoute,
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
   AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
-  AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
+  AuthenticatedInviteRoute: AuthenticatedInviteRoute,
   AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
   AuthenticatedOutfitsRoute: AuthenticatedOutfitsRoute,
@@ -493,6 +492,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
+  AuthenticatedSummaryRoute: AuthenticatedSummaryRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
