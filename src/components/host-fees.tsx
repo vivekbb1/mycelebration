@@ -664,6 +664,8 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
         {busy ? "Saving…" : "Save"}
       </Button>
       </div>
+      </>
+      )}
     </div>
   );
 }
