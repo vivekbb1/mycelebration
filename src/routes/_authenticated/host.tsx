@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Pencil, Trash2, ShieldCheck, Users } from "lucide-react";
+import { Pencil, Trash2, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { claimHostAccess } from "@/lib/guest-access.functions";
@@ -28,7 +28,7 @@ import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
 import { HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
-import { GuestListPage } from "./guests";
+import { HostGuestList } from "@/components/host-guest-list";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
 import { HostRelations } from "@/components/host-relations";
@@ -460,13 +460,6 @@ function HostDashboard() {
           <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {has("guest_list") ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/guests">
-                <Users className="size-4" /> Guest list
-              </Link>
-            </Button>
-          ) : null}
           <Button asChild variant="outline" size="sm">
             <Link to="/upgrade">Your package</Link>
           </Button>
@@ -629,7 +622,7 @@ function HostDashboard() {
               ) : null}
             </TabsList>
             <TabsContent value="list" className="mt-6">
-              <GuestListPage />
+              <HostGuestList />
             </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
