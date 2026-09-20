@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/invitation")({
   component: InvitationPage,
 });
 
-type StepTarget = "/event" | "/lookbook" | "/measurements";
+type StepTarget = "/schedule" | "/outfits" | "/measurements";
 
 function InvitationPage() {
   const deliveryPlan = useDeliveryPlan();
@@ -174,7 +174,7 @@ function InvitationPage() {
     cta: string;
   }[] = [
     {
-      to: "/event",
+      to: "/schedule",
       icon: CalendarCheck,
       title: t("step.rsvp_title", "Tell us if you're coming"),
       body: t(
@@ -193,7 +193,7 @@ function InvitationPage() {
         : t("step.rsvp_cta", "Reply now"),
     },
     {
-      to: "/lookbook",
+      to: "/outfits",
       icon: Sparkles,
       title: t("step.outfit_title", "Choose your outfit"),
       body: needsOutfits
@@ -235,7 +235,7 @@ function InvitationPage() {
   ];
 
   // RSVP-only families have nothing to choose and nothing to measure.
-  const steps = allSteps.filter((step) => needsWardrobe || step.to === "/event");
+  const steps = allSteps.filter((step) => needsWardrobe || step.to === "/schedule");
 
   const doneCount = steps.filter((s) => s.done).length;
   const nextStep = steps.find((s) => !s.done) ?? null;
@@ -406,7 +406,7 @@ function InvitationPage() {
             </ul>
           )}
           <Button asChild variant="outline" size="sm" className="mt-4">
-            <Link to="/event">Add or change travel dates</Link>
+            <Link to="/schedule">Add or change travel dates</Link>
           </Button>
         </section>
 

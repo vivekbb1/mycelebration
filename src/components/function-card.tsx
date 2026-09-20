@@ -102,7 +102,7 @@ export function FunctionCard({
                   </Badge>
                 )}
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/lookbook">
+                  <Link to="/outfits">
                     {chosenLook
                       ? t("card.change_cta", "Change your look")
                       : `${t("card.choose_prefix", "Choose your look for")} ${eventName}`}

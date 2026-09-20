@@ -142,7 +142,7 @@ function GuestViewPage() {
             This page is part of the host area.
           </p>
           <Button asChild className="mt-5 w-full">
-            <Link to="/lookbook">Back to the lookbook</Link>
+            <Link to="/outfits">Back to the lookbook</Link>
           </Button>
         </div>
       </main>

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useSiteContent } from "@/lib/site-content";
 import { GuestTravel } from "@/components/guest-travel";
 
-export const Route = createFileRoute("/_authenticated/event")({
+export const Route = createFileRoute("/_authenticated/schedule")({
   head: () => ({
     meta: [
       { title: "Your Schedule — Dates, Venues & Replies" },
@@ -136,7 +136,7 @@ function EventPage() {
           "Dress codes are guidance, not rules — but red and ivory are reserved for the couple.",
         )}{" "}
         Once you know which functions you'll join,{" "}
-        <Link to="/lookbook" className="text-primary underline-offset-4 hover:underline">
+        <Link to="/outfits" className="text-primary underline-offset-4 hover:underline">
           reserve your looks in the lookbook
         </Link>
         .

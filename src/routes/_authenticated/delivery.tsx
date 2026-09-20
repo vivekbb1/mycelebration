@@ -122,7 +122,7 @@ function DeliveryPage() {
               You haven't reserved a look yet, so there's nothing to tailor.
             </p>
             <Button asChild size="sm" className="mt-4">
-              <Link to="/lookbook">Browse the lookbook</Link>
+              <Link to="/outfits">Browse the lookbook</Link>
             </Button>
           </div>
         ) : (

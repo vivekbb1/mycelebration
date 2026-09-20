@@ -398,7 +398,7 @@ function PortalPage() {
                       <div className="mt-2">
                         <p className="text-sm text-muted-foreground">Nothing chosen yet.</p>
                         <Button asChild size="sm" variant="outline" className="mt-3">
-                          <Link to="/lookbook">Choose a look</Link>
+                          <Link to="/outfits">Choose a look</Link>
                         </Button>
                       </div>
                     ) : (

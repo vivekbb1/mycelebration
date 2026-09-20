@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { claimInvite } from "@/routes/auth";
 import { useDeliveryPlan } from "@/lib/logistics";
 
-export const Route = createFileRoute("/_authenticated/lookbook")({
+export const Route = createFileRoute("/_authenticated/outfits")({
   head: () => ({
     meta: [
       { title: "The Lookbook — Reserve Your Wedding Outfit" },
@@ -299,7 +299,7 @@ function Lookbook() {
             measurements to send. Just let us know you're coming.
           </p>
           <Button asChild className="mt-5">
-            <Link to="/event">Go to your RSVP</Link>
+            <Link to="/schedule">Go to your RSVP</Link>
           </Button>
         </div>
       </main>
@@ -451,7 +451,7 @@ function Lookbook() {
             Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
           </button>
           <Button asChild size="sm" variant="outline">
-            <Link to="/event">Dates, venues &amp; RSVP</Link>
+            <Link to="/schedule">Dates, venues &amp; RSVP</Link>
           </Button>
         </div>
       </div>
