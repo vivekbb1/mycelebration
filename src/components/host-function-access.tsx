@@ -546,6 +546,47 @@ export function HostFunctionAccess() {
                   {f.names.length > 0 ? (
                     <p className="mt-0.5 text-xs text-muted-foreground">{f.names.join(", ")}</p>
                   ) : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    {f.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        #{t}
+                        <button
+                          type="button"
+                          disabled={busy}
+                          aria-label={`Remove #${t} from ${f.household}`}
+                          onClick={() => void removeTag(f.ids, t)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <Input
+                      className="h-7 w-28 text-xs"
+                      placeholder="#add tag"
+                      maxLength={40}
+                      value={tagDraft[f.household] ?? ""}
+                      onChange={(e) =>
+                        setTagDraft((d) => ({ ...d, [f.household]: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        const value = tagDraft[f.household] ?? "";
+                        setTagDraft((d) => ({ ...d, [f.household]: "" }));
+                        void addTag(f.ids, value);
+                      }}
+                      onBlur={() => {
+                        const value = tagDraft[f.household] ?? "";
+                        if (!value.trim()) return;
+                        setTagDraft((d) => ({ ...d, [f.household]: "" }));
+                        void addTag(f.ids, value);
+                      }}
+                    />
+                  </div>
                 </td>
                 {(events.data ?? []).map((ev) => (
                   <td key={ev.id} className="p-4 align-top">
