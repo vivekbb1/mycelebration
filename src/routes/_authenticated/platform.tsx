@@ -313,8 +313,15 @@ function PlatformAdmin() {
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Build the packages you sell, keep a few add-ons for the extras, then put every host account
-        on a package and switch on the add-ons they've paid for.
+        on a package and switch on the add-ons they've paid for. Prices below are what hosts see on
+        their own package page.
       </p>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Button asChild>
+          <Link to="/upgrade">Upgrade to Premium</Link>
+        </Button>
+      </div>
 
       <section className="panel mt-8 p-4 sm:p-6">
         <h2 className="text-xl">Add a package</h2>
