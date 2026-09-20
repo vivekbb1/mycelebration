@@ -107,7 +107,7 @@ export function HostImport() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("12");
   const [readyToShip, setReadyToShip] = useState(false);
-  const [shipInDays, setShipInDays] = useState("any");
+  const [shipTimes, setShipTimes] = useState<string[]>([]);
   const [colour, setColour] = useState("all");
   const [sort, setSort] = useState("listed");
   const [results, setResults] = useState<ListLook[] | null>(null);
@@ -166,7 +166,7 @@ export function HostImport() {
           page: nextPage,
           perPage: Number(perPage) || 12,
           readyToShip,
-          shipInDays: shipInDays === "any" ? null : shipInDays,
+          shipInDays: shipTimes.length ? shipTimes : null,
           colour: colour === "all" ? null : colour,
           sort,
         },
@@ -449,21 +449,48 @@ export function HostImport() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>How soon it ships</Label>
-            <Select value={shipInDays} onValueChange={setShipInDays}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">Any shipping time</SelectItem>
-                {PERNIA_SHIP_TIMES.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
+          <div className="space-y-2 sm:col-span-2">
+            <Label>
+              How soon it ships{" "}
+              <span className="text-xs font-normal text-muted-foreground">
+                {shipTimes.length ? "· " + shipTimes.length + " picked" : "· any shipping time"}
+              </span>
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {PERNIA_SHIP_TIMES.map((s) => {
+                const on = shipTimes.includes(s.value);
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() =>
+                      setShipTimes((prev) =>
+                        prev.includes(s.value)
+                          ? prev.filter((v) => v !== s.value)
+                          : [...prev, s.value],
+                      )
+                    }
+                    className={
+                      "rounded-full border px-3 py-1 text-xs transition " +
+                      (on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:bg-muted")
+                    }
+                  >
                     {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </button>
+                );
+              })}
+              {shipTimes.length ? (
+                <button
+                  type="button"
+                  onClick={() => setShipTimes([])}
+                  className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
           </div>
           <label className="flex items-end gap-2 pb-2">
             <Checkbox
