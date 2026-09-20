@@ -53,7 +53,7 @@ function GuestListRoute() {
   );
 }
 
-function GuestListPage() {
+export function GuestListPage() {
   const queryClient = useQueryClient();
   const features = useFeatures();
   const emailInvite = useServerFn(sendInviteEmail);
