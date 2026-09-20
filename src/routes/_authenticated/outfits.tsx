@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { CalendarDays, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { GuestEventPicker, useGuestEvent } from "@/lib/guest-event";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { sendReservationEmail } from "@/lib/reservation-email.functions";
@@ -174,10 +175,13 @@ function Lookbook() {
   };
 
   // Functions where the hosts dress the guests, and the ones where guests wear their own.
-  const pickableEvents = (events.data ?? []).filter(
+  const guestEvent = useGuestEvent();
+  const eventList = (events.data ?? []).filter((e) => guestEvent.allows(e.id));
+
+  const pickableEvents = eventList.filter(
     (e) => e.outfit_selection !== false && familyPicks(e.id),
   );
-  const ownOutfitEvents = (events.data ?? []).filter(
+  const ownOutfitEvents = eventList.filter(
     (e) => e.outfit_selection === false || !familyPicks(e.id),
   );
   const ownOutfitIds = new Set(ownOutfitEvents.map((e) => e.id));
@@ -423,6 +427,7 @@ function Lookbook() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <GuestEventPicker />
       <p className="text-eyebrow">The lookbook</p>
       <h1 className="mt-3 text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -437,7 +442,7 @@ function Lookbook() {
       <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-4">
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="size-4 text-primary" />
-          {scheduleHeadline(events.data ?? [])} — {scheduleSummary(events.data ?? [])}
+          {scheduleHeadline(eventList)} — {scheduleSummary(eventList)}
         </p>
         <div className="flex items-center gap-3">
           <button
@@ -517,7 +522,7 @@ function Lookbook() {
                 <div className="min-w-0">
                   <p className="truncate text-sm">{o.title}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {(events.data ?? []).find((e) => e.id === o.event_id)?.name ?? "Any function"} ·{" "}
+                    {eventList.find((e) => e.id === o.event_id)?.name ?? "Any function"} ·{" "}
                     {o.size_note ?? "Made to measure"}
                   </p>
                   <p className="mt-1 text-xs text-primary">Locked to you</p>
@@ -573,7 +578,7 @@ function Lookbook() {
 
       {activeEvent !== "all"
         ? (() => {
-            const ev = (events.data ?? []).find((e) => e.id === activeEvent);
+            const ev = eventList.find((e) => e.id === activeEvent);
             if (!ev) return null;
             return (
               <div className="panel mt-6 flex items-start gap-3 p-4">
@@ -607,7 +612,7 @@ function Lookbook() {
               : null;
             const mine = heldBy === activeName;
             const taken = heldBy !== null || !outfit.is_available;
-            const eventName = (events.data ?? []).find((e) => e.id === outfit.event_id)?.name;
+            const eventName = eventList.find((e) => e.id === outfit.event_id)?.name;
             return (
               <article key={outfit.id} className="panel flex flex-col overflow-hidden">
                 <div className="relative bg-secondary">
