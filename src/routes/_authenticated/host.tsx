@@ -680,7 +680,9 @@ function HostDashboard() {
           </div>
           <HostEvents />
         </TabsContent>
+        )}
 
+        {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
           <Tabs defaultValue="outfits">
             <TabsList>
