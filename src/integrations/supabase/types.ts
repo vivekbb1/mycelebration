@@ -526,6 +526,8 @@ export type Database = {
         Row: {
           amount_due: number
           amount_paid: number
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -537,11 +539,14 @@ export type Database = {
           note: string | null
           paid_at: string | null
           payer_kind: string
+          reference: string | null
           updated_at: string
         }
         Insert: {
           amount_due?: number
           amount_paid?: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -553,11 +558,14 @@ export type Database = {
           note?: string | null
           paid_at?: string | null
           payer_kind?: string
+          reference?: string | null
           updated_at?: string
         }
         Update: {
           amount_due?: number
           amount_paid?: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -569,6 +577,7 @@ export type Database = {
           note?: string | null
           paid_at?: string | null
           payer_kind?: string
+          reference?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -974,6 +983,7 @@ export type Database = {
           id: string
           name: string
           note: string | null
+          pay_instructions: string | null
           updated_at: string
         }
         Insert: {
@@ -983,6 +993,7 @@ export type Database = {
           id?: string
           name: string
           note?: string | null
+          pay_instructions?: string | null
           updated_at?: string
         }
         Update: {
@@ -992,6 +1003,7 @@ export type Database = {
           id?: string
           name?: string
           note?: string | null
+          pay_instructions?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1192,6 +1204,53 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_requests: {
+        Row: {
+          addon_ids: Json
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          note: string | null
+          plan_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          addon_ids?: Json
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          note?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          addon_ids?: Json
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          note?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_requests_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
@@ -1553,6 +1612,7 @@ export type Database = {
       }
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
       my_features: { Args: never; Returns: Json }
+      my_pay_instructions: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "guest"

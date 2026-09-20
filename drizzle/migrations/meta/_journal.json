@@ -253,6 +253,13 @@
       "when": 1789740870360,
       "tag": "0035_event_fees",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1789894669615,
+      "tag": "0036_upgrade_requests_and_guest_payments",
+      "breakpoints": true
     }
   ]
 }
