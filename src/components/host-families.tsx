@@ -730,12 +730,12 @@ export function HostFamilies() {
             <li key={f.id} className="py-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Users className="size-4 text-primary" />
                     {f.name}
                     <Badge variant="outline">{f.code}</Badge>
-                  </p>
-                  <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     Invitation
                     <select
                       aria-label={`Invitation for ${f.name}`}
@@ -766,7 +766,7 @@ export function HostFamilies() {
                         </option>
                       ))}
                     </select>
-                  </p>
+                  </div>
                   {f.members.length === 0 ? (
                     <p className="mt-1 text-xs text-muted-foreground">No one added yet</p>
                   ) : (

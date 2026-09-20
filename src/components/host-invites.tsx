@@ -225,7 +225,7 @@ export function HostInvites() {
       </div>
 
       <div className="panel h-fit p-4 sm:p-6">
-        <h2 className="text-xl">Your events ({invites.data?.length ?? 0})</h2>
+        <h2 className="text-xl">Your celebrations ({invites.data?.length ?? 0})</h2>
         {(invites.data ?? []).length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
             None yet — create your first celebration on the left.

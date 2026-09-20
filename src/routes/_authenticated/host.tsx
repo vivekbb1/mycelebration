@@ -677,7 +677,7 @@ function HostDashboard() {
             <h2 className="text-xl">Four steps</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
               <li>Create the celebration under the Celebration tab — one per celebration.</li>
-              <li>Add its celebrations below.</li>
+              <li>Add its events below.</li>
               <li>Add families under Guests.</li>
               <li>Tick who's invited to what, then send their invitation.</li>
             </ol>

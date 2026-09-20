@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 /** Plain-English reasons a reminder didn't go out. */
 const reminderReasons: Record<string, string> = {
@@ -24,12 +25,15 @@ const reminderReasons: Record<string, string> = {
  * own outfit are left out entirely — there is nothing to pick there.
  */
 export function HostPicks() {
+  const { inviteId: selectedInvite } = useSelectedEvent();
+
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase.from("events").select("*").order("sort_order");
       if (error) throw error;
-      return data;
+      // Only the celebration being worked on.
+      return (data ?? []).filter((e) => !selectedInvite || e.invite_id === selectedInvite);
     },
   });
 
@@ -102,14 +106,14 @@ export function HostPicks() {
 
   /** The guest list as invited (invitation codes), so reminders can go out by email. */
   const invited = useQuery({
-    queryKey: ["host-picks-invited"],
+    queryKey: ["host-picks-invited", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, email, claimed_by, household")
+        .select("id, guest_name, email, claimed_by, household, invite_id")
         .order("guest_name");
       if (error) throw error;
-      return data;
+      return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
     },
   });
 

@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 /**
  * Which families are invited to which events. A family with no ticks at all
@@ -16,28 +17,30 @@ export function HostFunctionAccess() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const { inviteId: selectedInvite } = useSelectedEvent();
 
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, event_date, sort_order")
+        .select("id, name, event_date, sort_order, invite_id")
         .order("sort_order");
       if (error) throw error;
-      return data;
+      // Only the celebration being worked on, so ticks never land on another one.
+      return (data ?? []).filter((e) => !selectedInvite || e.invite_id === selectedInvite);
     },
   });
 
   const guests = useQuery({
-    queryKey: ["invites-households"],
+    queryKey: ["invites-households", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household")
+        .select("id, guest_name, household, invite_id")
         .order("household");
       if (error) throw error;
-      return data;
+      return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
     },
   });
 
