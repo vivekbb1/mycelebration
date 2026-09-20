@@ -25,7 +25,23 @@ export function HostFunctionAccess() {
   const [pickedEvents, setPickedEvents] = useState<Set<string>>(new Set());
   const [pickedTags, setPickedTags] = useState<Set<string>>(new Set());
   const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
+  const [applyTags, setApplyTags] = useState<Set<string>>(new Set());
   const { inviteId: selectedInvite } = useSelectedEvent();
+
+  /** The tags you manage under Guests → Tags. */
+  const tagList = useQuery({
+    queryKey: ["guest-tags", selectedInvite],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("guest_tags")
+        .select("id, name, invite_id")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []).filter(
+        (t) => !selectedInvite || !t.invite_id || t.invite_id === selectedInvite,
+      );
+    },
+  });
 
   const events = useQuery({
     queryKey: ["events", selectedInvite],
