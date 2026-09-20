@@ -676,8 +676,14 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="outfits">Outfits</TabsTrigger>
               <TabsTrigger value="import">Add from a shop</TabsTrigger>
+              <TabsTrigger value="picks">Selection</TabsTrigger>
               {has("delivery") ? <TabsTrigger value="logistics">Delivery plan</TabsTrigger> : null}
             </TabsList>
+
+            <TabsContent value="picks" className="mt-6">
+              <HostPicks />
+            </TabsContent>
+
 
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
 
