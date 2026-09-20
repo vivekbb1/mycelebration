@@ -184,7 +184,20 @@ function mapListing(p: any) {
   };
 }
 
-/** A category page filtered by price, colour and ready-to-ship. */
+/** How soon a look ships — the menswear pages offer this instead of a plain
+ *  ready-to-ship tick. */
+export const PERNIA_SHIP_TIMES = [
+  { value: "2_2", label: "48 hours" },
+  { value: "7_7", label: "7 days" },
+  { value: "10_10", label: "10 days" },
+  { value: "14_14", label: "14 days" },
+  { value: "14_21", label: "2-3 weeks" },
+  { value: "21_28", label: "3-4 weeks" },
+  { value: "28_35", label: "4-5 weeks" },
+  { value: "36_365", label: "More than 5 weeks" },
+] as const;
+
+/** A category page filtered by price, colour, ready-to-ship and shipping time. */
 export const searchPerniaCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
