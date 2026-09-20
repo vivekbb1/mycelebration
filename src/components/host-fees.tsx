@@ -593,6 +593,7 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
       .eq("id", inviteId);
     if (error) return void toast.error(error.message);
     await qc.invalidateQueries({ queryKey: ["pay-instructions-host", inviteId] });
+    await qc.invalidateQueries({ queryKey: ["fees-enabled-host", inviteId] });
     toast.success(
       next ? "Charges are switched on for this celebration." : "Charges are switched off — guests won't be asked for anything.",
     );
