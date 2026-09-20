@@ -141,6 +141,7 @@ export function HostLogistics() {
           </div>
           <Switch id="l-enabled" checked={enabled} onCheckedChange={setEnabled} />
         </div>
+        {!enabled ? null : (
         <div className="mt-5 space-y-4">
           <Field
             id="l-intro"
@@ -218,8 +219,10 @@ export function HostLogistics() {
             {busy ? "Saving…" : "Save delivery plan"}
           </Button>
         </div>
+        )}
       </div>
 
+      {!enabled ? null : (
       <div className="panel h-fit p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl">Timeline steps</h2>
@@ -299,6 +302,7 @@ export function HostLogistics() {
           ) : null}
         </div>
       </div>
+      )}
     </div>
   );
 }
