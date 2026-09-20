@@ -496,25 +496,22 @@ export function HostGuestList() {
                       {r.phone ? ` · ${r.phone}` : ""}
                       {r.location ? ` · ${r.location}` : ""}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <Label className="text-xs text-muted-foreground" htmlFor={`tags-${r.key}`}>
-                        Tags
-                      </Label>
-                      <Input
-                        id={`tags-${r.key}`}
-                        className="h-8 w-full sm:w-64"
-                        placeholder="e.g. bride's side, top table, overseas"
-                        maxLength={120}
-                        value={tagDraft[r.key] ?? r.tags}
-                        onChange={(e) =>
-                          setTagDraft((d) => ({ ...d, [r.key]: e.target.value }))
-                        }
-                        onBlur={(e) => {
-                          if (e.target.value.trim() === r.tags.trim()) return;
-                          void saveTags(r.key, e.target.value);
-                        }}
-                      />
-                    </div>
+                    {r.tags.trim() ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {r.tags
+                          .split(",")
+                          .map((t) => t.trim().replace(/^#+/, ""))
+                          .filter(Boolean)
+                          .map((t) => (
+                            <span
+                              key={t}
+                              className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
+                            >
+                              #{t}
+                            </span>
+                          ))}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
