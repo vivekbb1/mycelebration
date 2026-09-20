@@ -759,7 +759,7 @@ export function HostFamilies() {
                       }}
                       className="field-select max-w-full text-xs"
                     >
-                      <option value="">Not on an celebration</option>
+                      <option value="">Not on a celebration</option>
                       {inviteList.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.name}

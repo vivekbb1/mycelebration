@@ -86,7 +86,7 @@ export function useGuestEvent() {
   const current = list.find((e) => e.id === inviteId);
   const eventIds = new Set(current?.eventIds ?? []);
 
-  /** Keeps a event when it belongs to the chosen celebration (or there's only one). */
+  /** Keeps an event when it belongs to the chosen celebration (or there's only one). */
   const allows = (eventId: string | null | undefined) => {
     if (list.length < 2 || eventIds.size === 0) return true;
     if (!eventId) return true;

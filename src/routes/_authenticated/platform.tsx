@@ -583,7 +583,7 @@ function PlatformAdmin() {
 
       <h2 className="mt-12 text-2xl">Celebration fees</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        What a host owes you for running an celebration — a flat fee, an amount per guest, or both. Hosts
+        What a host owes you for running a celebration — a flat fee, an amount per guest, or both. Hosts
         set their own guest fees under Setup → Celebration fees.
       </p>
       <div className="mt-6">

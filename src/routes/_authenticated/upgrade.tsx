@@ -101,7 +101,7 @@ function UpgradePage() {
     },
   });
 
-  // What the platform charges a host for running an celebration, so the price is visible here too.
+  // What the platform charges a host for running a celebration, so the price is visible here too.
   const hostFees = useQuery({
     queryKey: ["upgrade-host-fees"],
     queryFn: async (): Promise<FeeRow[]> => {

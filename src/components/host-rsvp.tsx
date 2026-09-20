@@ -122,7 +122,7 @@ export function HostRsvp() {
     const term = search.trim().toLowerCase();
     const inviteList = [
       ...(invites.data ?? []).map((i) => ({ id: i.id as string | null, name: i.name })),
-      { id: null as string | null, name: "Not on an celebration yet" },
+      { id: null as string | null, name: "Not on a celebration yet" },
     ];
 
     return inviteList

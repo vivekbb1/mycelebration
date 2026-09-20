@@ -128,7 +128,7 @@ function Swatches({ theme }: { theme: Theme | undefined }) {
   );
 }
 
-/** Create an celebration (a celebration of its own), see what hangs off it, set its look. */
+/** Create a celebration (a celebration of its own), see what hangs off it, set its look. */
 export function HostInvites() {
   const qc = useQueryClient();
   const invites = useInvites();
@@ -193,7 +193,7 @@ export function HostInvites() {
     <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
       <div className="panel h-fit p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
-          <Mail className="size-4 text-primary" /> Add an celebration
+          <Mail className="size-4 text-primary" /> Add a celebration
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           One celebration is a wedding of its own — its own events, its own guest list and its own look.
@@ -298,7 +298,7 @@ export function InviteThemes() {
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">
         A saved theme belongs to an event, so each celebration can look entirely its own.
-        Guests on an celebration with no theme of its own see the main saved look above.
+        Guests on a celebration with no theme of its own see the main saved look above.
       </p>
 
       {themeList.length === 0 ? (

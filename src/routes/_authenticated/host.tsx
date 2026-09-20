@@ -719,7 +719,7 @@ function HostDashboard() {
                     onValueChange={(v) => setForm((o) => ({ ...o, event_id: v }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a event" />
+                      <SelectValue placeholder="Choose an event" />
                     </SelectTrigger>
                     <SelectContent>
                       {eventList.map((ev) => (

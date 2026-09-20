@@ -225,7 +225,7 @@ function Lookbook() {
   const selectable = (outfits.data ?? []).filter(
     (o) =>
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
-      // Looks for a event this family isn't invited to stay hidden.
+      // Looks for an event this family isn't invited to stay hidden.
       (!o.event_id || !invitedIds || invitedIds.has(o.event_id)) &&
       (!wardrobe || (o.gender ?? "women") === wardrobe),
   );

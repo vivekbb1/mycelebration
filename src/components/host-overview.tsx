@@ -154,7 +154,7 @@ export function HostOverview() {
           </div>
           {byFunction.unassigned > 0 ? (
             <Badge variant="secondary">
-              {byFunction.unassigned} not tied to a event
+              {byFunction.unassigned} not tied to an event
             </Badge>
           ) : null}
         </div>

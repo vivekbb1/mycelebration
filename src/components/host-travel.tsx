@@ -200,7 +200,7 @@ export function HostTravel() {
       {clashes.length > 0 ? (
         <section className="panel p-4 sm:p-6">
           <h2 className="flex items-center gap-2 text-xl">
-            <AlertTriangle className="size-4 text-primary" /> Landing after a event
+            <AlertTriangle className="size-4 text-primary" /> Landing after an event
           </h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             {clashes.map((c, i) => (

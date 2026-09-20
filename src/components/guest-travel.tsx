@@ -205,7 +205,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
   const arrival = form.arrival_date;
 
-  // A event that starts before they land is one they'd miss.
+  // An event that starts before they land is one they'd miss.
   const missed = arrival ? events.filter((e) => e.event_date && e.event_date < arrival) : [];
 
   return (
