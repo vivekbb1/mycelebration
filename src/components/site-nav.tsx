@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
 import { useBranding } from "@/lib/branding";
-import { GuestTabs } from "@/components/guest-tabs";
+import { GuestProfileMenu, GuestTabs } from "@/components/guest-tabs";
 import { HostProfileMenu, HostTabs } from "@/components/host-nav";
 
 const linkClass =
@@ -102,6 +102,8 @@ export function SiteNav() {
           ) : null}
           {isHostPage ? (
             <HostProfileMenu />
+          ) : onGuestTab ? (
+            <GuestProfileMenu />
           ) : (
             <>
               {isAdmin ? (

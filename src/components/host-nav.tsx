@@ -1,5 +1,16 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LogOut, Settings, ShieldCheck, Sparkles, User } from "lucide-react";
+import {
+  CalendarDays,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  Shirt,
+  Sparkles,
+  User,
+  Users,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,8 +25,13 @@ import {
 import { useFeatures } from "@/lib/features";
 import { EventPickerCompact, SelectedEventProvider } from "@/lib/selected-event";
 
-const tabClass =
-  "rounded-full px-3 py-1.5 text-xs uppercase tracking-wide text-muted-foreground transition-colors hover:text-primary";
+/** Shared header tab styling for hosts and guests alike. */
+export const headerTabClass = (active: boolean) =>
+  `relative flex shrink-0 items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors after:absolute after:inset-x-2 after:-bottom-px after:h-px after:rounded-full after:transition-colors sm:px-0 ${
+    active
+      ? "text-primary after:bg-primary"
+      : "text-muted-foreground after:bg-transparent hover:text-foreground"
+  }`;
 
 /** The host tabs that live in the top bar. */
 export function HostTabs() {
@@ -27,23 +43,25 @@ export function HostTabs() {
   const onHost = pathname === "/host";
 
   const tabs = [
-    { value: "overview", label: "Overview", show: true },
-    { value: "invitations", label: "Celebration", show: true },
-    { value: "functions", label: "Events", show: has("functions") },
-    { value: "guests", label: "Guests", show: has("guest_list") },
-    { value: "wardrobe", label: "Wardrobe", show: has("wardrobe_picker") },
+    { value: "overview", label: "Overview", icon: LayoutDashboard, show: true },
+    { value: "invitations", label: "Celebration", icon: Heart, show: true },
+    { value: "functions", label: "Events", icon: CalendarDays, show: has("functions") },
+    { value: "guests", label: "Guests", icon: Users, show: has("guest_list") },
+    { value: "wardrobe", label: "Wardrobe", icon: Shirt, show: has("wardrobe_picker") },
   ].filter((t) => t.show);
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="flex items-center gap-1 sm:gap-5">
       {tabs.map((t) => (
         <Link
           key={t.value}
           to="/host"
           search={{ tab: t.value }}
-          className={`${tabClass} ${onHost && active === t.value ? "text-primary" : ""}`}
+          aria-label={t.label}
+          className={headerTabClass(onHost && active === t.value)}
         >
-          {t.label}
+          <t.icon className="size-4" />
+          <span className="hidden sm:inline">{t.label}</span>
         </Link>
       ))}
     </nav>
