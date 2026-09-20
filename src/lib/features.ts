@@ -45,7 +45,7 @@ export const FEATURES = [
   },
   {
     key: "arrivals",
-    label: "Arrivals & hospitality",
+    label: "Logistics",
     blurb: "Cars, drivers and transport vendors, plus hotel rooms and check-in",
   },
 
