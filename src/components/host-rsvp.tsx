@@ -225,10 +225,52 @@ export function HostRsvp() {
         </div>
         <Input
           className="mt-4"
-          placeholder="Search a family or a name"
+          placeholder="Search a family, a name or a #tag"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        {allTags.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-xs text-muted-foreground">Show only these tags</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {allTags.map((t) => {
+                const on = pickedTags.has(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setPickedTags((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(t)) next.delete(t);
+                        else next.add(t);
+                        return next;
+                      })
+                    }
+                    className={`rounded-full border px-3 py-1 text-xs transition ${
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    #{t}
+                  </button>
+                );
+              })}
+              {pickedTags.size > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setPickedTags(new Set())}
+                  className="text-xs text-primary underline-offset-4 hover:underline"
+                >
+                  Clear tags
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
 
         {grouped.length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
