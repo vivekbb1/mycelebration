@@ -42,7 +42,6 @@ export function GuestTabs() {
 
   return (
     <nav className="flex items-center gap-1 sm:gap-5">
-      <GuestEventPicker />
       {tabs.map((tab) => {
         const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`);
         return (
@@ -50,11 +49,7 @@ export function GuestTabs() {
             key={tab.to}
             to={tab.to}
             aria-label={tab.label}
-            className={`relative flex shrink-0 items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors after:absolute after:inset-x-2 after:-bottom-px after:h-px after:rounded-full after:transition-colors sm:px-0 ${
-              active
-                ? "text-primary after:bg-primary"
-                : "text-muted-foreground after:bg-transparent hover:text-foreground"
-            }`}
+            className={headerTabClass(active)}
           >
             <tab.icon className="size-4" />
             <span className="hidden sm:inline">{tab.label}</span>
@@ -62,5 +57,63 @@ export function GuestTabs() {
         );
       })}
     </nav>
+  );
+}
+
+/** Guest profile menu — mirrors the host one: celebration picker, then an account menu. */
+export function GuestProfileMenu() {
+  const navigate = useNavigate();
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["is-admin"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return false;
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      return Boolean(data);
+    },
+  });
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <GuestEventPicker />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label="Your account">
+            <User className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuLabel>Your account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/pay">
+              <Wallet className="mr-2 size-4" /> Who owes what
+            </Link>
+          </DropdownMenuItem>
+          {isAdmin ? (
+            <DropdownMenuItem asChild>
+              <Link to="/host">
+                <Shirt className="mr-2 size-4" /> Host area
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => void signOut()}>
+            <LogOut className="mr-2 size-4" /> Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
