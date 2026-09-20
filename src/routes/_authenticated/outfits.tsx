@@ -450,65 +450,72 @@ function Lookbook() {
         .
       </p>
 
-      <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-4">
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="size-4 text-primary" />
-          {scheduleHeadline(eventList)} — {scheduleSummary(eventList)}
-        </p>
-        <div className="flex items-center gap-3">
-          {canSwitchWardrobe ? (
-            <button
-              className="text-xs text-primary underline-offset-4 hover:underline"
-              onClick={() => {
-                const next = wardrobe === "men" ? "women" : "men";
-                setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
-                if (people.length <= 1) void saveGender(next);
-              }}
-            >
-              Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
-            </button>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks
-            </p>
-          )}
-          <Button asChild size="sm" variant="outline">
-            <Link to="/schedule">Dates, venues &amp; RSVP</Link>
-          </Button>
+      <section className="panel mt-6 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="size-4 shrink-0 text-primary" />
+            <span className="truncate">
+              {scheduleHeadline(eventList)} — {scheduleSummary(eventList)}
+            </span>
+          </p>
+          <Link
+            to="/schedule"
+            className="text-xs text-primary underline-offset-4 hover:underline"
+          >
+            Dates, venues &amp; replies
+          </Link>
         </div>
-      </div>
 
-      <section className="panel mt-4 p-4">
-        <p className="text-eyebrow">Who are you choosing for?</p>
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {people.map((person) => {
-            const active = person.name === activeName;
-            const count = outfitsFor(person.name).length;
-            return (
-              <li key={person.name}>
-                <button
-                  onClick={() => setActivePerson(person.name)}
-                  aria-pressed={active}
-                  className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-                    active
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  {person.name}
-                  <span className={`ml-2 text-xs ${active ? "opacity-80" : "opacity-70"}`}>
-                    {count > 0 ? `${count} chosen` : "nothing yet"}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {people.length > 1 ? (
+          <>
+            <p className="text-eyebrow mt-4">Choosing for</p>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {people.map((person) => {
+                const active = person.name === activeName;
+                const count = outfitsFor(person.name).length;
+                return (
+                  <li key={person.name}>
+                    <button
+                      onClick={() => setActivePerson(person.name)}
+                      aria-pressed={active}
+                      className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                        active
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                      }`}
+                    >
+                      {person.name}
+                      <span className="ml-2 text-xs opacity-75">
+                        {count > 0 ? `${count} chosen` : "none yet"}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ) : null}
+
         <p className="mt-3 text-xs text-muted-foreground">
-          Pick the person first — the looks below, and anything you reserve, belong to{" "}
-          <span className="text-foreground">{activeName}</span>.
+          Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks
+          {canSwitchWardrobe ? (
+            <>
+              {" — "}
+              <button
+                className="text-primary underline-offset-4 hover:underline"
+                onClick={() => {
+                  const next = wardrobe === "men" ? "women" : "men";
+                  setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
+                  if (people.length <= 1) void saveGender(next);
+                }}
+              >
+                switch
+              </button>
+            </>
+          ) : null}
         </p>
       </section>
+
 
 
       {myOutfits.length > 0 ? (
@@ -550,41 +557,25 @@ function Lookbook() {
         </section>
       ) : null}
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         <FilterChip active={activeEvent === "all"} onClick={() => setActiveEvent("all")}>
-          All events
+          All days
         </FilterChip>
-        {pickableEvents.map((ev) => (
-          <FilterChip
-            key={ev.id}
-            active={activeEvent === ev.id}
-            onClick={() => setActiveEvent(ev.id)}
-          >
-            {ev.name}
-          </FilterChip>
-        ))}
+        {pickableEvents.map((ev) => {
+          const chosen = myOutfits.some((o) => o.event_id === ev.id);
+          return (
+            <FilterChip
+              key={ev.id}
+              active={activeEvent === ev.id}
+              onClick={() => setActiveEvent(ev.id)}
+            >
+              {chosen ? <Check className="mr-1 inline size-3.5 align-[-2px]" /> : null}
+              {ev.name}
+            </FilterChip>
+          );
+        })}
       </div>
 
-      {pickableEvents.length > 0 ? (
-        <div className="panel mt-4 p-4">
-          <p className="text-eyebrow">Your picks</p>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {pickableEvents.map((ev) => {
-              const chosen = myOutfits.some((o) => o.event_id === ev.id);
-              return (
-                <li
-                  key={ev.id}
-                  className={`rounded-full border px-3 py-1 text-xs ${
-                    chosen ? "border-primary text-primary" : "border-border text-muted-foreground"
-                  }`}
-                >
-                  {ev.name} — {chosen ? "chosen" : "not chosen yet"}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
 
       {ownOutfitEvents.length > 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
@@ -719,7 +710,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+      className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors ${
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border text-muted-foreground hover:border-primary hover:text-primary"
