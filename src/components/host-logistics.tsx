@@ -302,6 +302,7 @@ export function HostLogistics() {
           ) : null}
         </div>
       </div>
+      )}
     </div>
   );
 }
