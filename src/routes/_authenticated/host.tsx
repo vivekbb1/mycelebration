@@ -630,16 +630,22 @@ function HostDashboard() {
               <HostRsvp />
               {has("messaging") ? <HostMessages /> : null}
             </TabsContent>
-            <TabsContent value="picks" className="mt-6">
-              <HostPicks />
-            </TabsContent>
-            <TabsContent value="travel" className="mt-6">
-              <HostTravel />
-            </TabsContent>
-            <TabsContent value="hosts" className="mt-6 space-y-8">
-              <HostRelations />
-              <HostWorkload />
-            </TabsContent>
+            {has("wardrobe_picker") ? (
+              <TabsContent value="picks" className="mt-6">
+                <HostPicks />
+              </TabsContent>
+            ) : null}
+            {has("rsvp_extended") ? (
+              <TabsContent value="travel" className="mt-6">
+                <HostTravel />
+              </TabsContent>
+            ) : null}
+            {has("guest_tracker") || has("guest_communication") ? (
+              <TabsContent value="hosts" className="mt-6 space-y-8">
+                {has("guest_communication") ? <HostRelations /> : null}
+                {has("guest_tracker") ? <HostWorkload /> : null}
+              </TabsContent>
+            ) : null}
           </Tabs>
         </TabsContent>
 
