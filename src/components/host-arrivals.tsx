@@ -324,6 +324,24 @@ export function HostArrivals() {
 
   return (
     <div className="space-y-6">
+      {hasOwn ? (
+        <section className="panel flex flex-wrap items-center justify-between gap-3 p-4 sm:p-6">
+          <div className="min-w-0">
+            <h2 className="text-xl">Whose guests</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {onlyMine
+                ? `Showing the ${myHouseholds.size} ${
+                    myHouseholds.size === 1 ? "family" : "families"
+                  } you look after.`
+                : "Showing every family on this celebration."}
+            </p>
+          </div>
+          <Button type="button" variant="outline" onClick={() => setOnlyMine((v) => !v)}>
+            {onlyMine ? "Show everyone" : "Show only mine"}
+          </Button>
+        </section>
+      ) : null}
+
       <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Car className="size-4 text-primary" /> Cars and drivers
