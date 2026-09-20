@@ -20,13 +20,13 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Guest Sign In — The Wedding Wardrobe" },
+      { title: "Sign In — Celebration" },
       {
         name: "description",
         content:
-          "Register with your invitation code or sign in to reserve your festive Indian outfit and send measurements.",
+          "Sign in with your invitation code to see your events, reply, choose your look and send measurements.",
       },
-      { property: "og:title", content: "Guest Sign In — The Wedding Wardrobe" },
+      { property: "og:title", content: "Sign In — Celebration" },
       {
         property: "og:description",
         content: "Register with your invitation code to open the guest wardrobe.",
