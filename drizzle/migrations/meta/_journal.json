@@ -288,6 +288,13 @@
       "when": 1789903073414,
       "tag": "0040_guest_invite_log_and_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1789904946801,
+      "tag": "0041_guest_tag_registry",
+      "breakpoints": true
     }
   ]
 }

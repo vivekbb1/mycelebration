@@ -755,6 +755,44 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          invite_id: string | null
+          name: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invite_id?: string | null
+          name: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invite_id?: string | null
+          name?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_tags_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       host_addons: {
         Row: {
           addon_id: string
