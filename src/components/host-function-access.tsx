@@ -17,6 +17,8 @@ export function HostFunctionAccess() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pickedFamilies, setPickedFamilies] = useState<Set<string>>(new Set());
+  const [pickedEvents, setPickedEvents] = useState<Set<string>>(new Set());
   const { inviteId: selectedInvite } = useSelectedEvent();
 
   const events = useQuery({
@@ -208,15 +210,75 @@ export function HostFunctionAccess() {
   const countFor = (eventId: string) =>
     families.filter((f) => isTicked(f.household, eventId)).length;
 
+  /**
+   * Bulk assign: apply the chosen events to every picked family at once.
+   * "add" keeps what they already had, "remove" takes those events away,
+   * "only" replaces their list with exactly the chosen events.
+   */
+  const applyBulk = async (mode: "add" | "remove" | "only") => {
+    const all = (events.data ?? []).map((e) => e.id);
+    const chosen = all.filter((id) => pickedEvents.has(id));
+    const households = visible.map((f) => f.household).filter((h) => pickedFamilies.has(h));
+    if (households.length === 0 || chosen.length === 0) return;
+
+    setBusy(true);
+    for (const household of households) {
+      const rows = rowsFor(household).filter((r) => all.includes(r.event_id));
+      const current = rows.length === 0 ? new Set(all) : new Set(rows.map((r) => r.event_id));
+      const next = new Set(
+        mode === "only"
+          ? chosen
+          : mode === "add"
+            ? [...current, ...chosen]
+            : all.filter((id) => current.has(id) && !chosen.includes(id)),
+      );
+
+      // Everything ticked is stored as "no rows at all", which means every event.
+      const keepsEverything = all.every((id) => next.has(id));
+      const { error: wipe } = await supabase
+        .from("household_event_invites")
+        .delete()
+        .eq("household", household)
+        .in("event_id", all);
+      if (wipe) {
+        setBusy(false);
+        toast.error(wipe.message);
+        return;
+      }
+      if (!keepsEverything && next.size > 0) {
+        const { error } = await supabase.from("household_event_invites").insert(
+          [...next].map((id) => ({
+            household,
+            event_id: id,
+            outfit_selection: rows.find((r) => r.event_id === id)?.outfit_selection ?? true,
+          })),
+        );
+        if (error) {
+          setBusy(false);
+          toast.error(error.message);
+          return;
+        }
+      }
+    }
+    setBusy(false);
+    toast.success(
+      `Updated ${households.length} famil${households.length === 1 ? "y" : "ies"}.`,
+    );
+    setPickedFamilies(new Set());
+    setPickedEvents(new Set());
+    await refresh();
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="panel p-4 sm:p-6">
-        <h2 className="text-xl">Who is invited to what</h2>
+        <h2 className="text-xl">Assign guests to events</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Tick the events each family is invited to. They'll only see those events — and only
-          the outfits for those functions. A family with nothing ticked sees every function. Under
+          the outfits for those days. A family with nothing ticked sees every event. Under
           each tick you can also decide whether that family chooses an outfit from you for that
-          function, or wears their own.
+          day, or wears their own.
         </p>
         <div className="mt-4 max-w-sm">
           <Input
@@ -227,10 +289,102 @@ export function HostFunctionAccess() {
         </div>
       </div>
 
+      <div className="panel space-y-4 p-4 sm:p-6">
+        <div>
+          <h3 className="text-lg">Assign several at once</h3>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Tick the families in the list below, choose the events here, then say what to do.
+            Picking a person's family covers everyone in it.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {(events.data ?? []).map((ev) => {
+            const on = pickedEvents.has(ev.id);
+            return (
+              <button
+                key={ev.id}
+                type="button"
+                onClick={() =>
+                  setPickedEvents((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(ev.id)) next.delete(ev.id);
+                    else next.add(ev.id);
+                    return next;
+                  })
+                }
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                {ev.name}
+              </button>
+            );
+          })}
+          {(events.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Add some events first.</p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || pickedEvents.size === 0}
+            onClick={() => applyBulk("add")}
+          >
+            Add to these events
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || pickedEvents.size === 0}
+            onClick={() => applyBulk("only")}
+          >
+            Only these events
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || pickedEvents.size === 0}
+            onClick={() => applyBulk("remove")}
+          >
+            Remove from these events
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {pickedFamilies.size} famil{pickedFamilies.size === 1 ? "y" : "ies"} ·{" "}
+            {pickedEvents.size} event{pickedEvents.size === 1 ? "" : "s"} picked
+          </span>
+          {pickedFamilies.size > 0 || pickedEvents.size > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPickedFamilies(new Set());
+                setPickedEvents(new Set());
+              }}
+              className="text-xs text-primary underline-offset-4 hover:underline"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+
       <div className="panel overflow-x-auto p-0">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-border text-left">
+              <th className="p-4 font-normal text-muted-foreground">
+                <Checkbox
+                  aria-label="Pick every family shown"
+                  checked={visible.length > 0 && visible.every((f) => pickedFamilies.has(f.household))}
+                  onCheckedChange={(on) =>
+                    setPickedFamilies(on ? new Set(visible.map((f) => f.household)) : new Set())
+                  }
+                />
+              </th>
               <th className="p-4 font-normal text-muted-foreground">
                 Family ({visible.length})
               </th>
@@ -256,6 +410,20 @@ export function HostFunctionAccess() {
           <tbody>
             {visible.map((f) => (
               <tr key={f.household} className="border-b border-border last:border-0">
+                <td className="p-4 align-top">
+                  <Checkbox
+                    aria-label={`Pick ${f.household} for bulk assigning`}
+                    checked={pickedFamilies.has(f.household)}
+                    onCheckedChange={() =>
+                      setPickedFamilies((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(f.household)) next.delete(f.household);
+                        else next.add(f.household);
+                        return next;
+                      })
+                    }
+                  />
+                </td>
                 <td className="p-4">
                   <p>{f.household}</p>
                   {f.names.length > 0 ? (
@@ -298,7 +466,7 @@ export function HostFunctionAccess() {
             ))}
             {visible.length === 0 ? (
               <tr>
-                <td className="p-4 text-sm text-muted-foreground" colSpan={(events.data?.length ?? 0) + 2}>
+                <td className="p-4 text-sm text-muted-foreground" colSpan={(events.data?.length ?? 0) + 3}>
                   No families match that search.
                 </td>
               </tr>
