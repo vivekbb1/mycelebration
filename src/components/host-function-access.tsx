@@ -466,7 +466,7 @@ export function HostFunctionAccess() {
             ))}
             {visible.length === 0 ? (
               <tr>
-                <td className="p-4 text-sm text-muted-foreground" colSpan={(events.data?.length ?? 0) + 2}>
+                <td className="p-4 text-sm text-muted-foreground" colSpan={(events.data?.length ?? 0) + 3}>
                   No families match that search.
                 </td>
               </tr>
