@@ -60,6 +60,30 @@ export function scheduleHeadline(events: ScheduleEvent[]): string {
   return place ? `${range} · ${place}` : range;
 }
 
+/**
+ * The small line above the heading. Derived from the guest's own functions, so a
+ * single-day event never reads "weekend" and a fortnight of functions never does either.
+ */
+export function scheduleEyebrow(events: ScheduleEvent[]): string {
+  const dates = [
+    ...new Set(events.map((e) => e.event_date).filter((d): d is string => Boolean(d))),
+  ].sort();
+
+  if (events.length === 0) return "Your invitation";
+  if (dates.length === 0) return events.length === 1 ? "Your function" : "Your functions";
+  if (dates.length === 1) return "The wedding day";
+
+  const first = day(dates[0] as string);
+  const last = day(dates[dates.length - 1] as string);
+  const span = Math.round((last.getTime() - first.getTime()) / 86400000) + 1;
+
+  // Only call it a weekend when it really is a short run ending on a Sat/Sun.
+  const endsOnWeekend = last.getDay() === 0 || last.getDay() === 6;
+  if (span <= 4 && endsOnWeekend) return "The wedding weekend";
+  if (span <= 4) return "The wedding days";
+  return "The wedding celebrations";
+}
+
 /** e.g. "Four functions across three days, four dress codes." */
 export function scheduleSummary(events: ScheduleEvent[]): string {
   if (events.length === 0) return "The functions are still being finalised.";
