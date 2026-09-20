@@ -200,9 +200,20 @@ function FamilyPage() {
     },
   });
 
-  const savePassport = async (id: string, field: string, value: string) => {
-    const patch: Record<string, string | null> = { [field]: value.trim() || null };
+  const savePassport = async (
+    id: string,
+    field: "passport_number" | "passport_nationality" | "passport_expiry",
+    value: string,
+  ) => {
+    const clean = value.trim() || null;
+    const patch =
+      field === "passport_number"
+        ? { passport_number: clean }
+        : field === "passport_nationality"
+          ? { passport_nationality: clean }
+          : { passport_expiry: clean };
     const { error } = await supabase.from("invite_codes").update(patch).eq("id", id);
+
     if (error) {
       toast.error(error.message);
       return;
