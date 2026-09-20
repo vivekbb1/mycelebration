@@ -214,7 +214,7 @@ export function GuestListPage() {
         rsvp: profile?.rsvp_status ?? "pending",
         rsvpNote: profile?.rsvp_note ?? null,
         looks,
-        household: profile?.household || inv.household || "",
+        household,
         gender: profile?.gender || inv.gender || "",
         measured: guestId ? Boolean(measurements.data?.some((m) => m.guest_id === guestId)) : false,
       };
