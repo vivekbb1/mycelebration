@@ -610,6 +610,13 @@ export function GuestListPage() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant={r.invitedAt ? "default" : r.assigned ? "secondary" : "outline"}>
+                    {r.invitedAt
+                      ? `Invited ${new Date(r.invitedAt).toLocaleDateString()}`
+                      : r.assigned
+                        ? "Ready to invite"
+                        : "Needs their days choosing"}
+                  </Badge>
                   <Badge variant={r.registered ? "default" : "secondary"}>
                     {r.registered ? "Registered" : "Hasn't opened the invite"}
                   </Badge>
