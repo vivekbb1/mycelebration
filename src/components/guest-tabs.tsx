@@ -1,10 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
+import { BadgeCheck, CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
 
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
-const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/measurements", "/plan"] as const;
+const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/confirm", "/measurements", "/plan"] as const;
 
 /** The four things a guest ever does, as quiet underlined tabs in the header. */
 export function GuestTabs() {
@@ -18,10 +18,13 @@ export function GuestTabs() {
     { to: "/invitation", label: t("nav.tab_invite", "Invite"), icon: Mail },
     { to: "/event", label: t("nav.tab_rsvp", "RSVP"), icon: CalendarCheck },
     { to: "/lookbook", label: t("nav.tab_outfit", "Outfit"), icon: Shirt },
+    { to: "/confirm", label: t("nav.tab_confirm", "Confirm"), icon: BadgeCheck },
     { to: "/measurements", label: t("nav.tab_measurement", "Measurement"), icon: Ruler },
   ].filter(
     // RSVP-only families never see the wardrobe steps.
-    (tab) => needsWardrobe || (tab.to !== "/lookbook" && tab.to !== "/measurements"),
+    (tab) =>
+      needsWardrobe ||
+      (tab.to !== "/lookbook" && tab.to !== "/measurements" && tab.to !== "/confirm"),
   );
 
   return (
