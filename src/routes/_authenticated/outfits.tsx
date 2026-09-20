@@ -218,7 +218,19 @@ function Lookbook() {
     "You";
 
   const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
-  const wardrobe = wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender;
+
+  // The wardrobes this family actually needs: a family of only men never sees womenswear.
+  const familyWardrobes = new Set(
+    people.map((p) => p.gender).filter((g): g is string => g === "men" || g === "women"),
+  );
+  const onlyWardrobe = familyWardrobes.size === 1 ? [...familyWardrobes][0] : null;
+  const everyoneKnown = people.every((p) => p.gender === "men" || p.gender === "women");
+  // Switching only makes sense when we don't already know who this family is.
+  const canSwitchWardrobe = !(everyoneKnown && onlyWardrobe);
+
+  const wardrobe = canSwitchWardrobe
+    ? (wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender)
+    : (activeRecord?.gender ?? onlyWardrobe);
 
   const invitedIds = myEventIds.data;
 
@@ -444,16 +456,22 @@ function Lookbook() {
           {scheduleHeadline(eventList)} — {scheduleSummary(eventList)}
         </p>
         <div className="flex items-center gap-3">
-          <button
-            className="text-xs text-primary underline-offset-4 hover:underline"
-            onClick={() => {
-              const next = wardrobe === "men" ? "women" : "men";
-              setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
-              if (people.length <= 1) void saveGender(next);
-            }}
-          >
-            Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
-          </button>
+          {canSwitchWardrobe ? (
+            <button
+              className="text-xs text-primary underline-offset-4 hover:underline"
+              onClick={() => {
+                const next = wardrobe === "men" ? "women" : "men";
+                setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
+                if (people.length <= 1) void saveGender(next);
+              }}
+            >
+              Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
+            </button>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks
+            </p>
+          )}
           <Button asChild size="sm" variant="outline">
             <Link to="/schedule">Dates, venues &amp; RSVP</Link>
           </Button>
