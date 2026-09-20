@@ -1,14 +1,105 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Tag, Trash2 } from "lucide-react";
+import { Check, ChevronDown, Plus, Search, Tag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { splitTags, normaliseTag } from "@/lib/tags";
+
+type HostOption = { id: string; name: string };
+
+/**
+ * Choose one or several hosts to look after the guests carrying a tag.
+ * Opens as a dropdown with a search box, so it stays usable with many hosts.
+ */
+function AssignHosts({
+  hosts,
+  chosen,
+  busy,
+  tagName,
+  onToggle,
+}: {
+  hosts: HostOption[];
+  chosen: string[];
+  busy: boolean;
+  tagName: string;
+  onToggle: (hostId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [find, setFind] = useState("");
+
+  const picked = new Set(chosen);
+  const q = find.trim().toLowerCase();
+  const shown = q ? hosts.filter((h) => h.name.toLowerCase().includes(q)) : hosts;
+  const names = hosts.filter((h) => picked.has(h.id)).map((h) => h.name);
+
+  if (hosts.length === 0) {
+    return (
+      <span className="text-xs text-muted-foreground">
+        Invite hosts under Setup &rarr; Hosts first.
+      </span>
+    );
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 max-w-[220px] justify-between gap-2 text-xs font-normal"
+          aria-label={`Assign hosts to #${tagName}`}
+        >
+          <span className="truncate">
+            {names.length === 0
+              ? "Assign hosts"
+              : names.length <= 2
+                ? names.join(", ")
+                : `${names.length} hosts`}
+          </span>
+          <ChevronDown className="size-3.5 shrink-0 opacity-60" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-0">
+        <div className="relative border-b border-border">
+          <Search className="absolute top-2.5 left-3 size-3.5 text-muted-foreground" />
+          <Input
+            className="h-9 border-0 pl-8 text-xs shadow-none focus-visible:ring-0"
+            placeholder="Search hosts…"
+            maxLength={60}
+            value={find}
+            onChange={(e) => setFind(e.target.value)}
+          />
+        </div>
+        <div className="max-h-60 overflow-y-auto py-1">
+          {shown.map((h) => (
+            <button
+              key={h.id}
+              type="button"
+              disabled={busy}
+              onClick={() => onToggle(h.id)}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-muted"
+            >
+              <span className="flex size-4 shrink-0 items-center justify-center rounded border border-border">
+                {picked.has(h.id) ? <Check className="size-3 text-primary" /> : null}
+              </span>
+              <span className="truncate">{h.name}</span>
+            </button>
+          ))}
+          {shown.length === 0 ? (
+            <p className="px-3 py-2 text-xs text-muted-foreground">No hosts match.</p>
+          ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 /**
  * Manage the list of tags used on the guest list: add, rename, delete,
