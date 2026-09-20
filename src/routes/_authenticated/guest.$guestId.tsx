@@ -157,7 +157,7 @@ function GuestViewPage() {
     id ? (events.data?.find((e) => e.id === id)?.name ?? null) : null;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to="/host">
           <ArrowLeft className="size-4" /> Back to the guest list

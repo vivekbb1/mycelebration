@@ -176,7 +176,7 @@ function UpgradePage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto min-h-dvh w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <p className="text-xs tracking-[0.2em] text-primary uppercase">Your package</p>
       <h1 className="mt-2 text-3xl sm:text-4xl">Choose what your celebration includes</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">

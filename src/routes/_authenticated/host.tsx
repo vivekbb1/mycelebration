@@ -468,7 +468,7 @@ function HostDashboard() {
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-10">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       <div className="min-w-0">
         <p className="text-eyebrow">Host area</p>
         <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">{tabTitle}</h1>
