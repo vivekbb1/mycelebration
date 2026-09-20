@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
 
-const REMINDER_REASONS: Record<string, string> = {
+/** Plain-English reasons a reminder didn't go out. */
+const reminderReasons: Record<string, string> = {
   no_email: "no email address saved for this guest",
   already_chosen: "they've already chosen",
   nothing_to_choose: "nothing to choose for them",
@@ -135,7 +136,7 @@ export function HostPicks() {
       if (result.sent) toast.success(`Reminder sent to ${name}`);
       else
         toast.error(
-          `Couldn't remind ${name} — ${REMINDER_REASONS[result.reason ?? ""] ?? "the email didn't go out"}`,
+          `Couldn't remind ${name} — ${reminderReasons[result.reason ?? ""] ?? "the email didn't go out"}`,
         );
     } catch {
       toast.error(`Couldn't remind ${name} just now`);
