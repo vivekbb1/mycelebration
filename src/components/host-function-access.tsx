@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 /**
- * Which families are invited to which functions. A family with no ticks at all
+ * Which families are invited to which events. A family with no ticks at all
  * is treated as invited to everything, so nothing breaks for families you
  * haven't looked at yet.
  */
@@ -84,7 +84,7 @@ export function HostFunctionAccess() {
     return rows.some((r) => r.event_id === eventId);
   };
 
-  /** Does this family get to choose an outfit for this function? Default: yes. */
+  /** Does this family get to choose an outfit for this event? Default: yes. */
   const picksOutfit = (household: string, eventId: string) => {
     const row = rowsFor(household).find((r) => r.event_id === eventId);
     return row ? row.outfit_selection !== false : true;
@@ -94,7 +94,7 @@ export function HostFunctionAccess() {
     const rows = rowsFor(household);
     setBusy(true);
 
-    // No explicit choices yet: write a row for every function first, so the
+    // No explicit choices yet: write a row for every event first, so the
     // "no outfit selection" flag has somewhere to live.
     if (rows.length === 0) {
       const { error } = await supabase.from("household_event_invites").insert(
@@ -138,7 +138,7 @@ export function HostFunctionAccess() {
     const rows = rowsFor(household);
     setBusy(true);
 
-    // First change for this family: record every function, then remove the one
+    // First change for this family: record every event, then remove the one
     // being unticked, so "all" becomes an explicit list.
     if (rows.length === 0) {
       const all = (events.data ?? []).filter((e) => e.id !== eventId);
@@ -177,7 +177,7 @@ export function HostFunctionAccess() {
       toast.error(error.message);
       return;
     }
-    toast.success(`${household} can see every function.`);
+    toast.success(`${household} can see every event.`);
     await refresh();
   };
 
@@ -210,7 +210,7 @@ export function HostFunctionAccess() {
       <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Who is invited to what</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Tick the functions each family is invited to. They'll only see those functions — and only
+          Tick the events each family is invited to. They'll only see those events — and only
           the outfits for those functions. A family with nothing ticked sees every function. Under
           each tick you can also decide whether that family chooses an outfit from you for that
           function, or wears their own.
@@ -288,7 +288,7 @@ export function HostFunctionAccess() {
                     disabled={busy || rowsFor(f.household).length === 0}
                     onClick={() => inviteToAll(f.household)}
                   >
-                    All functions
+                    All events
                   </Button>
                 </td>
               </tr>

@@ -24,12 +24,12 @@ export const Route = createFileRoute("/_authenticated/outfits")({
       {
         name: "description",
         content:
-          "Browse curated lehengas, sarees, sherwanis and gowns for each wedding function. One guest per look, tailoring included.",
+          "Browse curated lehengas, sarees, sherwanis and gowns for each wedding event. One guest per look, tailoring included.",
       },
       { property: "og:title", content: "The Lookbook — Reserve Your Wedding Outfit" },
       {
         property: "og:description",
-        content: "Curated designer outfits per function. Claim a look and it's locked to you alone.",
+        content: "Curated designer outfits per event. Claim a look and it's locked to you alone.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -89,7 +89,7 @@ function Lookbook() {
     },
   });
 
-  // Only the functions this family is invited to.
+  // Only the events this family is invited to.
   const myEventIds = useQuery({
     queryKey: ["my-event-ids"],
     queryFn: async () => {
@@ -156,7 +156,7 @@ function Lookbook() {
     return map;
   }, [reservations.data]);
 
-  // Per-family choices: for some functions a family chooses a look from us, for
+  // Per-family choices: for some events a family chooses a look from us, for
   // others they wear their own — set by the hosts, family by family.
   const myAccess = useQuery({
     queryKey: ["my-household-event-invites"],
@@ -174,7 +174,7 @@ function Lookbook() {
     return row ? row.outfit_selection !== false : true;
   };
 
-  // Functions where the hosts dress the guests, and the ones where guests wear their own.
+  // Events where the hosts dress the guests, and the ones where guests wear their own.
   const guestEvent = useGuestEvent();
   const eventList = (events.data ?? []).filter((e) => guestEvent.allows(e.id));
 
@@ -225,7 +225,7 @@ function Lookbook() {
   const selectable = (outfits.data ?? []).filter(
     (o) =>
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
-      // Looks for a function this family isn't invited to stay hidden.
+      // Looks for a event this family isn't invited to stay hidden.
       (!o.event_id || !invitedIds || invitedIds.has(o.event_id)) &&
       (!wardrobe || (o.gender ?? "women") === wardrobe),
   );
@@ -431,7 +431,7 @@ function Lookbook() {
       <p className="text-eyebrow">The lookbook</p>
       <h1 className="mt-3 text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Each outfit can be claimed by one guest only. Reserve one per function — the outfit and
+        Each outfit can be claimed by one guest only. Reserve one per event — the outfit and
         tailoring are our gift. Then send your{" "}
         <Link to="/measurements" className="text-primary underline-offset-4 hover:underline">
           measurements
@@ -522,7 +522,7 @@ function Lookbook() {
                 <div className="min-w-0">
                   <p className="truncate text-sm">{o.title}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {eventList.find((e) => e.id === o.event_id)?.name ?? "Any function"} ·{" "}
+                    {eventList.find((e) => e.id === o.event_id)?.name ?? "Any event"} ·{" "}
                     {o.size_note ?? "Made to measure"}
                   </p>
                   <p className="mt-1 text-xs text-primary">Locked to you</p>
@@ -535,7 +535,7 @@ function Lookbook() {
 
       <div className="mt-8 flex flex-wrap gap-2">
         <FilterChip active={activeEvent === "all"} onClick={() => setActiveEvent("all")}>
-          All functions
+          All events
         </FilterChip>
         {pickableEvents.map((ev) => (
           <FilterChip

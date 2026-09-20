@@ -13,7 +13,7 @@ function prettyDate(value: string | null) {
 }
 
 /**
- * Emails one guest their invitation: their function dates, the look set aside for them,
+ * Emails one guest their invitation: their event dates, the look set aside for them,
  * their personal code and a link to their guest plan.
  * Host-only: the caller must hold the admin role.
  */
@@ -41,7 +41,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     if (!invite) return { sent: false, reason: "invite_not_found" };
     if (!invite.email) return { sent: false, reason: "no_email" };
 
-    // Which functions is this guest's household invited to?
+    // Which events is this guest's household invited to?
     let allowed: string[] | null = null;
     if (invite.household) {
       const { data: rows } = await context.supabase
@@ -88,7 +88,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     const scheduleHtml =
       events.length > 0
         ? `<table style="width:100%;border-collapse:collapse;margin:0 0 22px">
-            ${events
+            ${celebrations
               .map(
                 (e) => `<tr>
                   <td style="padding:10px 0;border-bottom:1px solid #e4d3c6">

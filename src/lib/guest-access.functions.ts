@@ -9,7 +9,7 @@ const codeSchema = z.object({ code: z.string().trim().min(3).max(64) });
 
 /**
  * Claims a guest invitation for the signed-in user. Runs server-side with the
- * service role so no privileged database function is callable from the browser.
+ * service role so no privileged database event is callable from the browser.
  */
 export const claimGuestInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -44,7 +44,7 @@ export const claimGuestInvite = createServerFn({ method: "POST" })
       .maybeSingle();
 
     // The family name and wardrobe come from the invitation: they decide which
-    // functions this guest sees and whether we show menswear or womenswear.
+    // events this guest sees and whether we show menswear or womenswear.
     await supabaseAdmin
       .from("profiles")
       .update({

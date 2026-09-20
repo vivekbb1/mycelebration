@@ -1,8 +1,8 @@
 /**
- * Event fees. A fee row is either charged to the guests (audience "guest") or
+ * Celebration fees. A fee row is either charged to the guests (audience "guest") or
  * to the host by the platform owner (audience "host"). Each row can carry a
- * flat amount for the whole event or for one function, plus an amount per
- * person, so hosts can mix "flat per event", "per head" and "per function".
+ * flat amount for the whole celebration or for one event, plus an amount per
+ * person, so hosts can mix "flat per celebration", "per head" and "per event".
  */
 export type FeeRule = {
   id: string;
@@ -34,9 +34,9 @@ export function formatMoney(amount: number, currency: string) {
 export type FeeLine = { label: string; amount: number; currency: string; detail: string };
 
 /**
- * What one household owes: every active guest fee for the event, applied to
- * the head count they gave for each function (or their family size when a fee
- * covers the whole event).
+ * What one household owes: every active guest fee for the celebration, applied to
+ * the head count they gave for each event (or their family size when a fee
+ * covers the whole celebration).
  */
 export function feeLinesFor({
   rules,

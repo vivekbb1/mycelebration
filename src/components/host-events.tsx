@@ -16,7 +16,7 @@ import { useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 const eventSchema = z.object({
-  name: z.string().trim().min(2, "Name the function (e.g. Mehndi)").max(80),
+  name: z.string().trim().min(2, "Name the event (e.g. Mehndi)").max(80),
   event_date: z.string().trim().max(20),
   start_time: z.string().trim().max(40),
   venue: z.string().trim().max(160),
@@ -81,7 +81,7 @@ export function HostEvents() {
         throw new Error(signed.error?.message ?? "Could not make a link for the picture.");
       }
       setForm((f) => ({ ...f, background_image_url: signed.data.signedUrl }));
-      toast.success("Picture uploaded — remember to save the function.");
+      toast.success("Picture uploaded — remember to save the event.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "The picture could not be uploaded.");
     } finally {
@@ -99,7 +99,7 @@ export function HostEvents() {
     },
   });
 
-  /** Only the functions of the event the host is working on. */
+  /** Only the events of the celebration the host is working on. */
   const scheduleList = (events.data ?? []).filter(
     (ev) => !selectedEvent || !ev.invite_id || ev.invite_id === selectedEvent,
   );
@@ -116,7 +116,7 @@ export function HostEvents() {
       return;
     }
     if (!chosenInvite) {
-      toast.error("Choose the event this function belongs to — create one under the Event tab.");
+      toast.error("Choose the celebration this event belongs to — create one under the Celebration tab.");
       return;
     }
     setBusy(true);
@@ -158,7 +158,7 @@ export function HostEvents() {
       return;
     }
     setBusy(false);
-    toast.success(editingId ? "Function updated." : "Function added — guests can see it now.");
+    toast.success(editingId ? "Event updated." : "Event added — guests can see it now.");
     reset();
     await queryClient.invalidateQueries({ queryKey: ["events"] });
   };
@@ -194,27 +194,27 @@ export function HostEvents() {
       return;
     }
     if (editingId === id) reset();
-    toast.success("Function removed.");
+    toast.success("Event removed.");
     await queryClient.invalidateQueries({ queryKey: ["events"] });
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
       <CollapsiblePanel
-        title={editingId ? "Edit function" : "Add a function"}
-        subtitle="Everything you enter here appears on the guests' event page and in their RSVP."
+        title={editingId ? "Edit event" : "Add a event"}
+        subtitle="Everything you enter here appears on the guests' celebration page and in their RSVP."
         defaultOpen={editingId ? true : undefined}
       >
         <div className="mt-5 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="e-invite">Which event is this function part of?</Label>
+            <Label htmlFor="e-invite">Which celebration is this event part of?</Label>
             <select
               id="e-invite"
               value={chosenInvite}
               onChange={(e) => setForm((f) => ({ ...f, invite_id: e.target.value }))}
               className="field-select"
             >
-              {inviteList.length === 0 ? <option value="">No events yet</option> : null}
+              {inviteList.length === 0 ? <option value="">No celebrations yet</option> : null}
               {inviteList.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
@@ -222,12 +222,12 @@ export function HostEvents() {
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              Required — only the guests on this event will see this function. Create events under
-              the Event tab.
+              Required — only the guests on this celebration will see this function. Create celebrations under
+              the Celebration tab.
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="e-name">Function name</Label>
+            <Label htmlFor="e-name">Event name</Label>
             <Input
               id="e-name"
               maxLength={80}
@@ -394,7 +394,7 @@ export function HostEvents() {
           <div className="rounded-lg border border-border/70 p-4">
             <p className="text-sm">Outfit slot</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              When the outfit for this function has to be ready, and what it involves — guests see
+              When the outfit for this event has to be ready, and what it involves — guests see
               this next to their arrival and departure.
             </p>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
@@ -421,7 +421,7 @@ export function HostEvents() {
           </div>
           <div className="flex gap-3">
             <Button onClick={save} disabled={busy} className="flex-1">
-              {busy ? "Saving…" : editingId ? "Save changes" : "Add function"}
+              {busy ? "Saving…" : editingId ? "Save changes" : "Add event"}
             </Button>
             {editingId ? (
               <Button variant="outline" onClick={reset}>
@@ -486,7 +486,7 @@ export function HostEvents() {
           ))}
           {scheduleList.length === 0 ? (
             <li className="py-4 text-sm text-muted-foreground">
-              No functions yet — add your first one and guests will see it immediately.
+              No events yet — add your first one and guests will see it immediately.
             </li>
           ) : null}
         </ul>

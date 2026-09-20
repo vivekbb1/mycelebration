@@ -8,7 +8,7 @@ export const FEATURES = [
   {
     key: "rsvp_extended",
     label: "Extended replies",
-    blurb: "Head counts per function, travel dates and flights",
+    blurb: "Head counts per event, travel dates and flights",
   },
   { key: "guest_list", label: "Guest list", blurb: "Families, codes and invitations" },
   { key: "functions", label: "Functions", blurb: "The schedule of celebrations" },
@@ -37,7 +37,7 @@ export const FEATURES = [
     label: "Vendor management",
     blurb: "Boutiques, ateliers and their orders",
   },
-  { key: "budgeting", label: "Budgeting", blurb: "What each function and outfit costs" },
+  { key: "budgeting", label: "Budgeting", blurb: "What each event and outfit costs" },
 ] as const;
 
 export type FeatureKey = (typeof FEATURES)[number]["key"];

@@ -158,7 +158,7 @@ export function HostBuild() {
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Choose the function, the guest, then the garment, size and fabric. It becomes that guest's
-        outfit for the function straight away.
+        outfit for the event straight away.
       </p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">

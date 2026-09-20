@@ -22,7 +22,7 @@ const normalise = (value: string | null | undefined): Answer => {
   return "pending";
 };
 
-/** RSVP tracking per event: who has confirmed, who declined, who is still quiet. */
+/** RSVP tracking per celebration: who has confirmed, who declined, who is still quiet. */
 export function HostRsvp() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -122,7 +122,7 @@ export function HostRsvp() {
     const term = search.trim().toLowerCase();
     const inviteList = [
       ...(invites.data ?? []).map((i) => ({ id: i.id as string | null, name: i.name })),
-      { id: null as string | null, name: "Not on an event yet" },
+      { id: null as string | null, name: "Not on an celebration yet" },
     ];
 
     return inviteList

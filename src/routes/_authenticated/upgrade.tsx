@@ -15,13 +15,13 @@ import { formatMoney } from "@/lib/fees";
 export const Route = createFileRoute("/_authenticated/upgrade")({
   head: () => ({
     meta: [
-      { title: "Your Package — Choose What Your Event Includes" },
+      { title: "Your Package — Choose What Your Celebration Includes" },
       {
         name: "description",
         content:
           "Compare packages and add-ons for your celebration, see what you have today and ask for more whenever you need it.",
       },
-      { property: "og:title", content: "Your Package — Choose What Your Event Includes" },
+      { property: "og:title", content: "Your Package — Choose What Your Celebration Includes" },
       {
         property: "og:description",
         content: "Compare packages and add-ons and pick what your celebration needs.",
@@ -101,7 +101,7 @@ function UpgradePage() {
     },
   });
 
-  // What the platform charges a host for running an event, so the price is visible here too.
+  // What the platform charges a host for running an celebration, so the price is visible here too.
   const hostFees = useQuery({
     queryKey: ["upgrade-host-fees"],
     queryFn: async (): Promise<FeeRow[]> => {
@@ -285,7 +285,7 @@ function UpgradePage() {
 
       {(hostFees.data ?? []).length > 0 ? (
         <section className="panel mt-8 p-4 sm:p-6">
-          <h2 className="text-xl">Event charges</h2>
+          <h2 className="text-xl">Celebration charges</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {(hostFees.data ?? []).map((f, i) => (
               <li key={`${f.label}-${i}`} className="flex flex-wrap justify-between gap-2">

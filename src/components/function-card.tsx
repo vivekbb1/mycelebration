@@ -28,7 +28,7 @@ export const formatEventDate = (value: string | null) =>
     : "Date to be confirmed";
 
 /**
- * One function of the wedding, presented as an invitation card in the style of
+ * One event of the wedding, presented as an invitation card in the style of
  * the printed card: gold double frame, watercolour wash, engraved details.
  */
 export function FunctionCard({
@@ -43,7 +43,7 @@ export function FunctionCard({
   showOutfitAction?: boolean;
 }) {
   const { t } = useSiteContent();
-  const eventName = /^the\s/i.test(event.name) ? event.name : `the ${event.name}`;
+  const eventName = /^the\s/i.test(event.name) ? event.name : `the ${celebration.name}`;
 
   const background = event.background_image_url?.trim() || null;
 
@@ -111,7 +111,7 @@ export function FunctionCard({
               </>
             ) : (
               <Badge variant="secondary">
-                {t("card.own_badge", "Please wear your own outfit for this function")}
+                {t("card.own_badge", "Please wear your own outfit for this event")}
               </Badge>
             )}
           </div>

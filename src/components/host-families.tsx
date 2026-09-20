@@ -289,7 +289,7 @@ export function HostFamilies() {
     groups: { family: string; people: MemberDraft[] }[],
   ): Promise<{ codes: Record<string, string>; added: number; updated: number } | null> => {
     if (!chosenInvite) {
-      toast.error("Choose the event first — create one under the Event tab.");
+      toast.error("Choose the celebration first — create one under the Celebration tab.");
       return null;
     }
     const existing = new Map((families.data ?? []).map((f) => [f.name.toLowerCase(), f]));
@@ -548,7 +548,7 @@ export function HostFamilies() {
             onChange={(e) => setInviteId(e.target.value)}
             className="field-select"
           >
-            {inviteList.length === 0 ? <option value="">No events yet</option> : null}
+            {inviteList.length === 0 ? <option value="">No celebrations yet</option> : null}
             {inviteList.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name}
@@ -556,7 +556,7 @@ export function HostFamilies() {
             ))}
           </select>
           <p className="text-xs text-muted-foreground">
-            Required — they will see that event's functions and its look.
+            Required — they will see that celebration's events and its look.
           </p>
         </div>
 

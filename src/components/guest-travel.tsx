@@ -36,7 +36,7 @@ const blank = {
   notes: "",
 };
 
-/** Yes/no per function with a head count up top, plus optional travel details. */
+/** Yes/no per event with a head count up top, plus optional travel details. */
 export function GuestTravel({ events }: { events: EventRow[] }) {
   const queryClient = useQueryClient();
   const [scope, setScope] = useState<"family" | "me">("family");
@@ -205,18 +205,18 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
   const arrival = form.arrival_date;
 
-  // A function that starts before they land is one they'd miss.
+  // A event that starts before they land is one they'd miss.
   const missed = arrival ? events.filter((e) => e.event_date && e.event_date < arrival) : [];
 
   return (
     <>
       <section className="panel mt-8 p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
-          <Users className="size-4 text-primary" /> Who's coming, function by function
+          <Users className="size-4 text-primary" /> Who's coming, event by event
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Start with how many of you are coming, then say yes or no to each function. Change the
-          number on any function where it's different.
+          number on any event where it's different.
         </p>
 
         <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-border/60 p-3">
@@ -233,7 +233,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            This number is used for every function you say yes to.
+            This number is used for every event you say yes to.
           </p>
         </div>
 
@@ -309,7 +309,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             );
           })}
           {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Your functions will appear here.</p>
+            <p className="text-sm text-muted-foreground">Your events will appear here.</p>
           ) : null}
         </div>
       </section>

@@ -34,7 +34,7 @@ type Draft = {
 const empty: Draft = {
   invite_id: "",
   event_id: "",
-  label: "Event fee",
+  label: "Celebration fee",
   currency: "INR",
   base_amount: "",
   per_guest_amount: "",
@@ -65,8 +65,8 @@ export function useFeeRules(audience: "guest" | "host") {
 }
 
 /**
- * Lets a host set what guests pay for their event — a flat amount, an amount
- * per head, per function or a mix — and keep track of who has paid.
+ * Lets a host set what guests pay for their celebration — a flat amount, an amount
+ * per head, per event or a mix — and keep track of who has paid.
  */
 export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" } = {}) {
   const qc = useQueryClient();
@@ -166,7 +166,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
 
   const add = async () => {
     if (!draft.invite_id && selectedEvent) draft.invite_id = selectedEvent;
-    if (!draft.invite_id) return void toast.error("Choose the event this fee belongs to.");
+    if (!draft.invite_id) return void toast.error("Choose the celebration this fee belongs to.");
     if (num(draft.base_amount) <= 0 && num(draft.per_guest_amount) <= 0)
       return void toast.error("Set a flat amount, an amount per person, or both.");
     setBusy(true);
@@ -175,7 +175,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
       invite_id: draft.invite_id,
       event_id: draft.event_id || null,
       audience,
-      label: draft.label.trim() || "Event fee",
+      label: draft.label.trim() || "Celebration fee",
       currency: draft.currency,
       base_amount: num(draft.base_amount),
       per_guest_amount: num(draft.per_guest_amount),
@@ -272,8 +272,8 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {audience === "guest"
-            ? "Set a flat amount for the whole event, an amount per person, or a separate amount for a single function. Each family's total is worked out from the head counts they gave you."
-            : "Set what a host owes you for running their event — a flat fee, an amount per guest, or both."}
+            ? "Set a flat amount for the whole celebration, an amount per person, or a separate amount for a single event. Each family's total is worked out from the head counts they gave you."
+            : "Set what a host owes you for running their celebration — a flat fee, an amount per guest, or both."}
         </p>
         {collected.length > 0 ? (
           <p className="mt-3 flex flex-wrap gap-2 text-sm">
@@ -296,7 +296,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
               value={draft.invite_id || selectedEvent}
               onChange={(e) => setDraft({ ...draft, invite_id: e.target.value, event_id: "" })}
             >
-              <option value="">Choose the event…</option>
+              <option value="">Choose the celebration…</option>
               {(invites.data ?? []).map((i) => (
                 <option key={i.id} value={i.id}>
                   {i.name}
@@ -388,7 +388,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
                 <p className="text-sm">{r.label}</p>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <Badge variant="outline">
-                    {r.event_id ? (eventNames.get(r.event_id) ?? "One function") : "Whole event"}
+                    {r.event_id ? (eventNames.get(r.event_id) ?? "One event") : "Whole celebration"}
                   </Badge>
                   {r.base_amount > 0 ? (
                     <span>{formatMoney(r.base_amount, r.currency)} flat</span>
@@ -421,7 +421,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
             </li>
           ))}
           {ruleList.length === 0 ? (
-            <li className="py-4 text-sm text-muted-foreground">No fees yet — this event is free.</li>
+            <li className="py-4 text-sm text-muted-foreground">No fees yet — this celebration is free.</li>
           ) : null}
         </ul>
       </div>

@@ -30,7 +30,7 @@ function readStored() {
 
 type GuestEvent = { id: string; name: string; eventIds: string[] };
 
-/** The celebrations this guest is invited to, with the functions inside each. */
+/** The celebrations this guest is invited to, with the events inside each. */
 function useGuestEvents() {
   return useQuery({
     queryKey: ["guest-events"],
@@ -71,8 +71,8 @@ function useGuestEvents() {
 }
 
 /**
- * The celebration a guest is currently viewing, plus the functions that belong
- * to it, so every guest page shows one event at a time.
+ * The celebration a guest is currently viewing, plus the events that belong
+ * to it, so every guest page shows one celebration at a time.
  */
 export function useGuestEvent() {
   const stored = useSyncExternalStore(
@@ -86,7 +86,7 @@ export function useGuestEvent() {
   const current = list.find((e) => e.id === inviteId);
   const eventIds = new Set(current?.eventIds ?? []);
 
-  /** Keeps a function when it belongs to the chosen celebration (or there's only one). */
+  /** Keeps a event when it belongs to the chosen celebration (or there's only one). */
   const allows = (eventId: string | null | undefined) => {
     if (list.length < 2 || eventIds.size === 0) return true;
     if (!eventId) return true;

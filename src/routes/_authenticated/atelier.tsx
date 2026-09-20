@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/atelier")({
       {
         name: "description",
         content:
-          "Boutique and tailor view: the looks reserved from your atelier, with each guest's measurements and the function they're for.",
+          "Boutique and tailor view: the looks reserved from your atelier, with each guest's measurements and the event they're for.",
       },
       { property: "og:title", content: "Atelier Orders — The Wedding Wardrobe" },
       {
