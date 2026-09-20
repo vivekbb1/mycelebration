@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { BadgeCheck, CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
 
+import { GuestEventPicker } from "@/lib/guest-event";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
