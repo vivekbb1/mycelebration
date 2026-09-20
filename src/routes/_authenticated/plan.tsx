@@ -231,6 +231,11 @@ function PlanPage() {
                         ))}
                       </ul>
                     )}
+                    {picks && mine.length > 0 ? (
+                      <Button asChild size="sm" variant="outline" className="mt-3">
+                        <Link to="/confirm">Confirm garment, designer and size</Link>
+                      </Button>
+                    ) : null}
                   </div>
                 </li>
               );
