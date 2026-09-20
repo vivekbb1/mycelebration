@@ -96,10 +96,10 @@ export function useGuestEvent() {
   return { inviteId, setInviteId: setGuestEvent, list, allows, loading: events.isLoading };
 }
 
-/** The guest's own "which celebration" dropdown — hidden when they only have one. */
+/** The guest's own "which celebration" dropdown — hidden only when they have none. */
 export function GuestEventPicker() {
   const { inviteId, setInviteId, list } = useGuestEvent();
-  if (list.length < 2) return null;
+  if (list.length === 0) return null;
 
   return (
     <div className="panel mb-8 flex flex-wrap items-center gap-3 p-3 sm:p-4">
