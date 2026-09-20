@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useFeatures } from "@/lib/features";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -41,7 +41,7 @@ import { HostContent } from "@/components/host-content";
 import { HostBoutiques } from "@/components/host-boutiques";
 import { HostVendors } from "@/components/host-vendors";
 import { HostFees } from "@/components/host-fees";
-import { EventPicker, SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
+import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
@@ -49,6 +49,8 @@ import { HostMessages } from "@/components/host-messages";
 
 
 export const Route = createFileRoute("/_authenticated/host")({
+  validateSearch: (search: Record<string, unknown>): { tab?: string } =>
+    typeof search['tab'] === "string" ? { tab: search['tab'] } : {},
   head: () => ({
     meta: [
       { title: "Host Dashboard — The Wedding Wardrobe" },
@@ -185,8 +187,20 @@ function HostPage() {
   return <HostDashboard />;
 }
 
+const TAB_TITLES: Record<string, string> = {
+  overview: "Overview",
+  invitations: "Your celebration",
+  functions: "Events",
+  guests: "Guests",
+  wardrobe: "Wardrobe",
+  setup: "Setup",
+};
+
 function HostDashboard() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { tab = "overview" } = Route.useSearch();
+  const tabTitle = TAB_TITLES[tab] ?? "Run the celebration";
   const { has, isPlatformAdmin } = useFeatures();
   const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -454,30 +468,16 @@ function HostDashboard() {
 
   return (
     <main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-10">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <p className="text-eyebrow">Host area</p>
-          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/upgrade">Your package</Link>
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <p className="text-eyebrow">Host area</p>
+        <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">{tabTitle}</h1>
       </div>
 
-      <EventPicker />
-
-      <Tabs defaultValue="overview" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">Celebration</TabsTrigger>
-          {has("functions") ? <TabsTrigger value="functions">Events</TabsTrigger> : null}
-          {has("guest_list") ? <TabsTrigger value="guests">Guests</TabsTrigger> : null}
-          {has("wardrobe_picker") ? <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger> : null}
-          <TabsTrigger value="setup">Setup</TabsTrigger>
-          {isPlatformAdmin ? <TabsTrigger value="platform">Platform</TabsTrigger> : null}
-        </TabsList>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => navigate({ to: "/host", search: { tab: v } })}
+        className="mt-8"
+      >
 
         <TabsContent value="overview" className="mt-6 space-y-8">
 
@@ -651,19 +651,6 @@ function HostDashboard() {
         </TabsContent>
         )}
 
-        {isPlatformAdmin ? (
-          <TabsContent value="platform" className="mt-6">
-            <div className="panel p-4 sm:p-6">
-              <h2 className="text-xl">Packages &amp; features</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Decide what each package includes and which hosts are on it.
-              </p>
-              <Button asChild className="mt-4">
-                <Link to="/platform">Open platform admin</Link>
-              </Button>
-            </div>
-          </TabsContent>
-        ) : null}
 
         <TabsContent value="invitations" className="mt-6">
           <HostInvites />

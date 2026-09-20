@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
 import { useBranding } from "@/lib/branding";
 import { GuestTabs } from "@/components/guest-tabs";
+import { HostProfileMenu, HostTabs } from "@/components/host-nav";
 
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
@@ -80,7 +81,9 @@ export function SiteNav() {
         <div className="mx-auto min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {onGuestTab ? (
             <GuestTabs />
-          ) : pathname === "/host" ? null : (
+          ) : isHostPage ? (
+            <HostTabs />
+          ) : (
             <Link
               to={backTo}
               className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
@@ -97,14 +100,20 @@ export function SiteNav() {
               Atelier
             </Link>
           ) : null}
-          {isAdmin ? (
-            <Link to="/host" className={linkClass}>
-              Host
-            </Link>
-          ) : null}
-          <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
-            <LogOut className="size-4" />
-          </Button>
+          {isHostPage ? (
+            <HostProfileMenu />
+          ) : (
+            <>
+              {isAdmin ? (
+                <Link to="/host" className={linkClass}>
+                  Host
+                </Link>
+              ) : null}
+              <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
+                <LogOut className="size-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

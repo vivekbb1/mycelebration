@@ -14,19 +14,37 @@ const SelectedEvent = createContext<Ctx>({ inviteId: "", setInviteId: () => {}, 
 
 const KEY = "host.selected-event";
 
+// One shared value, so the header picker and the page below it always agree.
+let shared = "";
+const listeners = new Set<(id: string) => void>();
+function publish(id: string) {
+  shared = id;
+  listeners.forEach((fn) => fn(id));
+}
+
 /**
  * Keeps one chosen celebration across the host tabs, so events, guests, wardrobe
  * and setup all show and save against the same celebration.
  */
 export function SelectedEventProvider({ children }: { children: ReactNode }) {
   const invites = useInvites();
-  const [inviteId, setInviteId] = useState("");
+  const [inviteId, setLocal] = useState(shared);
   const [loaded, setLoaded] = useState(false);
+
+  const setInviteId = (id: string) => publish(id);
+
+  useEffect(() => {
+    listeners.add(setLocal);
+    return () => {
+      listeners.delete(setLocal);
+    };
+  }, []);
 
   useEffect(() => {
     if (loaded) return;
     const stored = typeof window === "undefined" ? null : window.localStorage.getItem(KEY);
-    if (stored) setInviteId(stored);
+    if (stored && !shared) publish(stored);
+    else setLocal(shared);
     setLoaded(true);
   }, [loaded]);
 
@@ -60,6 +78,30 @@ export function matchesSelectedEvent(rowInviteId: string | null, selected: strin
   if (!selected) return true;
   if (!rowInviteId) return true;
   return rowInviteId === selected;
+}
+
+/** Compact celebration chooser for the top bar. Hidden with only one celebration. */
+export function EventPickerCompact() {
+  const { inviteId, setInviteId } = useSelectedEvent();
+  const invites = useInvites();
+  const list = invites.data ?? [];
+
+  if (invites.isLoading || list.length < 2) return null;
+
+  return (
+    <select
+      aria-label="Working on"
+      className="field-select h-8 max-w-[11rem] py-0 text-xs"
+      value={inviteId}
+      onChange={(e) => setInviteId(e.target.value)}
+    >
+      {list.map((i) => (
+        <option key={i.id} value={i.id}>
+          {i.name}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 /** The one place a host chooses which celebration they're working on. */
