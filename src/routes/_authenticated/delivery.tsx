@@ -132,6 +132,7 @@ function DeliveryPage() {
                 {o.image_url ? (
                   <img
                     src={o.image_url}
+                    referrerPolicy="no-referrer"
                     alt={o.title}
                     loading="lazy"
                     width={72}

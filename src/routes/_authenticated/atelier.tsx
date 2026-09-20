@@ -272,6 +272,7 @@ function AtelierPage() {
                 {r.outfit.image_url ? (
                   <img
                     src={r.outfit.image_url}
+                    referrerPolicy="no-referrer"
                     alt={r.outfit.title}
                     loading="lazy"
                     className="h-56 w-full object-cover md:h-auto md:w-56"

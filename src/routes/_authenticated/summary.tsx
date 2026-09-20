@@ -197,6 +197,7 @@ function ConfirmPage() {
                     {row.outfits?.image_url ? (
                       <img
                         src={row.outfits.image_url}
+                        referrerPolicy="no-referrer"
                         alt=""
                         loading="lazy"
                         className="size-24 shrink-0 rounded-md object-cover"
