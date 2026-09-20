@@ -31,6 +31,7 @@ import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSummaryRouteImport } from './routes/_authenticated/summary'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
+import { Route as AuthenticatedFamilyHouseholdRouteImport } from './routes/_authenticated/family.$household'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 
@@ -144,6 +145,12 @@ const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
   path: '/upgrade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFamilyHouseholdRoute =
+  AuthenticatedFamilyHouseholdRouteImport.update({
+    id: '/family/$household',
+    path: '/family/$household',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGuestGuestIdRoute =
   AuthenticatedGuestGuestIdRouteImport.update({
     id: '/guest/$guestId',
@@ -179,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/summary': typeof AuthenticatedSummaryRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
+  '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -204,6 +212,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/summary': typeof AuthenticatedSummaryRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
+  '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -231,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/summary': typeof AuthenticatedSummaryRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
+  '/_authenticated/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/summary'
     | '/upgrade'
+    | '/family/$household'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/summary'
     | '/upgrade'
+    | '/family/$household'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   id:
@@ -309,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/_authenticated/summary'
     | '/_authenticated/upgrade'
+    | '/_authenticated/family/$household'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesById: FileRoutesById
@@ -476,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/family/$household': {
+      id: '/_authenticated/family/$household'
+      path: '/family/$household'
+      fullPath: '/family/$household'
+      preLoaderRoute: typeof AuthenticatedFamilyHouseholdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/guest/$guestId': {
       id: '/_authenticated/guest/$guestId'
       path: '/guest/$guestId'
@@ -513,6 +533,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSummaryRoute: typeof AuthenticatedSummaryRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
+  AuthenticatedFamilyHouseholdRoute: typeof AuthenticatedFamilyHouseholdRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
@@ -536,6 +557,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSummaryRoute: AuthenticatedSummaryRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
+  AuthenticatedFamilyHouseholdRoute: AuthenticatedFamilyHouseholdRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
 

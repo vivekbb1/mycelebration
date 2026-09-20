@@ -302,6 +302,13 @@
       "when": 1789905054005,
       "tag": "0042_guest_tag_hosts",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1789906723883,
+      "tag": "0043_guest_passport_details",
+      "breakpoints": true
     }
   ]
 }
