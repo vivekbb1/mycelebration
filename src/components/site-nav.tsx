@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
 import { useBranding } from "@/lib/branding";
 import { GuestTabs } from "@/components/guest-tabs";
+import { HostProfileMenu, HostTabs } from "@/components/host-nav";
 
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
