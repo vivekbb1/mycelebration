@@ -100,12 +100,13 @@ export function HostFunctionAccess() {
       .sort((a, b) => a.household.localeCompare(b.household));
   }, [guests.data]);
 
-  /** Every hashtag in use on this celebration, for the filter row. */
+  /** Every hashtag you manage or already use, for the filter and bulk rows. */
   const allTags = useMemo(() => {
     const set = new Set<string>();
     for (const f of families) for (const t of f.tags) set.add(t);
+    for (const t of tagList.data ?? []) set.add(t.name.toLowerCase());
     return [...set].sort((a, b) => a.localeCompare(b));
-  }, [families]);
+  }, [families, tagList.data]);
 
   const visible = families.filter((f) => {
     if (pickedTags.size > 0 && !f.tags.some((t) => pickedTags.has(t))) return false;
