@@ -89,6 +89,16 @@ export function HostImport() {
   const [singleBusy, setSingleBusy] = useState(false);
 
   const [category, setCategory] = useState("clothing/lehenga");
+
+  // Choosing a menswear category also sets who the looks are for, so a host
+  // never has to remember the "For" box.
+  const chooseCategory = (path: string) => {
+    setCategory(path);
+    setPage(1);
+    setResults(null);
+    setPicked([]);
+    setGender(path.startsWith("mens-shop/") ? "men" : "women");
+  };
   const [minPrice, setMinPrice] = useState("0");
   const [maxPrice, setMaxPrice] = useState("30000");
   const [page, setPage] = useState(1);
