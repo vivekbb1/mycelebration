@@ -28,6 +28,7 @@ import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
 import { HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
+import { GuestListPage } from "./guests";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
 import { HostRelations } from "@/components/host-relations";
