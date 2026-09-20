@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/components/host-families";
 import { useFeatures } from "@/lib/features";
 import { HostFamilies } from "@/components/host-families";
+import { EventPicker, SelectedEventProvider } from "@/lib/selected-event";
 
 
 export const Route = createFileRoute("/_authenticated/guests")({
