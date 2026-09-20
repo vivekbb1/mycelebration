@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CelebrationRouteImport } from './routes/$celebration'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
@@ -38,6 +39,11 @@ import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/pub
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CelebrationRoute = CelebrationRouteImport.update({
+  id: '/$celebration',
+  path: '/$celebration',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -166,6 +172,7 @@ const ApiPublicFollowupRemindersRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
   '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/confirm': typeof AuthenticatedConfirmRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$celebration'
     | '/auth'
     | '/atelier'
     | '/confirm'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$celebration'
     | '/auth'
     | '/atelier'
     | '/confirm'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/$celebration'
     | '/auth'
     | '/_authenticated/atelier'
     | '/_authenticated/confirm'
@@ -329,6 +341,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  CelebrationRoute: typeof CelebrationRoute
   AuthRoute: typeof AuthRoute
   ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
 }
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$celebration': {
+      id: '/$celebration'
+      path: '/$celebration'
+      fullPath: '/$celebration'
+      preLoaderRoute: typeof CelebrationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -567,6 +587,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  CelebrationRoute: CelebrationRoute,
   AuthRoute: AuthRoute,
   ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
 }

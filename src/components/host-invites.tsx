@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, Palette, Trash2 } from "lucide-react";
+import { Copy, Globe, Mail, Palette, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { BRANDING_DEFAULTS, fontStack, type Branding } from "@/lib/branding";
+import { slugProblem, slugify } from "@/lib/celebration-slug";
 
 type Draft = Omit<Branding, "id">;
 
@@ -17,6 +19,8 @@ export type Invite = {
   note: string | null;
   branding_preset_id: string | null;
   created_at: string;
+  slug: string | null;
+  public_intro: string | null;
 };
 
 type Theme = { id: string; name: string; settings: Draft };
