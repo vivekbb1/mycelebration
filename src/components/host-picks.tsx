@@ -136,7 +136,7 @@ export function HostPicks() {
       if (result.sent) toast.success(`Reminder sent to ${name}`);
       else
         toast.error(
-          `Couldn't remind ${name} — ${REMINDER_REASONS[result.reason ?? ""] ?? "the email didn't go out"}`,
+          `Couldn't remind ${name} — ${reminderReasons[result.reason ?? ""] ?? "the email didn't go out"}`,
         );
     } catch {
       toast.error(`Couldn't remind ${name} just now`);
