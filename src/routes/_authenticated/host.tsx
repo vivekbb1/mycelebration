@@ -991,11 +991,14 @@ function HostDashboard() {
             <TabsContent value="import" className="mt-6">
               <HostImport />
             </TabsContent>
-            <TabsContent value="logistics" className="mt-6">
-              <HostLogistics />
-            </TabsContent>
+            {has("delivery") ? (
+              <TabsContent value="logistics" className="mt-6">
+                <HostLogistics />
+              </TabsContent>
+            ) : null}
           </Tabs>
         </TabsContent>
+        )}
 
         <TabsContent value="setup" className="mt-6">
           <Tabs defaultValue={has("vendor_management") ? "boutiques" : "fees"}>
