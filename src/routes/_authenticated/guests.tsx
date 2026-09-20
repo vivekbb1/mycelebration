@@ -144,6 +144,43 @@ export function GuestListPage() {
     },
   });
 
+  // The days of this celebration, and which households have been assigned to them.
+  const events = useQuery({
+    queryKey: ["guest-list-events"],
+    enabled: role.data === true,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("events").select("id, name, invite_id");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const assignments = useQuery({
+    queryKey: ["guest-list-assignments"],
+    enabled: role.data === true,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("household_event_invites")
+        .select("household, event_id");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  /** Households with at least one day picked for them in this celebration. */
+  const assignedHouseholds = useMemo(() => {
+    const ids = new Set(
+      (events.data ?? [])
+        .filter((e) => matchesSelectedEvent(e.invite_id, selectedEvent))
+        .map((e) => e.id),
+    );
+    const set = new Set<string>();
+    for (const a of assignments.data ?? []) {
+      if (ids.has(a.event_id)) set.add((a.household ?? "").toLowerCase());
+    }
+    return set;
+  }, [events.data, assignments.data, selectedEvent]);
+
   // Only the guests belonging to the celebration the host is working on.
   const scopedInvites = useMemo(
     () => (invites.data ?? []).filter((i) => matchesSelectedEvent(i.invite_id, selectedEvent)),
