@@ -267,6 +267,13 @@
       "when": 1789898755355,
       "tag": "0037_scope_guest_reads_to_own_celebration",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1789900683327,
+      "tag": "0038_celebration_fees_switch",
+      "breakpoints": true
     }
   ]
 }

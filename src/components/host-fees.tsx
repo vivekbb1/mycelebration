@@ -554,7 +554,7 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invites")
-        .select("pay_instructions, outfits_paid_by_host")
+        .select("pay_instructions, outfits_paid_by_host, fees_enabled")
         .eq("id", inviteId as string)
         .maybeSingle();
       if (error) throw error;
@@ -564,6 +564,20 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
 
   const value = text ?? current.data?.pay_instructions ?? "";
   const covered = current.data?.outfits_paid_by_host ?? true;
+  const feesOn = current.data?.fees_enabled ?? true;
+
+  const setFeesOn = async (next: boolean) => {
+    if (!inviteId) return;
+    const { error } = await supabase
+      .from("invites")
+      .update({ fees_enabled: next })
+      .eq("id", inviteId);
+    if (error) return void toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["pay-instructions-host", inviteId] });
+    toast.success(
+      next ? "Charges are switched on for this celebration." : "Charges are switched off — guests won't be asked for anything.",
+    );
+  };
 
   const setCovered = async (next: boolean) => {
     if (!inviteId) return;
@@ -593,6 +607,27 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
 
   return (
     <div className="space-y-6">
+      <div className="panel p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xl">Charges for this celebration</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {feesOn
+                ? "Charges are on — guests see what's payable and how to pay you."
+                : "Charges are off — guests are never asked for money, and nothing payable shows on their pages. Your fee lines are kept for when you turn this back on."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">{feesOn ? "On" : "Off"}</span>
+            <Switch
+              checked={feesOn}
+              onCheckedChange={(v) => void setFeesOn(v)}
+              aria-label="Charges for this celebration"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

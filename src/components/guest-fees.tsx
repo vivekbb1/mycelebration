@@ -25,6 +25,14 @@ export function GuestFees() {
     },
   });
 
+  const feesOn = useQuery({
+    queryKey: ["my-fees-enabled"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_fees_enabled");
+      return (data as boolean | null) ?? true;
+    },
+  });
+
   const rules = useQuery({
     queryKey: ["my-fees"],
     queryFn: async (): Promise<FeeRule[]> => {
@@ -106,7 +114,7 @@ export function GuestFees() {
   const totals = totalByCurrency(lines);
   const received = (paid.data ?? []).reduce((s, p) => s + Number(p.amount_paid ?? 0), 0);
 
-  if (lines.length === 0) return null;
+  if (feesOn.data === false || lines.length === 0) return null;
 
   return (
     <section className="panel mt-8 p-4 sm:p-6">

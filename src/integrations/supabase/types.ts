@@ -980,6 +980,7 @@ export type Database = {
           branding_preset_id: string | null
           created_at: string
           created_by: string | null
+          fees_enabled: boolean
           id: string
           name: string
           note: string | null
@@ -991,6 +992,7 @@ export type Database = {
           branding_preset_id?: string | null
           created_at?: string
           created_by?: string | null
+          fees_enabled?: boolean
           id?: string
           name: string
           note?: string | null
@@ -1002,6 +1004,7 @@ export type Database = {
           branding_preset_id?: string | null
           created_at?: string
           created_by?: string | null
+          fees_enabled?: boolean
           id?: string
           name?: string
           note?: string | null
@@ -1615,6 +1618,7 @@ export type Database = {
       }
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
       my_features: { Args: never; Returns: Json }
+      my_fees_enabled: { Args: never; Returns: boolean }
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
     }

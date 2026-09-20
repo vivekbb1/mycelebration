@@ -133,7 +133,16 @@ function PayPage() {
     },
   });
 
+  const feesOn = useQuery({
+    queryKey: ["pay-fees-enabled"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_fees_enabled");
+      return (data as boolean | null) ?? true;
+    },
+  });
+
   const lines = useMemo(() => {
+    if (feesOn.data === false) return [];
     const heads = new Map<string, number>();
     for (const a of attendance.data ?? []) {
       if (!a.attending) continue;
@@ -145,7 +154,7 @@ function PayPage() {
       headsByEvent: heads,
       familyHeads: (people.data ?? []).length || 1,
     });
-  }, [rules.data, events.data, attendance.data, people.data]);
+  }, [rules.data, events.data, attendance.data, people.data, feesOn.data]);
 
   const totals = totalByCurrency(lines);
   const settled = (payments.data ?? [])
