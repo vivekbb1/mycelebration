@@ -67,6 +67,19 @@ export function HostPicks() {
     },
   });
 
+  /** Every guest's measurements, so the tailor's numbers sit beside their look. */
+  const measurements = useQuery({
+    queryKey: ["host-picks-measurements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("measurements")
+        .select("*")
+        .order("guest_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const pickable = (events.data ?? []).filter((e) => e.outfit_selection !== false);
   const ownOutfit = (events.data ?? []).filter((e) => e.outfit_selection === false);
 
