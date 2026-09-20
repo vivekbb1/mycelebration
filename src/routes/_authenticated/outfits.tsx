@@ -557,41 +557,25 @@ function Lookbook() {
         </section>
       ) : null}
 
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         <FilterChip active={activeEvent === "all"} onClick={() => setActiveEvent("all")}>
-          All events
+          All days
         </FilterChip>
-        {pickableEvents.map((ev) => (
-          <FilterChip
-            key={ev.id}
-            active={activeEvent === ev.id}
-            onClick={() => setActiveEvent(ev.id)}
-          >
-            {ev.name}
-          </FilterChip>
-        ))}
+        {pickableEvents.map((ev) => {
+          const chosen = myOutfits.some((o) => o.event_id === ev.id);
+          return (
+            <FilterChip
+              key={ev.id}
+              active={activeEvent === ev.id}
+              onClick={() => setActiveEvent(ev.id)}
+            >
+              {chosen ? <Check className="mr-1 inline size-3.5 align-[-2px]" /> : null}
+              {ev.name}
+            </FilterChip>
+          );
+        })}
       </div>
 
-      {pickableEvents.length > 0 ? (
-        <div className="panel mt-4 p-4">
-          <p className="text-eyebrow">Your picks</p>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {pickableEvents.map((ev) => {
-              const chosen = myOutfits.some((o) => o.event_id === ev.id);
-              return (
-                <li
-                  key={ev.id}
-                  className={`rounded-full border px-3 py-1 text-xs ${
-                    chosen ? "border-primary text-primary" : "border-border text-muted-foreground"
-                  }`}
-                >
-                  {ev.name} — {chosen ? "chosen" : "not chosen yet"}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
 
       {ownOutfitEvents.length > 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
