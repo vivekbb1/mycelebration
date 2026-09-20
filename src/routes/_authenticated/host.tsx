@@ -49,6 +49,9 @@ import { HostMessages } from "@/components/host-messages";
 
 
 export const Route = createFileRoute("/_authenticated/host")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Host Dashboard — The Wedding Wardrobe" },
