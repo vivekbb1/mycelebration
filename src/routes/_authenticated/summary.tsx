@@ -84,9 +84,12 @@ function ConfirmPage() {
     Record<string, { garment: string; size: string; fabric: string }>
   >({});
 
+  const guestEvent = useGuestEvent();
+
   useEffect(() => {
-    const guestEvent = useGuestEvent();
-  const rows = (looks.data ?? []).filter((r) => guestEvent.allows(r.outfits?.event_id ?? null));
+    const rows = (looks.data ?? []).filter((r) =>
+      guestEvent.allows(r.outfits?.event_id ?? null),
+    );
     if (rows.length === 0) return;
     setDraft((prev) => {
       const next = { ...prev };
@@ -132,7 +135,9 @@ function ConfirmPage() {
   });
 
   const garmentOptions = useMemo(() => GARMENTS, []);
-  const rows = looks.data ?? [];
+  const rows = (looks.data ?? []).filter((r) =>
+    guestEvent.allows(r.outfits?.event_id ?? null),
+  );
 
   return (
     <main className="bg-zari">
