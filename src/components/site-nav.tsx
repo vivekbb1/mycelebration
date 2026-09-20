@@ -77,7 +77,7 @@ export function SiteNav() {
           )}
         </Link>
 
-        <div className="mx-auto min-w-0">
+        <div className="mx-auto min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {onGuestTab ? (
             <GuestTabs />
           ) : pathname === "/host" ? null : (
