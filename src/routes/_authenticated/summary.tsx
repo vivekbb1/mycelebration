@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { BadgeCheck, Shirt } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { GuestEventPicker, useGuestEvent } from "@/lib/guest-event";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,7 @@ type Row = {
     garment_type: string | null;
     size_note: string | null;
     image_url: string | null;
+    event_id: string | null;
   } | null;
 };
 
@@ -70,7 +72,7 @@ function ConfirmPage() {
       const { data, error } = await supabase
         .from("reservations")
         .select(
-          "id, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url)",
+          "id, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
         )
         .order("created_at");
       if (error) throw error;
@@ -83,7 +85,8 @@ function ConfirmPage() {
   >({});
 
   useEffect(() => {
-    const rows = looks.data ?? [];
+    const guestEvent = useGuestEvent();
+  const rows = (looks.data ?? []).filter((r) => guestEvent.allows(r.outfits?.event_id ?? null));
     if (rows.length === 0) return;
     setDraft((prev) => {
       const next = { ...prev };
@@ -134,6 +137,7 @@ function ConfirmPage() {
   return (
     <main className="bg-zari">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+        <GuestEventPicker />
         <p className="text-center text-eyebrow">Your look</p>
         <h1 className="mt-3 text-center text-4xl">Confirm what you'll wear</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground">

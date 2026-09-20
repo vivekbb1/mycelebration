@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { ArrowRight, CalendarCheck, Check, Plane, Ruler, Sparkles, Truck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { GuestEventPicker, useGuestEvent } from "@/lib/guest-event";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FunctionCard, type WeddingFunction } from "@/components/function-card";
@@ -154,7 +155,8 @@ function InvitationPage() {
   const { needsWardrobe } = useNeedsWardrobe();
   const firstName = (profile.data?.full_name ?? "").trim().split(" ")[0] ?? "";
   const rsvp = profile.data?.rsvp_status ?? "pending";
-  const list = events.data ?? [];
+  const guestEvent = useGuestEvent();
+  const list = (events.data ?? []).filter((ev) => guestEvent.allows(ev.id));
 
   const outfitFunctions = list.filter((ev) => picksOutfit(ev));
   const chosenCount = outfitFunctions.filter((ev) => lookByEvent.has(ev.id)).length;
@@ -245,6 +247,7 @@ function InvitationPage() {
   return (
     <main className="bg-zari">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+        <GuestEventPicker />
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
             {branding.cover_logo_url ? (

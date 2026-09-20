@@ -6,6 +6,7 @@ import { scheduleEyebrow, scheduleHeadline, scheduleSummary } from "@/lib/schedu
 import { Check, X, HelpCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { GuestEventPicker, useGuestEvent } from "@/lib/guest-event";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,15 +123,18 @@ function EventPage() {
     if (status === "yes") navigate({ to: "/plan" });
   };
 
+  const guestEvent = useGuestEvent();
+  const eventList = (events.data ?? []).filter((e) => guestEvent.allows(e.id));
   const rsvp = profile.data?.rsvp_status ?? "pending";
-  const rsvpBy = events.data?.find((e) => e.rsvp_by)?.rsvp_by ?? null;
+  const rsvpBy = eventList.find((e) => e.rsvp_by)?.rsvp_by ?? null;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-eyebrow">{scheduleEyebrow(events.data ?? [])}</p>
-      <h1 className="mt-3 text-4xl">{scheduleHeadline(events.data ?? [])}</h1>
+      <GuestEventPicker />
+      <p className="text-eyebrow">{scheduleEyebrow(eventList)}</p>
+      <h1 className="mt-3 text-4xl">{scheduleHeadline(eventList)}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        {scheduleSummary(events.data ?? [])}{" "}
+        {scheduleSummary(eventList)}{" "}
         {t(
           "rsvp.dress_note",
           "Dress codes are guidance, not rules — but red and ivory are reserved for the couple.",
@@ -199,7 +203,7 @@ function EventPage() {
         </div>
       </section>
 
-      <GuestTravel events={events.data ?? []} />
+      <GuestTravel events={eventList} />
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Dates, venues and dress codes for each function are on{" "}
