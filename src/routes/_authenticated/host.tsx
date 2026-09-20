@@ -667,6 +667,7 @@ function HostDashboard() {
           <HostInvites />
         </TabsContent>
 
+        {!has("functions") ? null : (
         <TabsContent value="functions" className="mt-6 space-y-6">
           <div className="panel p-4 sm:p-6">
             <h2 className="text-xl">Four steps</h2>
