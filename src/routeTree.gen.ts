@@ -22,9 +22,11 @@ import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
+import { Route as AuthenticatedPayRouteImport } from './routes/_authenticated/pay'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 
@@ -93,6 +95,11 @@ const AuthenticatedMeasurementsRoute =
     path: '/measurements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPayRoute = AuthenticatedPayRouteImport.update({
+  id: '/pay',
+  path: '/pay',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
   id: '/plan',
   path: '/plan',
@@ -106,6 +113,11 @@ const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGuestGuestIdRoute =
@@ -134,9 +146,11 @@ export interface FileRoutesByFullPath {
   '/invitation': typeof AuthenticatedInvitationRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/pay': typeof AuthenticatedPayRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -153,9 +167,11 @@ export interface FileRoutesByTo {
   '/invitation': typeof AuthenticatedInvitationRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/pay': typeof AuthenticatedPayRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -174,9 +190,11 @@ export interface FileRoutesById {
   '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
+  '/_authenticated/pay': typeof AuthenticatedPayRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -195,9 +213,11 @@ export interface FileRouteTypes {
     | '/invitation'
     | '/lookbook'
     | '/measurements'
+    | '/pay'
     | '/plan'
     | '/platform'
     | '/portal'
+    | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -214,9 +234,11 @@ export interface FileRouteTypes {
     | '/invitation'
     | '/lookbook'
     | '/measurements'
+    | '/pay'
     | '/plan'
     | '/platform'
     | '/portal'
+    | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   id:
@@ -234,9 +256,11 @@ export interface FileRouteTypes {
     | '/_authenticated/invitation'
     | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
+    | '/_authenticated/pay'
     | '/_authenticated/plan'
     | '/_authenticated/platform'
     | '/_authenticated/portal'
+    | '/_authenticated/upgrade'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesById: FileRoutesById
@@ -341,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeasurementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pay': {
+      id: '/_authenticated/pay'
+      path: '/pay'
+      fullPath: '/pay'
+      preLoaderRoute: typeof AuthenticatedPayRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/plan': {
       id: '/_authenticated/plan'
       path: '/plan'
@@ -360,6 +391,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/upgrade': {
+      id: '/_authenticated/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/guest/$guestId': {
@@ -390,9 +428,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
   AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
+  AuthenticatedPayRoute: typeof AuthenticatedPayRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+  AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
@@ -407,9 +447,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
   AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
+  AuthenticatedPayRoute: AuthenticatedPayRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+  AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
 

@@ -11,10 +11,10 @@ import { GuestTabs } from "@/components/guest-tabs";
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
-const GUEST_TAB_PATHS = ["/invitation", "/portal", "/event", "/lookbook", "/confirm", "/measurements", "/plan"];
+const GUEST_TAB_PATHS = ["/invitation", "/portal", "/event", "/lookbook", "/confirm", "/measurements", "/plan", "/pay"];
 
 /** Host-side pages belong back on the host page; everything else on the invitation. */
-const HOST_PATHS = ["/guests", "/guest", "/host", "/hosts", "/platform"];
+const HOST_PATHS = ["/guests", "/guest", "/host", "/hosts", "/platform", "/upgrade"];
 
 export function SiteNav() {
   const navigate = useNavigate();

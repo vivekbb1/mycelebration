@@ -4,7 +4,7 @@ import { BadgeCheck, CalendarCheck, LayoutGrid, Mail, Ruler, Shirt } from "lucid
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
-const GUEST_PATHS = ["/invitation", "/portal", "/event", "/lookbook", "/confirm", "/measurements", "/plan"] as const;
+const GUEST_PATHS = ["/invitation", "/portal", "/event", "/lookbook", "/confirm", "/measurements", "/plan", "/pay"] as const;
 
 /** The four things a guest ever does, as quiet underlined tabs in the header. */
 export function GuestTabs() {

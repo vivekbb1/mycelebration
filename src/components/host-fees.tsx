@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 import {
   CURRENCIES,
@@ -123,7 +124,9 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
     queryFn: async () => {
       const { data, error } = await supabase
         .from("fee_payments")
-        .select("id, invite_id, payer_kind, household, currency, amount_due, amount_paid, note, paid_at")
+        .select(
+          "id, invite_id, payer_kind, household, currency, amount_due, amount_paid, note, reference, method, paid_at, confirmed_at",
+        )
         .eq("payer_kind", audience)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -217,12 +220,27 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
       amount_due: due,
       amount_paid: paid,
       paid_at: new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
+      confirmed_by: me.user?.id ?? null,
       created_by: me.user?.id ?? null,
     });
     if (error) return void toast.error(error.message);
     toast.success(`${formatMoney(paid, currency)} noted for ${household}.`);
     await qc.invalidateQueries({ queryKey: ["fee-payments", audience] });
   };
+
+  const confirmPayment = async (id: string) => {
+    const { data: me } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("fee_payments")
+      .update({ confirmed_at: new Date().toISOString(), confirmed_by: me.user?.id ?? null })
+      .eq("id", id);
+    if (error) return void toast.error(error.message);
+    toast.success("Marked as received.");
+    await qc.invalidateQueries({ queryKey: ["fee-payments", audience] });
+  };
+
+  const reported = (payments.data ?? []).filter((p) => !p.confirmed_at);
 
   const activeInvite = draft.invite_id || selectedEvent;
   const eventsForInvite = (events.data ?? []).filter(
@@ -487,6 +505,98 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
           </ul>
         </div>
       ) : null}
+
+      {audience === "guest" ? (
+        <>
+          <div className="panel p-4 sm:p-6">
+            <h3 className="text-xl">Payments guests have told you about</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Guests note down what they've sent on their own charges page. Mark it received once it
+              lands with you.
+            </p>
+            <ul className="mt-4 divide-y divide-border text-sm">
+              {reported.map((p) => (
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <span>
+                    {p.household ?? "A family"} — {formatMoney(Number(p.amount_paid ?? 0), p.currency)}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {p.method ?? ""}
+                      {p.reference ? ` · ${p.reference}` : ""}
+                    </span>
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => void confirmPayment(p.id)}>
+                    Mark received
+                  </Button>
+                </li>
+              ))}
+              {reported.length === 0 ? (
+                <li className="py-3 text-muted-foreground">Nothing waiting.</li>
+              ) : null}
+            </ul>
+          </div>
+
+          <PayInstructions inviteId={selectedEvent} />
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/** The bank details or wording guests see on their charges page. */
+function PayInstructions({ inviteId }: { inviteId: string | null }) {
+  const qc = useQueryClient();
+  const [text, setText] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const current = useQuery({
+    queryKey: ["pay-instructions-host", inviteId],
+    enabled: !!inviteId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("pay_instructions")
+        .eq("id", inviteId as string)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.pay_instructions ?? "";
+    },
+  });
+
+  const value = text ?? current.data ?? "";
+
+  const save = async () => {
+    if (!inviteId) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("invites")
+      .update({ pay_instructions: value.trim() || null })
+      .eq("id", inviteId);
+    setBusy(false);
+    if (error) return void toast.error(error.message);
+    toast.success("Guests will see this on their charges page.");
+    await qc.invalidateQueries({ queryKey: ["pay-instructions-host", inviteId] });
+  };
+
+  if (!inviteId) return null;
+
+  return (
+    <div className="panel p-4 sm:p-6">
+      <h3 className="text-xl">How guests should pay you</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Bank details, a payment link or simply who to hand the money to. This appears on each
+        guest's charges page.
+      </p>
+      <Textarea
+        className="mt-4"
+        rows={4}
+        maxLength={1200}
+        placeholder={"Bank: …\nAccount name: …\nIBAN: …\nPlease put your family name as the reference."}
+        value={value}
+        onChange={(e) => setText(e.target.value)}
+      />
+      <Button className="mt-3" disabled={busy} onClick={save}>
+        {busy ? "Saving…" : "Save"}
+      </Button>
     </div>
   );
 }

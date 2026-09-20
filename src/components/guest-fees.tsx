@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { feeLinesFor, formatMoney, totalByCurrency, type FeeRule } from "@/lib/fees";
 
 /** Shows a guest what their family owes for the event, and what's been paid. */
@@ -130,9 +132,9 @@ export function GuestFees() {
         ))}
         {received > 0 ? <Badge variant="secondary">{formatMoney(received, totals[0]?.[0] ?? "INR")} received</Badge> : null}
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">
-        Your hosts will tell you how to pay — card payments aren't switched on yet.
-      </p>
+      <Button asChild variant="outline" className="mt-4">
+        <Link to="/pay">How to pay this</Link>
+      </Button>
     </section>
   );
 }
