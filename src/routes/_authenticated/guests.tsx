@@ -197,11 +197,14 @@ export function GuestListPage() {
       const looks = guestId
         ? (reservations.data ?? []).filter((r) => r.guest_id === guestId).map((r) => outfitTitle(r.outfit_id))
         : [];
+      const household = profile?.household || inv.household || "";
       return {
         key: inv.id,
         guestId: guestId ?? null,
         code: inv.code,
-
+        tags: inv.tags ?? "",
+        invitedAt: inv.invite_sent_at ?? null,
+        assigned: assignedHouseholds.has((household || inv.guest_name).toLowerCase()),
         name: profile?.full_name || inv.guest_name,
         email: profile?.email || inv.email,
         phone: profile?.phone || inv.phone || "",
