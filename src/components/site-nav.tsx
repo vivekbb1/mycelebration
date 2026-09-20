@@ -102,6 +102,8 @@ export function SiteNav() {
           ) : null}
           {isHostPage ? (
             <HostProfileMenu />
+          ) : onGuestTab ? (
+            <GuestProfileMenu />
           ) : (
             <>
               {isAdmin ? (
