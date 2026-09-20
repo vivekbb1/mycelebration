@@ -649,6 +649,7 @@ function HostDashboard() {
             ) : null}
           </Tabs>
         </TabsContent>
+        )}
 
         {isPlatformAdmin ? (
           <TabsContent value="platform" className="mt-6">
