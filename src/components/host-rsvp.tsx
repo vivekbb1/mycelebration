@@ -28,6 +28,7 @@ export function HostRsvp() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [pickedTags, setPickedTags] = useState<Set<string>>(new Set());
 
   const invites = useQuery({
     queryKey: ["invite-sets"],
