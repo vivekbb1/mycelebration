@@ -168,9 +168,42 @@ function PortalPage() {
       ),
   });
 
+  const replyAll = useMutation({
+    mutationFn: async (input: { attending: boolean; guestCount: number; eventIds: string[] }) => {
+      if (!household) throw new Error("no-household");
+      const rows = input.eventIds.map((event_id) => ({
+        household,
+        event_id,
+        attending: input.attending,
+        guest_count: Math.max(input.guestCount, input.attending ? 1 : 0),
+      }));
+      if (rows.length === 0) return;
+      const { error } = await supabase
+        .from("event_attendance")
+        .upsert(rows, { onConflict: "household,event_id" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Saved for every function — thank you.");
+      qc.invalidateQueries({ queryKey: ["portal-attendance"] });
+      qc.invalidateQueries({ queryKey: ["my-fee-attendance"] });
+      setHeads({});
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof Error && err.message === "no-household"
+          ? "Your invitation isn't linked yet — enter your code on the sign-in page."
+          : "Couldn't save that — try again.",
+      ),
+  });
+
   const list = events.data ?? [];
   const familySize = (people.data ?? []).length || 1;
   const answered = (attendance.data ?? []).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = list.filter((ev) => !ev.event_date || ev.event_date >= today);
+  const past = list.filter((ev) => ev.event_date && ev.event_date < today);
+  const bulkValue = bulkHeads || String(familySize);
 
   return (
     <main className="bg-zari">
