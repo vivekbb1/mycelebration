@@ -135,19 +135,19 @@ function Landing() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 pb-24 text-center">
-        <p className="text-eyebrow">{t("landing.unique_eyebrow", "One guest, one look")}</p>
+        <p className="text-eyebrow">{t("landing.unique_eyebrow", "Quietly organised")}</p>
         <h2 className="mt-4 text-3xl sm:text-4xl">
-          {t("landing.unique_title", "No two guests in the same outfit.")}
+          {t("landing.unique_title", "Your guests see only what concerns them.")}
         </h2>
         <p className="mt-4 text-sm leading-relaxed whitespace-pre-line text-muted-foreground sm:text-base">
           {t(
             "landing.unique_body",
-            "Every piece in the lookbook is reserved the moment a guest claims it, so the wardrobe you see is always the wardrobe that's still available. Reserve early for the best choice.",
+            "Each family opens their own page: the events they are invited to, what they said yes to, the look set aside for them, and how they are getting there. Nothing else.",
           )}
         </p>
         <div className="mt-8">
           <Button asChild size="lg">
-            <Link to="/auth">{t("landing.unique_cta", "Choose your outfits")}</Link>
+            <Link to="/auth">{t("landing.unique_cta", "See a guest's view")}</Link>
           </Button>
         </div>
       </section>
@@ -155,7 +155,7 @@ function Landing() {
       <footer className="border-t border-border/70 px-4 py-8 text-center text-xs whitespace-pre-line text-muted-foreground">
         {t(
           "landing.footer",
-          "A private portal for our wedding guests. Questions? Message the family group.",
+          "A private portal for weddings and the families who host them.",
         )}
       </footer>
     </div>
