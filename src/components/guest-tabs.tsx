@@ -18,8 +18,8 @@ export function GuestTabs() {
     { to: "/invitation", label: t("nav.tab_invite", "Invite"), icon: Mail },
     { to: "/portal", label: t("nav.tab_portal", "Portal"), icon: LayoutGrid },
     { to: "/schedule", label: t("nav.tab_rsvp", "Schedule"), icon: CalendarCheck },
-    { to: "/outfits", label: t("nav.tab_outfit", "Outfit"), icon: Shirt },
-    { to: "/measurements", label: t("nav.tab_measurement", "Measurement"), icon: Ruler },
+    { to: "/outfits", label: t("nav.tab_outfit", "Outfits"), icon: Shirt },
+    { to: "/measurements", label: t("nav.tab_measurement", "Measurements"), icon: Ruler },
     { to: "/confirm", label: t("nav.tab_confirm", "Summary"), icon: BadgeCheck },
   ].filter(
     // RSVP-only families never see the wardrobe steps.

@@ -15,17 +15,17 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
 import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticated/confirm'
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
-import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
 import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
-import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
+import { Route as AuthenticatedOutfitsRouteImport } from './routes/_authenticated/outfits'
 import { Route as AuthenticatedPayRouteImport } from './routes/_authenticated/pay'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
@@ -59,11 +59,6 @@ const AuthenticatedDeliveryRoute = AuthenticatedDeliveryRouteImport.update({
   path: '/delivery',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEventRoute = AuthenticatedEventRouteImport.update({
-  id: '/event',
-  path: '/event',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedGuestsRoute = AuthenticatedGuestsRouteImport.update({
   id: '/guests',
   path: '/guests',
@@ -84,17 +79,17 @@ const AuthenticatedInvitationRoute = AuthenticatedInvitationRouteImport.update({
   path: '/invitation',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedLookbookRoute = AuthenticatedLookbookRouteImport.update({
-  id: '/lookbook',
-  path: '/lookbook',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedMeasurementsRoute =
   AuthenticatedMeasurementsRouteImport.update({
     id: '/measurements',
     path: '/measurements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOutfitsRoute = AuthenticatedOutfitsRouteImport.update({
+  id: '/outfits',
+  path: '/outfits',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPayRoute = AuthenticatedPayRouteImport.update({
   id: '/pay',
   path: '/pay',
@@ -113,6 +108,11 @@ const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
@@ -139,17 +139,17 @@ export interface FileRoutesByFullPath {
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
-  '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
-  '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/outfits': typeof AuthenticatedOutfitsRoute
   '/pay': typeof AuthenticatedPayRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/schedule': typeof AuthenticatedScheduleRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
@@ -160,17 +160,17 @@ export interface FileRoutesByTo {
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
-  '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
-  '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
+  '/outfits': typeof AuthenticatedOutfitsRoute
   '/pay': typeof AuthenticatedPayRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/schedule': typeof AuthenticatedScheduleRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
@@ -183,17 +183,17 @@ export interface FileRoutesById {
   '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/confirm': typeof AuthenticatedConfirmRoute
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
-  '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
   '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
-  '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
+  '/_authenticated/outfits': typeof AuthenticatedOutfitsRoute
   '/_authenticated/pay': typeof AuthenticatedPayRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
@@ -206,17 +206,17 @@ export interface FileRouteTypes {
     | '/atelier'
     | '/confirm'
     | '/delivery'
-    | '/event'
     | '/guests'
     | '/host'
     | '/hosts'
     | '/invitation'
-    | '/lookbook'
     | '/measurements'
+    | '/outfits'
     | '/pay'
     | '/plan'
     | '/platform'
     | '/portal'
+    | '/schedule'
     | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
@@ -227,17 +227,17 @@ export interface FileRouteTypes {
     | '/atelier'
     | '/confirm'
     | '/delivery'
-    | '/event'
     | '/guests'
     | '/host'
     | '/hosts'
     | '/invitation'
-    | '/lookbook'
     | '/measurements'
+    | '/outfits'
     | '/pay'
     | '/plan'
     | '/platform'
     | '/portal'
+    | '/schedule'
     | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
@@ -249,17 +249,17 @@ export interface FileRouteTypes {
     | '/_authenticated/atelier'
     | '/_authenticated/confirm'
     | '/_authenticated/delivery'
-    | '/_authenticated/event'
     | '/_authenticated/guests'
     | '/_authenticated/host'
     | '/_authenticated/hosts'
     | '/_authenticated/invitation'
-    | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
+    | '/_authenticated/outfits'
     | '/_authenticated/pay'
     | '/_authenticated/plan'
     | '/_authenticated/platform'
     | '/_authenticated/portal'
+    | '/_authenticated/schedule'
     | '/_authenticated/upgrade'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
@@ -316,13 +316,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDeliveryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/event': {
-      id: '/_authenticated/event'
-      path: '/event'
-      fullPath: '/event'
-      preLoaderRoute: typeof AuthenticatedEventRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/guests': {
       id: '/_authenticated/guests'
       path: '/guests'
@@ -351,18 +344,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvitationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/lookbook': {
-      id: '/_authenticated/lookbook'
-      path: '/lookbook'
-      fullPath: '/lookbook'
-      preLoaderRoute: typeof AuthenticatedLookbookRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/measurements': {
       id: '/_authenticated/measurements'
       path: '/measurements'
       fullPath: '/measurements'
       preLoaderRoute: typeof AuthenticatedMeasurementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/outfits': {
+      id: '/_authenticated/outfits'
+      path: '/outfits'
+      fullPath: '/outfits'
+      preLoaderRoute: typeof AuthenticatedOutfitsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pay': {
@@ -393,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/schedule': {
+      id: '/_authenticated/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof AuthenticatedScheduleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/upgrade': {
       id: '/_authenticated/upgrade'
       path: '/upgrade'
@@ -421,17 +421,17 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAtelierRoute: typeof AuthenticatedAtelierRoute
   AuthenticatedConfirmRoute: typeof AuthenticatedConfirmRoute
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
-  AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
   AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
-  AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
+  AuthenticatedOutfitsRoute: typeof AuthenticatedOutfitsRoute
   AuthenticatedPayRoute: typeof AuthenticatedPayRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+  AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
@@ -440,17 +440,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtelierRoute: AuthenticatedAtelierRoute,
   AuthenticatedConfirmRoute: AuthenticatedConfirmRoute,
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
-  AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
   AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
-  AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
+  AuthenticatedOutfitsRoute: AuthenticatedOutfitsRoute,
   AuthenticatedPayRoute: AuthenticatedPayRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+  AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
