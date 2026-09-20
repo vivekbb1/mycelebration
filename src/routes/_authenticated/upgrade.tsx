@@ -129,7 +129,8 @@ function UpgradePage() {
     price_currency: string;
     price_period: string;
   }) => {
-    if (row.price_amount === null || Number(row.price_amount) <= 0) return "Ask us for a price";
+    if (row.price_amount === null) return "Ask us for a price";
+    if (Number(row.price_amount) <= 0) return "Free";
     const period =
       row.price_period === "month"
         ? " a month"
