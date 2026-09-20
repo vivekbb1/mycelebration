@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/guests")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: GuestListPage,
+  component: GuestListRoute,
 });
 
 
