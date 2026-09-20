@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSiteContent } from "@/lib/site-content";
 
 const searchSchema = z.object({
   code: z.string().max(64).optional().catch(undefined),
@@ -20,13 +21,13 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Guest Sign In — The Wedding Wardrobe" },
+      { title: "Sign In — Celebration" },
       {
         name: "description",
         content:
-          "Register with your invitation code or sign in to reserve your festive Indian outfit and send measurements.",
+          "Sign in with your invitation code to see your events, reply, choose your look and send measurements.",
       },
-      { property: "og:title", content: "Guest Sign In — The Wedding Wardrobe" },
+      { property: "og:title", content: "Sign In — Celebration" },
       {
         property: "og:description",
         content: "Register with your invitation code to open the guest wardrobe.",
@@ -52,6 +53,7 @@ const signInSchema = z.object({
 });
 
 function AuthPage() {
+  const { t } = useSiteContent();
   const search = Route.useSearch();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -131,16 +133,19 @@ function AuthPage() {
     <div className="bg-zari flex min-h-dvh flex-col bg-background">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
         <Link to="/" className="font-display text-lg tracking-wide">
-          The Wedding Wardrobe
+          {t("landing.brand", "Celebration")}
         </Link>
       </header>
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">
         <div className="panel p-4 sm:p-6 sm:p-8">
-          <p className="text-eyebrow">Guests only</p>
-          <h1 className="mt-3 text-3xl">Welcome</h1>
+          <p className="text-eyebrow">{t("auth.eyebrow", "Guests and hosts")}</p>
+          <h1 className="mt-3 text-3xl">{t("auth.title", "Welcome")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Register with the invitation code from your WhatsApp or email, then pick your outfits.
+            {t(
+              "auth.body",
+              "Sign in with the code we sent you, then see your events, reply and choose your look.",
+            )}
           </p>
 
           <Tabs
