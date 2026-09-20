@@ -611,9 +611,6 @@ function HostDashboard() {
               <TabsTrigger value="list">List</TabsTrigger>
               <TabsTrigger value="invited">Assign</TabsTrigger>
               <TabsTrigger value="replies">RSVP</TabsTrigger>
-              {has("wardrobe_picker") ? (
-                <TabsTrigger value="picks">Outfit picks</TabsTrigger>
-              ) : null}
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
               ) : null}
