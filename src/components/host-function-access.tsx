@@ -8,17 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedEvent } from "@/lib/selected-event";
 
-/** Tags are kept as a comma list on each guest, shown as hashtags. */
-export function splitTags(raw: string | null | undefined): string[] {
-  return (raw ?? "")
-    .split(",")
-    .map((t) => t.trim().replace(/^#+/, "").toLowerCase())
-    .filter(Boolean);
-}
+import { normaliseTag, splitTags } from "@/lib/tags";
 
-function normaliseTag(raw: string): string {
-  return raw.trim().replace(/^#+/, "").replace(/\s+/g, " ").toLowerCase().slice(0, 40);
-}
+export { splitTags };
 
 /**
  * Which families are invited to which events. A family with no ticks at all
