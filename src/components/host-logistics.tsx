@@ -219,8 +219,10 @@ export function HostLogistics() {
             {busy ? "Saving…" : "Save delivery plan"}
           </Button>
         </div>
+        )}
       </div>
 
+      {!enabled ? null : (
       <div className="panel h-fit p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl">Timeline steps</h2>
