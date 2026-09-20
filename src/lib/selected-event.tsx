@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useInvites } from "@/components/host-invites";
+import { Label } from "@/components/ui/label";
 
 type Ctx = {
   /** The event every host screen is currently working on, or "" for all. */
@@ -59,4 +60,40 @@ export function matchesSelectedEvent(rowInviteId: string | null, selected: strin
   if (!selected) return true;
   if (!rowInviteId) return true;
   return rowInviteId === selected;
+}
+
+/** The one place a host chooses which celebration they're working on. */
+export function EventPicker() {
+  const { inviteId, setInviteId } = useSelectedEvent();
+  const invites = useInvites();
+  const list = invites.data ?? [];
+
+  return (
+    <div className="panel mt-6 flex flex-wrap items-center gap-3 p-3 sm:p-4">
+      <Label htmlFor="host-event" className="text-xs text-muted-foreground">
+        Working on
+      </Label>
+      {list.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No event yet — create one under the Event tab.
+        </p>
+      ) : (
+        <select
+          id="host-event"
+          className="field-select w-full sm:w-64"
+          value={inviteId}
+          onChange={(e) => setInviteId(e.target.value)}
+        >
+          {list.map((i) => (
+            <option key={i.id} value={i.id}>
+              {i.name}
+            </option>
+          ))}
+        </select>
+      )}
+      <p className="w-full text-xs text-muted-foreground sm:w-auto">
+        Functions, guests, wardrobe and setup all apply to this event.
+      </p>
+    </div>
+  );
 }

@@ -40,7 +40,7 @@ import { HostContent } from "@/components/host-content";
 import { HostBoutiques } from "@/components/host-boutiques";
 import { HostVendors } from "@/components/host-vendors";
 import { HostFees } from "@/components/host-fees";
-import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
+import { EventPicker, SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
@@ -1060,38 +1060,3 @@ function HostRoute() {
   );
 }
 
-/** The one place a host chooses which celebration they're working on. */
-function EventPicker() {
-  const { inviteId, setInviteId } = useSelectedEvent();
-  const invites = useInvites();
-  const list = invites.data ?? [];
-
-  return (
-    <div className="panel mt-6 flex flex-wrap items-center gap-3 p-3 sm:p-4">
-      <Label htmlFor="host-event" className="text-xs text-muted-foreground">
-        Working on
-      </Label>
-      {list.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No event yet — create one under the Event tab.
-        </p>
-      ) : (
-        <select
-          id="host-event"
-          className="field-select w-full sm:w-64"
-          value={inviteId}
-          onChange={(e) => setInviteId(e.target.value)}
-        >
-          {list.map((i) => (
-            <option key={i.id} value={i.id}>
-              {i.name}
-            </option>
-          ))}
-        </select>
-      )}
-      <p className="w-full text-xs text-muted-foreground sm:w-auto">
-        Functions, guests, wardrobe and setup all apply to this event.
-      </p>
-    </div>
-  );
-}
