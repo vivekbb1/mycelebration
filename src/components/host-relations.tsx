@@ -149,7 +149,7 @@ export function HostRelations() {
     queryFn: async (): Promise<Guest[]> => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, email, personally_invited")
+        .select("id, guest_name, household, email, personally_invited, tags")
         .order("household")
         .order("guest_name");
       if (error) throw error;
