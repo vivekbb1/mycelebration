@@ -16,19 +16,19 @@ Each celebration gets its own public landing page at `yourdomain.com/<name>` —
 A calm public page for that celebration only:
 
 - The celebration name, with the cover logo if one is set.
-- The list of events with date, time, venue and dress code.
 - A short welcome line the host can edit.
 - A "I have an invitation code" button leading to the sign-in page with the code box ready.
 
-Nothing private appears — no guest names, no charges, no wardrobe.
+No event list, no guest names, no charges, no wardrobe — everything else stays behind sign-in, where each
+guest sees only the events they're invited to.
 
 ## Technical notes
 
 - Migration: add `invites.slug text` (nullable, unique index on `lower(slug)`) and
   `invites.public_intro text`. Add a `SECURITY DEFINER` function
-  `public.celebration_by_slug(_slug text)` returning the celebration's name, intro, cover logo and its
-  events (name, date, start time, venue, dress code) so anonymous visitors read only those fields;
-  `GRANT EXECUTE` to `anon` and `authenticated`. No new anon table policies.
+  `public.celebration_by_slug(_slug text)` returning only the celebration's name, intro and cover logo so
+  anonymous visitors read nothing else; `GRANT EXECUTE` to `anon` and `authenticated`. No new anon table
+  policies.
 - New route `src/routes/$celebration.tsx` (a dynamic top-level segment; static routes such as `/auth`,
   `/host`, `/invite` still win). Loader calls the function via the publishable client; unknown slug
   throws `notFound()` and renders a gentle "We couldn't find that celebration" page. Route `head()`
