@@ -141,6 +141,7 @@ export function HostLogistics() {
           </div>
           <Switch id="l-enabled" checked={enabled} onCheckedChange={setEnabled} />
         </div>
+        {!enabled ? null : (
         <div className="mt-5 space-y-4">
           <Field
             id="l-intro"
