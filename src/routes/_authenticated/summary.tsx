@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
 
-export const Route = createFileRoute("/_authenticated/confirm")({
+export const Route = createFileRoute("/_authenticated/summary")({
   head: () => ({
     meta: [
       { title: "Confirm Your Look — Lehenga, Designer & Size" },

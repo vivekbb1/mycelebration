@@ -23,7 +23,7 @@ const travelDate = (value: string | null) =>
       })
     : "date to come";
 
-export const Route = createFileRoute("/_authenticated/invitation")({
+export const Route = createFileRoute("/_authenticated/invite")({
   head: () => ({
     meta: [
       { title: "Your Invitation — Reply, Outfit & Measurements" },
