@@ -123,7 +123,9 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
     queryFn: async () => {
       const { data, error } = await supabase
         .from("fee_payments")
-        .select("id, invite_id, payer_kind, household, currency, amount_due, amount_paid, note, paid_at")
+        .select(
+          "id, invite_id, payer_kind, household, currency, amount_due, amount_paid, note, reference, method, paid_at, confirmed_at",
+        )
         .eq("payer_kind", audience)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -217,12 +219,27 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
       amount_due: due,
       amount_paid: paid,
       paid_at: new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
+      confirmed_by: me.user?.id ?? null,
       created_by: me.user?.id ?? null,
     });
     if (error) return void toast.error(error.message);
     toast.success(`${formatMoney(paid, currency)} noted for ${household}.`);
     await qc.invalidateQueries({ queryKey: ["fee-payments", audience] });
   };
+
+  const confirmPayment = async (id: string) => {
+    const { data: me } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("fee_payments")
+      .update({ confirmed_at: new Date().toISOString(), confirmed_by: me.user?.id ?? null })
+      .eq("id", id);
+    if (error) return void toast.error(error.message);
+    toast.success("Marked as received.");
+    await qc.invalidateQueries({ queryKey: ["fee-payments", audience] });
+  };
+
+  const reported = (payments.data ?? []).filter((p) => !p.confirmed_at);
 
   const activeInvite = draft.invite_id || selectedEvent;
   const eventsForInvite = (events.data ?? []).filter(

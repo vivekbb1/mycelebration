@@ -14,6 +14,7 @@ import { FEATURES, useFeatures } from "@/lib/features";
 import { HostContent } from "@/components/host-content";
 import { HostBranding } from "@/components/host-branding";
 import { HostFees } from "@/components/host-fees";
+import { PlanRequests } from "@/components/plan-requests";
 import { SITE_CONTENT_KEY, useSiteContent } from "@/lib/site-content";
 import { guardedUpdate } from "@/lib/save-guard";
 
@@ -577,6 +578,8 @@ function PlatformAdmin() {
           ) : null}
         </ul>
       </section>
+
+      <PlanRequests />
 
       <h2 className="mt-12 text-2xl">Event fees</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
