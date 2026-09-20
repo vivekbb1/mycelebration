@@ -81,7 +81,7 @@ function PlatformAdmin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, name, blurb, features, sort_order")
+        .select("id, name, blurb, features, sort_order, price_amount, price_currency, price_period")
         .order("sort_order");
       if (error) throw error;
       return (data ?? []).map((p) => ({
