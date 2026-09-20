@@ -173,7 +173,11 @@ export function HostRsvp() {
             (h) =>
               !term ||
               h.name.toLowerCase().includes(term) ||
-              h.people.some((p) => (p.guest_name ?? "").toLowerCase().includes(term)),
+              h.people.some(
+                (p) =>
+                  (p.guest_name ?? "").toLowerCase().includes(term) ||
+                  splitTags(p.tags).some((t) => t.includes(term)),
+              ),
           )
           .sort((a, b) => a.name.localeCompare(b.name));
 
