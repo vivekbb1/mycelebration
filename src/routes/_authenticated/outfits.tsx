@@ -456,16 +456,22 @@ function Lookbook() {
           {scheduleHeadline(eventList)} — {scheduleSummary(eventList)}
         </p>
         <div className="flex items-center gap-3">
-          <button
-            className="text-xs text-primary underline-offset-4 hover:underline"
-            onClick={() => {
-              const next = wardrobe === "men" ? "women" : "men";
-              setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
-              if (people.length <= 1) void saveGender(next);
-            }}
-          >
-            Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
-          </button>
+          {canSwitchWardrobe ? (
+            <button
+              className="text-xs text-primary underline-offset-4 hover:underline"
+              onClick={() => {
+                const next = wardrobe === "men" ? "women" : "men";
+                setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
+                if (people.length <= 1) void saveGender(next);
+              }}
+            >
+              Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks — switch
+            </button>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks
+            </p>
+          )}
           <Button asChild size="sm" variant="outline">
             <Link to="/schedule">Dates, venues &amp; RSVP</Link>
           </Button>
