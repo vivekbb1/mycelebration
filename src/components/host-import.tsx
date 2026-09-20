@@ -566,6 +566,7 @@ export function HostImport() {
                       {look.images[0] ? (
                         <img
                           src={look.images[0]}
+                          referrerPolicy="no-referrer"
                           alt={look.title}
                           loading="lazy"
                           width={300}

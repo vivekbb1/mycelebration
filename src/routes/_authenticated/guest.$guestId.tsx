@@ -214,6 +214,7 @@ function GuestViewPage() {
                   {outfit?.image_url ? (
                     <img
                       src={outfit.image_url}
+                      referrerPolicy="no-referrer"
                       alt={outfit.title}
                       loading="lazy"
                       className="aspect-[3/4] w-full object-cover"

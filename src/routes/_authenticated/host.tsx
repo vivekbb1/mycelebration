@@ -503,6 +503,7 @@ function HostDashboard() {
                   {r.image ? (
                     <img
                       src={r.image}
+                      referrerPolicy="no-referrer"
                       alt={r.outfit}
                       loading="lazy"
                       width={56}
@@ -952,6 +953,7 @@ function HostDashboard() {
                     {o.image_url ? (
                       <img
                         src={o.image_url}
+                        referrerPolicy="no-referrer"
                         alt={o.title}
                         loading="lazy"
                         width={40}

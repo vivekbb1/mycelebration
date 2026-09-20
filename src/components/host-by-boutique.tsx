@@ -211,6 +211,7 @@ export function HostByBoutique() {
                   {l.image ? (
                     <img
                       src={l.image}
+                      referrerPolicy="no-referrer"
                       alt={l.title}
                       loading="lazy"
                       className="size-14 rounded-md object-cover"
