@@ -8,6 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedEvent } from "@/lib/selected-event";
 
+/** Tags are kept as a comma list on each guest, shown as hashtags. */
+function splitTags(raw: string | null | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((t) => t.trim().replace(/^#+/, "").toLowerCase())
+    .filter(Boolean);
+}
+
+function normaliseTag(raw: string): string {
+  return raw.trim().replace(/^#+/, "").replace(/\s+/g, " ").toLowerCase().slice(0, 40);
+}
+
 /**
  * Which families are invited to which events. A family with no ticks at all
  * is treated as invited to everything, so nothing breaks for families you
@@ -19,6 +31,8 @@ export function HostFunctionAccess() {
   const [busy, setBusy] = useState(false);
   const [pickedFamilies, setPickedFamilies] = useState<Set<string>>(new Set());
   const [pickedEvents, setPickedEvents] = useState<Set<string>>(new Set());
+  const [pickedTags, setPickedTags] = useState<Set<string>>(new Set());
+  const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
   const { inviteId: selectedInvite } = useSelectedEvent();
 
   const events = useQuery({
@@ -39,7 +53,7 @@ export function HostFunctionAccess() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, invite_id")
+        .select("id, guest_name, household, tags, invite_id")
         .order("household");
       if (error) throw error;
       return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
@@ -58,27 +72,90 @@ export function HostFunctionAccess() {
   });
 
   const families = useMemo(() => {
-    const map = new Map<string, string[]>();
+    const map = new Map<string, { names: string[]; ids: string[]; tags: Set<string> }>();
     for (const g of guests.data ?? []) {
       const key = (g.household ?? "").trim() || (g.guest_name ?? "").trim();
       if (!key) continue;
-      const names = map.get(key) ?? [];
-      if (g.guest_name) names.push(g.guest_name);
-      map.set(key, names);
+      const entry = map.get(key) ?? { names: [], ids: [], tags: new Set<string>() };
+      if (g.guest_name) entry.names.push(g.guest_name);
+      entry.ids.push(g.id);
+      for (const t of splitTags(g.tags)) entry.tags.add(t);
+      map.set(key, entry);
     }
     return [...map.entries()]
-      .map(([household, names]) => ({ household, names }))
+      .map(([household, e]) => ({
+        household,
+        names: e.names,
+        ids: e.ids,
+        tags: [...e.tags].sort((a, b) => a.localeCompare(b)),
+      }))
       .sort((a, b) => a.household.localeCompare(b.household));
   }, [guests.data]);
 
+  /** Every hashtag in use on this celebration, for the filter row. */
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const f of families) for (const t of f.tags) set.add(t);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [families]);
+
   const visible = families.filter((f) => {
-    const q = filter.trim().toLowerCase();
+    if (pickedTags.size > 0 && !f.tags.some((t) => pickedTags.has(t))) return false;
+    const q = filter.trim().toLowerCase().replace(/^#/, "");
     if (!q) return true;
     return (
       f.household.toLowerCase().includes(q) ||
-      f.names.some((n) => n.toLowerCase().includes(q))
+      f.names.some((n) => n.toLowerCase().includes(q)) ||
+      f.tags.some((t) => t.includes(q))
     );
   });
+
+  /** Add a hashtag to everyone in a family. */
+  const addTag = async (ids: string[], raw: string) => {
+    const tag = normaliseTag(raw);
+    if (!tag) return;
+    setBusy(true);
+    for (const id of ids) {
+      const guest = (guests.data ?? []).find((g) => g.id === id);
+      const current = splitTags(guest?.tags ?? null);
+      if (current.includes(tag)) continue;
+      const { error } = await supabase
+        .from("invite_codes")
+        .update({ tags: [...current, tag].join(", ") })
+        .eq("id", id);
+      if (error) {
+        setBusy(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+    setBusy(false);
+    await queryClient.invalidateQueries({ queryKey: ["invites-households"] });
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
+
+  /** Take a hashtag off everyone in a family. */
+  const removeTag = async (ids: string[], tag: string) => {
+    setBusy(true);
+    for (const id of ids) {
+      const guest = (guests.data ?? []).find((g) => g.id === id);
+      const current = splitTags(guest?.tags ?? null);
+      if (!current.includes(tag)) continue;
+      const next = current.filter((t) => t !== tag);
+      const { error } = await supabase
+        .from("invite_codes")
+        .update({ tags: next.length > 0 ? next.join(", ") : null })
+        .eq("id", id);
+      if (error) {
+        setBusy(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+    setBusy(false);
+    await queryClient.invalidateQueries({ queryKey: ["invites-households"] });
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
 
   const rowsFor = (household: string) =>
     (access.data ?? []).filter((r) => r.household === household);
@@ -283,10 +360,50 @@ export function HostFunctionAccess() {
         <div className="mt-4 max-w-sm">
           <Input
             value={filter}
-            placeholder="Find a family or a name…"
+            placeholder="Find a family, a name or a #tag…"
             onChange={(e) => setFilter(e.target.value)}
           />
         </div>
+        {allTags.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-xs text-muted-foreground">Show only these tags</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {allTags.map((t) => {
+                const on = pickedTags.has(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setPickedTags((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(t)) next.delete(t);
+                        else next.add(t);
+                        return next;
+                      })
+                    }
+                    className={`rounded-full border px-3 py-1 text-xs transition ${
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    #{t}
+                  </button>
+                );
+              })}
+              {pickedTags.size > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setPickedTags(new Set())}
+                  className="text-xs text-primary underline-offset-4 hover:underline"
+                >
+                  Clear tags
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="panel space-y-4 p-4 sm:p-6">
@@ -429,6 +546,47 @@ export function HostFunctionAccess() {
                   {f.names.length > 0 ? (
                     <p className="mt-0.5 text-xs text-muted-foreground">{f.names.join(", ")}</p>
                   ) : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    {f.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        #{t}
+                        <button
+                          type="button"
+                          disabled={busy}
+                          aria-label={`Remove #${t} from ${f.household}`}
+                          onClick={() => void removeTag(f.ids, t)}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <Input
+                      className="h-7 w-28 text-xs"
+                      placeholder="#add tag"
+                      maxLength={40}
+                      value={tagDraft[f.household] ?? ""}
+                      onChange={(e) =>
+                        setTagDraft((d) => ({ ...d, [f.household]: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        const value = tagDraft[f.household] ?? "";
+                        setTagDraft((d) => ({ ...d, [f.household]: "" }));
+                        void addTag(f.ids, value);
+                      }}
+                      onBlur={() => {
+                        const value = tagDraft[f.household] ?? "";
+                        if (!value.trim()) return;
+                        setTagDraft((d) => ({ ...d, [f.household]: "" }));
+                        void addTag(f.ids, value);
+                      }}
+                    />
+                  </div>
                 </td>
                 {(events.data ?? []).map((ev) => (
                   <td key={ev.id} className="p-4 align-top">
