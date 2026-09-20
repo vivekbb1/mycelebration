@@ -102,8 +102,47 @@ export function HostTags() {
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["guest-tags"] });
     await qc.invalidateQueries({ queryKey: ["tag-guests"] });
+    await qc.invalidateQueries({ queryKey: ["guest-tag-hosts"] });
     await qc.invalidateQueries({ queryKey: ["invites-households"] });
     await qc.invalidateQueries({ queryKey: ["invites"] });
+    await qc.invalidateQueries({ queryKey: ["relations-tag-hosts"] });
+    await qc.invalidateQueries({ queryKey: ["workload-tag-hosts"] });
+  };
+
+  /** Put a loose tag into the list so hosts can be linked to it. */
+  const adoptTag = async (name: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from("guest_tags")
+      .insert({ name, invite_id: inviteId ?? null })
+      .select("id")
+      .single();
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    await refresh();
+    return data?.id ?? null;
+  };
+
+  /** Link or unlink a host to a tag. Everyone with the tag is theirs to look after. */
+  const toggleHost = async (tagId: string | null, tagName: string, hostId: string) => {
+    setBusy(true);
+    let id = tagId;
+    if (!id) id = await adoptTag(tagName);
+    if (!id) {
+      setBusy(false);
+      return;
+    }
+    const existing = (tagHosts.data ?? []).find((r) => r.tag_id === id && r.host_id === hostId);
+    const { error } = existing
+      ? await supabase.from("guest_tag_hosts").delete().eq("id", existing.id)
+      : await supabase.from("guest_tag_hosts").insert({ tag_id: id, host_id: hostId });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await refresh();
   };
 
   const addTags = async (raw: string) => {
