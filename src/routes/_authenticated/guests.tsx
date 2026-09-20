@@ -455,6 +455,47 @@ export function GuestListPage() {
 
       <div className="mt-8">
         <div className="panel p-4 sm:p-6">
+          <h2 className="text-xl">Invitation record</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Invitations only go out once a guest has their days chosen on the Assign tab.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-eyebrow">Invited ({invitedLog.sent.length})</p>
+              <ul className="mt-2 space-y-1 text-sm">
+                {invitedLog.sent.map((r) => (
+                  <li key={r.key} className="flex flex-wrap gap-2">
+                    <span>{r.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {r.invitedAt ? new Date(r.invitedAt).toLocaleDateString() : ""}
+                    </span>
+                  </li>
+                ))}
+                {invitedLog.sent.length === 0 ? (
+                  <li className="text-sm text-muted-foreground">No invitations sent yet.</li>
+                ) : null}
+              </ul>
+            </div>
+            <div>
+              <p className="text-eyebrow">Still to invite ({invitedLog.pending.length})</p>
+              <ul className="mt-2 space-y-1 text-sm">
+                {invitedLog.pending.map((r) => (
+                  <li key={r.key} className="flex flex-wrap gap-2">
+                    <span>{r.name}</span>
+                    <span className="text-xs text-muted-foreground">{r.reason}</span>
+                  </li>
+                ))}
+                {invitedLog.pending.length === 0 ? (
+                  <li className="text-sm text-muted-foreground">Everyone has been invited.</li>
+                ) : null}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">Everyone invited ({rows.length})</h2>
             <p className="text-xs text-muted-foreground">
