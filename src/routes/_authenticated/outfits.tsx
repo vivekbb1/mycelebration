@@ -218,7 +218,19 @@ function Lookbook() {
     "You";
 
   const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
-  const wardrobe = wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender;
+
+  // The wardrobes this family actually needs: a family of only men never sees womenswear.
+  const familyWardrobes = new Set(
+    people.map((p) => p.gender).filter((g): g is string => g === "men" || g === "women"),
+  );
+  const onlyWardrobe = familyWardrobes.size === 1 ? [...familyWardrobes][0] : null;
+  const everyoneKnown = people.every((p) => p.gender === "men" || p.gender === "women");
+  // Switching only makes sense when we don't already know who this family is.
+  const canSwitchWardrobe = !(everyoneKnown && onlyWardrobe);
+
+  const wardrobe = canSwitchWardrobe
+    ? (wardrobeOverride[activeName] ?? activeRecord?.gender ?? myGender)
+    : (activeRecord?.gender ?? onlyWardrobe);
 
   const invitedIds = myEventIds.data;
 
