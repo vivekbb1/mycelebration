@@ -76,6 +76,20 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
   const [draft, setDraft] = useState<Draft>(empty);
   const [busy, setBusy] = useState(false);
 
+  const feesOn = useQuery({
+    queryKey: ["fees-enabled-host", selectedEvent],
+    enabled: !!selectedEvent,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("fees_enabled")
+        .eq("id", selectedEvent as string)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.fees_enabled ?? true;
+    },
+  });
+
   const events = useQuery({
     queryKey: ["fee-events"],
     queryFn: async () => {
