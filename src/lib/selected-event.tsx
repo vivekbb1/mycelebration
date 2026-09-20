@@ -68,6 +68,9 @@ export function EventPicker() {
   const invites = useInvites();
   const list = invites.data ?? [];
 
+  // With a single celebration there's nothing to choose between.
+  if (invites.isLoading || list.length < 2) return null;
+
   return (
     <div className="panel mt-6 flex flex-wrap items-center gap-3 p-3 sm:p-4">
       <Label htmlFor="host-event" className="text-xs text-muted-foreground">
