@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFeatures } from "@/lib/features";
-import { EventPickerCompact } from "@/lib/selected-event";
+import { EventPickerCompact, SelectedEventProvider } from "@/lib/selected-event";
 
 const tabClass =
   "rounded-full px-3 py-1.5 text-xs uppercase tracking-wide text-muted-foreground transition-colors hover:text-primary";
