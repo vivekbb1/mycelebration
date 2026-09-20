@@ -554,7 +554,7 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invites")
-        .select("pay_instructions, outfits_paid_by_host")
+        .select("pay_instructions, outfits_paid_by_host, fees_enabled")
         .eq("id", inviteId as string)
         .maybeSingle();
       if (error) throw error;
@@ -564,6 +564,20 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
 
   const value = text ?? current.data?.pay_instructions ?? "";
   const covered = current.data?.outfits_paid_by_host ?? true;
+  const feesOn = current.data?.fees_enabled ?? true;
+
+  const setFeesOn = async (next: boolean) => {
+    if (!inviteId) return;
+    const { error } = await supabase
+      .from("invites")
+      .update({ fees_enabled: next })
+      .eq("id", inviteId);
+    if (error) return void toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["pay-instructions-host", inviteId] });
+    toast.success(
+      next ? "Charges are switched on for this celebration." : "Charges are switched off — guests won't be asked for anything.",
+    );
+  };
 
   const setCovered = async (next: boolean) => {
     if (!inviteId) return;
