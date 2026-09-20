@@ -147,7 +147,7 @@ export function HostWorkload() {
 
     return (hosts.data ?? [])
       .map((h) => {
-        const ids = byHost.get(h.id) ?? [];
+        const ids = [...(byHost.get(h.id) ?? [])];
         const mine = ids.map((id) => guestById.get(id)).filter(Boolean) as Guest[];
         const overdue: { name: string; on: string }[] = [];
         const upcoming: { name: string; on: string }[] = [];
@@ -179,9 +179,11 @@ export function HostWorkload() {
         };
       })
       .sort((a, b) => b.overdue.length - a.overdue.length || b.guests - a.guests);
-  }, [hosts.data, guests.data, links.data, notes.data, repliedHouseholds, today, weekAhead]);
+  }, [hosts.data, guests.data, guestIdsByHost, notes.data, repliedHouseholds, today, weekAhead]);
 
-  const assignedIds = new Set((links.data ?? []).map((r) => r.invite_id));
+  const assignedIds = new Set(
+    [...guestIdsByHost.values()].flatMap((set) => [...set]),
+  );
   const unassigned = (guests.data ?? []).filter((g) => !assignedIds.has(g.id)).length;
 
   return (
