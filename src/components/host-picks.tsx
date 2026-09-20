@@ -24,12 +24,15 @@ const reminderReasons: Record<string, string> = {
  * own outfit are left out entirely — there is nothing to pick there.
  */
 export function HostPicks() {
+  const { inviteId: selectedInvite } = useSelectedEvent();
+
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase.from("events").select("*").order("sort_order");
       if (error) throw error;
-      return data;
+      // Only the celebration being worked on.
+      return (data ?? []).filter((e) => !selectedInvite || e.invite_id === selectedInvite);
     },
   });
 
