@@ -615,7 +615,7 @@ function HostDashboard() {
 
               <TabsTrigger value="replies">RSVP</TabsTrigger>
               {has("rsvp_extended") ? (
-                <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
+                <TabsTrigger value="travel">Count</TabsTrigger>
               ) : null}
               {has("guest_communication") ? (
                 <TabsTrigger value="hosts">Communication</TabsTrigger>

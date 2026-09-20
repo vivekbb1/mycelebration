@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { splitTags } from "@/components/host-function-access";
+import { HostFlights } from "@/components/host-flights";
+
 
 type Answer = "yes" | "no" | "pending";
 
@@ -361,9 +363,12 @@ export function HostRsvp() {
           </div>
         )}
       </div>
+
+      <HostFlights />
     </div>
   );
 }
+
 
 function Tile({ label, value }: { label: string; value: number }) {
   return (
