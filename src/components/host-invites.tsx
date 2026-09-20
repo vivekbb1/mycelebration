@@ -385,6 +385,7 @@ export function HostInvites() {
                       />
                     </span>
                   </div>
+                  <WebAddress invite={v} />
                 </li>
               );
             })}
