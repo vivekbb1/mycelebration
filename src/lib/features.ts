@@ -38,6 +38,11 @@ export const FEATURES = [
     blurb: "Boutiques, ateliers and their orders",
   },
   { key: "budgeting", label: "Budgeting", blurb: "What each event and outfit costs" },
+  {
+    key: "fees",
+    label: "Charges",
+    blurb: "Charging guests for a celebration and tracking what they've paid",
+  },
 ] as const;
 
 export type FeatureKey = (typeof FEATURES)[number]["key"];
