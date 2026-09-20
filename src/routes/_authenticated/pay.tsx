@@ -154,7 +154,7 @@ function PayPage() {
       headsByEvent: heads,
       familyHeads: (people.data ?? []).length || 1,
     });
-  }, [rules.data, events.data, attendance.data, people.data]);
+  }, [rules.data, events.data, attendance.data, people.data, feesOn.data]);
 
   const totals = totalByCurrency(lines);
   const settled = (payments.data ?? [])
