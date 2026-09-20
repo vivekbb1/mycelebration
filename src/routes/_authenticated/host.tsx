@@ -1035,15 +1035,19 @@ function HostDashboard() {
               </div>
               <HostTeam />
             </TabsContent>
-            <TabsContent value="email" className="mt-6">
-              <HostEmail />
-            </TabsContent>
-            <TabsContent value="look" className="mt-6 space-y-8">
-              <HostContent
-                exclude={["Welcome page", "Site-wide"]}
-                intro="Choose a page, then edit its headlines, paragraphs and buttons. Save and your guests see the new wording straight away. The welcome page and the portal name are looked after by the platform owner."
-              />
-            </TabsContent>
+            {has("email") ? (
+              <TabsContent value="email" className="mt-6">
+                <HostEmail />
+              </TabsContent>
+            ) : null}
+            {has("branding") ? (
+              <TabsContent value="look" className="mt-6 space-y-8">
+                <HostContent
+                  exclude={["Welcome page", "Site-wide"]}
+                  intro="Choose a page, then edit its headlines, paragraphs and buttons. Save and your guests see the new wording straight away. The welcome page and the portal name are looked after by the platform owner."
+                />
+              </TabsContent>
+            ) : null}
           </Tabs>
         </TabsContent>
       </Tabs>
