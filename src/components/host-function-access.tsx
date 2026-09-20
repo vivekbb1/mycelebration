@@ -377,6 +377,15 @@ export function HostFunctionAccess() {
           <thead>
             <tr className="border-b border-border text-left">
               <th className="p-4 font-normal text-muted-foreground">
+                <Checkbox
+                  aria-label="Pick every family shown"
+                  checked={visible.length > 0 && visible.every((f) => pickedFamilies.has(f.household))}
+                  onCheckedChange={(on) =>
+                    setPickedFamilies(on ? new Set(visible.map((f) => f.household)) : new Set())
+                  }
+                />
+              </th>
+              <th className="p-4 font-normal text-muted-foreground">
                 Family ({visible.length})
               </th>
               {(events.data ?? []).map((ev) => (
