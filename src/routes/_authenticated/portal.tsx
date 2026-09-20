@@ -227,6 +227,55 @@ function PortalPage() {
           </Badge>
         </div>
 
+        {upcoming.length > 1 ? (
+          <div className="panel mt-8 p-4 sm:p-6">
+            <p className="text-sm">Answer every upcoming function in one go</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Set how many of you are coming, then say yes or no to all of them. You can change any
+              single function below afterwards.
+            </p>
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="bulk-heads">How many of you</Label>
+                <Input
+                  id="bulk-heads"
+                  type="number"
+                  min={1}
+                  max={50}
+                  className="w-24"
+                  value={bulkValue}
+                  onChange={(e) => setBulkHeads(e.target.value)}
+                />
+              </div>
+              <Button
+                disabled={replyAll.isPending}
+                onClick={() =>
+                  replyAll.mutate({
+                    attending: true,
+                    guestCount: Number(bulkValue) || 1,
+                    eventIds: upcoming.map((ev) => ev.id),
+                  })
+                }
+              >
+                Yes to all
+              </Button>
+              <Button
+                variant="outline"
+                disabled={replyAll.isPending}
+                onClick={() =>
+                  replyAll.mutate({
+                    attending: false,
+                    guestCount: 0,
+                    eventIds: upcoming.map((ev) => ev.id),
+                  })
+                }
+              >
+                No to all
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         {events.isLoading ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">Fetching your functions…</p>
         ) : list.length === 0 ? (
