@@ -29,6 +29,7 @@ import { HostEvents } from "@/components/host-events";
 import { HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostGuestList } from "@/components/host-guest-list";
+import { HostTags } from "@/components/host-tags";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
 import { HostRelations } from "@/components/host-relations";
