@@ -57,7 +57,7 @@ export function HostRsvp() {
       const { data, error } = await supabase
         .from("invite_codes")
         .select(
-          "id, guest_name, household, family_id, invite_id, claimed_by, rsvp_status, rsvp_note, rsvp_recorded_at",
+          "id, guest_name, household, family_id, invite_id, claimed_by, tags, rsvp_status, rsvp_note, rsvp_recorded_at",
         )
         .order("guest_name");
       if (error) throw error;
