@@ -45,6 +45,9 @@ type Plan = {
   blurb: string | null;
   features: string[];
   sort_order: number;
+  price_amount: number | null;
+  price_currency: string;
+  price_period: string;
 };
 
 type Addon = {
