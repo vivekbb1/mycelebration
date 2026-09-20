@@ -53,6 +53,7 @@ type Look = {
 function PortalPage() {
   const qc = useQueryClient();
   const [heads, setHeads] = useState<Record<string, string>>({});
+  const [bulkHeads, setBulkHeads] = useState("");
 
   const me = useQuery({
     queryKey: ["portal-me"],
@@ -168,9 +169,42 @@ function PortalPage() {
       ),
   });
 
+  const replyAll = useMutation({
+    mutationFn: async (input: { attending: boolean; guestCount: number; eventIds: string[] }) => {
+      if (!household) throw new Error("no-household");
+      const rows = input.eventIds.map((event_id) => ({
+        household,
+        event_id,
+        attending: input.attending,
+        guest_count: Math.max(input.guestCount, input.attending ? 1 : 0),
+      }));
+      if (rows.length === 0) return;
+      const { error } = await supabase
+        .from("event_attendance")
+        .upsert(rows, { onConflict: "household,event_id" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Saved for every function — thank you.");
+      qc.invalidateQueries({ queryKey: ["portal-attendance"] });
+      qc.invalidateQueries({ queryKey: ["my-fee-attendance"] });
+      setHeads({});
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof Error && err.message === "no-household"
+          ? "Your invitation isn't linked yet — enter your code on the sign-in page."
+          : "Couldn't save that — try again.",
+      ),
+  });
+
   const list = events.data ?? [];
   const familySize = (people.data ?? []).length || 1;
   const answered = (attendance.data ?? []).length;
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = list.filter((ev) => !ev.event_date || ev.event_date >= today);
+  const past = list.filter((ev) => ev.event_date && ev.event_date < today);
+  const bulkValue = bulkHeads || String(familySize);
 
   return (
     <main className="bg-zari">
@@ -193,6 +227,55 @@ function PortalPage() {
           </Badge>
         </div>
 
+        {upcoming.length > 1 ? (
+          <div className="panel mt-8 p-4 sm:p-6">
+            <p className="text-sm">Answer every upcoming function in one go</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Set how many of you are coming, then say yes or no to all of them. You can change any
+              single function below afterwards.
+            </p>
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="bulk-heads">How many of you</Label>
+                <Input
+                  id="bulk-heads"
+                  type="number"
+                  min={1}
+                  max={50}
+                  className="w-24"
+                  value={bulkValue}
+                  onChange={(e) => setBulkHeads(e.target.value)}
+                />
+              </div>
+              <Button
+                disabled={replyAll.isPending}
+                onClick={() =>
+                  replyAll.mutate({
+                    attending: true,
+                    guestCount: Number(bulkValue) || 1,
+                    eventIds: upcoming.map((ev) => ev.id),
+                  })
+                }
+              >
+                Yes to all
+              </Button>
+              <Button
+                variant="outline"
+                disabled={replyAll.isPending}
+                onClick={() =>
+                  replyAll.mutate({
+                    attending: false,
+                    guestCount: 0,
+                    eventIds: upcoming.map((ev) => ev.id),
+                  })
+                }
+              >
+                No to all
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         {events.isLoading ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">Fetching your functions…</p>
         ) : list.length === 0 ? (
@@ -201,7 +284,21 @@ function PortalPage() {
           </p>
         ) : (
           <ol className="mt-8 space-y-5">
-            {list.map((ev) => {
+            {(
+              [
+                ...(upcoming.length ? [{ header: "Upcoming functions" }] : []),
+                ...upcoming.map((ev) => ({ ev })),
+                ...(past.length ? [{ header: "Past functions" }] : []),
+                ...past.map((ev) => ({ ev })),
+              ] as ({ header: string } | { ev: (typeof list)[number] })[]
+            ).map((item, i) => {
+              if ("header" in item)
+                return (
+                  <li key={`h-${i}`} className="pt-2 text-eyebrow">
+                    {item.header}
+                  </li>
+                );
+              const ev = item.ev;
               const a = answerFor(ev.id);
               const headValue = heads[ev.id] ?? String(a?.guest_count ?? familySize);
               const mine = [...(looksByEvent.get(ev.id) ?? []), ...(looksByEvent.get("any") ?? [])];

@@ -17,10 +17,10 @@ export function GuestTabs() {
   const tabs = [
     { to: "/invitation", label: t("nav.tab_invite", "Invite"), icon: Mail },
     { to: "/portal", label: t("nav.tab_portal", "Portal"), icon: LayoutGrid },
-    { to: "/event", label: t("nav.tab_rsvp", "RSVP"), icon: CalendarCheck },
+    { to: "/event", label: t("nav.tab_rsvp", "Schedule"), icon: CalendarCheck },
     { to: "/lookbook", label: t("nav.tab_outfit", "Outfit"), icon: Shirt },
-    { to: "/confirm", label: t("nav.tab_confirm", "Confirm"), icon: BadgeCheck },
     { to: "/measurements", label: t("nav.tab_measurement", "Measurement"), icon: Ruler },
+    { to: "/confirm", label: t("nav.tab_confirm", "Summary"), icon: BadgeCheck },
   ].filter(
     // RSVP-only families never see the wardrobe steps.
     (tab) =>
