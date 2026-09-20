@@ -8,17 +8,17 @@ import { useSiteContent } from "@/lib/site-content";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "The Wedding Wardrobe — Festive Attire for Our Guests" },
+      { title: "Celebration — One Place for the Whole Wedding" },
       {
         name: "description",
         content:
-          "Our gift to you: pick a festive Indian outfit for each wedding event, send your measurements, and we'll take care of the rest.",
+          "Invite your guests, track replies event by event, set aside what they wear, collect measurements and arrange their cars and rooms — all in one place.",
       },
-      { property: "og:title", content: "The Wedding Wardrobe — Festive Attire for Our Guests" },
+      { property: "og:title", content: "Celebration — One Place for the Whole Wedding" },
       {
         property: "og:description",
         content:
-          "A private guest wardrobe: reserve a curated Indian outfit per event and share your measurements.",
+          "A private portal for weddings and the families who host them: guest lists, replies, wardrobe, measurements and arrivals.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
