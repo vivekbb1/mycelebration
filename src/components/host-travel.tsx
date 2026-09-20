@@ -4,7 +4,6 @@ import { Plane, Users, AlertTriangle, CalendarClock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { HostBuild } from "@/components/host-build";
 
 const dateLabel = (value: string | null) =>
   value
@@ -116,7 +115,6 @@ export function HostTravel() {
 
   return (
     <div className="space-y-6">
-      <HostBuild />
 
       <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
