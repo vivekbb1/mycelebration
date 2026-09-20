@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useInvites } from "@/components/host-invites";
+import { Label } from "@/components/ui/label";
 
 type Ctx = {
   /** The event every host screen is currently working on, or "" for all. */
