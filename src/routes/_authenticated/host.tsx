@@ -32,6 +32,8 @@ import { HostGuestList } from "@/components/host-guest-list";
 import { HostTags } from "@/components/host-tags";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
+import { HostArrivals } from "@/components/host-arrivals";
+
 import { HostRelations } from "@/components/host-relations";
 import { HostWorkload } from "@/components/host-workload";
 import { HostOverview } from "@/components/host-overview";
@@ -617,6 +619,10 @@ function HostDashboard() {
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Count</TabsTrigger>
               ) : null}
+              {has("arrivals") ? (
+                <TabsTrigger value="arrivals">Arrivals</TabsTrigger>
+              ) : null}
+
               {has("guest_communication") ? (
                 <TabsTrigger value="hosts">Communication</TabsTrigger>
               ) : null}
@@ -642,6 +648,12 @@ function HostDashboard() {
                 <HostTravel />
               </TabsContent>
             ) : null}
+            {has("arrivals") ? (
+              <TabsContent value="arrivals" className="mt-6">
+                <HostArrivals />
+              </TabsContent>
+            ) : null}
+
             {has("guest_communication") ? (
               <TabsContent value="hosts" className="mt-6 space-y-8">
                 <HostRelations />

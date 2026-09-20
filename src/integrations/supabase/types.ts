@@ -755,6 +755,71 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_stays: {
+        Row: {
+          checkin_date: string | null
+          checkout_date: string | null
+          created_at: string
+          created_by: string | null
+          guest_name: string | null
+          host_contact: string | null
+          hotel_address: string | null
+          hotel_name: string | null
+          household: string
+          id: string
+          invite_id: string | null
+          notes: string | null
+          room_number: string | null
+          room_type: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          checkin_date?: string | null
+          checkout_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          guest_name?: string | null
+          host_contact?: string | null
+          hotel_address?: string | null
+          hotel_name?: string | null
+          household: string
+          id?: string
+          invite_id?: string | null
+          notes?: string | null
+          room_number?: string | null
+          room_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          checkin_date?: string | null
+          checkout_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          guest_name?: string | null
+          host_contact?: string | null
+          hotel_address?: string | null
+          hotel_name?: string | null
+          household?: string
+          id?: string
+          invite_id?: string | null
+          notes?: string | null
+          room_number?: string | null
+          room_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_stays_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_tag_hosts: {
         Row: {
           created_at: string
@@ -818,6 +883,94 @@ export type Database = {
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_transport: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          event_id: string | null
+          flight: string | null
+          from_place: string | null
+          guest_name: string | null
+          household: string
+          id: string
+          invite_id: string | null
+          kind: string
+          notes: string | null
+          scheduled_at: string | null
+          status: string
+          to_place: string | null
+          updated_at: string
+          vehicle: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          event_id?: string | null
+          flight?: string | null
+          from_place?: string | null
+          guest_name?: string | null
+          household: string
+          id?: string
+          invite_id?: string | null
+          kind?: string
+          notes?: string | null
+          scheduled_at?: string | null
+          status?: string
+          to_place?: string | null
+          updated_at?: string
+          vehicle?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          event_id?: string | null
+          flight?: string | null
+          from_place?: string | null
+          guest_name?: string | null
+          household?: string
+          id?: string
+          invite_id?: string | null
+          kind?: string
+          notes?: string | null
+          scheduled_at?: string | null
+          status?: string
+          to_place?: string | null
+          updated_at?: string
+          vehicle?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_transport_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_transport_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_transport_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
