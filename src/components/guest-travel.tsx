@@ -210,7 +210,11 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
   return (
     <>
+      <div className="mt-8">
+        <GuestArrivals household={household} />
+      </div>
       <section className="panel mt-8 p-4 sm:p-6">
+
         <h2 className="flex items-center gap-2 text-xl">
           <Users className="size-4 text-primary" /> Who's coming, event by event
         </h2>
