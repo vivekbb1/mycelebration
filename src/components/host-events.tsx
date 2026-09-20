@@ -207,7 +207,7 @@ export function HostEvents() {
       >
         <div className="mt-5 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="e-invite">Which celebration is this celebration part of?</Label>
+            <Label htmlFor="e-invite">Which celebration is this event part of?</Label>
             <select
               id="e-invite"
               value={chosenInvite}
@@ -227,7 +227,7 @@ export function HostEvents() {
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="e-name">Celebration name</Label>
+            <Label htmlFor="e-name">Event name</Label>
             <Input
               id="e-name"
               maxLength={80}
