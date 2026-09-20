@@ -246,7 +246,7 @@ function InvitationPage() {
 
   return (
     <main className="bg-zari">
-      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
             {branding.cover_logo_url ? (
@@ -260,7 +260,7 @@ function InvitationPage() {
             <p className="text-eyebrow">
               {t("invitation.eyebrow", "Together with our families")}
             </p>
-            <h1 className="mt-6 text-5xl leading-none sm:text-6xl">
+            <h1 className="mt-6 text-4xl leading-none sm:text-5xl md:text-6xl">
               {coupleParts.length === 2 ? (
                 <>
                   {coupleParts[0]} <span className="text-primary">&</span> {coupleParts[1]}

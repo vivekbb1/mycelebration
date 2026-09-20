@@ -224,9 +224,9 @@ function Measurements() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <p className="text-eyebrow">For the tailor</p>
-      <h1 className="mt-3 text-4xl">Measurements</h1>
+      <h1 className="mt-3 text-3xl sm:text-4xl">Measurements</h1>
       <p className="mt-3 text-sm text-muted-foreground">
         Have someone help you and measure over light clothing. Leave anything blank if you're not
         sure — we'll follow up. Only you and the hosts can see these.

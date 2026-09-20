@@ -60,7 +60,7 @@ export function SiteNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
+      <div className="mx-auto flex h-14 w-full max-w-4xl items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
         <Link
           to="/invite"
           className="font-display flex shrink-0 items-center truncate text-base tracking-wide sm:text-lg"
@@ -77,7 +77,7 @@ export function SiteNav() {
           )}
         </Link>
 
-        <div className="mx-auto min-w-0">
+        <div className="mx-auto min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {onGuestTab ? (
             <GuestTabs />
           ) : pathname === "/host" ? null : (
