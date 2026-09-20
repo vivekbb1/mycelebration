@@ -651,19 +651,6 @@ function HostDashboard() {
         </TabsContent>
         )}
 
-        {isPlatformAdmin ? (
-          <TabsContent value="platform" className="mt-6">
-            <div className="panel p-4 sm:p-6">
-              <h2 className="text-xl">Packages &amp; features</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Decide what each package includes and which hosts are on it.
-              </p>
-              <Button asChild className="mt-4">
-                <Link to="/platform">Open platform admin</Link>
-              </Button>
-            </div>
-          </TabsContent>
-        ) : null}
 
         <TabsContent value="invitations" className="mt-6">
           <HostInvites />
