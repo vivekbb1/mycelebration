@@ -1,5 +1,16 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LogOut, Settings, ShieldCheck, Sparkles, User } from "lucide-react";
+import {
+  CalendarDays,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  Shirt,
+  Sparkles,
+  User,
+  Users,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
