@@ -1014,7 +1014,7 @@ function HostDashboard() {
                 <TabsTrigger value="vendors">Vendors</TabsTrigger>
               ) : null}
               {has("budgeting") ? <TabsTrigger value="budget">Budget</TabsTrigger> : null}
-              <TabsTrigger value="fees">Celebration fees</TabsTrigger>
+              {has("fees") ? <TabsTrigger value="fees">Celebration fees</TabsTrigger> : null}
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
