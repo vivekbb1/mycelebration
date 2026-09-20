@@ -612,9 +612,10 @@ function HostDashboard() {
 
         {!has("guest_list") ? null : (
         <TabsContent value="guests" className="mt-6">
-          <Tabs defaultValue="invited">
+          <Tabs defaultValue="list">
             <TabsList>
-              <TabsTrigger value="invited">Invited to what</TabsTrigger>
+              <TabsTrigger value="list">List</TabsTrigger>
+              <TabsTrigger value="invited">Assign</TabsTrigger>
               <TabsTrigger value="replies">Replies</TabsTrigger>
               {has("wardrobe_picker") ? (
                 <TabsTrigger value="picks">Outfit picks</TabsTrigger>
