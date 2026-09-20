@@ -1,8 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { Check, Minus } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
+import { Check, Mail, Minus } from "lucide-react";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
+
+const REMINDER_REASONS: Record<string, string> = {
+  no_email: "no email address saved for this guest",
+  already_chosen: "they've already chosen",
+  nothing_to_choose: "nothing to choose for them",
+  email_turned_off: "email sending is switched off",
+  lovable_domain_not_set_up: "your sender domain isn't set up yet",
+  from_address_missing: "no from address saved",
+  api_key_missing: "the email service key is missing",
+};
 
 /**
  * Who has picked a look for which event. Events where guests wear their
@@ -85,8 +99,90 @@ export function HostPicks() {
   const loading =
     events.isLoading || guests.isLoading || outfits.isLoading || reservations.isLoading;
 
+  /** The guest list as invited (invitation codes), so reminders can go out by email. */
+  const invited = useQuery({
+    queryKey: ["host-picks-invited"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invite_codes")
+        .select("id, guest_name, email, claimed_by, household")
+        .order("guest_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const remind = useServerFn(sendOutfitReminder);
+  const [sending, setSending] = useState<string | null>(null);
+
+  /** Guests with an email who still have at least one look to choose. */
+  const toRemind = useMemo(() => {
+    if (pickable.length === 0) return [];
+    return (invited.data ?? [])
+      .filter((g) => g.email)
+      .map((g) => {
+        const chosen = g.claimed_by ? picks.get(g.claimed_by) : undefined;
+        const missing = pickable.filter((ev) => !chosen?.get(ev.id));
+        return { ...g, missing };
+      })
+      .filter((g) => g.missing.length > 0);
+  }, [invited.data, picks, pickable]);
+
+  async function sendReminder(id: string, name: string) {
+    setSending(id);
+    try {
+      const result = await remind({ data: { inviteId: id } });
+      if (result.sent) toast.success(`Reminder sent to ${name}`);
+      else
+        toast.error(
+          `Couldn't remind ${name} — ${REMINDER_REASONS[result.reason ?? ""] ?? "the email didn't go out"}`,
+        );
+    } catch {
+      toast.error(`Couldn't remind ${name} just now`);
+    } finally {
+      setSending(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
+      <div className="panel p-4 sm:p-6">
+        <h2 className="text-xl">Nudge guests who haven't chosen</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          A short email listing the days still waiting on them, with a link to the wardrobe.
+        </p>
+
+        {invited.isLoading || loading ? (
+          <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
+        ) : toRemind.length === 0 ? (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Everyone with an email address has chosen their looks.
+          </p>
+        ) : (
+          <ul className="mt-5 divide-y divide-border">
+            {toRemind.map((g) => (
+              <li key={g.id} className="flex flex-wrap items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm">{g.guest_name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {g.missing.map((e) => e.name).join(", ")}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={sending === g.id}
+                  onClick={() => sendReminder(g.id, g.guest_name)}
+                >
+                  <Mail className="mr-2 size-3.5" />
+                  {sending === g.id ? "Sending…" : "Send reminder"}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Outfit picks per guest</h2>
         <p className="mt-1 text-sm text-muted-foreground">
