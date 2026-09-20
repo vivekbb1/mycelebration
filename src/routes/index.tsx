@@ -8,17 +8,17 @@ import { useSiteContent } from "@/lib/site-content";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "The Wedding Wardrobe — Festive Attire for Our Guests" },
+      { title: "Celebration — One Place for the Whole Wedding" },
       {
         name: "description",
         content:
-          "Our gift to you: pick a festive Indian outfit for each wedding event, send your measurements, and we'll take care of the rest.",
+          "Invite your guests, track replies event by event, set aside what they wear, collect measurements and arrange their cars and rooms — all in one place.",
       },
-      { property: "og:title", content: "The Wedding Wardrobe — Festive Attire for Our Guests" },
+      { property: "og:title", content: "Celebration — One Place for the Whole Wedding" },
       {
         property: "og:description",
         content:
-          "A private guest wardrobe: reserve a curated Indian outfit per event and share your measurements.",
+          "A private portal for weddings and the families who host them: guest lists, replies, wardrobe, measurements and arrivals.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -33,34 +33,34 @@ function Landing() {
   const steps = [
     {
       icon: Sparkles,
-      title: t("landing.step1_title", "Browse the lookbook"),
+      title: t("landing.step1_title", "Build your guest list"),
       body: t(
         "landing.step1_body",
-        "Curated lehengas, sarees, sherwanis and indo-western looks, grouped by event and hand-picked from designer boutiques.",
+        "Add families, tag them however you think about them, and choose which events each one is invited to.",
       ),
     },
     {
       icon: HandHeart,
-      title: t("landing.step2_title", "Claim your look"),
+      title: t("landing.step2_title", "Invite and track replies"),
       body: t(
         "landing.step2_body",
-        "Each outfit can be claimed by one guest only. Once it's yours, it disappears from everyone else's list — no accidental twinning.",
+        "Send each family their own code and watch the replies land, event by event, with head counts you can rely on.",
       ),
     },
     {
       icon: Ruler,
-      title: t("landing.step3_title", "Send measurements"),
+      title: t("landing.step3_title", "Set aside what they wear"),
       body: t(
         "landing.step3_body",
-        "A guided form walks you through every measurement a tailor needs, in centimetres or inches, with tips for each one.",
+        "Fill a wardrobe for each event, let guests choose their look, and collect the measurements a tailor needs.",
       ),
     },
     {
       icon: ShieldCheck,
-      title: t("landing.step4_title", "We handle the rest"),
+      title: t("landing.step4_title", "Look after the arrivals"),
       body: t(
         "landing.step4_body",
-        "Ordering, tailoring and delivery are on us. The outfit is our gift — you just have to show up and dance.",
+        "Flights, cars, drivers, hotels and rooms, all against the right family, with the details sent straight to them.",
       ),
     },
   ];
@@ -69,39 +69,39 @@ function Landing() {
     <div className="bg-zari min-h-dvh bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
         <span className="font-display text-lg tracking-wide">
-          {t("landing.brand", "The Wedding Wardrobe")}
+          {t("landing.brand", "Celebration")}
         </span>
         <Button asChild variant="ghost" size="sm">
-          <Link to="/auth">{t("landing.signin", "Guest sign in")}</Link>
+          <Link to="/auth" search={{ mode: "signin" }}>
+            {t("landing.signin", "Sign in")}
+          </Link>
         </Button>
       </header>
 
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-6 pb-16 lg:grid-cols-2 lg:gap-14">
         <div>
-          <p className="text-eyebrow">{t("landing.eyebrow", "A gift from the family")}</p>
+          <p className="text-eyebrow">{t("landing.eyebrow", "For the family hosting")}</p>
           <h1 className="mt-4 text-4xl leading-tight sm:text-5xl lg:text-6xl">
-            {t("landing.headline", "Festive Indian attire, chosen for you before you land.")}
+            {t("landing.headline", "One place for the whole celebration.")}
           </h1>
           <p className="mt-5 max-w-xl text-base whitespace-pre-line text-muted-foreground sm:text-lg">
             {t(
               "landing.body",
-              "We know a lehenga fitting isn't easy to arrange from abroad. So we've curated a wardrobe for every event of the wedding. Reserve the look you love, send your measurements, and it will be waiting for you — tailored, pressed and paid for.",
+              "Invite your guests, see who is coming to each event, set aside what they will wear, collect measurements, and arrange their cars and rooms. Everything in one calm place, from the first invitation to the last goodbye.",
             )}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link to="/auth">{t("landing.cta_primary", "Open your invitation")}</Link>
+              <Link to="/auth">{t("landing.cta_primary", "Start your celebration")}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/auth" search={{ mode: "signin" }}>
-                {t("landing.cta_secondary", "I already registered")}
-              </Link>
+              <Link to="/auth">{t("landing.cta_secondary", "Guest with a code")}</Link>
             </Button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             {t(
               "landing.code_note",
-              "You'll need the invitation code we sent you on WhatsApp or email.",
+              "Guests sign in with the code you send them. Hosts sign in with their own invitation from us.",
             )}
           </p>
         </div>
@@ -135,19 +135,19 @@ function Landing() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 pb-24 text-center">
-        <p className="text-eyebrow">{t("landing.unique_eyebrow", "One guest, one look")}</p>
+        <p className="text-eyebrow">{t("landing.unique_eyebrow", "Quietly organised")}</p>
         <h2 className="mt-4 text-3xl sm:text-4xl">
-          {t("landing.unique_title", "No two guests in the same outfit.")}
+          {t("landing.unique_title", "Your guests see only what concerns them.")}
         </h2>
         <p className="mt-4 text-sm leading-relaxed whitespace-pre-line text-muted-foreground sm:text-base">
           {t(
             "landing.unique_body",
-            "Every piece in the lookbook is reserved the moment a guest claims it, so the wardrobe you see is always the wardrobe that's still available. Reserve early for the best choice.",
+            "Each family opens their own page: the events they are invited to, what they said yes to, the look set aside for them, and how they are getting there. Nothing else.",
           )}
         </p>
         <div className="mt-8">
           <Button asChild size="lg">
-            <Link to="/auth">{t("landing.unique_cta", "Choose your outfits")}</Link>
+            <Link to="/auth">{t("landing.unique_cta", "See a guest's view")}</Link>
           </Button>
         </div>
       </section>
@@ -155,7 +155,7 @@ function Landing() {
       <footer className="border-t border-border/70 px-4 py-8 text-center text-xs whitespace-pre-line text-muted-foreground">
         {t(
           "landing.footer",
-          "A private portal for our wedding guests. Questions? Message the family group.",
+          "A private portal for weddings and the families who host them.",
         )}
       </footer>
     </div>
