@@ -440,9 +440,9 @@ export function GuestListPage() {
         <div className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">Everyone invited ({rows.length})</h2>
-            <Button variant="ghost" disabled={bulkBusy} onClick={mailEveryone}>
-              <Mail className="size-4" /> Email everyone pending
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              {invitedLog.sent.length} invited · {invitedLog.pending.length} still to invite
+            </p>
             <div className="relative">
               <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
               <Input
