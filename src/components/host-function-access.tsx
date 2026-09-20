@@ -525,6 +525,69 @@ export function HostFunctionAccess() {
         </div>
       </div>
 
+      <div className="panel space-y-4 p-4 sm:p-6">
+        <div>
+          <h3 className="text-lg">Tag several at once</h3>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Tick the families below, choose one or more tags here, then add or remove them.
+            Whoever looks after a tag, set under Guests &rarr; Tags, picks up those guests in
+            Communication and Tracker.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {allTags.map((t) => {
+            const on = applyTags.has(t);
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() =>
+                  setApplyTags((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(t)) next.delete(t);
+                    else next.add(t);
+                    return next;
+                  })
+                }
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                #{t}
+              </button>
+            );
+          })}
+          {allTags.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No tags yet — make some under Guests &rarr; Tags.
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || applyTags.size === 0}
+            onClick={() => void applyTagsToPicked("add")}
+          >
+            Add these tags
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || applyTags.size === 0}
+            onClick={() => void applyTagsToPicked("remove")}
+          >
+            Remove these tags
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {applyTags.size} tag{applyTags.size === 1 ? "" : "s"} picked
+          </span>
+        </div>
+      </div>
 
       <div className="panel overflow-x-auto p-0">
         <table className="w-full min-w-[720px] text-sm">
