@@ -175,6 +175,25 @@ export function HostFunctionAccess() {
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
+  /** Put the chosen tags on — or take them off — every family you've ticked. */
+  const applyTagsToPicked = async (mode: "add" | "remove") => {
+    const chosen = [...applyTags];
+    const households = visible.filter((f) => pickedFamilies.has(f.household));
+    if (chosen.length === 0 || households.length === 0) return;
+    const ids = households.flatMap((f) => f.ids);
+    if (mode === "add") {
+      await addTag(ids, chosen.join(","));
+    } else {
+      for (const tag of chosen) await removeTag(ids, tag);
+    }
+    toast.success(
+      `${mode === "add" ? "Tagged" : "Untagged"} ${households.length} famil${
+        households.length === 1 ? "y" : "ies"
+      }.`,
+    );
+    setApplyTags(new Set());
+  };
+
   const rowsFor = (household: string) =>
     (access.data ?? []).filter((r) => r.household === household);
 
