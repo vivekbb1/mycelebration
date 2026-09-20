@@ -106,14 +106,14 @@ export function HostPicks() {
 
   /** The guest list as invited (invitation codes), so reminders can go out by email. */
   const invited = useQuery({
-    queryKey: ["host-picks-invited"],
+    queryKey: ["host-picks-invited", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, email, claimed_by, household")
+        .select("id, guest_name, email, claimed_by, household, invite_id")
         .order("guest_name");
       if (error) throw error;
-      return data;
+      return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
     },
   });
 
