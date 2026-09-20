@@ -338,6 +338,8 @@ function GuestListPage() {
         measurements in, RSVP answered.
       </p>
 
+      <EventPicker />
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Stat label="Invited" value={stats.all} />
         <Stat label="Registered" value={stats.registered} />
