@@ -133,15 +133,23 @@ export function HostTags() {
       setBusy(false);
       return;
     }
-    const existing = (tagHosts.data ?? []).find((r) => r.tag_id === id && r.host_id === hostId);
-    const { error } = existing
-      ? await supabase.from("guest_tag_hosts").delete().eq("id", existing.id)
+    // Check the live record rather than what's on screen, so a quick second tap
+    // can't try to add the same host twice.
+    const { data: live } = await supabase
+      .from("guest_tag_hosts")
+      .select("id")
+      .eq("tag_id", id)
+      .eq("host_id", hostId)
+      .maybeSingle();
+    const { error } = live
+      ? await supabase.from("guest_tag_hosts").delete().eq("id", live.id)
       : await supabase.from("guest_tag_hosts").insert({ tag_id: id, host_id: hostId });
     setBusy(false);
-    if (error) {
+    if (error && error.code !== "23505") {
       toast.error(error.message);
       return;
     }
+
     await refresh();
   };
 
