@@ -69,39 +69,39 @@ function Landing() {
     <div className="bg-zari min-h-dvh bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
         <span className="font-display text-lg tracking-wide">
-          {t("landing.brand", "The Wedding Wardrobe")}
+          {t("landing.brand", "Celebration")}
         </span>
         <Button asChild variant="ghost" size="sm">
-          <Link to="/auth">{t("landing.signin", "Guest sign in")}</Link>
+          <Link to="/auth" search={{ mode: "signin" }}>
+            {t("landing.signin", "Sign in")}
+          </Link>
         </Button>
       </header>
 
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-6 pb-16 lg:grid-cols-2 lg:gap-14">
         <div>
-          <p className="text-eyebrow">{t("landing.eyebrow", "A gift from the family")}</p>
+          <p className="text-eyebrow">{t("landing.eyebrow", "For the family hosting")}</p>
           <h1 className="mt-4 text-4xl leading-tight sm:text-5xl lg:text-6xl">
-            {t("landing.headline", "Festive Indian attire, chosen for you before you land.")}
+            {t("landing.headline", "One place for the whole celebration.")}
           </h1>
           <p className="mt-5 max-w-xl text-base whitespace-pre-line text-muted-foreground sm:text-lg">
             {t(
               "landing.body",
-              "We know a lehenga fitting isn't easy to arrange from abroad. So we've curated a wardrobe for every event of the wedding. Reserve the look you love, send your measurements, and it will be waiting for you — tailored, pressed and paid for.",
+              "Invite your guests, see who is coming to each event, set aside what they will wear, collect measurements, and arrange their cars and rooms. Everything in one calm place, from the first invitation to the last goodbye.",
             )}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link to="/auth">{t("landing.cta_primary", "Open your invitation")}</Link>
+              <Link to="/auth">{t("landing.cta_primary", "Start your celebration")}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/auth" search={{ mode: "signin" }}>
-                {t("landing.cta_secondary", "I already registered")}
-              </Link>
+              <Link to="/auth">{t("landing.cta_secondary", "Guest with a code")}</Link>
             </Button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             {t(
               "landing.code_note",
-              "You'll need the invitation code we sent you on WhatsApp or email.",
+              "Guests sign in with the code you send them. Hosts sign in with their own invitation from us.",
             )}
           </p>
         </div>
