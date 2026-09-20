@@ -67,6 +67,19 @@ export function HostPicks() {
     },
   });
 
+  /** Every guest's measurements, so the tailor's numbers sit beside their look. */
+  const measurements = useQuery({
+    queryKey: ["host-picks-measurements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("measurements")
+        .select("*")
+        .order("guest_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const pickable = (events.data ?? []).filter((e) => e.outfit_selection !== false);
   const ownOutfit = (events.data ?? []).filter((e) => e.outfit_selection === false);
 
@@ -274,6 +287,69 @@ export function HostPicks() {
                 ) : null}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      <div className="panel p-4 sm:p-6">
+        <h2 className="text-xl">Measurements</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          What each guest has sent for their tailoring, in the units they chose.
+        </p>
+        {measurements.isLoading ? (
+          <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
+        ) : (measurements.data ?? []).length === 0 ? (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Nobody has sent their measurements yet.
+          </p>
+        ) : (
+          <div className="mt-5 space-y-4">
+            {(measurements.data ?? []).map((m) => {
+              const unit = (m.unit as string | null) ?? "cm";
+              const guest = (guests.data ?? []).find((g) => g.id === m.guest_id);
+              const fields: Array<[string, unknown]> = [
+                ["Height", m.height],
+                ["Bust / chest", m.bust],
+                ["Waist", m.waist],
+                ["Hip", m.hip],
+                ["Shoulder", m.shoulder],
+                ["Sleeve", m.sleeve_length],
+                ["Blouse / kurta length", m.top_length],
+                ["Skirt / trouser length", m.bottom_length],
+                ["Inseam", m.inseam],
+              ];
+              const given = fields.filter(([, v]) => v !== null && v !== undefined);
+              return (
+                <div key={m.id as string} className="rounded-xl border border-border p-4">
+                  <p className="text-sm">
+                    {(m.guest_name as string) || guest?.full_name || "Guest"}
+                    {guest?.household ? (
+                      <span className="text-xs text-primary"> · {guest.household}</span>
+                    ) : null}
+                    <span className="text-xs text-muted-foreground"> · in {unit}</span>
+                  </p>
+                  {given.length === 0 ? (
+                    <p className="mt-2 text-xs text-muted-foreground">Nothing filled in yet.</p>
+                  ) : (
+                    <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {given.map(([label, value]) => (
+                        <div key={label} className="flex items-baseline justify-between gap-3">
+                          <dt className="text-xs text-muted-foreground">{label}</dt>
+                          <dd className="text-sm">
+                            {String(value)} {unit}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  {m.notes ? (
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Note for the tailor: {m.notes as string}
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
