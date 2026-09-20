@@ -255,6 +255,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
     };
     if (data.readyToShip) queryString['ready_to_ship'] = "ready_to_ship";
     if (data.colour) queryString['colour_code'] = data.colour;
+    if (data.shipInDays) queryString['ship_in_days'] = data.shipInDays;
 
     const shopPage = async (n: number) => {
       const queryData = encodeURIComponent(
