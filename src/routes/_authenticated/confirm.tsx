@@ -155,7 +155,7 @@ function ConfirmPage() {
               No look is set aside for you yet — choose one and it will appear here to confirm.
             </p>
             <Button asChild size="sm" variant="outline" className="mt-4">
-              <Link to="/lookbook">Choose a look</Link>
+              <Link to="/outfits">Choose a look</Link>
             </Button>
           </div>
         ) : (

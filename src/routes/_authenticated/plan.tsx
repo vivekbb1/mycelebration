@@ -189,7 +189,7 @@ function PlanPage() {
                       <div className="mt-2">
                         <p className="text-sm text-muted-foreground">Nothing chosen yet.</p>
                         <Button asChild size="sm" variant="outline" className="mt-3">
-                          <Link to="/lookbook">Choose a look</Link>
+                          <Link to="/outfits">Choose a look</Link>
                         </Button>
                       </div>
                     ) : (
@@ -318,7 +318,7 @@ function PlanPage() {
             </ul>
           )}
           <Button asChild size="sm" variant="outline" className="mt-4">
-            <Link to="/event">Add or change travel dates</Link>
+            <Link to="/schedule">Add or change travel dates</Link>
           </Button>
         </section>
 
