@@ -200,7 +200,7 @@ export function HostRsvp() {
       <div className="panel p-4 sm:p-6">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-xl">Replies by celebration</h2>
+            <h2 className="truncate text-xl">RSVP by celebration</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               A guest's own reply shows here the moment they send it. Tap a name to record an
               answer someone gave you by phone.
