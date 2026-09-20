@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Pencil, Trash2, ShieldCheck, Users } from "lucide-react";
+import { Pencil, Trash2, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { claimHostAccess } from "@/lib/guest-access.functions";
