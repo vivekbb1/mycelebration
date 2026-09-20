@@ -460,13 +460,6 @@ function HostDashboard() {
           <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {has("guest_list") ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to="/guests">
-                <Users className="size-4" /> Guest list
-              </Link>
-            </Button>
-          ) : null}
           <Button asChild variant="outline" size="sm">
             <Link to="/upgrade">Your package</Link>
           </Button>
