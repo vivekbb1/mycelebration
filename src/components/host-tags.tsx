@@ -318,7 +318,7 @@ export function HostTags() {
                 </th>
                 <th className="p-4 font-normal text-muted-foreground">Tag</th>
                 <th className="p-4 font-normal text-muted-foreground">On how many families</th>
-                <th className="p-4 font-normal text-muted-foreground">In your list</th>
+                <th className="p-4 font-normal text-muted-foreground">Looked after by</th>
                 <th className="p-4" />
               </tr>
             </thead>
