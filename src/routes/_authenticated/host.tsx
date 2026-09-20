@@ -610,8 +610,9 @@ function HostDashboard() {
           <Tabs defaultValue="list">
             <TabsList>
               <TabsTrigger value="list">List</TabsTrigger>
-              <TabsTrigger value="invited">Assign</TabsTrigger>
               <TabsTrigger value="tags">Tags</TabsTrigger>
+              <TabsTrigger value="invited">Assign</TabsTrigger>
+
               <TabsTrigger value="replies">RSVP</TabsTrigger>
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
