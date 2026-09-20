@@ -87,7 +87,8 @@ export function GuestListPage() {
       const { data, error } = await supabase
         .from("invite_codes")
         .select(
-          "id, code, guest_name, email, phone, category, claimed_by, claimed_at, household, gender, invite_id",
+          "id, code, guest_name, email, phone, category, tags, invite_sent_at, claimed_by, claimed_at, household, gender, invite_id",
+        )
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
