@@ -6,6 +6,7 @@ import { Check, Search, X, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { splitTags } from "@/components/host-function-access";
 
 type Answer = "yes" | "no" | "pending";
 
