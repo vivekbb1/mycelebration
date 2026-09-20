@@ -323,6 +323,13 @@
       "when": 1789910223332,
       "tag": "0045_celebration_public_page",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1789915544796,
+      "tag": "0046_rsvp_from_event_answers",
+      "breakpoints": true
     }
   ]
 }
