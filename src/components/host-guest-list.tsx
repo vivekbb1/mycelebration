@@ -25,7 +25,6 @@ export function HostGuestList() {
   const { inviteId: selectedEvent } = useSelectedEvent();
 
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
 
@@ -323,18 +322,6 @@ export function HostGuestList() {
     });
   };
 
-  /** Free-text tags the hosts keep on a guest (table, side of the family, notes). */
-  const saveTags = async (id: string, value: string) => {
-    const { error } = await supabase
-      .from("invite_codes")
-      .update({ tags: value.trim() || null })
-      .eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    await queryClient.invalidateQueries({ queryKey: ["invites"] });
-  };
 
 
 
