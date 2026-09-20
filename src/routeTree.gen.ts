@@ -19,6 +19,7 @@ import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
 import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
+import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
 import { Route as AuthenticatedOutfitsRouteImport } from './routes/_authenticated/outfits'
 import { Route as AuthenticatedPayRouteImport } from './routes/_authenticated/pay'
@@ -77,6 +78,11 @@ const AuthenticatedHostsRoute = AuthenticatedHostsRouteImport.update({
 const AuthenticatedInvitationRoute = AuthenticatedInvitationRouteImport.update({
   id: '/invitation',
   path: '/invitation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLookbookRoute = AuthenticatedLookbookRouteImport.update({
+  id: '/lookbook',
+  path: '/lookbook',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMeasurementsRoute =
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
+  '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/outfits': typeof AuthenticatedOutfitsRoute
   '/pay': typeof AuthenticatedPayRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
+  '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/outfits': typeof AuthenticatedOutfitsRoute
   '/pay': typeof AuthenticatedPayRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
   '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
+  '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
   '/_authenticated/outfits': typeof AuthenticatedOutfitsRoute
   '/_authenticated/pay': typeof AuthenticatedPayRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/host'
     | '/hosts'
     | '/invitation'
+    | '/lookbook'
     | '/measurements'
     | '/outfits'
     | '/pay'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/host'
     | '/hosts'
     | '/invitation'
+    | '/lookbook'
     | '/measurements'
     | '/outfits'
     | '/pay'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/_authenticated/host'
     | '/_authenticated/hosts'
     | '/_authenticated/invitation'
+    | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
     | '/_authenticated/outfits'
     | '/_authenticated/pay'
@@ -344,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvitationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lookbook': {
+      id: '/_authenticated/lookbook'
+      path: '/lookbook'
+      fullPath: '/lookbook'
+      preLoaderRoute: typeof AuthenticatedLookbookRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/measurements': {
       id: '/_authenticated/measurements'
       path: '/measurements'
@@ -425,6 +444,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
   AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
+  AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
   AuthenticatedOutfitsRoute: typeof AuthenticatedOutfitsRoute
   AuthenticatedPayRoute: typeof AuthenticatedPayRoute
@@ -444,6 +464,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
   AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
+  AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
   AuthenticatedOutfitsRoute: AuthenticatedOutfitsRoute,
   AuthenticatedPayRoute: AuthenticatedPayRoute,
