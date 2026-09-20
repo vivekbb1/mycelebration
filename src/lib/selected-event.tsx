@@ -14,6 +14,14 @@ const SelectedEvent = createContext<Ctx>({ inviteId: "", setInviteId: () => {}, 
 
 const KEY = "host.selected-event";
 
+// One shared value, so the header picker and the page below it always agree.
+let shared = "";
+const listeners = new Set<(id: string) => void>();
+function publish(id: string) {
+  shared = id;
+  listeners.forEach((fn) => fn(id));
+}
+
 /**
  * Keeps one chosen celebration across the host tabs, so events, guests, wardrobe
  * and setup all show and save against the same celebration.
