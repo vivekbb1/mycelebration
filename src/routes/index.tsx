@@ -33,34 +33,34 @@ function Landing() {
   const steps = [
     {
       icon: Sparkles,
-      title: t("landing.step1_title", "Browse the lookbook"),
+      title: t("landing.step1_title", "Build your guest list"),
       body: t(
         "landing.step1_body",
-        "Curated lehengas, sarees, sherwanis and indo-western looks, grouped by event and hand-picked from designer boutiques.",
+        "Add families, tag them however you think about them, and choose which events each one is invited to.",
       ),
     },
     {
       icon: HandHeart,
-      title: t("landing.step2_title", "Claim your look"),
+      title: t("landing.step2_title", "Invite and track replies"),
       body: t(
         "landing.step2_body",
-        "Each outfit can be claimed by one guest only. Once it's yours, it disappears from everyone else's list — no accidental twinning.",
+        "Send each family their own code and watch the replies land, event by event, with head counts you can rely on.",
       ),
     },
     {
       icon: Ruler,
-      title: t("landing.step3_title", "Send measurements"),
+      title: t("landing.step3_title", "Set aside what they wear"),
       body: t(
         "landing.step3_body",
-        "A guided form walks you through every measurement a tailor needs, in centimetres or inches, with tips for each one.",
+        "Fill a wardrobe for each event, let guests choose their look, and collect the measurements a tailor needs.",
       ),
     },
     {
       icon: ShieldCheck,
-      title: t("landing.step4_title", "We handle the rest"),
+      title: t("landing.step4_title", "Look after the arrivals"),
       body: t(
         "landing.step4_body",
-        "Ordering, tailoring and delivery are on us. The outfit is our gift — you just have to show up and dance.",
+        "Flights, cars, drivers, hotels and rooms, all against the right family, with the details sent straight to them.",
       ),
     },
   ];
