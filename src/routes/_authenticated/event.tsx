@@ -201,23 +201,13 @@ function EventPage() {
 
       <GuestTravel events={events.data ?? []} />
 
-      <div className="gold-rule my-10" />
-
-      {events.isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading the schedule…</p>
-      ) : (
-        <div className="space-y-7">
-          {(events.data ?? []).map((ev) => (
-            <FunctionCard key={ev.id} event={ev as WeddingFunction} />
-          ))}
-          {(events.data ?? []).length === 0 ? (
-            <p className="panel p-4 sm:p-6 text-sm text-muted-foreground">
-              The schedule is being finalised. Dates, timings and venues will appear here as soon as
-              the hosts add them.
-            </p>
-          ) : null}
-        </div>
-      )}
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        Dates, venues and dress codes for each function are on{" "}
+        <Link to="/invitation" className="text-primary underline-offset-4 hover:underline">
+          your invitation
+        </Link>
+        .
+      </p>
     </main>
   );
 }
