@@ -459,11 +459,13 @@ function HostDashboard() {
           <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/guests">
-              <Users className="size-4" /> Guest list
-            </Link>
-          </Button>
+          {has("guest_list") ? (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/guests">
+                <Users className="size-4" /> Guest list
+              </Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline" size="sm">
             <Link to="/upgrade">Your package</Link>
           </Button>
@@ -608,6 +610,7 @@ function HostDashboard() {
           </section>
         </TabsContent>
 
+        {!has("guest_list") ? null : (
         <TabsContent value="guests" className="mt-6">
           <Tabs defaultValue="invited">
             <TabsList>
@@ -630,18 +633,25 @@ function HostDashboard() {
               <HostRsvp />
               {has("messaging") ? <HostMessages /> : null}
             </TabsContent>
-            <TabsContent value="picks" className="mt-6">
-              <HostPicks />
-            </TabsContent>
-            <TabsContent value="travel" className="mt-6">
-              <HostTravel />
-            </TabsContent>
-            <TabsContent value="hosts" className="mt-6 space-y-8">
-              <HostRelations />
-              <HostWorkload />
-            </TabsContent>
+            {has("wardrobe_picker") ? (
+              <TabsContent value="picks" className="mt-6">
+                <HostPicks />
+              </TabsContent>
+            ) : null}
+            {has("rsvp_extended") ? (
+              <TabsContent value="travel" className="mt-6">
+                <HostTravel />
+              </TabsContent>
+            ) : null}
+            {has("guest_tracker") || has("guest_communication") ? (
+              <TabsContent value="hosts" className="mt-6 space-y-8">
+                {has("guest_communication") ? <HostRelations /> : null}
+                {has("guest_tracker") ? <HostWorkload /> : null}
+              </TabsContent>
+            ) : null}
           </Tabs>
         </TabsContent>
+        )}
 
         {isPlatformAdmin ? (
           <TabsContent value="platform" className="mt-6">
@@ -661,6 +671,7 @@ function HostDashboard() {
           <HostInvites />
         </TabsContent>
 
+        {!has("functions") ? null : (
         <TabsContent value="functions" className="mt-6 space-y-6">
           <div className="panel p-4 sm:p-6">
             <h2 className="text-xl">Four steps</h2>
@@ -673,7 +684,9 @@ function HostDashboard() {
           </div>
           <HostEvents />
         </TabsContent>
+        )}
 
+        {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
           <Tabs defaultValue="outfits">
             <TabsList>
@@ -982,14 +995,17 @@ function HostDashboard() {
             <TabsContent value="import" className="mt-6">
               <HostImport />
             </TabsContent>
-            <TabsContent value="logistics" className="mt-6">
-              <HostLogistics />
-            </TabsContent>
+            {has("delivery") ? (
+              <TabsContent value="logistics" className="mt-6">
+                <HostLogistics />
+              </TabsContent>
+            ) : null}
           </Tabs>
         </TabsContent>
+        )}
 
         <TabsContent value="setup" className="mt-6">
-          <Tabs defaultValue="boutiques">
+          <Tabs defaultValue={has("vendor_management") ? "boutiques" : "fees"}>
             <TabsList>
               {has("vendor_management") ? (
                 <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
@@ -1003,19 +1019,25 @@ function HostDashboard() {
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
             </TabsList>
-            <TabsContent value="boutiques" className="mt-6 space-y-8">
-              <HostBoutiques />
-              <HostByBoutique />
-            </TabsContent>
+            {has("vendor_management") ? (
+              <TabsContent value="boutiques" className="mt-6 space-y-8">
+                <HostBoutiques />
+                <HostByBoutique />
+              </TabsContent>
+            ) : null}
             <TabsContent value="fees" className="mt-6">
               <HostFees audience="guest" />
             </TabsContent>
-            <TabsContent value="vendors" className="mt-6">
-              <HostVendors />
-            </TabsContent>
-            <TabsContent value="budget" className="mt-6">
-              <HostBudget />
-            </TabsContent>
+            {has("vendor_management") ? (
+              <TabsContent value="vendors" className="mt-6">
+                <HostVendors />
+              </TabsContent>
+            ) : null}
+            {has("budgeting") ? (
+              <TabsContent value="budget" className="mt-6">
+                <HostBudget />
+              </TabsContent>
+            ) : null}
             <TabsContent value="hosts" className="mt-6 space-y-6">
               <div className="panel p-4 sm:p-6">
                 <h3 className="text-xl">Host dashboard</h3>
@@ -1029,15 +1051,19 @@ function HostDashboard() {
               </div>
               <HostTeam />
             </TabsContent>
-            <TabsContent value="email" className="mt-6">
-              <HostEmail />
-            </TabsContent>
-            <TabsContent value="look" className="mt-6 space-y-8">
-              <HostContent
-                exclude={["Welcome page", "Site-wide"]}
-                intro="Choose a page, then edit its headlines, paragraphs and buttons. Save and your guests see the new wording straight away. The welcome page and the portal name are looked after by the platform owner."
-              />
-            </TabsContent>
+            {has("email") ? (
+              <TabsContent value="email" className="mt-6">
+                <HostEmail />
+              </TabsContent>
+            ) : null}
+            {has("branding") ? (
+              <TabsContent value="look" className="mt-6 space-y-8">
+                <HostContent
+                  exclude={["Welcome page", "Site-wide"]}
+                  intro="Choose a page, then edit its headlines, paragraphs and buttons. Save and your guests see the new wording straight away. The welcome page and the portal name are looked after by the platform owner."
+                />
+              </TabsContent>
+            ) : null}
           </Tabs>
         </TabsContent>
       </Tabs>
