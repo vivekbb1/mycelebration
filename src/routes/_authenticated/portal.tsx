@@ -53,6 +53,7 @@ type Look = {
 function PortalPage() {
   const qc = useQueryClient();
   const [heads, setHeads] = useState<Record<string, string>>({});
+  const [bulkHeads, setBulkHeads] = useState("");
 
   const me = useQuery({
     queryKey: ["portal-me"],
