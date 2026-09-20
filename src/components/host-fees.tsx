@@ -76,6 +76,20 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
   const [draft, setDraft] = useState<Draft>(empty);
   const [busy, setBusy] = useState(false);
 
+  const feesOn = useQuery({
+    queryKey: ["fees-enabled-host", selectedEvent],
+    enabled: !!selectedEvent,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("fees_enabled")
+        .eq("id", selectedEvent as string)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.fees_enabled ?? true;
+    },
+  });
+
   const events = useQuery({
     queryKey: ["fee-events"],
     queryFn: async () => {
@@ -265,6 +279,10 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
 
   return (
     <div className="space-y-6">
+      {audience === "guest" ? <PayInstructions inviteId={selectedEvent} /> : null}
+
+      {audience === "guest" && feesOn.data === false ? null : (
+      <>
       <div className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Wallet className="size-5 text-primary" />
@@ -535,9 +553,10 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
             </ul>
           </div>
 
-          <PayInstructions inviteId={selectedEvent} />
         </>
       ) : null}
+      </>
+      )}
     </div>
   );
 }
@@ -574,6 +593,7 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
       .eq("id", inviteId);
     if (error) return void toast.error(error.message);
     await qc.invalidateQueries({ queryKey: ["pay-instructions-host", inviteId] });
+    await qc.invalidateQueries({ queryKey: ["fees-enabled-host", inviteId] });
     toast.success(
       next ? "Charges are switched on for this celebration." : "Charges are switched off — guests won't be asked for anything.",
     );

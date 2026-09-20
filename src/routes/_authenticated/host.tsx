@@ -1005,7 +1005,11 @@ function HostDashboard() {
         )}
 
         <TabsContent value="setup" className="mt-6">
-          <Tabs defaultValue={has("vendor_management") ? "boutiques" : "fees"}>
+          <Tabs
+            defaultValue={
+              has("vendor_management") ? "boutiques" : has("fees") ? "fees" : "hosts"
+            }
+          >
             <TabsList>
               {has("vendor_management") ? (
                 <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
@@ -1014,7 +1018,7 @@ function HostDashboard() {
                 <TabsTrigger value="vendors">Vendors</TabsTrigger>
               ) : null}
               {has("budgeting") ? <TabsTrigger value="budget">Budget</TabsTrigger> : null}
-              <TabsTrigger value="fees">Celebration fees</TabsTrigger>
+              {has("fees") ? <TabsTrigger value="fees">Celebration fees</TabsTrigger> : null}
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
@@ -1025,9 +1029,11 @@ function HostDashboard() {
                 <HostByBoutique />
               </TabsContent>
             ) : null}
-            <TabsContent value="fees" className="mt-6">
-              <HostFees audience="guest" />
-            </TabsContent>
+            {has("fees") ? (
+              <TabsContent value="fees" className="mt-6">
+                <HostFees audience="guest" />
+              </TabsContent>
+            ) : null}
             {has("vendor_management") ? (
               <TabsContent value="vendors" className="mt-6">
                 <HostVendors />
