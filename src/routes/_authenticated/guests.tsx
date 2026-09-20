@@ -39,6 +39,15 @@ export const Route = createFileRoute("/_authenticated/guests")({
 });
 
 
+/** Keeps the guest list on the same chosen event as the rest of the host area. */
+function GuestListRoute() {
+  return (
+    <SelectedEventProvider>
+      <GuestListPage />
+    </SelectedEventProvider>
+  );
+}
+
 function GuestListPage() {
   const queryClient = useQueryClient();
   const features = useFeatures();
