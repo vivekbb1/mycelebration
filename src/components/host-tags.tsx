@@ -326,7 +326,7 @@ export function HostTags() {
                 </th>
                 <th className="p-4 font-normal text-muted-foreground">Tag</th>
                 <th className="p-4 font-normal text-muted-foreground">On how many families</th>
-                <th className="p-4 font-normal text-muted-foreground">Looked after by</th>
+                <th className="p-4 font-normal text-muted-foreground">Assign hosts</th>
                 <th className="p-4" />
               </tr>
             </thead>
@@ -379,34 +379,17 @@ export function HostTags() {
                   </td>
                   <td className="p-4 text-muted-foreground">{r.families}</td>
                   <td className="p-4">
-                    <div className="flex flex-wrap gap-1.5">
-                      {(hosts.data ?? []).map((h) => {
-                        const on = (tagHosts.data ?? []).some(
-                          (row) => row.tag_id === r.id && row.host_id === h.id,
-                        );
-                        return (
-                          <button
-                            key={h.id}
-                            type="button"
-                            disabled={busy}
-                            onClick={() => void toggleHost(r.id, r.name, h.id)}
-                            className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
-                              on
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border text-muted-foreground hover:border-primary/50"
-                            }`}
-                          >
-                            {h.name}
-                          </button>
-                        );
-                      })}
-                      {(hosts.data ?? []).length === 0 ? (
-                        <span className="text-xs text-muted-foreground">
-                          Invite hosts under Setup &rarr; Hosts first.
-                        </span>
-                      ) : null}
-                    </div>
+                    <AssignHosts
+                      hosts={hosts.data ?? []}
+                      chosen={(tagHosts.data ?? [])
+                        .filter((row) => row.tag_id === r.id)
+                        .map((row) => row.host_id)}
+                      busy={busy}
+                      tagName={r.name}
+                      onToggle={(hostId) => void toggleHost(r.id, r.name, hostId)}
+                    />
                   </td>
+
                   <td className="p-4">
                     <div className="flex flex-wrap items-center justify-end gap-2">
                       <Button
