@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -14,44 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/components/host-families";
 import { useFeatures } from "@/lib/features";
 import { HostFamilies } from "@/components/host-families";
-import {
-  EventPicker,
-  SelectedEventProvider,
-  matchesSelectedEvent,
-  useSelectedEvent,
-} from "@/lib/selected-event";
+import { matchesSelectedEvent, useSelectedEvent } from "@/lib/selected-event";
 
-
-export const Route = createFileRoute("/_authenticated/guests")({
-  head: () => ({
-    meta: [
-      { title: "Guest List — The Wedding Wardrobe" },
-      {
-        name: "description",
-        content:
-          "Invite guests by name and track who registered, who reserved a look, who sent measurements and who hasn't answered.",
-      },
-      { property: "og:title", content: "Guest List — The Wedding Wardrobe" },
-      {
-        property: "og:description",
-        content: "Invitations, reservations, measurements and RSVPs for every wedding guest.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: GuestListRoute,
-});
-
-
-/** Keeps the guest list on the same chosen celebration as the rest of the host area. */
-function GuestListRoute() {
-  return (
-    <SelectedEventProvider>
-      <GuestListPage />
-    </SelectedEventProvider>
-  );
-}
 
 export function GuestListPage() {
   const queryClient = useQueryClient();
@@ -400,7 +364,7 @@ export function GuestListPage() {
 
   if (!role.data) {
     return (
-      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+      <div className="panel-wrap">
         <div className="panel p-4 sm:p-6">
           <h1 className="text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -410,13 +374,13 @@ export function GuestListPage() {
             <Link to="/outfits">Back to the lookbook</Link>
           </Button>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!features.has("guest_list")) {
     return (
-      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 sm:py-16">
+      <div className="panel-wrap">
         <div className="panel p-4 sm:p-6">
           <h1 className="text-2xl">Not in your package</h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -426,22 +390,18 @@ export function GuestListPage() {
             <Link to="/host">Back to your celebration</Link>
           </Button>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-eyebrow">Host area</p>
-      <h1 className="mt-3 text-4xl">Guest list</h1>
-      <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+    <div className="space-y-6">
+      <p className="max-w-2xl text-sm text-muted-foreground">
         Invite each guest by name, then watch their progress: registered, look reserved,
         measurements in, RSVP answered.
       </p>
 
-      <EventPicker />
-
-      <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Stat label="Invited" value={stats.all} />
         <Stat label="Registered" value={stats.registered} />
         <Stat label="Attending" value={stats.attending} />
