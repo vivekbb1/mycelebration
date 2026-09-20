@@ -1,7 +1,19 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { BadgeCheck, CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { BadgeCheck, CalendarCheck, LogOut, Mail, Ruler, Shirt, User, Wallet } from "lucide-react";
 
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { GuestEventPicker } from "@/lib/guest-event";
+import { headerTabClass } from "@/components/host-nav";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
