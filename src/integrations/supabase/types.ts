@@ -973,6 +973,9 @@ export type Database = {
           id: string
           invite_id: string | null
           invite_sent_at: string | null
+          passport_expiry: string | null
+          passport_nationality: string | null
+          passport_number: string | null
           personally_invited: boolean
           personally_invited_at: string | null
           personally_invited_by: string | null
@@ -998,6 +1001,9 @@ export type Database = {
           id?: string
           invite_id?: string | null
           invite_sent_at?: string | null
+          passport_expiry?: string | null
+          passport_nationality?: string | null
+          passport_number?: string | null
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
@@ -1023,6 +1029,9 @@ export type Database = {
           id?: string
           invite_id?: string | null
           invite_sent_at?: string | null
+          passport_expiry?: string | null
+          passport_nationality?: string | null
+          passport_number?: string | null
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
