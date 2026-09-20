@@ -610,6 +610,27 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
       <div className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
+            <h3 className="text-xl">Charges for this celebration</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {feesOn
+                ? "Charges are on — guests see what's payable and how to pay you."
+                : "Charges are off — guests are never asked for money, and nothing payable shows on their pages. Your fee lines are kept for when you turn this back on."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">{feesOn ? "On" : "Off"}</span>
+            <Switch
+              checked={feesOn}
+              onCheckedChange={(v) => void setFeesOn(v)}
+              aria-label="Charges for this celebration"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="panel p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
             <h3 className="text-xl">Who pays for the outfits</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Leave this on if you're dressing your guests. They'll see that the outfits are covered
