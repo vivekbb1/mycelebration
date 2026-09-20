@@ -25,6 +25,14 @@ export function GuestFees() {
     },
   });
 
+  const feesOn = useQuery({
+    queryKey: ["my-fees-enabled"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_fees_enabled");
+      return (data as boolean | null) ?? true;
+    },
+  });
+
   const rules = useQuery({
     queryKey: ["my-fees"],
     queryFn: async (): Promise<FeeRule[]> => {
