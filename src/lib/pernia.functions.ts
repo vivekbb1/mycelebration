@@ -235,6 +235,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
         perPage: Math.max(4, Math.min(48, Math.round(Number(data?.perPage) || 12))),
         readyToShip: Boolean(data?.readyToShip),
         colour,
+        shipInDays,
         sort: SORTS.includes(sortRaw) ? sortRaw : ("listed" as SortKey),
       };
     },
