@@ -222,9 +222,25 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
       if (colour && !PERNIA_COLOURS.some((c) => c.value === colour)) {
         throw new Error("Unknown colour");
       }
-      const shipInDays = data?.shipInDays ? String(data.shipInDays) : null;
-      if (shipInDays && !PERNIA_SHIP_TIMES.some((s) => s.value === shipInDays)) {
-        throw new Error("Unknown shipping time");
+      // Several shipping times may be picked at once. The shop only understands
+      // a single min_max span, so the chosen buckets are merged into one.
+      const wanted = (Array.isArray(data?.shipInDays)
+        ? data.shipInDays
+        : data?.shipInDays
+          ? [data.shipInDays]
+          : []
+      ).map((v) => String(v));
+      for (const v of wanted) {
+        if (!PERNIA_SHIP_TIMES.some((s) => s.value === v)) {
+          throw new Error("Unknown shipping time");
+        }
+      }
+      let shipInDays: string | null = null;
+      if (wanted.length) {
+        const bounds = wanted.map((v) => v.split("_").map(Number));
+        const min = Math.min(...bounds.map((b) => b[0]!));
+        const max = Math.max(...bounds.map((b) => b[1]!));
+        shipInDays = `${min}_${max}`;
       }
       const sortRaw = String(data?.sort ?? "listed") as SortKey;
       return {
