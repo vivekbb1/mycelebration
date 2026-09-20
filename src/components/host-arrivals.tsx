@@ -128,12 +128,45 @@ export function HostArrivals() {
     },
   });
 
+  /** Each family's reply, worked out from the events they've said yes or no to. */
+  const replies = useQuery({
+    queryKey: ["household-rsvp-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("household_rsvp_summary");
+      if (error) throw error;
+      const map = new Map<string, { status: string; yes: number; answered: number }>();
+      for (const row of (data ?? []) as {
+        household: string;
+        status: string;
+        events_yes: number;
+        events_answered: number;
+      }[]) {
+        map.set(row.household, {
+          status: row.status,
+          yes: row.events_yes,
+          answered: row.events_answered,
+        });
+      }
+      return map;
+    },
+  });
+
+  const replyOf = (household: string) => replies.data?.get(household);
+
+  const replyLabel = (household: string) => {
+    const r = replyOf(household);
+    if (!r) return "no answer yet";
+    if (r.status === "no") return "can't come";
+    return `coming to ${r.yes} of ${r.answered}`;
+  };
+
   /** Families on this celebration, so a car or a room is always tied to one. */
   const households = useMemo(() => {
     const set = new Set<string>();
     for (const g of guests.data ?? []) if (g.household) set.add(g.household);
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [guests.data]);
+
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["guest-transport"] });
