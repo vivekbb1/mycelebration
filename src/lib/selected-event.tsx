@@ -80,6 +80,30 @@ export function matchesSelectedEvent(rowInviteId: string | null, selected: strin
   return rowInviteId === selected;
 }
 
+/** Compact celebration chooser for the top bar. Hidden with only one celebration. */
+export function EventPickerCompact() {
+  const { inviteId, setInviteId } = useSelectedEvent();
+  const invites = useInvites();
+  const list = invites.data ?? [];
+
+  if (invites.isLoading || list.length < 2) return null;
+
+  return (
+    <select
+      aria-label="Working on"
+      className="field-select h-8 max-w-[11rem] py-0 text-xs"
+      value={inviteId}
+      onChange={(e) => setInviteId(e.target.value)}
+    >
+      {list.map((i) => (
+        <option key={i.id} value={i.id}>
+          {i.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 /** The one place a host chooses which celebration they're working on. */
 export function EventPicker() {
   const { inviteId, setInviteId } = useSelectedEvent();
