@@ -356,16 +356,27 @@ export function HostImport() {
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label>Category</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={chooseCategory}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((c) => (
-                  <SelectItem key={c.path} value={c.path}>
-                    {c.label}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  <SelectLabel>For women</SelectLabel>
+                  {WOMEN_CATEGORIES.map((c) => (
+                    <SelectItem key={c.path} value={c.path}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>For men</SelectLabel>
+                  {MEN_CATEGORIES.map((c) => (
+                    <SelectItem key={c.path} value={c.path}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
