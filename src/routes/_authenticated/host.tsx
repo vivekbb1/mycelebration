@@ -458,11 +458,16 @@ function HostDashboard() {
           <p className="text-eyebrow">Host area</p>
           <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the event</h1>
         </div>
-        <Button asChild variant="outline" size="sm" className="shrink-0">
-          <Link to="/guests">
-            <Users className="size-4" /> Guest list
-          </Link>
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/guests">
+              <Users className="size-4" /> Guest list
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/upgrade">Your package</Link>
+          </Button>
+        </div>
       </div>
 
       <EventPicker />
