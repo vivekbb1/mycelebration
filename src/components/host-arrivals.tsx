@@ -234,7 +234,13 @@ export function HostArrivals() {
     }
     setSending(null);
     if (sent > 0) toast.success(`Details sent to ${sent} ${sent === 1 ? "guest" : "guests"}`);
-    else toast.error(`Nothing sent — ${emailReasons[reason] ?? "please try again"}`);
+    else
+      toast.error(
+        `Nothing sent — ${
+          emailReasons[reason] ??
+          (reason.startsWith("provider_error") ? "the email service refused it" : "please try again")
+        }`,
+      );
   };
 
   const vendorName = (id: string | null) =>
