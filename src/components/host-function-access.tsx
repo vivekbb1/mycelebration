@@ -8,6 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedEvent } from "@/lib/selected-event";
 
+/** Tags are kept as a comma list on each guest, shown as hashtags. */
+function splitTags(raw: string | null | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((t) => t.trim().replace(/^#+/, "").toLowerCase())
+    .filter(Boolean);
+}
+
+function normaliseTag(raw: string): string {
+  return raw.trim().replace(/^#+/, "").replace(/\s+/g, " ").toLowerCase().slice(0, 40);
+}
+
 /**
  * Which families are invited to which events. A family with no ticks at all
  * is treated as invited to everything, so nothing breaks for families you
@@ -19,6 +31,8 @@ export function HostFunctionAccess() {
   const [busy, setBusy] = useState(false);
   const [pickedFamilies, setPickedFamilies] = useState<Set<string>>(new Set());
   const [pickedEvents, setPickedEvents] = useState<Set<string>>(new Set());
+  const [pickedTags, setPickedTags] = useState<Set<string>>(new Set());
+  const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
   const { inviteId: selectedInvite } = useSelectedEvent();
 
   const events = useQuery({
