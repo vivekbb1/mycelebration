@@ -9,6 +9,7 @@ type Guest = {
   id: string;
   guest_name: string;
   household: string | null;
+  tags: string | null;
 };
 
 type Note = {
