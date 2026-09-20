@@ -17,6 +17,8 @@ export function HostFunctionAccess() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pickedFamilies, setPickedFamilies] = useState<Set<string>>(new Set());
+  const [pickedEvents, setPickedEvents] = useState<Set<string>>(new Set());
   const { inviteId: selectedInvite } = useSelectedEvent();
 
   const events = useQuery({
