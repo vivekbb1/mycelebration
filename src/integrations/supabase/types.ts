@@ -905,6 +905,7 @@ export type Database = {
           household: string | null
           id: string
           invite_id: string | null
+          invite_sent_at: string | null
           personally_invited: boolean
           personally_invited_at: string | null
           personally_invited_by: string | null
@@ -913,6 +914,7 @@ export type Database = {
           rsvp_recorded_at: string | null
           rsvp_recorded_by: string | null
           rsvp_status: string
+          tags: string | null
         }
         Insert: {
           branding_preset_id?: string | null
@@ -928,6 +930,7 @@ export type Database = {
           household?: string | null
           id?: string
           invite_id?: string | null
+          invite_sent_at?: string | null
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
@@ -936,6 +939,7 @@ export type Database = {
           rsvp_recorded_at?: string | null
           rsvp_recorded_by?: string | null
           rsvp_status?: string
+          tags?: string | null
         }
         Update: {
           branding_preset_id?: string | null
@@ -951,6 +955,7 @@ export type Database = {
           household?: string | null
           id?: string
           invite_id?: string | null
+          invite_sent_at?: string | null
           personally_invited?: boolean
           personally_invited_at?: string | null
           personally_invited_by?: string | null
@@ -959,6 +964,7 @@ export type Database = {
           rsvp_recorded_at?: string | null
           rsvp_recorded_by?: string | null
           rsvp_status?: string
+          tags?: string | null
         }
         Relationships: [
           {

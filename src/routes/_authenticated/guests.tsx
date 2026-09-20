@@ -61,7 +61,7 @@ export function GuestListPage() {
   const { inviteId: selectedEvent } = useSelectedEvent();
 
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [bulkBusy, setBulkBusy] = useState(false);
+  const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
 
@@ -87,7 +87,7 @@ export function GuestListPage() {
       const { data, error } = await supabase
         .from("invite_codes")
         .select(
-          "id, code, guest_name, email, phone, category, claimed_by, claimed_at, household, gender, invite_id",
+          "id, code, guest_name, email, phone, category, tags, invite_sent_at, claimed_by, claimed_at, household, gender, invite_id",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -144,6 +144,43 @@ export function GuestListPage() {
     },
   });
 
+  // The days of this celebration, and which households have been assigned to them.
+  const events = useQuery({
+    queryKey: ["guest-list-events"],
+    enabled: role.data === true,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("events").select("id, name, invite_id");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const assignments = useQuery({
+    queryKey: ["guest-list-assignments"],
+    enabled: role.data === true,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("household_event_invites")
+        .select("household, event_id");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  /** Households with at least one day picked for them in this celebration. */
+  const assignedHouseholds = useMemo(() => {
+    const ids = new Set(
+      (events.data ?? [])
+        .filter((e) => matchesSelectedEvent(e.invite_id, selectedEvent))
+        .map((e) => e.id),
+    );
+    const set = new Set<string>();
+    for (const a of assignments.data ?? []) {
+      if (ids.has(a.event_id)) set.add((a.household ?? "").toLowerCase());
+    }
+    return set;
+  }, [events.data, assignments.data, selectedEvent]);
+
   // Only the guests belonging to the celebration the host is working on.
   const scopedInvites = useMemo(
     () => (invites.data ?? []).filter((i) => matchesSelectedEvent(i.invite_id, selectedEvent)),
@@ -160,11 +197,14 @@ export function GuestListPage() {
       const looks = guestId
         ? (reservations.data ?? []).filter((r) => r.guest_id === guestId).map((r) => outfitTitle(r.outfit_id))
         : [];
+      const household = profile?.household || inv.household || "";
       return {
         key: inv.id,
         guestId: guestId ?? null,
         code: inv.code,
-
+        tags: inv.tags ?? "",
+        invitedAt: inv.invite_sent_at ?? null,
+        assigned: assignedHouseholds.has((household || inv.guest_name).toLowerCase()),
         name: profile?.full_name || inv.guest_name,
         email: profile?.email || inv.email,
         phone: profile?.phone || inv.phone || "",
@@ -174,7 +214,7 @@ export function GuestListPage() {
         rsvp: profile?.rsvp_status ?? "pending",
         rsvpNote: profile?.rsvp_note ?? null,
         looks,
-        household: profile?.household || inv.household || "",
+        household,
         gender: profile?.gender || inv.gender || "",
         measured: guestId ? Boolean(measurements.data?.some((m) => m.guest_id === guestId)) : false,
       };
@@ -185,14 +225,31 @@ export function GuestListPage() {
     const q = filter.trim().toLowerCase();
     return q
       ? list.filter((r) =>
-          [r.name, r.email, r.phone, r.code, r.household, categoryLabel(r.category), ...r.looks]
+          [
+            r.name,
+            r.email,
+            r.phone,
+            r.code,
+            r.household,
+            r.tags,
+            categoryLabel(r.category),
+            ...r.looks,
+          ]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
             .includes(q),
         )
       : list;
-  }, [scopedInvites, profiles.data, reservations.data, outfits.data, measurements.data, filter]);
+  }, [
+    scopedInvites,
+    profiles.data,
+    reservations.data,
+    outfits.data,
+    measurements.data,
+    assignedHouseholds,
+    filter,
+  ]);
 
   const stats = useMemo(() => {
     const all = scopedInvites.length;
@@ -209,6 +266,23 @@ export function GuestListPage() {
     ).length;
     return { all, registered, reserved, measured, attending, silent: all - registered };
   }, [scopedInvites, reservations.data, measurements.data, profiles.data]);
+
+  /** A plain record of who has had their invitation, and who is still waiting. */
+  const invitedLog = useMemo(() => {
+    const sent = rows.filter((r) => r.invitedAt);
+    const pending = rows
+      .filter((r) => !r.invitedAt)
+      .map((r) => ({
+        ...r,
+        reason: !r.assigned
+          ? "Needs their days choosing first"
+          : !r.email
+            ? "No email address yet"
+            : "Ready to invite",
+      }));
+    return { sent, pending };
+  }, [rows]);
+
 
 
   const copyInvite = async (code: string, guestName: string) => {
@@ -240,7 +314,26 @@ export function GuestListPage() {
     )}&body=${encodeURIComponent(inviteText(name, code))}`;
   };
 
-  const mailInvite = async (id: string, name: string, email: string | null, code: string) => {
+  /** Notes on the guest that their invitation has gone out. */
+  const markInvited = async (id: string) => {
+    await supabase
+      .from("invite_codes")
+      .update({ invite_sent_at: new Date().toISOString() })
+      .eq("id", id);
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
+
+  const mailInvite = async (
+    id: string,
+    name: string,
+    email: string | null,
+    code: string,
+    assigned: boolean,
+  ) => {
+    if (!assigned) {
+      toast.error(`Choose which days ${name} is invited to first, on the Assign tab.`);
+      return;
+    }
     if (!email) {
       toast.error(`Add an email address for ${name} first, or copy the message instead.`);
       return;
@@ -255,48 +348,28 @@ export function GuestListPage() {
     setSendingId(null);
     if (result.sent) {
       toast.success(`Invitation emailed to ${email}.`);
+      await markInvited(id);
       return;
     }
     // No sender domain yet — hand the ready-made invitation to the host's own mail app.
     openMailApp(name, email, code);
+    await markInvited(id);
     toast.message("Opening your mail app with the invitation ready to send.", {
       description: "Set up a sending domain and the portal will send these for you automatically.",
     });
   };
 
-  const mailEveryone = async () => {
-    const pending = rows.filter((r) => r.email && !r.registered);
-    if (pending.length === 0) {
-      toast.message("Everyone with an email address has already registered.");
+  /** Free-text tags the hosts keep on a guest (table, side of the family, notes). */
+  const saveTags = async (id: string, value: string) => {
+    const { error } = await supabase
+      .from("invite_codes")
+      .update({ tags: value.trim() || null })
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
       return;
     }
-    setBulkBusy(true);
-    let sent = 0;
-    for (const r of pending) {
-      try {
-        const result = await emailInvite({ data: { inviteId: r.key } });
-        if (result.sent) sent += 1;
-      } catch {
-        // ignore and report at the end
-      }
-    }
-    setBulkBusy(false);
-    if (sent > 0) {
-      toast.success(`Invitation emailed to ${sent} guest${sent === 1 ? "" : "s"}.`);
-      return;
-    }
-    const all = pending
-      .map((r) => `${r.name} <${r.email}>\n${inviteText(r.name, r.code)}`)
-      .join("\n\n———\n\n");
-    try {
-      await navigator.clipboard.writeText(all);
-      toast.message(`Copied ${pending.length} invitations to your clipboard.`, {
-        description:
-          "Sending from the portal needs a domain of your own — until then paste these into email or WhatsApp.",
-      });
-    } catch {
-      toast.error("Couldn't send or copy. Use the mail button on each guest instead.");
-    }
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
 
@@ -382,11 +455,52 @@ export function GuestListPage() {
 
       <div className="mt-8">
         <div className="panel p-4 sm:p-6">
+          <h2 className="text-xl">Invitation record</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Invitations only go out once a guest has their days chosen on the Assign tab.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-eyebrow">Invited ({invitedLog.sent.length})</p>
+              <ul className="mt-2 space-y-1 text-sm">
+                {invitedLog.sent.map((r) => (
+                  <li key={r.key} className="flex flex-wrap gap-2">
+                    <span>{r.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {r.invitedAt ? new Date(r.invitedAt).toLocaleDateString() : ""}
+                    </span>
+                  </li>
+                ))}
+                {invitedLog.sent.length === 0 ? (
+                  <li className="text-sm text-muted-foreground">No invitations sent yet.</li>
+                ) : null}
+              </ul>
+            </div>
+            <div>
+              <p className="text-eyebrow">Still to invite ({invitedLog.pending.length})</p>
+              <ul className="mt-2 space-y-1 text-sm">
+                {invitedLog.pending.map((r) => (
+                  <li key={r.key} className="flex flex-wrap gap-2">
+                    <span>{r.name}</span>
+                    <span className="text-xs text-muted-foreground">{r.reason}</span>
+                  </li>
+                ))}
+                {invitedLog.pending.length === 0 ? (
+                  <li className="text-sm text-muted-foreground">Everyone has been invited.</li>
+                ) : null}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">Everyone invited ({rows.length})</h2>
-            <Button variant="ghost" disabled={bulkBusy} onClick={mailEveryone}>
-              <Mail className="size-4" /> Email everyone pending
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              {invitedLog.sent.length} invited · {invitedLog.pending.length} still to invite
+            </p>
             <div className="relative">
               <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
               <Input
@@ -422,14 +536,38 @@ export function GuestListPage() {
                       {r.phone ? ` · ${r.phone}` : ""}
                       {r.location ? ` · ${r.location}` : ""}
                     </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground" htmlFor={`tags-${r.key}`}>
+                        Tags
+                      </Label>
+                      <Input
+                        id={`tags-${r.key}`}
+                        className="h-8 w-full sm:w-64"
+                        placeholder="e.g. bride's side, top table, overseas"
+                        maxLength={120}
+                        value={tagDraft[r.key] ?? r.tags}
+                        onChange={(e) =>
+                          setTagDraft((d) => ({ ...d, [r.key]: e.target.value }))
+                        }
+                        onBlur={(e) => {
+                          if (e.target.value.trim() === r.tags.trim()) return;
+                          void saveTags(r.key, e.target.value);
+                        }}
+                      />
+                    </div>
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      disabled={sendingId === r.key}
+                      disabled={sendingId === r.key || !r.assigned}
+                      title={
+                        r.assigned
+                          ? `Email invitation to ${r.name}`
+                          : "Choose their days on the Assign tab first"
+                      }
                       aria-label={`Email invitation code to ${r.name}`}
-                      onClick={() => mailInvite(r.key, r.name, r.email ?? null, r.code)}
+                      onClick={() => mailInvite(r.key, r.name, r.email ?? null, r.code, r.assigned)}
                     >
                       <Mail className="size-4" />
                     </Button>
@@ -472,6 +610,13 @@ export function GuestListPage() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant={r.invitedAt ? "default" : r.assigned ? "secondary" : "outline"}>
+                    {r.invitedAt
+                      ? `Invited ${new Date(r.invitedAt).toLocaleDateString()}`
+                      : r.assigned
+                        ? "Ready to invite"
+                        : "Needs their days choosing"}
+                  </Badge>
                   <Badge variant={r.registered ? "default" : "secondary"}>
                     {r.registered ? "Registered" : "Hasn't opened the invite"}
                   </Badge>

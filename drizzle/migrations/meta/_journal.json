@@ -281,6 +281,13 @@
       "when": 1789901736015,
       "tag": "0039_plan_and_addon_prices",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1789903073414,
+      "tag": "0040_guest_invite_log_and_tags",
+      "breakpoints": true
     }
   ]
 }
