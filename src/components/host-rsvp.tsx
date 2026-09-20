@@ -312,10 +312,19 @@ export function HostRsvp() {
                               key={p.id}
                               className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                             >
-                              <p className="min-w-0 truncate text-sm text-muted-foreground">
-                                {p.guest_name || "Guest"}
-                                {p.claimed_by ? "" : " · not registered"}
-                              </p>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm text-muted-foreground">
+                                  {p.guest_name || "Guest"}
+                                  {p.claimed_by ? "" : " · not registered"}
+                                </p>
+                                {splitTags(p.tags).length > 0 ? (
+                                  <p className="mt-0.5 truncate text-xs text-primary">
+                                    {splitTags(p.tags)
+                                      .map((t) => `#${t}`)
+                                      .join(" ")}
+                                  </p>
+                                ) : null}
+                              </div>
                               <div className="flex shrink-0 gap-1">
                                 {(["yes", "no", "pending"] as Answer[]).map((option) => (
                                   <button
