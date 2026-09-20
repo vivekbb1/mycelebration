@@ -25,7 +25,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const CATEGORIES = [
+// The shop keeps womenswear and menswear in separate sections with their own
+// category names, so each list is offered on its own.
+const WOMEN_CATEGORIES = [
   { path: "clothing/lehenga", label: "Lehengas" },
   { path: "clothing/lehenga/bridal", label: "Lehengas — bridal" },
   { path: "clothing/lehenga/bridesmaid", label: "Lehengas — bridesmaid" },
@@ -39,6 +41,25 @@ const CATEGORIES = [
   { path: "clothing/kurta-sets-salwar-kameez", label: "Kurta sets / salwar kameez" },
   { path: "clothing/gown", label: "Gowns" },
   { path: "clothing/kaftan", label: "Kaftans" },
+];
+
+const MEN_CATEGORIES = [
+  { path: "mens-shop/sherwani", label: "Sherwanis" },
+  { path: "mens-shop/bandhgala", label: "Bandhgalas" },
+  { path: "mens-shop/jodhpuri-suit", label: "Jodhpuri suits" },
+  { path: "mens-shop/indowestern", label: "Indo-western" },
+  { path: "mens-shop/nehru-jacket", label: "Nehru jackets" },
+  { path: "mens-shop/jackets", label: "Jackets" },
+  { path: "mens-shop/waist-coat", label: "Waistcoats" },
+  { path: "mens-shop/kurta-set", label: "Kurta sets" },
+  { path: "mens-shop/kurta-pajama", label: "Kurta pyjamas" },
+  { path: "mens-shop/kurtas", label: "Kurtas" },
+  { path: "mens-shop/angrakha", label: "Angrakhas" },
+  { path: "mens-shop/suit-set", label: "Suit sets" },
+  { path: "mens-shop/suits", label: "Suits" },
+  { path: "mens-shop/tuxedo", label: "Tuxedos" },
+  { path: "mens-shop/ethnic", label: "Everything ethnic" },
+  { path: "mens-shop/mens-dupatta", label: "Dupattas & stoles" },
 ];
 
 type ListLook = {
