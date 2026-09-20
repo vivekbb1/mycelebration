@@ -120,8 +120,15 @@ export function HostRsvp() {
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
+  /** Every hashtag in use, so hosts can narrow the board to one group. */
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const g of guests.data ?? []) for (const t of splitTags(g.tags)) set.add(t);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [guests.data]);
+
   const grouped = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = search.trim().toLowerCase().replace(/^#/, "");
     const inviteList = [
       ...(invites.data ?? []).map((i) => ({ id: i.id as string | null, name: i.name })),
       { id: null as string | null, name: "Not on a celebration yet" },
