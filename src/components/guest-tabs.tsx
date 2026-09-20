@@ -29,6 +29,7 @@ export function GuestTabs() {
 
   return (
     <nav className="flex items-center gap-1 sm:gap-5">
+      <GuestEventPicker />
       {tabs.map((tab) => {
         const active = pathname === tab.to || pathname.startsWith(`${tab.to}/`);
         return (
