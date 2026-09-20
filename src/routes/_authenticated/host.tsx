@@ -989,7 +989,7 @@ function HostDashboard() {
         </TabsContent>
 
         <TabsContent value="setup" className="mt-6">
-          <Tabs defaultValue="boutiques">
+          <Tabs defaultValue={has("vendor_management") ? "boutiques" : "fees"}>
             <TabsList>
               {has("vendor_management") ? (
                 <TabsTrigger value="boutiques">Boutiques</TabsTrigger>
@@ -1003,19 +1003,25 @@ function HostDashboard() {
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
             </TabsList>
-            <TabsContent value="boutiques" className="mt-6 space-y-8">
-              <HostBoutiques />
-              <HostByBoutique />
-            </TabsContent>
+            {has("vendor_management") ? (
+              <TabsContent value="boutiques" className="mt-6 space-y-8">
+                <HostBoutiques />
+                <HostByBoutique />
+              </TabsContent>
+            ) : null}
             <TabsContent value="fees" className="mt-6">
               <HostFees audience="guest" />
             </TabsContent>
-            <TabsContent value="vendors" className="mt-6">
-              <HostVendors />
-            </TabsContent>
-            <TabsContent value="budget" className="mt-6">
-              <HostBudget />
-            </TabsContent>
+            {has("vendor_management") ? (
+              <TabsContent value="vendors" className="mt-6">
+                <HostVendors />
+              </TabsContent>
+            ) : null}
+            {has("budgeting") ? (
+              <TabsContent value="budget" className="mt-6">
+                <HostBudget />
+              </TabsContent>
+            ) : null}
             <TabsContent value="hosts" className="mt-6 space-y-6">
               <div className="panel p-4 sm:p-6">
                 <h3 className="text-xl">Host dashboard</h3>
