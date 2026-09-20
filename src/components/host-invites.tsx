@@ -174,12 +174,30 @@ function WebAddress({ invite }: { invite: Invite }) {
           aria-label={`Web address for ${invite.name}`}
           className="h-9 w-44"
         />
+        <Button
+          type="button"
+          size="sm"
+          onClick={commitSlug}
+          disabled={save.isPending || slugify(slug) === (invite.slug ?? "")}
+        >
+          {invite.slug ? "Update" : "Save"}
+        </Button>
         {!invite.slug && suggestion ? (
           <Button type="button" size="sm" variant="ghost" onClick={() => save.mutate({ slug: suggestion })}>
             Use {suggestion}
           </Button>
         ) : null}
-        {link ? (
+      </div>
+      {link ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            className="min-w-0 break-all text-sm text-primary underline-offset-4 hover:underline"
+          >
+            {link}
+          </a>
           <Button
             type="button"
             size="sm"
@@ -191,8 +209,11 @@ function WebAddress({ invite }: { invite: Invite }) {
           >
             <Copy className="mr-1.5 size-3.5" /> Copy link
           </Button>
-        ) : null}
-      </div>
+          {slugify(slug) !== (invite.slug ?? "") ? (
+            <span className="text-xs text-muted-foreground">Not saved yet — tap Update.</span>
+          ) : null}
+        </div>
+      ) : null}
       <label className="block text-sm">
         A welcome line for that page (optional)
         <Textarea
