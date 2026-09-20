@@ -166,7 +166,7 @@ export function HostImport() {
           page: nextPage,
           perPage: Number(perPage) || 12,
           readyToShip,
-          shipInDays: shipInDays === "any" ? null : shipInDays,
+          shipInDays: shipTimes.length ? shipTimes : null,
           colour: colour === "all" ? null : colour,
           sort,
         },
