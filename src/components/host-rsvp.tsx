@@ -144,7 +144,9 @@ export function HostRsvp() {
         const rows = (guests.data ?? []).filter((g) => {
           const fam = famOf(g);
           const inviteId = g.invite_id ?? fam?.invite_id ?? null;
-          return inviteId === invite.id;
+          if (inviteId !== invite.id) return false;
+          if (pickedTags.size === 0) return true;
+          return splitTags(g.tags).some((t) => pickedTags.has(t));
         });
 
         const householdMap = new Map<
