@@ -445,6 +445,61 @@ function FamilyPage() {
           </section>
         ) : null}
 
+        <section className="panel p-4 sm:p-6">
+          <h2 className="text-xl">Measurements</h2>
+          {(measurements.data ?? []).length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Nobody in this family has sent their measurements yet.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {(measurements.data ?? []).map((m) => {
+                const unit = (m.unit as string | null) ?? "cm";
+                const fields: Array<[string, unknown]> = [
+                  ["Height", m.height],
+                  ["Bust / chest", m.bust],
+                  ["Waist", m.waist],
+                  ["Hip", m.hip],
+                  ["Shoulder", m.shoulder],
+                  ["Sleeve", m.sleeve_length],
+                  ["Blouse / kurta length", m.top_length],
+                  ["Skirt / trouser length", m.bottom_length],
+                  ["Inseam", m.inseam],
+                ];
+                const given = fields.filter(([, v]) => v !== null && v !== undefined);
+                return (
+                  <div key={m.id as string} className="rounded-xl border border-border p-4">
+                    <p className="text-sm">
+                      {(m.guest_name as string) || "Guest"}{" "}
+                      <span className="text-xs text-muted-foreground">in {unit}</span>
+                    </p>
+                    {given.length === 0 ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Nothing filled in yet.</p>
+                    ) : (
+                      <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {given.map(([label, value]) => (
+                          <div key={label} className="flex items-baseline justify-between gap-3">
+                            <dt className="text-xs text-muted-foreground">{label}</dt>
+                            <dd className="text-sm">
+                              {String(value)} {unit}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    )}
+                    {m.notes ? (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Note for the tailor: {m.notes as string}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+
         {has("guest_communication") ? (
           <section className="panel p-4 sm:p-6">
             <h2 className="text-xl">Communication timeline</h2>
