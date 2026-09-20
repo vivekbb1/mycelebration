@@ -107,7 +107,7 @@ export function HostImport() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("12");
   const [readyToShip, setReadyToShip] = useState(false);
-  const [shipInDays, setShipInDays] = useState("any");
+  const [shipTimes, setShipTimes] = useState<string[]>([]);
   const [colour, setColour] = useState("all");
   const [sort, setSort] = useState("listed");
   const [results, setResults] = useState<ListLook[] | null>(null);
