@@ -30,7 +30,7 @@ const day = (iso: string) => new Date(`${iso}T00:00:00`);
 
 /** e.g. "11–13 February 2027 · Devi Ratn" or "14 March 2027". */
 export function scheduleHeadline(events: ScheduleEvent[]): string {
-  const dates = celebrations
+  const dates = events
     .map((e) => e.event_date)
     .filter((d): d is string => Boolean(d))
     .sort();
@@ -91,7 +91,7 @@ export function scheduleSummary(events: ScheduleEvent[]): string {
   const days = new Set(events.map((e) => e.event_date).filter(Boolean)).size;
   const codes = new Set(events.map((e) => e.dress_code).filter(Boolean)).size;
 
-  const parts = [`${asWord(celebrations.length)} event${celebrations.length === 1 ? "" : "s"}`];
+  const parts = [`${asWord(events.length)} event${events.length === 1 ? "" : "s"}`];
   if (days > 1) parts.push(`across ${asWord(days).toLowerCase()} days`);
   if (codes > 0)
     parts.push(`${asWord(codes).toLowerCase()} dress code${codes === 1 ? "" : "s"}`);

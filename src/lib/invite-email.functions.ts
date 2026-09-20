@@ -88,7 +88,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     const scheduleHtml =
       events.length > 0
         ? `<table style="width:100%;border-collapse:collapse;margin:0 0 22px">
-            ${celebrations
+            ${events
               .map(
                 (e) => `<tr>
                   <td style="padding:10px 0;border-bottom:1px solid #e4d3c6">

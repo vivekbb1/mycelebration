@@ -43,7 +43,7 @@ export function FunctionCard({
   showOutfitAction?: boolean;
 }) {
   const { t } = useSiteContent();
-  const eventName = /^the\s/i.test(event.name) ? event.name : `the ${celebration.name}`;
+  const eventName = /^the\s/i.test(event.name) ? event.name : `the ${event.name}`;
 
   const background = event.background_image_url?.trim() || null;
 
