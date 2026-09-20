@@ -43,6 +43,12 @@ export const FEATURES = [
     label: "Charges",
     blurb: "Charging guests for a celebration and tracking what they've paid",
   },
+  {
+    key: "arrivals",
+    label: "Arrivals & hospitality",
+    blurb: "Cars, drivers and transport vendors, plus hotel rooms and check-in",
+  },
+
 ] as const;
 
 export type FeatureKey = (typeof FEATURES)[number]["key"];
