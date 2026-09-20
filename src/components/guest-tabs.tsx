@@ -1,10 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BadgeCheck, CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
+import { BadgeCheck, CalendarCheck, LayoutGrid, Mail, Ruler, Shirt } from "lucide-react";
 
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
-const GUEST_PATHS = ["/invitation", "/event", "/lookbook", "/confirm", "/measurements", "/plan"] as const;
+const GUEST_PATHS = ["/invitation", "/portal", "/event", "/lookbook", "/confirm", "/measurements", "/plan"] as const;
 
 /** The four things a guest ever does, as quiet underlined tabs in the header. */
 export function GuestTabs() {
@@ -16,6 +16,7 @@ export function GuestTabs() {
 
   const tabs = [
     { to: "/invitation", label: t("nav.tab_invite", "Invite"), icon: Mail },
+    { to: "/portal", label: t("nav.tab_portal", "Portal"), icon: LayoutGrid },
     { to: "/event", label: t("nav.tab_rsvp", "RSVP"), icon: CalendarCheck },
     { to: "/lookbook", label: t("nav.tab_outfit", "Outfit"), icon: Shirt },
     { to: "/confirm", label: t("nav.tab_confirm", "Confirm"), icon: BadgeCheck },

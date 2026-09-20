@@ -24,6 +24,7 @@ import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 
@@ -102,6 +103,11 @@ const AuthenticatedPlatformRoute = AuthenticatedPlatformRouteImport.update({
   path: '/platform',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGuestGuestIdRoute =
   AuthenticatedGuestGuestIdRouteImport.update({
     id: '/guest/$guestId',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/measurements': typeof AuthenticatedMeasurementsRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
+  '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/measurements'
     | '/plan'
     | '/platform'
+    | '/portal'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/measurements'
     | '/plan'
     | '/platform'
+    | '/portal'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   id:
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/measurements'
     | '/_authenticated/plan'
     | '/_authenticated/platform'
+    | '/_authenticated/portal'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesById: FileRoutesById
@@ -343,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/guest/$guestId': {
       id: '/_authenticated/guest/$guestId'
       path: '/guest/$guestId'
@@ -373,6 +392,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
@@ -389,6 +409,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
 
