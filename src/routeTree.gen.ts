@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
 import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticated/confirm'
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
+import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
@@ -58,6 +59,11 @@ const AuthenticatedConfirmRoute = AuthenticatedConfirmRouteImport.update({
 const AuthenticatedDeliveryRoute = AuthenticatedDeliveryRouteImport.update({
   id: '/delivery',
   path: '/delivery',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEventRoute = AuthenticatedEventRouteImport.update({
+  id: '/event',
+  path: '/event',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGuestsRoute = AuthenticatedGuestsRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
+  '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
+  '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/confirm': typeof AuthenticatedConfirmRoute
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
+  '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/atelier'
     | '/confirm'
     | '/delivery'
+    | '/event'
     | '/guests'
     | '/host'
     | '/hosts'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/atelier'
     | '/confirm'
     | '/delivery'
+    | '/event'
     | '/guests'
     | '/host'
     | '/hosts'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/_authenticated/atelier'
     | '/_authenticated/confirm'
     | '/_authenticated/delivery'
+    | '/_authenticated/event'
     | '/_authenticated/guests'
     | '/_authenticated/host'
     | '/_authenticated/hosts'
@@ -326,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/delivery'
       fullPath: '/delivery'
       preLoaderRoute: typeof AuthenticatedDeliveryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/event': {
+      id: '/_authenticated/event'
+      path: '/event'
+      fullPath: '/event'
+      preLoaderRoute: typeof AuthenticatedEventRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/guests': {
@@ -440,6 +459,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAtelierRoute: typeof AuthenticatedAtelierRoute
   AuthenticatedConfirmRoute: typeof AuthenticatedConfirmRoute
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
+  AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
@@ -460,6 +480,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtelierRoute: AuthenticatedAtelierRoute,
   AuthenticatedConfirmRoute: AuthenticatedConfirmRoute,
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
+  AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
