@@ -539,9 +539,10 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
             </ul>
           </div>
 
-          <PayInstructions inviteId={selectedEvent} />
         </>
       ) : null}
+      </>
+      )}
     </div>
   );
 }
