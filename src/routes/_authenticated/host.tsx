@@ -608,6 +608,7 @@ function HostDashboard() {
           </section>
         </TabsContent>
 
+        {!has("guest_list") ? null : (
         <TabsContent value="guests" className="mt-6">
           <Tabs defaultValue="invited">
             <TabsList>
