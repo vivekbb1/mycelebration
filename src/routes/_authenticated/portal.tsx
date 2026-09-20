@@ -234,7 +234,21 @@ function PortalPage() {
           </p>
         ) : (
           <ol className="mt-8 space-y-5">
-            {list.map((ev) => {
+            {(
+              [
+                ...(upcoming.length ? [{ header: "Upcoming functions" }] : []),
+                ...upcoming.map((ev) => ({ ev })),
+                ...(past.length ? [{ header: "Past functions" }] : []),
+                ...past.map((ev) => ({ ev })),
+              ] as ({ header: string } | { ev: (typeof list)[number] })[]
+            ).map((item, i) => {
+              if ("header" in item)
+                return (
+                  <li key={`h-${i}`} className="pt-2 text-eyebrow">
+                    {item.header}
+                  </li>
+                );
+              const ev = item.ev;
               const a = answerFor(ev.id);
               const headValue = heads[ev.id] ?? String(a?.guest_count ?? familySize);
               const mine = [...(looksByEvent.get(ev.id) ?? []), ...(looksByEvent.get("any") ?? [])];
