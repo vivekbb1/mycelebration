@@ -133,16 +133,19 @@ function AuthPage() {
     <div className="bg-zari flex min-h-dvh flex-col bg-background">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
         <Link to="/" className="font-display text-lg tracking-wide">
-          The Wedding Wardrobe
+          {t("landing.brand", "Celebration")}
         </Link>
       </header>
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">
         <div className="panel p-4 sm:p-6 sm:p-8">
-          <p className="text-eyebrow">Guests only</p>
-          <h1 className="mt-3 text-3xl">Welcome</h1>
+          <p className="text-eyebrow">{t("auth.eyebrow", "Guests and hosts")}</p>
+          <h1 className="mt-3 text-3xl">{t("auth.title", "Welcome")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Register with the invitation code from your WhatsApp or email, then pick your outfits.
+            {t(
+              "auth.body",
+              "Sign in with the code we sent you, then see your events, reply and choose your look.",
+            )}
           </p>
 
           <Tabs
