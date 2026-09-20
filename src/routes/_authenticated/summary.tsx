@@ -143,7 +143,7 @@ function ConfirmPage() {
     <main className="bg-zari">
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <p className="text-center text-eyebrow">Your look</p>
-        <h1 className="mt-3 text-center text-4xl">Confirm what you'll wear</h1>
+        <h1 className="mt-3 text-center text-3xl sm:text-4xl">Confirm what you'll wear</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground">
           Check the piece set aside for you, tell us the garment, the size and any fabric preference,
           then confirm. You'll see its tailoring status here as it moves along.

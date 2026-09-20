@@ -131,7 +131,7 @@ function EventPage() {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <p className="text-eyebrow">{scheduleEyebrow(eventList)}</p>
-      <h1 className="mt-3 text-4xl">{scheduleHeadline(eventList)}</h1>
+      <h1 className="mt-3 text-3xl sm:text-4xl">{scheduleHeadline(eventList)}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         {scheduleSummary(eventList)}{" "}
         {t(

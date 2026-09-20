@@ -260,7 +260,7 @@ function InvitationPage() {
             <p className="text-eyebrow">
               {t("invitation.eyebrow", "Together with our families")}
             </p>
-            <h1 className="mt-6 text-5xl leading-none sm:text-6xl">
+            <h1 className="mt-6 text-4xl leading-none sm:text-5xl md:text-6xl">
               {coupleParts.length === 2 ? (
                 <>
                   {coupleParts[0]} <span className="text-primary">&</span> {coupleParts[1]}

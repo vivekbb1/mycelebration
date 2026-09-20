@@ -428,7 +428,7 @@ function Lookbook() {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <p className="text-eyebrow">The lookbook</p>
-      <h1 className="mt-3 text-4xl">Choose your looks</h1>
+      <h1 className="mt-3 text-3xl sm:text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Each outfit can be claimed by one guest only. Reserve one per event — the outfit and
         tailoring are our gift. Then send your{" "}
