@@ -21,6 +21,16 @@ const timeLabel = (value: string | null) =>
       })
     : "time to follow";
 
+const dayLabel = (value: string | null) =>
+  value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : "date to follow";
+
+
 /** What a guest sees: the car collecting them and the room they've been given. */
 export function GuestArrivals({ household }: { household: string }) {
   const rides = useQuery({
