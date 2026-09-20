@@ -4,6 +4,7 @@ import { CalendarClock, Gauge } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { splitTags } from "@/lib/tags";
 
 type Guest = {
   id: string;
@@ -52,7 +53,7 @@ export function HostWorkload() {
     queryFn: async (): Promise<Guest[]> => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household");
+        .select("id, guest_name, household, tags");
       if (error) throw error;
       return data as Guest[];
     },
