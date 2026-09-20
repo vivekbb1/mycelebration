@@ -208,6 +208,66 @@ export function HostFunctionAccess() {
   const countFor = (eventId: string) =>
     families.filter((f) => isTicked(f.household, eventId)).length;
 
+  /**
+   * Bulk assign: apply the chosen events to every picked family at once.
+   * "add" keeps what they already had, "remove" takes those events away,
+   * "only" replaces their list with exactly the chosen events.
+   */
+  const applyBulk = async (mode: "add" | "remove" | "only") => {
+    const all = (events.data ?? []).map((e) => e.id);
+    const chosen = all.filter((id) => pickedEvents.has(id));
+    const households = visible.map((f) => f.household).filter((h) => pickedFamilies.has(h));
+    if (households.length === 0 || chosen.length === 0) return;
+
+    setBusy(true);
+    for (const household of households) {
+      const rows = rowsFor(household).filter((r) => all.includes(r.event_id));
+      const current = rows.length === 0 ? new Set(all) : new Set(rows.map((r) => r.event_id));
+      const next = new Set(
+        mode === "only"
+          ? chosen
+          : mode === "add"
+            ? [...current, ...chosen]
+            : all.filter((id) => current.has(id) && !chosen.includes(id)),
+      );
+
+      // Everything ticked is stored as "no rows at all", which means every event.
+      const keepsEverything = all.every((id) => next.has(id));
+      const { error: wipe } = await supabase
+        .from("household_event_invites")
+        .delete()
+        .eq("household", household)
+        .in("event_id", all);
+      if (wipe) {
+        setBusy(false);
+        toast.error(wipe.message);
+        return;
+      }
+      if (!keepsEverything && next.size > 0) {
+        const { error } = await supabase.from("household_event_invites").insert(
+          [...next].map((id) => ({
+            household,
+            event_id: id,
+            outfit_selection: rows.find((r) => r.event_id === id)?.outfit_selection ?? true,
+          })),
+        );
+        if (error) {
+          setBusy(false);
+          toast.error(error.message);
+          return;
+        }
+      }
+    }
+    setBusy(false);
+    toast.success(
+      `Updated ${households.length} famil${households.length === 1 ? "y" : "ies"}.`,
+    );
+    setPickedFamilies(new Set());
+    setPickedEvents(new Set());
+    await refresh();
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="panel p-4 sm:p-6">
