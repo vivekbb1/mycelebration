@@ -55,7 +55,7 @@ function UpgradePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, name, blurb, features, sort_order")
+        .select("id, name, blurb, features, sort_order, price_amount, price_currency, price_period")
         .order("sort_order");
       if (error) throw error;
       return data ?? [];
@@ -67,7 +67,7 @@ function UpgradePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("addons")
-        .select("id, name, blurb, features, sort_order")
+        .select("id, name, blurb, features, sort_order, price_amount, price_currency, price_period")
         .order("sort_order");
       if (error) throw error;
       return data ?? [];
@@ -123,6 +123,22 @@ function UpgradePage() {
     () => (mine.data?.requests ?? []).find((r) => r.status === "pending") ?? null,
     [mine.data],
   );
+
+  const priceLine = (row: {
+    price_amount: number | null;
+    price_currency: string;
+    price_period: string;
+  }) => {
+    if (row.price_amount === null) return "Ask us for a price";
+    if (Number(row.price_amount) <= 0) return "Free";
+    const period =
+      row.price_period === "month"
+        ? " a month"
+        : row.price_period === "year"
+          ? " a year"
+          : " one-off";
+    return `${formatMoney(Number(row.price_amount), row.price_currency)}${period}`;
+  };
 
   const planName = (id: string | null) =>
     plans.data?.find((p) => p.id === id)?.name ?? (id ? id : "No package yet");
@@ -214,8 +230,9 @@ function UpgradePage() {
                 <h3 className="text-xl">{plan.name}</h3>
                 {current ? <Badge>Yours</Badge> : null}
               </div>
+              <p className="mt-2 text-lg text-primary">{priceLine(plan)}</p>
               {plan.blurb ? (
-                <p className="mt-2 text-sm text-muted-foreground">{plan.blurb}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{plan.blurb}</p>
               ) : null}
               <ul className="mt-4 flex-1 space-y-2 text-sm">
                 {features.map((f) => (
@@ -268,6 +285,7 @@ function UpgradePage() {
                     {addon.name}
                     {owned ? <Badge variant="secondary">Yours</Badge> : null}
                   </p>
+                  <p className="mt-1 text-sm text-primary">{priceLine(addon)}</p>
                   {addon.blurb ? (
                     <p className="mt-1 text-xs text-muted-foreground">{addon.blurb}</p>
                   ) : null}
@@ -318,15 +336,15 @@ function UpgradePage() {
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button disabled={busy || !me.data} onClick={sendRequest}>
-            {busy ? "Sending…" : "Ask for this"}
+            {busy ? "Sending…" : "Upgrade — ask for this"}
           </Button>
           <Button variant="outline" disabled>
             <CreditCard className="size-4" /> Pay by card
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Card payment is coming — for now we set your package up by hand as soon as your request
-          reaches us, and invoice you separately.
+          How you pay: bank transfer or card link on the invoice we send you. Your package is
+          switched on as soon as the payment reaches us. Paying by card in the app is coming.
         </p>
       </section>
 

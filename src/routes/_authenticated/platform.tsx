@@ -45,6 +45,9 @@ type Plan = {
   blurb: string | null;
   features: string[];
   sort_order: number;
+  price_amount: number | null;
+  price_currency: string;
+  price_period: string;
 };
 
 type Addon = {
@@ -78,7 +81,7 @@ function PlatformAdmin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plans")
-        .select("id, name, blurb, features, sort_order")
+        .select("id, name, blurb, features, sort_order, price_amount, price_currency, price_period")
         .order("sort_order");
       if (error) throw error;
       return (data ?? []).map((p) => ({
@@ -162,7 +165,16 @@ function PlatformAdmin() {
     await refresh(["plans", "my-features"]);
   };
 
-  const patchPlan = async (id: string, patch: { name?: string; blurb?: string | null }) => {
+  const patchPlan = async (
+    id: string,
+    patch: {
+      name?: string;
+      blurb?: string | null;
+      price_amount?: number | null;
+      price_currency?: string;
+      price_period?: string;
+    },
+  ) => {
     const { error } = await supabase.from("plans").update(patch).eq("id", id);
     if (error) return void toast.error(error.message);
     await refresh(["plans"]);
@@ -301,8 +313,15 @@ function PlatformAdmin() {
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Build the packages you sell, keep a few add-ons for the extras, then put every host account
-        on a package and switch on the add-ons they've paid for.
+        on a package and switch on the add-ons they've paid for. Prices below are what hosts see on
+        their own package page.
       </p>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Button asChild>
+          <Link to="/upgrade">Upgrade to Premium</Link>
+        </Button>
+      </div>
 
       <section className="panel mt-8 p-4 sm:p-6">
         <h2 className="text-xl">Add a package</h2>
@@ -358,6 +377,42 @@ function PlatformAdmin() {
               }}
               className="mt-2 text-xs"
             />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Input
+                defaultValue={plan.price_currency}
+                aria-label={`Currency for the ${plan.name} package`}
+                onBlur={(e) => {
+                  const v = e.target.value.trim().toUpperCase().slice(0, 3);
+                  if (v && v !== plan.price_currency)
+                    void patchPlan(plan.id, { price_currency: v });
+                }}
+                className="w-20 text-xs"
+              />
+              <Input
+                type="number"
+                min={0}
+                step="1"
+                defaultValue={plan.price_amount ?? ""}
+                aria-label={`Price of the ${plan.name} package`}
+                placeholder="Price"
+                onBlur={(e) => {
+                  const raw = e.target.value.trim();
+                  const v = raw === "" ? null : Number(raw);
+                  if (v !== plan.price_amount) void patchPlan(plan.id, { price_amount: v });
+                }}
+                className="w-28 text-xs"
+              />
+              <select
+                defaultValue={plan.price_period}
+                aria-label={`How often the ${plan.name} package is charged`}
+                onChange={(e) => void patchPlan(plan.id, { price_period: e.target.value })}
+                className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+              >
+                <option value="one_off">one-off</option>
+                <option value="month">per month</option>
+                <option value="year">per year</option>
+              </select>
+            </div>
             <ul className="mt-4 space-y-2">
               {FEATURES.map((f) => (
                 <li key={f.key}>

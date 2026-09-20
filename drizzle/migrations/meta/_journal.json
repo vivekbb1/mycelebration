@@ -274,6 +274,13 @@
       "when": 1789900683327,
       "tag": "0038_celebration_fees_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1789901736015,
+      "tag": "0039_plan_and_addon_prices",
+      "breakpoints": true
     }
   ]
 }
