@@ -289,7 +289,7 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
       <CollapsiblePanel title="Add a fee" subtitle="One line per charge. Mix and match as you like.">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <Label htmlFor="fee-invite">Which event</Label>
+            <Label htmlFor="fee-invite">Which celebration</Label>
             <select
               id="fee-invite"
               className="field-select w-full"
@@ -305,14 +305,14 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
             </select>
           </div>
           <div>
-            <Label htmlFor="fee-function">Which function</Label>
+            <Label htmlFor="fee-function">Which event</Label>
             <select
               id="fee-function"
               className="field-select w-full"
               value={draft.event_id}
               onChange={(e) => setDraft({ ...draft, event_id: e.target.value })}
             >
-              <option value="">The whole event</option>
+              <option value="">The whole celebration</option>
               {eventsForInvite.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name}

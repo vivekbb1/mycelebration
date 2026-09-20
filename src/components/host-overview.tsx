@@ -147,7 +147,7 @@ export function HostOverview() {
       <section className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl">Selections by function</h2>
+            <h2 className="text-xl">Selections by event</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Which events guests are choosing looks for, most popular first.
             </p>

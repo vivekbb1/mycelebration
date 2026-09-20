@@ -286,7 +286,7 @@ function PlatformAdmin() {
             Only the platform owner can change packages and features.
           </p>
           <Button asChild variant="outline" className="mt-4">
-            <Link to="/host">Back to your event</Link>
+            <Link to="/host">Back to your celebration</Link>
           </Button>
         </div>
       </main>

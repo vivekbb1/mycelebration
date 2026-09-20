@@ -309,7 +309,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             );
           })}
           {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Your events will appear here.</p>
+            <p className="text-sm text-muted-foreground">Your celebrations will appear here.</p>
           ) : null}
         </div>
       </section>

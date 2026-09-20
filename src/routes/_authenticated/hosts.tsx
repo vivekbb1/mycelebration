@@ -196,7 +196,7 @@ function HostDashboard() {
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Button asChild variant="outline">
-          <Link to="/host">Back to your event</Link>
+          <Link to="/host">Back to your celebration</Link>
         </Button>
         {isPlatformAdmin ? (
           <Button asChild variant="secondary">

@@ -260,14 +260,14 @@ export function HostVendors() {
             />
           </div>
           <div>
-            <Label htmlFor="vendor-invite">Which event</Label>
+            <Label htmlFor="vendor-invite">Which celebration</Label>
             <select
               id="vendor-invite"
               className="field-select w-full"
               value={draft.invite_id}
               onChange={(e) => setDraft({ ...draft, invite_id: e.target.value })}
             >
-              <option value="">All events</option>
+              <option value="">All celebrations</option>
               {(invites.data ?? []).map((i) => (
                 <option key={i.id} value={i.id}>
                   {i.name}

@@ -350,7 +350,7 @@ function GuestListPage() {
             The guest list isn't part of your current package.
           </p>
           <Button asChild className="mt-5" variant="outline">
-            <Link to="/host">Back to your event</Link>
+            <Link to="/host">Back to your celebration</Link>
           </Button>
         </div>
       </main>

@@ -541,7 +541,7 @@ export function HostFamilies() {
       >
 
         <div className="mt-5 space-y-2">
-          <Label htmlFor="f-invite">Which event</Label>
+          <Label htmlFor="f-invite">Which celebration</Label>
           <select
             id="f-invite"
             value={chosenInvite}
@@ -759,7 +759,7 @@ export function HostFamilies() {
                       }}
                       className="field-select max-w-full text-xs"
                     >
-                      <option value="">Not on an event</option>
+                      <option value="">Not on an celebration</option>
                       {inviteList.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.name}

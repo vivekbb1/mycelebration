@@ -126,7 +126,7 @@ export function HostTravel() {
           Every event in order, with who is attending, who arrives that day and who flies out.
         </p>
         {timeline.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Add your events first.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Add your celebrations first.</p>
         ) : (
           <ol className="mt-5 space-y-5 border-l border-border/70 pl-5">
             {timeline.map((t) => (
@@ -192,7 +192,7 @@ export function HostTravel() {
             </div>
           ))}
           {list.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Add your events first.</p>
+            <p className="text-sm text-muted-foreground">Add your celebrations first.</p>
           ) : null}
         </div>
       </section>

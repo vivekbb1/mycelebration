@@ -456,7 +456,7 @@ function HostDashboard() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <p className="text-eyebrow">Host area</p>
-          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the event</h1>
+          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Button asChild variant="outline" size="sm">
@@ -475,8 +475,8 @@ function HostDashboard() {
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">Event</TabsTrigger>
-          {has("functions") ? <TabsTrigger value="functions">Functions</TabsTrigger> : null}
+          <TabsTrigger value="invitations">Celebration</TabsTrigger>
+          {has("functions") ? <TabsTrigger value="functions">Events</TabsTrigger> : null}
           {has("guest_list") ? <TabsTrigger value="guests">Guests</TabsTrigger> : null}
           {has("wardrobe_picker") ? <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger> : null}
           <TabsTrigger value="setup">Setup</TabsTrigger>
@@ -666,7 +666,7 @@ function HostDashboard() {
             <h2 className="text-xl">Four steps</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
               <li>Create the celebration under the Celebration tab — one per celebration.</li>
-              <li>Add its events below.</li>
+              <li>Add its celebrations below.</li>
               <li>Add families under Guests.</li>
               <li>Tick who's invited to what, then send their invitation.</li>
             </ol>
@@ -713,7 +713,7 @@ function HostDashboard() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Function</Label>
+                  <Label>Event</Label>
                   <Select
                     value={form.event_id}
                     onValueChange={(v) => setForm((o) => ({ ...o, event_id: v }))}
@@ -887,7 +887,7 @@ function HostDashboard() {
                       <SelectValue placeholder="Set event" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No function</SelectItem>
+                      <SelectItem value="none">No event</SelectItem>
                       {eventList.map((e) => (
                         <SelectItem key={e.id} value={e.id}>
                           {e.name}

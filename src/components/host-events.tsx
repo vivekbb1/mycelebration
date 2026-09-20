@@ -207,7 +207,7 @@ export function HostEvents() {
       >
         <div className="mt-5 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="e-invite">Which celebration is this event part of?</Label>
+            <Label htmlFor="e-invite">Which celebration is this celebration part of?</Label>
             <select
               id="e-invite"
               value={chosenInvite}
@@ -227,7 +227,7 @@ export function HostEvents() {
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="e-name">Event name</Label>
+            <Label htmlFor="e-name">Celebration name</Label>
             <Input
               id="e-name"
               maxLength={80}
@@ -379,7 +379,7 @@ export function HostEvents() {
           </div>
           <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
             <div className="space-y-1">
-              <Label htmlFor="e-selection">Guests choose an outfit for this function</Label>
+              <Label htmlFor="e-selection">Guests choose an outfit for this event</Label>
               <p className="text-xs text-muted-foreground">
                 Turn this off when guests wear their own clothes — the lookbook then hides this
                 function entirely.

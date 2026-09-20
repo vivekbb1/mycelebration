@@ -163,7 +163,7 @@ export function HostBuild() {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="b-event">Function</Label>
+          <Label htmlFor="b-event">Event</Label>
           <select
             id="b-event"
             className="field-select"
@@ -173,7 +173,7 @@ export function HostBuild() {
               setOutfitId("");
             }}
           >
-            <option value="">Any function</option>
+            <option value="">Any event</option>
             {(events.data ?? [])
               .filter((e) => e.outfit_selection !== false)
               .map((e) => (
