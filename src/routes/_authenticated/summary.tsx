@@ -295,9 +295,16 @@ function ConfirmPage() {
           </ul>
         )}
 
+        {household ? (
+          <div className="mt-8">
+            <GuestArrivals household={household} />
+          </div>
+        ) : null}
+
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Something not right? Message the hosts from your invitation page.
         </p>
+
       </div>
     </main>
   );
