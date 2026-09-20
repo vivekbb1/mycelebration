@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
+import { GuestArrivals } from "@/components/guest-arrivals";
+
 
 export const Route = createFileRoute("/_authenticated/summary")({
   head: () => ({
