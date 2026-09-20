@@ -108,8 +108,6 @@ export function HostImport() {
   const [perPage, setPerPage] = useState("12");
   const [readyToShip, setReadyToShip] = useState(false);
   const [shipInDays, setShipInDays] = useState("any");
-  // Menswear pages offer a shipping timeline rather than a ready-to-ship tick.
-  const isMenswear = category.startsWith("mens-shop/");
   const [colour, setColour] = useState("all");
   const [sort, setSort] = useState("listed");
   const [results, setResults] = useState<ListLook[] | null>(null);
@@ -167,8 +165,8 @@ export function HostImport() {
           maxPrice: Number(maxPrice) || 30000,
           page: nextPage,
           perPage: Number(perPage) || 12,
-          readyToShip: isMenswear ? false : readyToShip,
-          shipInDays: isMenswear && shipInDays !== "any" ? shipInDays : null,
+          readyToShip,
+          shipInDays: shipInDays === "any" ? null : shipInDays,
           colour: colour === "all" ? null : colour,
           sort,
         },
@@ -451,32 +449,29 @@ export function HostImport() {
               </SelectContent>
             </Select>
           </div>
-          {isMenswear ? (
-            <div className="space-y-2 sm:col-span-2">
-              <Label>How soon it ships</Label>
-              <Select value={shipInDays} onValueChange={setShipInDays}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any shipping time</SelectItem>
-                  {PERNIA_SHIP_TIMES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <label className="flex items-end gap-2 pb-2 sm:col-span-2">
-              <Checkbox
-                checked={readyToShip}
-                onCheckedChange={(v) => setReadyToShip(v === true)}
-              />
-              <span className="text-sm">Ready to ship only (no tailoring wait)</span>
-            </label>
-          )}
+          <div className="space-y-2">
+            <Label>How soon it ships</Label>
+            <Select value={shipInDays} onValueChange={setShipInDays}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any shipping time</SelectItem>
+                {PERNIA_SHIP_TIMES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <label className="flex items-end gap-2 pb-2">
+            <Checkbox
+              checked={readyToShip}
+              onCheckedChange={(v) => setReadyToShip(v === true)}
+            />
+            <span className="text-sm">Ready to ship only (no tailoring wait)</span>
+          </label>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button disabled={listBusy} onClick={() => runSearch(1)}>
