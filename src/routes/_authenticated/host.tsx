@@ -610,6 +610,7 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="list">List</TabsTrigger>
               <TabsTrigger value="invited">Assign</TabsTrigger>
+              <TabsTrigger value="tags">Tags</TabsTrigger>
               <TabsTrigger value="replies">RSVP</TabsTrigger>
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
@@ -626,6 +627,9 @@ function HostDashboard() {
             </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
+            </TabsContent>
+            <TabsContent value="tags" className="mt-6">
+              <HostTags />
             </TabsContent>
             <TabsContent value="replies" className="mt-6 space-y-8">
               <HostRsvp />
