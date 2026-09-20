@@ -40,7 +40,7 @@ import { HostContent } from "@/components/host-content";
 import { HostBoutiques } from "@/components/host-boutiques";
 import { HostVendors } from "@/components/host-vendors";
 import { HostFees } from "@/components/host-fees";
-import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
+import { EventPicker, SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
