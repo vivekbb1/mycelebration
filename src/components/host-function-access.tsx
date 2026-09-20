@@ -8,17 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedEvent } from "@/lib/selected-event";
 
-/** Tags are kept as a comma list on each guest, shown as hashtags. */
-export function splitTags(raw: string | null | undefined): string[] {
-  return (raw ?? "")
-    .split(",")
-    .map((t) => t.trim().replace(/^#+/, "").toLowerCase())
-    .filter(Boolean);
-}
+import { normaliseTag, splitTags } from "@/lib/tags";
 
-function normaliseTag(raw: string): string {
-  return raw.trim().replace(/^#+/, "").replace(/\s+/g, " ").toLowerCase().slice(0, 40);
-}
+export { splitTags };
 
 /**
  * Which families are invited to which events. A family with no ticks at all
@@ -33,7 +25,23 @@ export function HostFunctionAccess() {
   const [pickedEvents, setPickedEvents] = useState<Set<string>>(new Set());
   const [pickedTags, setPickedTags] = useState<Set<string>>(new Set());
   const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
+  const [applyTags, setApplyTags] = useState<Set<string>>(new Set());
   const { inviteId: selectedInvite } = useSelectedEvent();
+
+  /** The tags you manage under Guests → Tags. */
+  const tagList = useQuery({
+    queryKey: ["guest-tags", selectedInvite],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("guest_tags")
+        .select("id, name, invite_id")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []).filter(
+        (t) => !selectedInvite || !t.invite_id || t.invite_id === selectedInvite,
+      );
+    },
+  });
 
   const events = useQuery({
     queryKey: ["events", selectedInvite],
@@ -92,12 +100,13 @@ export function HostFunctionAccess() {
       .sort((a, b) => a.household.localeCompare(b.household));
   }, [guests.data]);
 
-  /** Every hashtag in use on this celebration, for the filter row. */
+  /** Every hashtag you manage or already use, for the filter and bulk rows. */
   const allTags = useMemo(() => {
     const set = new Set<string>();
     for (const f of families) for (const t of f.tags) set.add(t);
+    for (const t of tagList.data ?? []) set.add(t.name.toLowerCase());
     return [...set].sort((a, b) => a.localeCompare(b));
-  }, [families]);
+  }, [families, tagList.data]);
 
   const visible = families.filter((f) => {
     if (pickedTags.size > 0 && !f.tags.some((t) => pickedTags.has(t))) return false;
@@ -164,6 +173,25 @@ export function HostFunctionAccess() {
     setBusy(false);
     await queryClient.invalidateQueries({ queryKey: ["invites-households"] });
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
+
+  /** Put the chosen tags on — or take them off — every family you've ticked. */
+  const applyTagsToPicked = async (mode: "add" | "remove") => {
+    const chosen = [...applyTags];
+    const households = visible.filter((f) => pickedFamilies.has(f.household));
+    if (chosen.length === 0 || households.length === 0) return;
+    const ids = households.flatMap((f) => f.ids);
+    if (mode === "add") {
+      await addTag(ids, chosen.join(","));
+    } else {
+      for (const tag of chosen) await removeTag(ids, tag);
+    }
+    toast.success(
+      `${mode === "add" ? "Tagged" : "Untagged"} ${households.length} famil${
+        households.length === 1 ? "y" : "ies"
+      }.`,
+    );
+    setApplyTags(new Set());
   };
 
   const rowsFor = (household: string) =>
@@ -497,6 +525,69 @@ export function HostFunctionAccess() {
         </div>
       </div>
 
+      <div className="panel space-y-4 p-4 sm:p-6">
+        <div>
+          <h3 className="text-lg">Tag several at once</h3>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Tick the families below, choose one or more tags here, then add or remove them.
+            Whoever looks after a tag, set under Guests &rarr; Tags, picks up those guests in
+            Communication and Tracker.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {allTags.map((t) => {
+            const on = applyTags.has(t);
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() =>
+                  setApplyTags((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(t)) next.delete(t);
+                    else next.add(t);
+                    return next;
+                  })
+                }
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                #{t}
+              </button>
+            );
+          })}
+          {allTags.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No tags yet — make some under Guests &rarr; Tags.
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || applyTags.size === 0}
+            onClick={() => void applyTagsToPicked("add")}
+          >
+            Add these tags
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy || pickedFamilies.size === 0 || applyTags.size === 0}
+            onClick={() => void applyTagsToPicked("remove")}
+          >
+            Remove these tags
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {applyTags.size} tag{applyTags.size === 1 ? "" : "s"} picked
+          </span>
+        </div>
+      </div>
 
       <div className="panel overflow-x-auto p-0">
         <table className="w-full min-w-[720px] text-sm">

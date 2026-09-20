@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { splitTags } from "@/lib/tags";
 import { suggestFollowUp, type FollowUpSuggestion } from "@/lib/followup.functions";
 import { sendFollowUpReminders } from "@/lib/followup-reminders.functions";
 
@@ -38,6 +39,7 @@ type Guest = {
   household: string | null;
   email: string | null;
   personally_invited: boolean;
+  tags: string | null;
 };
 
 type Host = { id: string; name: string };
@@ -149,7 +151,7 @@ export function HostRelations() {
     queryFn: async (): Promise<Guest[]> => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, email, personally_invited")
+        .select("id, guest_name, household, email, personally_invited, tags")
         .order("household")
         .order("guest_name");
       if (error) throw error;
@@ -180,13 +182,41 @@ export function HostRelations() {
     },
   });
 
+  /** Which hosts look after which tags, set under Guests → Tags. */
+  const tagHosts = useQuery({
+    queryKey: ["relations-tag-hosts"],
+    queryFn: async () => {
+      const tags = await supabase.from("guest_tags").select("id, name");
+      if (tags.error) throw tags.error;
+      const rows = await supabase.from("guest_tag_hosts").select("tag_id, host_id");
+      if (rows.error) throw rows.error;
+      const nameOf = new Map((tags.data ?? []).map((t) => [t.id, t.name.toLowerCase()]));
+      const map = new Map<string, string[]>();
+      for (const r of rows.data ?? []) {
+        const name = nameOf.get(r.tag_id);
+        if (!name) continue;
+        map.set(name, [...(map.get(name) ?? []), r.host_id]);
+      }
+      return map;
+    },
+  });
+
   const hostsFor = useMemo(() => {
     const map = new Map<string, string[]>();
     for (const row of links.data ?? []) {
       map.set(row.invite_id, [...(map.get(row.invite_id) ?? []), row.host_id]);
     }
+    // A guest's tags bring their hosts along too.
+    for (const g of guests.data ?? []) {
+      for (const tag of splitTags(g.tags)) {
+        for (const host of tagHosts.data?.get(tag) ?? []) {
+          const current = map.get(g.id) ?? [];
+          if (!current.includes(host)) map.set(g.id, [...current, host]);
+        }
+      }
+    }
     return map;
-  }, [links.data]);
+  }, [links.data, guests.data, tagHosts.data]);
 
   const notesFor = useMemo(() => {
     const map = new Map<string, Note[]>();

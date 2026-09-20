@@ -4,11 +4,13 @@ import { CalendarClock, Gauge } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { splitTags } from "@/lib/tags";
 
 type Guest = {
   id: string;
   guest_name: string;
   household: string | null;
+  tags: string | null;
 };
 
 type Note = {
@@ -51,7 +53,7 @@ export function HostWorkload() {
     queryFn: async (): Promise<Guest[]> => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household");
+        .select("id, guest_name, household, tags");
       if (error) throw error;
       return data as Guest[];
     },
@@ -63,6 +65,25 @@ export function HostWorkload() {
       const { data, error } = await supabase.from("guest_hosts").select("invite_id, host_id");
       if (error) throw error;
       return data;
+    },
+  });
+
+  /** Which hosts look after which tags. */
+  const tagHosts = useQuery({
+    queryKey: ["workload-tag-hosts"],
+    queryFn: async () => {
+      const tags = await supabase.from("guest_tags").select("id, name");
+      if (tags.error) throw tags.error;
+      const rows = await supabase.from("guest_tag_hosts").select("tag_id, host_id");
+      if (rows.error) throw rows.error;
+      const nameOf = new Map((tags.data ?? []).map((t) => [t.id, t.name.toLowerCase()]));
+      const map = new Map<string, string[]>();
+      for (const r of rows.data ?? []) {
+        const name = nameOf.get(r.tag_id);
+        if (!name) continue;
+        map.set(name, [...(map.get(name) ?? []), r.host_id]);
+      }
+      return map;
     },
   });
 
@@ -99,11 +120,25 @@ export function HostWorkload() {
     return set;
   }, [replies.data]);
 
-  const rows = useMemo(() => {
-    const byHost = new Map<string, string[]>();
-    for (const row of links.data ?? []) {
-      byHost.set(row.host_id, [...(byHost.get(row.host_id) ?? []), row.invite_id]);
+  /** Every guest a host looks after: named against them, or carrying one of their tags. */
+  const guestIdsByHost = useMemo(() => {
+    const byHost = new Map<string, Set<string>>();
+    const add = (hostId: string, guestId: string) => {
+      const set = byHost.get(hostId) ?? new Set<string>();
+      set.add(guestId);
+      byHost.set(hostId, set);
+    };
+    for (const row of links.data ?? []) add(row.host_id, row.invite_id);
+    for (const g of guests.data ?? []) {
+      for (const tag of splitTags(g.tags)) {
+        for (const host of tagHosts.data?.get(tag) ?? []) add(host, g.id);
+      }
     }
+    return byHost;
+  }, [links.data, guests.data, tagHosts.data]);
+
+  const rows = useMemo(() => {
+    const byHost = guestIdsByHost;
     const guestById = new Map((guests.data ?? []).map((g) => [g.id, g]));
     const notesFor = new Map<string, Note[]>();
     for (const n of notes.data ?? []) {
@@ -112,7 +147,7 @@ export function HostWorkload() {
 
     return (hosts.data ?? [])
       .map((h) => {
-        const ids = byHost.get(h.id) ?? [];
+        const ids = [...(byHost.get(h.id) ?? [])];
         const mine = ids.map((id) => guestById.get(id)).filter(Boolean) as Guest[];
         const overdue: { name: string; on: string }[] = [];
         const upcoming: { name: string; on: string }[] = [];
@@ -144,9 +179,11 @@ export function HostWorkload() {
         };
       })
       .sort((a, b) => b.overdue.length - a.overdue.length || b.guests - a.guests);
-  }, [hosts.data, guests.data, links.data, notes.data, repliedHouseholds, today, weekAhead]);
+  }, [hosts.data, guests.data, guestIdsByHost, notes.data, repliedHouseholds, today, weekAhead]);
 
-  const assignedIds = new Set((links.data ?? []).map((r) => r.invite_id));
+  const assignedIds = new Set(
+    [...guestIdsByHost.values()].flatMap((set) => [...set]),
+  );
   const unassigned = (guests.data ?? []).filter((g) => !assignedIds.has(g.id)).length;
 
   return (

@@ -29,6 +29,7 @@ import { HostEvents } from "@/components/host-events";
 import { HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostGuestList } from "@/components/host-guest-list";
+import { HostTags } from "@/components/host-tags";
 import { HostPicks } from "@/components/host-picks";
 import { HostTravel } from "@/components/host-travel";
 import { HostRelations } from "@/components/host-relations";
@@ -610,6 +611,7 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="list">List</TabsTrigger>
               <TabsTrigger value="invited">Assign</TabsTrigger>
+              <TabsTrigger value="tags">Tags</TabsTrigger>
               <TabsTrigger value="replies">RSVP</TabsTrigger>
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
@@ -626,6 +628,9 @@ function HostDashboard() {
             </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
+            </TabsContent>
+            <TabsContent value="tags" className="mt-6">
+              <HostTags />
             </TabsContent>
             <TabsContent value="replies" className="mt-6 space-y-8">
               <HostRsvp />

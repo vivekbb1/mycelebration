@@ -102,8 +102,47 @@ export function HostTags() {
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["guest-tags"] });
     await qc.invalidateQueries({ queryKey: ["tag-guests"] });
+    await qc.invalidateQueries({ queryKey: ["guest-tag-hosts"] });
     await qc.invalidateQueries({ queryKey: ["invites-households"] });
     await qc.invalidateQueries({ queryKey: ["invites"] });
+    await qc.invalidateQueries({ queryKey: ["relations-tag-hosts"] });
+    await qc.invalidateQueries({ queryKey: ["workload-tag-hosts"] });
+  };
+
+  /** Put a loose tag into the list so hosts can be linked to it. */
+  const adoptTag = async (name: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from("guest_tags")
+      .insert({ name, invite_id: inviteId ?? null })
+      .select("id")
+      .single();
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    await refresh();
+    return data?.id ?? null;
+  };
+
+  /** Link or unlink a host to a tag. Everyone with the tag is theirs to look after. */
+  const toggleHost = async (tagId: string | null, tagName: string, hostId: string) => {
+    setBusy(true);
+    let id = tagId;
+    if (!id) id = await adoptTag(tagName);
+    if (!id) {
+      setBusy(false);
+      return;
+    }
+    const existing = (tagHosts.data ?? []).find((r) => r.tag_id === id && r.host_id === hostId);
+    const { error } = existing
+      ? await supabase.from("guest_tag_hosts").delete().eq("id", existing.id)
+      : await supabase.from("guest_tag_hosts").insert({ tag_id: id, host_id: hostId });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await refresh();
   };
 
   const addTags = async (raw: string) => {
@@ -279,7 +318,7 @@ export function HostTags() {
                 </th>
                 <th className="p-4 font-normal text-muted-foreground">Tag</th>
                 <th className="p-4 font-normal text-muted-foreground">On how many families</th>
-                <th className="p-4 font-normal text-muted-foreground">In your list</th>
+                <th className="p-4 font-normal text-muted-foreground">Looked after by</th>
                 <th className="p-4" />
               </tr>
             </thead>
@@ -331,8 +370,34 @@ export function HostTags() {
                     )}
                   </td>
                   <td className="p-4 text-muted-foreground">{r.families}</td>
-                  <td className="p-4 text-xs text-muted-foreground">
-                    {r.id ? "Yes" : "Typed on a guest"}
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      {(hosts.data ?? []).map((h) => {
+                        const on = (tagHosts.data ?? []).some(
+                          (row) => row.tag_id === r.id && row.host_id === h.id,
+                        );
+                        return (
+                          <button
+                            key={h.id}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void toggleHost(r.id, r.name, h.id)}
+                            className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                              on
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border text-muted-foreground hover:border-primary/50"
+                            }`}
+                          >
+                            {h.name}
+                          </button>
+                        );
+                      })}
+                      {(hosts.data ?? []).length === 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          Invite hosts under Setup &rarr; Hosts first.
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap items-center justify-end gap-2">
