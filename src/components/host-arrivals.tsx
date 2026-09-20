@@ -80,17 +80,58 @@ export function HostArrivals() {
     notes: "",
   });
 
+  const [onlyMine, setOnlyMine] = useState(true);
+
   const guests = useQuery({
     queryKey: ["arrivals-guests", selectedEvent],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, email, invite_id")
+        .select("id, guest_name, household, email, invite_id, tags")
         .order("guest_name");
       if (error) throw error;
       return (data ?? []).filter((g) => !selectedEvent || !g.invite_id || g.invite_id === selectedEvent);
     },
   });
+
+  /** Which families this host looks after — named against them, or carrying one of their tags. */
+  const mine = useQuery({
+    queryKey: ["arrivals-mine"],
+    queryFn: async () => {
+      const auth = await supabase.auth.getUser();
+      const meId = auth.data.user?.id ?? null;
+      if (!meId) return { meId, inviteIds: [] as string[], tags: [] as string[] };
+      const [direct, tagLinks, tagNames] = await Promise.all([
+        supabase.from("guest_hosts").select("invite_id").eq("host_id", meId),
+        supabase.from("guest_tag_hosts").select("tag_id").eq("host_id", meId),
+        supabase.from("guest_tags").select("id, name"),
+      ]);
+      const nameOf = new Map((tagNames.data ?? []).map((t) => [t.id, t.name.toLowerCase()]));
+      return {
+        meId,
+        inviteIds: (direct.data ?? []).map((r) => r.invite_id as string),
+        tags: (tagLinks.data ?? [])
+          .map((r) => nameOf.get(r.tag_id as string))
+          .filter((n): n is string => Boolean(n)),
+      };
+    },
+  });
+
+  /** Families this host is responsible for, by name. */
+  const myHouseholds = useMemo(() => {
+    const ids = new Set(mine.data?.inviteIds ?? []);
+    const tags = new Set(mine.data?.tags ?? []);
+    const set = new Set<string>();
+    for (const g of guests.data ?? []) {
+      if (!g.household) continue;
+      const carries = splitTags((g.tags as string | null) ?? "").some((t) => tags.has(t));
+      if (ids.has(g.id) || carries) set.add(g.household);
+    }
+    return set;
+  }, [guests.data, mine.data]);
+
+  const hasOwn = myHouseholds.size > 0;
+  const mineOnly = onlyMine && hasOwn;
 
   const vendors = useQuery({
     queryKey: ["arrivals-vendors", selectedEvent],
