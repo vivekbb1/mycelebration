@@ -96,19 +96,19 @@ export function useGuestEvent() {
   return { inviteId, setInviteId: setGuestEvent, list, allows, loading: events.isLoading };
 }
 
-/** The guest's own "which celebration" dropdown — hidden only when they have none. */
+/** The guest's "which celebration" dropdown, shown only when they have more than one. */
 export function GuestEventPicker() {
   const { inviteId, setInviteId, list } = useGuestEvent();
-  if (list.length === 0) return null;
+  if (list.length < 2) return null;
 
   return (
-    <div className="panel mb-8 flex flex-wrap items-center gap-3 p-3 sm:p-4">
-      <Label htmlFor="guest-event" className="text-xs text-muted-foreground">
+    <div className="flex items-center gap-2">
+      <Label htmlFor="guest-event" className="sr-only">
         Which celebration
       </Label>
       <select
         id="guest-event"
-        className="field-select w-full sm:w-64"
+        className="field-select h-9 max-w-[10rem] py-1 text-xs sm:max-w-[14rem] sm:text-sm"
         value={inviteId}
         onChange={(e) => setInviteId(e.target.value)}
       >
@@ -118,9 +118,6 @@ export function GuestEventPicker() {
           </option>
         ))}
       </select>
-      <p className="w-full text-xs text-muted-foreground sm:w-auto">
-        Everything on this page applies to the celebration you pick.
-      </p>
     </div>
   );
 }

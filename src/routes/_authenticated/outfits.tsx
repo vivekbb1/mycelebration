@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { CalendarDays, Lock, Check, MapPin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { GuestEventPicker, useGuestEvent } from "@/lib/guest-event";
+import { useGuestEvent } from "@/lib/guest-event";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { sendReservationEmail } from "@/lib/reservation-email.functions";
@@ -427,7 +427,6 @@ function Lookbook() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-      <GuestEventPicker />
       <p className="text-eyebrow">The lookbook</p>
       <h1 className="mt-3 text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">

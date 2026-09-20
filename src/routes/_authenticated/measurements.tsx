@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
-import { GuestEventPicker } from "@/lib/guest-event";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -226,7 +225,6 @@ function Measurements() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-      <GuestEventPicker />
       <p className="text-eyebrow">For the tailor</p>
       <h1 className="mt-3 text-4xl">Measurements</h1>
       <p className="mt-3 text-sm text-muted-foreground">

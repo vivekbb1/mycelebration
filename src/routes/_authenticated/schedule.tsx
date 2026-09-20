@@ -6,7 +6,7 @@ import { scheduleEyebrow, scheduleHeadline, scheduleSummary } from "@/lib/schedu
 import { Check, X, HelpCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { GuestEventPicker, useGuestEvent } from "@/lib/guest-event";
+import { useGuestEvent } from "@/lib/guest-event";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -130,7 +130,6 @@ function EventPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-      <GuestEventPicker />
       <p className="text-eyebrow">{scheduleEyebrow(eventList)}</p>
       <h1 className="mt-3 text-4xl">{scheduleHeadline(eventList)}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
