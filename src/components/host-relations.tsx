@@ -38,6 +38,7 @@ type Guest = {
   household: string | null;
   email: string | null;
   personally_invited: boolean;
+  tags: string | null;
 };
 
 type Host = { id: string; name: string };
