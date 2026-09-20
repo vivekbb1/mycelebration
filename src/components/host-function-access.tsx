@@ -574,7 +574,6 @@ export function HostFunctionAccess() {
                       </span>
                     ))}
                     <Input
-                      className="h-7 w-28 text-xs"
                       className="h-7 w-40 text-xs"
                       placeholder="#tag #tag…"
                       maxLength={200}
