@@ -6,6 +6,7 @@ import { Car, BedDouble, Mail, Plus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { splitTags } from "@/lib/tags";
 import { sendArrivalDetails } from "@/lib/arrival-email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
