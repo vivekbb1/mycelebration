@@ -541,9 +541,14 @@ export function GuestListPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      disabled={sendingId === r.key}
+                      disabled={sendingId === r.key || !r.assigned}
+                      title={
+                        r.assigned
+                          ? `Email invitation to ${r.name}`
+                          : "Choose their days on the Assign tab first"
+                      }
                       aria-label={`Email invitation code to ${r.name}`}
-                      onClick={() => mailInvite(r.key, r.name, r.email ?? null, r.code)}
+                      onClick={() => mailInvite(r.key, r.name, r.email ?? null, r.code, r.assigned)}
                     >
                       <Mail className="size-4" />
                     </Button>
