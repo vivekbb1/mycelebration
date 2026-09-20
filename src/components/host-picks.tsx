@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 /** Plain-English reasons a reminder didn't go out. */
 const reminderReasons: Record<string, string> = {
