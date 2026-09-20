@@ -222,6 +222,10 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
       if (colour && !PERNIA_COLOURS.some((c) => c.value === colour)) {
         throw new Error("Unknown colour");
       }
+      const shipInDays = data?.shipInDays ? String(data.shipInDays) : null;
+      if (shipInDays && !PERNIA_SHIP_TIMES.some((s) => s.value === shipInDays)) {
+        throw new Error("Unknown shipping time");
+      }
       const sortRaw = String(data?.sort ?? "listed") as SortKey;
       return {
         category,
