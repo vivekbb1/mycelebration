@@ -674,10 +674,10 @@ function HostDashboard() {
         <TabsContent value="wardrobe" className="mt-6">
           <Tabs defaultValue="outfits">
             <TabsList>
-              <TabsTrigger value="outfits">Outfits</TabsTrigger>
-              <TabsTrigger value="import">Add from a shop</TabsTrigger>
+              <TabsTrigger value="outfits">Upload</TabsTrigger>
+              <TabsTrigger value="import">Bulk Upload</TabsTrigger>
               <TabsTrigger value="picks">Selection</TabsTrigger>
-              {has("delivery") ? <TabsTrigger value="logistics">Delivery plan</TabsTrigger> : null}
+              {has("delivery") ? <TabsTrigger value="logistics">Delivery</TabsTrigger> : null}
             </TabsList>
 
             <TabsContent value="picks" className="mt-6">
