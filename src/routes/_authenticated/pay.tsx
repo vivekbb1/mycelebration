@@ -111,6 +111,14 @@ function PayPage() {
     },
   });
 
+  const outfitsCovered = useQuery({
+    queryKey: ["pay-outfits-covered"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_outfits_paid_by_host");
+      return (data as boolean | null) ?? true;
+    },
+  });
+
   const payments = useQuery({
     queryKey: ["pay-records", me.data],
     enabled: !!me.data,
@@ -188,6 +196,12 @@ function PayPage() {
         <h2 className="flex items-center gap-2 text-xl">
           <Wallet className="size-5 text-primary" /> Your charges
         </h2>
+        {outfitsCovered.data !== false ? (
+          <p className="mt-3 rounded-md bg-secondary/60 p-3 text-sm">
+            Your hosts are covering the outfits — there's nothing for you to pay towards what you
+            wear.
+          </p>
+        ) : null}
         {lines.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             Nothing to pay — your hosts haven't set any charges for you.
