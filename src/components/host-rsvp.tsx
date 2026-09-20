@@ -193,7 +193,7 @@ export function HostRsvp() {
         return { ...invite, households, totals };
       })
       .filter((group) => group.households.length > 0);
-  }, [invites.data, families.data, guests.data, profiles.data, search]);
+  }, [invites.data, families.data, guests.data, profiles.data, search, pickedTags]);
 
   const all = grouped.reduce(
     (acc, g) => ({
