@@ -26,11 +26,15 @@ const emailReasons: Record<string, string> = {
   nothing_to_send: "nothing assigned to them yet",
   guest_not_found: "guest not found",
   forbidden: "hosts only",
-  emails_off: "email sending isn't switched on",
-  no_domain: "your sending domain isn't set up yet",
-  no_from: "no from address set",
-  no_key: "email service key missing",
+  email_turned_off: "email sending is switched off",
+  lovable_domain_not_set_up: "your sender domain isn't set up yet",
+  from_address_missing: "no from address saved",
+  api_key_missing: "the email service key is missing",
+  email_not_configured: "email sending isn't set up yet",
+  network_error: "the email service couldn't be reached",
+  send_failed: "please try again",
 };
+
 
 const timeLabel = (value: string | null) =>
   value
