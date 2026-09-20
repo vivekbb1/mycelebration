@@ -25,6 +25,7 @@ import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authent
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedPlatformRouteImport } from './routes/_authenticated/platform'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 
@@ -108,6 +109,11 @@ const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGuestGuestIdRoute =
   AuthenticatedGuestGuestIdRouteImport.update({
     id: '/guest/$guestId',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/plan': typeof AuthenticatedPlanRoute
   '/platform': typeof AuthenticatedPlatformRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/platform': typeof AuthenticatedPlatformRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
 }
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/platform'
     | '/portal'
+    | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/platform'
     | '/portal'
+    | '/upgrade'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
   id:
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated/plan'
     | '/_authenticated/platform'
     | '/_authenticated/portal'
+    | '/_authenticated/upgrade'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
   fileRoutesById: FileRoutesById
@@ -362,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/upgrade': {
+      id: '/_authenticated/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/guest/$guestId': {
       id: '/_authenticated/guest/$guestId'
       path: '/guest/$guestId'
@@ -393,6 +412,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedPlatformRoute: typeof AuthenticatedPlatformRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+  AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
 }
 
@@ -410,6 +430,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedPlatformRoute: AuthenticatedPlatformRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+  AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
 }
 
