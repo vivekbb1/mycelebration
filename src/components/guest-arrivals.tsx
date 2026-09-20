@@ -21,6 +21,16 @@ const timeLabel = (value: string | null) =>
       })
     : "time to follow";
 
+const dayLabel = (value: string | null) =>
+  value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      })
+    : "date to follow";
+
+
 /** What a guest sees: the car collecting them and the room they've been given. */
 export function GuestArrivals({ household }: { household: string }) {
   const rides = useQuery({
@@ -96,8 +106,8 @@ export function GuestArrivals({ household }: { household: string }) {
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 {s.hotel_address ? `${s.hotel_address} · ` : ""}
-                {s.checkin_date ? `check in ${s.checkin_date}` : ""}
-                {s.checkout_date ? ` · check out ${s.checkout_date}` : ""}
+                {s.checkin_date ? `check in ${dayLabel(s.checkin_date)}` : ""}
+                {s.checkout_date ? ` · check out ${dayLabel(s.checkout_date)}` : ""}
                 {s.room_type ? ` · ${s.room_type}` : ""}
                 {s.host_contact ? ` · any trouble, call ${s.host_contact}` : ""}
               </p>
