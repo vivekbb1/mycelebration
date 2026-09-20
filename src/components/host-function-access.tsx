@@ -58,27 +58,90 @@ export function HostFunctionAccess() {
   });
 
   const families = useMemo(() => {
-    const map = new Map<string, string[]>();
+    const map = new Map<string, { names: string[]; ids: string[]; tags: Set<string> }>();
     for (const g of guests.data ?? []) {
       const key = (g.household ?? "").trim() || (g.guest_name ?? "").trim();
       if (!key) continue;
-      const names = map.get(key) ?? [];
-      if (g.guest_name) names.push(g.guest_name);
-      map.set(key, names);
+      const entry = map.get(key) ?? { names: [], ids: [], tags: new Set<string>() };
+      if (g.guest_name) entry.names.push(g.guest_name);
+      entry.ids.push(g.id);
+      for (const t of splitTags(g.tags)) entry.tags.add(t);
+      map.set(key, entry);
     }
     return [...map.entries()]
-      .map(([household, names]) => ({ household, names }))
+      .map(([household, e]) => ({
+        household,
+        names: e.names,
+        ids: e.ids,
+        tags: [...e.tags].sort((a, b) => a.localeCompare(b)),
+      }))
       .sort((a, b) => a.household.localeCompare(b.household));
   }, [guests.data]);
 
+  /** Every hashtag in use on this celebration, for the filter row. */
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const f of families) for (const t of f.tags) set.add(t);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [families]);
+
   const visible = families.filter((f) => {
-    const q = filter.trim().toLowerCase();
+    if (pickedTags.size > 0 && !f.tags.some((t) => pickedTags.has(t))) return false;
+    const q = filter.trim().toLowerCase().replace(/^#/, "");
     if (!q) return true;
     return (
       f.household.toLowerCase().includes(q) ||
-      f.names.some((n) => n.toLowerCase().includes(q))
+      f.names.some((n) => n.toLowerCase().includes(q)) ||
+      f.tags.some((t) => t.includes(q))
     );
   });
+
+  /** Add a hashtag to everyone in a family. */
+  const addTag = async (ids: string[], raw: string) => {
+    const tag = normaliseTag(raw);
+    if (!tag) return;
+    setBusy(true);
+    for (const id of ids) {
+      const guest = (guests.data ?? []).find((g) => g.id === id);
+      const current = splitTags(guest?.tags ?? null);
+      if (current.includes(tag)) continue;
+      const { error } = await supabase
+        .from("invite_codes")
+        .update({ tags: [...current, tag].join(", ") })
+        .eq("id", id);
+      if (error) {
+        setBusy(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+    setBusy(false);
+    await queryClient.invalidateQueries({ queryKey: ["invites-households"] });
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
+
+  /** Take a hashtag off everyone in a family. */
+  const removeTag = async (ids: string[], tag: string) => {
+    setBusy(true);
+    for (const id of ids) {
+      const guest = (guests.data ?? []).find((g) => g.id === id);
+      const current = splitTags(guest?.tags ?? null);
+      if (!current.includes(tag)) continue;
+      const next = current.filter((t) => t !== tag);
+      const { error } = await supabase
+        .from("invite_codes")
+        .update({ tags: next.length > 0 ? next.join(", ") : null })
+        .eq("id", id);
+      if (error) {
+        setBusy(false);
+        toast.error(error.message);
+        return;
+      }
+    }
+    setBusy(false);
+    await queryClient.invalidateQueries({ queryKey: ["invites-households"] });
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
 
   const rowsFor = (household: string) =>
     (access.data ?? []).filter((r) => r.household === household);
