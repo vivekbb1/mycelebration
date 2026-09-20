@@ -755,6 +755,35 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_tag_hosts: {
+        Row: {
+          created_at: string
+          host_id: string
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          host_id: string
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          host_id?: string
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_tag_hosts_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "guest_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_tags: {
         Row: {
           created_at: string

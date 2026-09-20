@@ -295,6 +295,13 @@
       "when": 1789904946801,
       "tag": "0041_guest_tag_registry",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1789905054005,
+      "tag": "0042_guest_tag_hosts",
+      "breakpoints": true
     }
   ]
 }
