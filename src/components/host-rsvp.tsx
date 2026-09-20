@@ -6,6 +6,7 @@ import { Check, Search, X, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { splitTags } from "@/components/host-function-access";
 
 type Answer = "yes" | "no" | "pending";
 
@@ -27,6 +28,7 @@ export function HostRsvp() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [pickedTags, setPickedTags] = useState<Set<string>>(new Set());
 
   const invites = useQuery({
     queryKey: ["invite-sets"],
@@ -55,7 +57,7 @@ export function HostRsvp() {
       const { data, error } = await supabase
         .from("invite_codes")
         .select(
-          "id, guest_name, household, family_id, invite_id, claimed_by, rsvp_status, rsvp_note, rsvp_recorded_at",
+          "id, guest_name, household, family_id, invite_id, claimed_by, tags, rsvp_status, rsvp_note, rsvp_recorded_at",
         )
         .order("guest_name");
       if (error) throw error;
@@ -118,8 +120,15 @@ export function HostRsvp() {
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
+  /** Every hashtag in use, so hosts can narrow the board to one group. */
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const g of guests.data ?? []) for (const t of splitTags(g.tags)) set.add(t);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [guests.data]);
+
   const grouped = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = search.trim().toLowerCase().replace(/^#/, "");
     const inviteList = [
       ...(invites.data ?? []).map((i) => ({ id: i.id as string | null, name: i.name })),
       { id: null as string | null, name: "Not on a celebration yet" },
@@ -135,7 +144,9 @@ export function HostRsvp() {
         const rows = (guests.data ?? []).filter((g) => {
           const fam = famOf(g);
           const inviteId = g.invite_id ?? fam?.invite_id ?? null;
-          return inviteId === invite.id;
+          if (inviteId !== invite.id) return false;
+          if (pickedTags.size === 0) return true;
+          return splitTags(g.tags).some((t) => pickedTags.has(t));
         });
 
         const householdMap = new Map<
@@ -162,7 +173,11 @@ export function HostRsvp() {
             (h) =>
               !term ||
               h.name.toLowerCase().includes(term) ||
-              h.people.some((p) => (p.guest_name ?? "").toLowerCase().includes(term)),
+              h.people.some(
+                (p) =>
+                  (p.guest_name ?? "").toLowerCase().includes(term) ||
+                  splitTags(p.tags).some((t) => t.includes(term)),
+              ),
           )
           .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -178,7 +193,7 @@ export function HostRsvp() {
         return { ...invite, households, totals };
       })
       .filter((group) => group.households.length > 0);
-  }, [invites.data, families.data, guests.data, profiles.data, search]);
+  }, [invites.data, families.data, guests.data, profiles.data, search, pickedTags]);
 
   const all = grouped.reduce(
     (acc, g) => ({
@@ -210,10 +225,52 @@ export function HostRsvp() {
         </div>
         <Input
           className="mt-4"
-          placeholder="Search a family or a name"
+          placeholder="Search a family, a name or a #tag"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        {allTags.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-xs text-muted-foreground">Show only these tags</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {allTags.map((t) => {
+                const on = pickedTags.has(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setPickedTags((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(t)) next.delete(t);
+                        else next.add(t);
+                        return next;
+                      })
+                    }
+                    className={`rounded-full border px-3 py-1 text-xs transition ${
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    #{t}
+                  </button>
+                );
+              })}
+              {pickedTags.size > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setPickedTags(new Set())}
+                  className="text-xs text-primary underline-offset-4 hover:underline"
+                >
+                  Clear tags
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
 
         {grouped.length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
@@ -255,10 +312,19 @@ export function HostRsvp() {
                               key={p.id}
                               className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                             >
-                              <p className="min-w-0 truncate text-sm text-muted-foreground">
-                                {p.guest_name || "Guest"}
-                                {p.claimed_by ? "" : " · not registered"}
-                              </p>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm text-muted-foreground">
+                                  {p.guest_name || "Guest"}
+                                  {p.claimed_by ? "" : " · not registered"}
+                                </p>
+                                {splitTags(p.tags).length > 0 ? (
+                                  <p className="mt-0.5 truncate text-xs text-primary">
+                                    {splitTags(p.tags)
+                                      .map((t) => `#${t}`)
+                                      .join(" ")}
+                                  </p>
+                                ) : null}
+                              </div>
                               <div className="flex shrink-0 gap-1">
                                 {(["yes", "no", "pending"] as Answer[]).map((option) => (
                                   <button
