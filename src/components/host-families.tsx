@@ -438,7 +438,21 @@ export function HostFamilies() {
     sheet["!cols"] = [{ wch: 30 }, { wch: 26 }, { wch: 32 }, { wch: 20 }, { wch: 16 }, { wch: 14 }];
     const book = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(book, sheet, "Guest list");
-    XLSX.writeFile(book, "guest-list.xlsx");
+    // Build the file ourselves and hand it to the browser: the library's own
+    // save helper is blocked inside the preview frame, so nothing arrived.
+    const bytes = XLSX.write(book, { bookType: "xlsx", type: "array" }) as ArrayBuffer;
+    const blob = new Blob([bytes], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "guest-list.xlsx";
+    link.rel = "noopener";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
     toast.success(
       body.length > 0
         ? "Downloaded your guest list — add the emails and upload it back."
