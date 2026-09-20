@@ -56,6 +56,14 @@ type Row = {
 function ConfirmPage() {
   const qc = useQueryClient();
 
+  const outfitsCovered = useQuery({
+    queryKey: ["pay-outfits-covered"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_outfits_paid_by_host");
+      return (data as boolean | null) ?? true;
+    },
+  });
+
   const looks = useQuery({
     queryKey: ["confirm-looks"],
     queryFn: async () => {
@@ -132,6 +140,12 @@ function ConfirmPage() {
           Check the piece set aside for you, tell us the garment, the size and any fabric preference,
           then confirm. You'll see its tailoring status here as it moves along.
         </p>
+
+        {outfitsCovered.data !== false ? (
+          <p className="mx-auto mt-4 max-w-xl rounded-md bg-secondary/60 p-3 text-center text-sm">
+            Your hosts are covering these outfits — nothing to pay.
+          </p>
+        ) : null}
 
         {looks.isLoading ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">Fetching your looks…</p>

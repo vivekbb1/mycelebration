@@ -554,15 +554,27 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invites")
-        .select("pay_instructions")
+        .select("pay_instructions, outfits_paid_by_host")
         .eq("id", inviteId as string)
         .maybeSingle();
       if (error) throw error;
-      return data?.pay_instructions ?? "";
+      return data ?? null;
     },
   });
 
-  const value = text ?? current.data ?? "";
+  const value = text ?? current.data?.pay_instructions ?? "";
+  const covered = current.data?.outfits_paid_by_host ?? true;
+
+  const setCovered = async (next: boolean) => {
+    if (!inviteId) return;
+    const { error } = await supabase
+      .from("invites")
+      .update({ outfits_paid_by_host: next })
+      .eq("id", inviteId);
+    if (error) return void toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["pay-instructions-host", inviteId] });
+    toast.success(next ? "You're covering the outfits." : "Guests pay for their own outfits.");
+  };
 
   const save = async () => {
     if (!inviteId) return;
@@ -580,7 +592,24 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
   if (!inviteId) return null;
 
   return (
-    <div className="panel p-4 sm:p-6">
+    <div className="space-y-6">
+      <div className="panel p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-xl">Who pays for the outfits</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Leave this on if you're dressing your guests. They'll see that the outfits are covered
+              and never get asked to pay for them.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">{covered ? "We cover them" : "Guests pay"}</span>
+            <Switch checked={covered} onCheckedChange={(v) => void setCovered(v)} />
+          </div>
+        </div>
+      </div>
+
+      <div className="panel p-4 sm:p-6">
       <h3 className="text-xl">How guests should pay you</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         Bank details, a payment link or simply who to hand the money to. This appears on each
@@ -597,6 +626,7 @@ function PayInstructions({ inviteId }: { inviteId: string | null }) {
       <Button className="mt-3" disabled={busy} onClick={save}>
         {busy ? "Saving…" : "Save"}
       </Button>
+      </div>
     </div>
   );
 }
