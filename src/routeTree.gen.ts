@@ -19,6 +19,7 @@ import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
 import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
+import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedLookbookRouteImport } from './routes/_authenticated/lookbook'
 import { Route as AuthenticatedMeasurementsRouteImport } from './routes/_authenticated/measurements'
@@ -80,6 +81,11 @@ const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
 const AuthenticatedHostsRoute = AuthenticatedHostsRouteImport.update({
   id: '/hosts',
   path: '/hosts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInvitationRoute = AuthenticatedInvitationRouteImport.update({
+  id: '/invitation',
+  path: '/invitation',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInviteRoute = AuthenticatedInviteRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
+  '/invitation': typeof AuthenticatedInvitationRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/guests': typeof AuthenticatedGuestsRoute
   '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
+  '/invitation': typeof AuthenticatedInvitationRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/lookbook': typeof AuthenticatedLookbookRoute
   '/measurements': typeof AuthenticatedMeasurementsRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
   '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
+  '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/lookbook': typeof AuthenticatedLookbookRoute
   '/_authenticated/measurements': typeof AuthenticatedMeasurementsRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/guests'
     | '/host'
     | '/hosts'
+    | '/invitation'
     | '/invite'
     | '/lookbook'
     | '/measurements'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/guests'
     | '/host'
     | '/hosts'
+    | '/invitation'
     | '/invite'
     | '/lookbook'
     | '/measurements'
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated/guests'
     | '/_authenticated/host'
     | '/_authenticated/hosts'
+    | '/_authenticated/invitation'
     | '/_authenticated/invite'
     | '/_authenticated/lookbook'
     | '/_authenticated/measurements'
@@ -378,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/hosts'
       fullPath: '/hosts'
       preLoaderRoute: typeof AuthenticatedHostsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/invitation': {
+      id: '/_authenticated/invitation'
+      path: '/invitation'
+      fullPath: '/invitation'
+      preLoaderRoute: typeof AuthenticatedInvitationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/invite': {
@@ -482,6 +501,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
   AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
+  AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
   AuthenticatedLookbookRoute: typeof AuthenticatedLookbookRoute
   AuthenticatedMeasurementsRoute: typeof AuthenticatedMeasurementsRoute
@@ -504,6 +524,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
   AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
+  AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
   AuthenticatedLookbookRoute: AuthenticatedLookbookRoute,
   AuthenticatedMeasurementsRoute: AuthenticatedMeasurementsRoute,
