@@ -68,6 +68,25 @@ export function HostWorkload() {
     },
   });
 
+  /** Which hosts look after which tags. */
+  const tagHosts = useQuery({
+    queryKey: ["workload-tag-hosts"],
+    queryFn: async () => {
+      const tags = await supabase.from("guest_tags").select("id, name");
+      if (tags.error) throw tags.error;
+      const rows = await supabase.from("guest_tag_hosts").select("tag_id, host_id");
+      if (rows.error) throw rows.error;
+      const nameOf = new Map((tags.data ?? []).map((t) => [t.id, t.name.toLowerCase()]));
+      const map = new Map<string, string[]>();
+      for (const r of rows.data ?? []) {
+        const name = nameOf.get(r.tag_id);
+        if (!name) continue;
+        map.set(name, [...(map.get(name) ?? []), r.host_id]);
+      }
+      return map;
+    },
+  });
+
   const notes = useQuery({
     queryKey: ["workload-notes"],
     queryFn: async (): Promise<Note[]> => {
