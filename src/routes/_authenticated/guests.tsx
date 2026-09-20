@@ -267,6 +267,23 @@ export function GuestListPage() {
     return { all, registered, reserved, measured, attending, silent: all - registered };
   }, [scopedInvites, reservations.data, measurements.data, profiles.data]);
 
+  /** A plain record of who has had their invitation, and who is still waiting. */
+  const invitedLog = useMemo(() => {
+    const sent = rows.filter((r) => r.invitedAt);
+    const pending = rows
+      .filter((r) => !r.invitedAt)
+      .map((r) => ({
+        ...r,
+        reason: !r.assigned
+          ? "Needs their days choosing first"
+          : !r.email
+            ? "No email address yet"
+            : "Ready to invite",
+      }));
+    return { sent, pending };
+  }, [rows]);
+
+
 
   const copyInvite = async (code: string, guestName: string) => {
     const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
