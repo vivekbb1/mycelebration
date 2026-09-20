@@ -61,7 +61,13 @@ export function SiteNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-4xl items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
+      <div
+        className={`mx-auto flex h-14 w-full items-center gap-2 px-4 sm:gap-3 sm:px-6 ${
+          isHostPage ? "max-w-6xl" : "max-w-4xl lg:px-8"
+        }`}
+      >
+
+
         <Link
           to="/invite"
           className="font-display flex shrink-0 items-center truncate text-base tracking-wide sm:text-lg"
