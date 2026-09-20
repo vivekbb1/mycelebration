@@ -265,6 +265,10 @@ export function HostFees({ audience = "guest" }: { audience?: "guest" | "host" }
 
   return (
     <div className="space-y-6">
+      {audience === "guest" ? <PayInstructions inviteId={selectedEvent} /> : null}
+
+      {audience === "guest" && feesOn.data === false ? null : (
+      <>
       <div className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Wallet className="size-5 text-primary" />
