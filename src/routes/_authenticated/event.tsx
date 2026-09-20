@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
+import { scheduleEyebrow, scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { Check, X, HelpCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -16,16 +16,17 @@ import { GuestTravel } from "@/components/guest-travel";
 export const Route = createFileRoute("/_authenticated/event")({
   head: () => ({
     meta: [
-      { title: "Wedding Weekend — Dates, Venues & RSVP" },
+      { title: "Your Schedule — Dates, Venues & Replies" },
       {
         name: "description",
         content:
-          "Every function of the wedding weekend: dates, timings, venues, dress codes and your RSVP.",
+          "The functions you're invited to: dates, timings, venues, dress codes, head counts and your replies.",
       },
-      { property: "og:title", content: "Wedding Weekend — Dates, Venues & RSVP" },
+      { property: "og:title", content: "Your Schedule — Dates, Venues & Replies" },
       {
         property: "og:description",
-        content: "Mehndi, sangeet, ceremony and reception — timings, venues, dress code and RSVP.",
+        content:
+          "Your functions with timings, venues and dress codes — reply for each one and add travel details.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -126,7 +127,7 @@ function EventPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-eyebrow">The wedding weekend</p>
+      <p className="text-eyebrow">{scheduleEyebrow(events.data ?? [])}</p>
       <h1 className="mt-3 text-4xl">{scheduleHeadline(events.data ?? [])}</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         {scheduleSummary(events.data ?? [])}{" "}
