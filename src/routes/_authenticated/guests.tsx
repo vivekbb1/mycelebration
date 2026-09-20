@@ -89,7 +89,6 @@ export function GuestListPage() {
         .select(
           "id, code, guest_name, email, phone, category, tags, invite_sent_at, claimed_by, claimed_at, household, gender, invite_id",
         )
-        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
