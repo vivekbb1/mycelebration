@@ -159,7 +159,7 @@ function GuestViewPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link to="/guests">
+        <Link to="/host">
           <ArrowLeft className="size-4" /> Back to the guest list
         </Link>
       </Button>
