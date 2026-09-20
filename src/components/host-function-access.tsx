@@ -575,8 +575,9 @@ export function HostFunctionAccess() {
                     ))}
                     <Input
                       className="h-7 w-28 text-xs"
-                      placeholder="#add tag"
-                      maxLength={40}
+                      className="h-7 w-40 text-xs"
+                      placeholder="#tag #tag…"
+                      maxLength={200}
                       value={tagDraft[f.household] ?? ""}
                       onChange={(e) =>
                         setTagDraft((d) => ({ ...d, [f.household]: e.target.value }))
