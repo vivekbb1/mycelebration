@@ -361,6 +361,42 @@ function PlatformAdmin() {
               }}
               className="mt-2 text-xs"
             />
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Input
+                defaultValue={plan.price_currency}
+                aria-label={`Currency for the ${plan.name} package`}
+                onBlur={(e) => {
+                  const v = e.target.value.trim().toUpperCase().slice(0, 3);
+                  if (v && v !== plan.price_currency)
+                    void patchPlan(plan.id, { price_currency: v });
+                }}
+                className="w-20 text-xs"
+              />
+              <Input
+                type="number"
+                min={0}
+                step="1"
+                defaultValue={plan.price_amount ?? ""}
+                aria-label={`Price of the ${plan.name} package`}
+                placeholder="Price"
+                onBlur={(e) => {
+                  const raw = e.target.value.trim();
+                  const v = raw === "" ? null : Number(raw);
+                  if (v !== plan.price_amount) void patchPlan(plan.id, { price_amount: v });
+                }}
+                className="w-28 text-xs"
+              />
+              <select
+                defaultValue={plan.price_period}
+                aria-label={`How often the ${plan.name} package is charged`}
+                onChange={(e) => void patchPlan(plan.id, { price_period: e.target.value })}
+                className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+              >
+                <option value="one_off">one-off</option>
+                <option value="month">per month</option>
+                <option value="year">per year</option>
+              </select>
+            </div>
             <ul className="mt-4 space-y-2">
               {FEATURES.map((f) => (
                 <li key={f.key}>
