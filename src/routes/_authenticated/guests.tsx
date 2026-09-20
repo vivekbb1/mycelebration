@@ -61,7 +61,7 @@ export function GuestListPage() {
   const { inviteId: selectedEvent } = useSelectedEvent();
 
   const [sendingId, setSendingId] = useState<string | null>(null);
-  const [bulkBusy, setBulkBusy] = useState(false);
+  const [tagDraft, setTagDraft] = useState<Record<string, string>>({});
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
 
