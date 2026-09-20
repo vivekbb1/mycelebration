@@ -17,7 +17,7 @@ import { HostFamilies } from "@/components/host-families";
 import { matchesSelectedEvent, useSelectedEvent } from "@/lib/selected-event";
 
 
-export function GuestListPage() {
+export function HostGuestList() {
   const queryClient = useQueryClient();
   const features = useFeatures();
   const emailInvite = useServerFn(sendInviteEmail);
@@ -359,14 +359,14 @@ export function GuestListPage() {
   };
 
   if (role.isLoading) {
-    return <p className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 text-sm text-muted-foreground">Loading…</p>;
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
   }
 
   if (!role.data) {
     return (
-      <div className="panel-wrap">
-        <div className="panel p-4 sm:p-6">
-          <h1 className="text-2xl">Hosts only</h1>
+      <div className="panel p-4 sm:p-6">
+        <div>
+          <h2 className="text-xl">Hosts only</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             The guest list is visible to the hosting family only.
           </p>
@@ -380,9 +380,9 @@ export function GuestListPage() {
 
   if (!features.has("guest_list")) {
     return (
-      <div className="panel-wrap">
-        <div className="panel p-4 sm:p-6">
-          <h1 className="text-2xl">Not in your package</h1>
+      <div className="panel p-4 sm:p-6">
+        <div>
+          <h2 className="text-xl">Not in your package</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             The guest list isn't part of your current package.
           </p>
@@ -409,11 +409,11 @@ export function GuestListPage() {
         <Stat label="Measurements in" value={stats.measured} />
       </div>
 
-      <div className="mt-8">
+      <div>
         <HostFamilies />
       </div>
 
-      <div className="mt-8">
+      <div>
         <div className="panel p-4 sm:p-6">
           <h2 className="text-xl">Invitation record</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -454,7 +454,7 @@ export function GuestListPage() {
         </div>
       </div>
 
-      <div className="mt-8">
+      <div>
         <div className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl">Everyone invited ({rows.length})</h2>
@@ -619,7 +619,7 @@ export function GuestListPage() {
           </ul>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
