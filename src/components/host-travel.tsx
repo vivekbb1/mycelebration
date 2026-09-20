@@ -15,7 +15,7 @@ const dateLabel = (value: string | null) =>
       })
     : "—";
 
-/** Flights in and out, head counts per function, and who lands too late for one. */
+/** Flights in and out, head counts per event, and who lands too late for one. */
 export function HostTravel() {
   const events = useQuery({
     queryKey: ["travel-events"],
@@ -72,7 +72,7 @@ export function HostTravel() {
       : [],
   );
 
-  /** One entry per function, with who is in town that day and who travels that day. */
+  /** One entry per event, with who is in town that day and who travels that day. */
   const timeline = useMemo(() => {
     const byHousehold = new Map<string, typeof rows>();
     for (const p of rows) {
@@ -123,10 +123,10 @@ export function HostTravel() {
           <CalendarClock className="size-4 text-primary" /> Guest timeline
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every function in order, with who is attending, who arrives that day and who flies out.
+          Every event in order, with who is attending, who arrives that day and who flies out.
         </p>
         {timeline.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Add your functions first.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Add your celebrations first.</p>
         ) : (
           <ol className="mt-5 space-y-5 border-l border-border/70 pl-5">
             {timeline.map((t) => (
@@ -178,10 +178,10 @@ export function HostTravel() {
 
       <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
-          <Users className="size-4 text-primary" /> Heads per function
+          <Users className="size-4 text-primary" /> Heads per event
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          What families have confirmed for each function.
+          What families have confirmed for each event.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((e) => (
@@ -192,7 +192,7 @@ export function HostTravel() {
             </div>
           ))}
           {list.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Add your functions first.</p>
+            <p className="text-sm text-muted-foreground">Add your celebrations first.</p>
           ) : null}
         </div>
       </section>
@@ -200,7 +200,7 @@ export function HostTravel() {
       {clashes.length > 0 ? (
         <section className="panel p-4 sm:p-6">
           <h2 className="flex items-center gap-2 text-xl">
-            <AlertTriangle className="size-4 text-primary" /> Landing after a function
+            <AlertTriangle className="size-4 text-primary" /> Landing after an event
           </h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             {clashes.map((c, i) => (

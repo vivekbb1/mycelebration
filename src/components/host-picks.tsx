@@ -5,7 +5,7 @@ import { Check, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Who has picked a look for which function. Functions where guests wear their
+ * Who has picked a look for which event. Events where guests wear their
  * own outfit are left out entirely — there is nothing to pick there.
  */
 export function HostPicks() {
@@ -90,7 +90,7 @@ export function HostPicks() {
       <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Outfit picks per guest</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          One column per function that guests choose a look for.
+          One column per event that guests choose a look for.
           {ownOutfit.length > 0
             ? ` ${ownOutfit.map((e) => e.name).join(", ")} ${
                 ownOutfit.length > 1 ? "are" : "is"
@@ -102,7 +102,7 @@ export function HostPicks() {
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
         ) : pickable.length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
-            No function has outfit selection switched on yet.
+            No event has outfit selection switched on yet.
           </p>
         ) : (
           <div className="mt-6 overflow-x-auto">
@@ -157,7 +157,7 @@ export function HostPicks() {
                           <span className="text-primary">All set</span>
                         ) : (
                           <span className="text-muted-foreground">
-                            {missing} function{missing > 1 ? "s" : ""}
+                            {missing} event{missing > 1 ? "s" : ""}
                           </span>
                         )}
                       </td>

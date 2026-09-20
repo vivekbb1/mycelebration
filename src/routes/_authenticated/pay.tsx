@@ -18,12 +18,12 @@ export const Route = createFileRoute("/_authenticated/pay")({
       {
         name: "description",
         content:
-          "See exactly what your family owes for each function, how to pay your hosts and everything you've already sent.",
+          "See exactly what your family owes for each event, how to pay your hosts and everything you've already sent.",
       },
       { property: "og:title", content: "Your Charges — Settle What's Due for the Celebration" },
       {
         property: "og:description",
-        content: "What your family owes per function, how to pay and what's already settled.",
+        content: "What your family owes per event, how to pay and what's already settled.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -189,7 +189,7 @@ function PayPage() {
       <p className="text-xs tracking-[0.2em] text-primary uppercase">Your charges</p>
       <h1 className="mt-2 text-3xl sm:text-4xl">What's payable</h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        These are the charges for the functions your family has said yes to.
+        These are the charges for the events your family has said yes to.
       </p>
 
       <section className="panel mt-8 p-4 sm:p-6">

@@ -208,14 +208,14 @@ export function HostBudget() {
             </select>
           </div>
           <div>
-            <Label htmlFor="cost-invite">Which event</Label>
+            <Label htmlFor="cost-invite">Which celebration</Label>
             <select
               id="cost-invite"
               className="field-select w-full"
               value={draft.invite_id}
               onChange={(e) => setDraft({ ...draft, invite_id: e.target.value })}
             >
-              <option value="">All events</option>
+              <option value="">All celebrations</option>
               {(invites.data ?? []).map((i) => (
                 <option key={i.id} value={i.id}>
                   {i.name}
@@ -224,7 +224,7 @@ export function HostBudget() {
             </select>
           </div>
           <div>
-            <Label htmlFor="cost-function">Which function</Label>
+            <Label htmlFor="cost-function">Which event</Label>
             <select
               id="cost-function"
               className="field-select w-full"

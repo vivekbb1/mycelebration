@@ -91,7 +91,7 @@ function InvitationPage() {
     },
   });
 
-  // Whether this family picks a look from us, per function.
+  // Whether this family picks a look from us, per event.
   const myAccess = useQuery({
     queryKey: ["my-household-event-invites"],
     queryFn: async () => {
@@ -201,11 +201,11 @@ function InvitationPage() {
       body: needsOutfits
         ? t(
             "step.outfit_body",
-            "Pick a look for each function where the outfit is our gift to you.",
+            "Pick a look for each event where the outfit is our gift to you.",
           )
         : t(
             "step.outfit_body_own",
-            "For your functions you'll wear your own outfit — nothing to choose here.",
+            "For your events you'll wear your own outfit — nothing to choose here.",
           ),
       done: outfitsDone,
       status: !needsOutfits
@@ -283,7 +283,7 @@ function InvitationPage() {
         <div className="gold-rule my-12" />
 
         <p className="text-center text-eyebrow">
-          {t("invitation.functions_title", "Your functions")}
+          {t("invitation.functions_title", "Your events")}
         </p>
 
         {events.isLoading ? (
@@ -300,7 +300,7 @@ function InvitationPage() {
             ))}
             {list.length === 0 ? (
               <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
-                The schedule is being finalised — your functions will appear here shortly.
+                The schedule is being finalised — your events will appear here shortly.
               </p>
             ) : null}
           </div>

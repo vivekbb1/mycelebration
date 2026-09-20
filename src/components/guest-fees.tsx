@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { feeLinesFor, formatMoney, totalByCurrency, type FeeRule } from "@/lib/fees";
 
-/** Shows a guest what their family owes for the event, and what's been paid. */
+/** Shows a guest what their family owes for the celebration, and what's been paid. */
 export function GuestFees() {
   const me = useQuery({
     queryKey: ["my-household"],

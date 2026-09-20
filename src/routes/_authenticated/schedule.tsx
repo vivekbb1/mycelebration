@@ -21,13 +21,13 @@ export const Route = createFileRoute("/_authenticated/schedule")({
       {
         name: "description",
         content:
-          "The functions you're invited to: dates, timings, venues, dress codes, head counts and your replies.",
+          "The events you're invited to: dates, timings, venues, dress codes, head counts and your replies.",
       },
       { property: "og:title", content: "Your Schedule — Dates, Venues & Replies" },
       {
         property: "og:description",
         content:
-          "Your functions with timings, venues and dress codes — reply for each one and add travel details.",
+          "Your events with timings, venues and dress codes — reply for each one and add travel details.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -54,7 +54,7 @@ function EventPage() {
   const [busy, setBusy] = useState(false);
   const [noteTouched, setNoteTouched] = useState(false);
 
-  // Only the functions this family is invited to.
+  // Only the events this family is invited to.
   const myEventIds = useQuery({
     queryKey: ["my-event-ids"],
     queryFn: async () => {
@@ -139,7 +139,7 @@ function EventPage() {
           "rsvp.dress_note",
           "Dress codes are guidance, not rules — but red and ivory are reserved for the couple.",
         )}{" "}
-        Once you know which functions you'll join,{" "}
+        Once you know which events you'll join,{" "}
         <Link to="/outfits" className="text-primary underline-offset-4 hover:underline">
           reserve your looks in the lookbook
         </Link>
@@ -206,7 +206,7 @@ function EventPage() {
       <GuestTravel events={eventList} />
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Dates, venues and dress codes for each function are on{" "}
+        Dates, venues and dress codes for each event are on{" "}
         <Link to="/invite" className="text-primary underline-offset-4 hover:underline">
           your invitation
         </Link>

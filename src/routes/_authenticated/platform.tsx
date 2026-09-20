@@ -286,7 +286,7 @@ function PlatformAdmin() {
             Only the platform owner can change packages and features.
           </p>
           <Button asChild variant="outline" className="mt-4">
-            <Link to="/host">Back to your event</Link>
+            <Link to="/host">Back to your celebration</Link>
           </Button>
         </div>
       </main>
@@ -581,10 +581,10 @@ function PlatformAdmin() {
 
       <PlanRequests />
 
-      <h2 className="mt-12 text-2xl">Event fees</h2>
+      <h2 className="mt-12 text-2xl">Celebration fees</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        What a host owes you for running an event — a flat fee, an amount per guest, or both. Hosts
-        set their own guest fees under Setup → Event fees.
+        What a host owes you for running a celebration — a flat fee, an amount per guest, or both. Hosts
+        set their own guest fees under Setup → Celebration fees.
       </p>
       <div className="mt-6">
         <HostFees audience="host" />
@@ -593,7 +593,7 @@ function PlatformAdmin() {
       <h2 className="mt-12 text-2xl">The portal itself</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         The portal name, the welcome page wording and the look of the whole site. Hosts can't change
-        these — they only reword their own event pages.
+        these — they only reword their own celebration pages.
       </p>
 
       <PortalName />

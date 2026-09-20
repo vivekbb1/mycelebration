@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_authenticated/guests")({
 });
 
 
-/** Keeps the guest list on the same chosen event as the rest of the host area. */
+/** Keeps the guest list on the same chosen celebration as the rest of the host area. */
 function GuestListRoute() {
   return (
     <SelectedEventProvider>
@@ -144,7 +144,7 @@ function GuestListPage() {
     },
   });
 
-  // Only the guests belonging to the event the host is working on.
+  // Only the guests belonging to the celebration the host is working on.
   const scopedInvites = useMemo(
     () => (invites.data ?? []).filter((i) => matchesSelectedEvent(i.invite_id, selectedEvent)),
     [invites.data, selectedEvent],
@@ -350,7 +350,7 @@ function GuestListPage() {
             The guest list isn't part of your current package.
           </p>
           <Button asChild className="mt-5" variant="outline">
-            <Link to="/host">Back to your event</Link>
+            <Link to="/host">Back to your celebration</Link>
           </Button>
         </div>
       </main>

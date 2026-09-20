@@ -278,7 +278,7 @@ function HostDashboard() {
 
   const { inviteId: selectedEvent } = useSelectedEvent();
 
-  /** Only the functions and looks that belong to the event being worked on. */
+  /** Only the events and looks that belong to the celebration being worked on. */
   const eventList = useMemo(
     () =>
       (events.data ?? []).filter(
@@ -293,7 +293,7 @@ function HostDashboard() {
   );
 
   const eventName = (id: string | null) =>
-    eventList.find((e) => e.id === id)?.name ?? "No function";
+    eventList.find((e) => e.id === id)?.name ?? "No event";
 
   const reservedRows = useMemo(
     () =>
@@ -456,7 +456,7 @@ function HostDashboard() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 sm:flex sm:flex-wrap sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <p className="text-eyebrow">Host area</p>
-          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the event</h1>
+          <h1 className="mt-2 truncate text-2xl sm:mt-3 sm:text-4xl">Run the celebration</h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Button asChild variant="outline" size="sm">
@@ -475,8 +475,8 @@ function HostDashboard() {
       <Tabs defaultValue="overview" className="mt-8">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">Event</TabsTrigger>
-          {has("functions") ? <TabsTrigger value="functions">Functions</TabsTrigger> : null}
+          <TabsTrigger value="invitations">Celebration</TabsTrigger>
+          {has("functions") ? <TabsTrigger value="functions">Events</TabsTrigger> : null}
           {has("guest_list") ? <TabsTrigger value="guests">Guests</TabsTrigger> : null}
           {has("wardrobe_picker") ? <TabsTrigger value="wardrobe">Wardrobe</TabsTrigger> : null}
           <TabsTrigger value="setup">Setup</TabsTrigger>
@@ -665,8 +665,8 @@ function HostDashboard() {
           <div className="panel p-4 sm:p-6">
             <h2 className="text-xl">Four steps</h2>
             <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-              <li>Create the event under the Event tab — one per celebration.</li>
-              <li>Add its functions below.</li>
+              <li>Create the celebration under the Celebration tab — one per celebration.</li>
+              <li>Add its celebrations below.</li>
               <li>Add families under Guests.</li>
               <li>Tick who's invited to what, then send their invitation.</li>
             </ol>
@@ -713,13 +713,13 @@ function HostDashboard() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Function</Label>
+                  <Label>Event</Label>
                   <Select
                     value={form.event_id}
                     onValueChange={(v) => setForm((o) => ({ ...o, event_id: v }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a function" />
+                      <SelectValue placeholder="Choose an event" />
                     </SelectTrigger>
                     <SelectContent>
                       {eventList.map((ev) => (
@@ -884,10 +884,10 @@ function HostDashboard() {
                 <div className="flex flex-wrap gap-2">
                   <Select disabled={bulkBusy} onValueChange={(v) => bulkAssign("event_id", v)}>
                     <SelectTrigger className="w-full sm:w-44">
-                      <SelectValue placeholder="Set function" />
+                      <SelectValue placeholder="Set event" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No function</SelectItem>
+                      <SelectItem value="none">No event</SelectItem>
                       {eventList.map((e) => (
                         <SelectItem key={e.id} value={e.id}>
                           {e.name}
@@ -998,7 +998,7 @@ function HostDashboard() {
                 <TabsTrigger value="vendors">Vendors</TabsTrigger>
               ) : null}
               {has("budgeting") ? <TabsTrigger value="budget">Budget</TabsTrigger> : null}
-              <TabsTrigger value="fees">Event fees</TabsTrigger>
+              <TabsTrigger value="fees">Celebration fees</TabsTrigger>
               <TabsTrigger value="hosts">Hosts</TabsTrigger>
               {has("email") ? <TabsTrigger value="email">Email</TabsTrigger> : null}
               {has("branding") ? <TabsTrigger value="look">Wording</TabsTrigger> : null}
@@ -1056,7 +1056,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
-/** Wraps the host area so every tab works on the same chosen event. */
+/** Wraps the host area so every tab works on the same chosen celebration. */
 function HostRoute() {
   return (
     <SelectedEventProvider>

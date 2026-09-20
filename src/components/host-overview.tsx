@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 /**
  * At-a-glance numbers for the hosts: who has replied, who has confirmed a look,
- * and which functions are attracting the most outfit selections.
+ * and which events are attracting the most outfit selections.
  */
 export function HostOverview() {
   const events = useQuery({
@@ -147,14 +147,14 @@ export function HostOverview() {
       <section className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl">Selections by function</h2>
+            <h2 className="text-xl">Selections by event</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Which functions guests are choosing looks for, most popular first.
+              Which events guests are choosing looks for, most popular first.
             </p>
           </div>
           {byFunction.unassigned > 0 ? (
             <Badge variant="secondary">
-              {byFunction.unassigned} not tied to a function
+              {byFunction.unassigned} not tied to an event
             </Badge>
           ) : null}
         </div>
@@ -185,7 +185,7 @@ export function HostOverview() {
           ))}
           {!loading && byFunction.rows.length === 0 ? (
             <li className="text-sm text-muted-foreground">
-              No functions offer a wardrobe selection yet.
+              No events offer a wardrobe selection yet.
             </li>
           ) : null}
           {loading ? <li className="text-sm text-muted-foreground">Loading…</li> : null}

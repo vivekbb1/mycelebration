@@ -15,13 +15,13 @@ export const Route = createFileRoute("/_authenticated/plan")({
       {
         name: "description",
         content:
-          "Everything set aside for you: the look chosen for each function, the measurements we hold and the dates to be ready by.",
+          "Everything set aside for you: the look chosen for each event, the measurements we hold and the dates to be ready by.",
       },
       { property: "og:title", content: "What's Expected — Your Outfits, Sizes & Dates" },
       {
         property: "og:description",
         content:
-          "One page with your outfit for each function, the measurements we hold and every date you need.",
+          "One page with your outfit for each event, the measurements we hold and every date you need.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -138,7 +138,7 @@ function PlanPage() {
         <p className="text-center text-eyebrow">Your plan</p>
         <h1 className="mt-3 text-center text-4xl">What's expected of you</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground">
-          Every function you're invited to, the look set aside for each one, the measurements we
+          Every event you're invited to, the look set aside for each one, the measurements we
           hold and the dates it all needs to be ready by.
         </p>
 
@@ -242,7 +242,7 @@ function PlanPage() {
             })}
             {list.length === 0 ? (
               <p className="panel p-4 sm:p-6 text-center text-sm text-muted-foreground">
-                Your functions will appear here as soon as the schedule is settled.
+                Your events will appear here as soon as the schedule is settled.
               </p>
             ) : null}
           </ol>

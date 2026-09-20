@@ -274,7 +274,7 @@ export function HostTeam() {
         <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Add someone already registered</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Hosts share everything: outfits, functions, the delivery plan, the guest list and
+          Hosts share everything: outfits, events, the delivery plan, the guest list and
           measurements.
         </p>
 

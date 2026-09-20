@@ -12,13 +12,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Our gift to you: pick a festive Indian outfit for each wedding function, send your measurements, and we'll take care of the rest.",
+          "Our gift to you: pick a festive Indian outfit for each wedding event, send your measurements, and we'll take care of the rest.",
       },
       { property: "og:title", content: "The Wedding Wardrobe — Festive Attire for Our Guests" },
       {
         property: "og:description",
         content:
-          "A private guest wardrobe: reserve a curated Indian outfit per function and share your measurements.",
+          "A private guest wardrobe: reserve a curated Indian outfit per event and share your measurements.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -36,7 +36,7 @@ function Landing() {
       title: t("landing.step1_title", "Browse the lookbook"),
       body: t(
         "landing.step1_body",
-        "Curated lehengas, sarees, sherwanis and indo-western looks, grouped by function and hand-picked from designer boutiques.",
+        "Curated lehengas, sarees, sherwanis and indo-western looks, grouped by event and hand-picked from designer boutiques.",
       ),
     },
     {
@@ -85,7 +85,7 @@ function Landing() {
           <p className="mt-5 max-w-xl text-base whitespace-pre-line text-muted-foreground sm:text-lg">
             {t(
               "landing.body",
-              "We know a lehenga fitting isn't easy to arrange from abroad. So we've curated a wardrobe for every function of the wedding. Reserve the look you love, send your measurements, and it will be waiting for you — tailored, pressed and paid for.",
+              "We know a lehenga fitting isn't easy to arrange from abroad. So we've curated a wardrobe for every event of the wedding. Reserve the look you love, send your measurements, and it will be waiting for you — tailored, pressed and paid for.",
             )}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">

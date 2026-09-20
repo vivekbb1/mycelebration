@@ -157,13 +157,13 @@ export function HostBuild() {
         <Hammer className="size-4 text-primary" /> Build a look
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Choose the function, the guest, then the garment, size and fabric. It becomes that guest's
-        outfit for the function straight away.
+        Choose the event, the guest, then the garment, size and fabric. It becomes that guest's
+        outfit for the event straight away.
       </p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="b-event">Function</Label>
+          <Label htmlFor="b-event">Event</Label>
           <select
             id="b-event"
             className="field-select"
@@ -173,7 +173,7 @@ export function HostBuild() {
               setOutfitId("");
             }}
           >
-            <option value="">Any function</option>
+            <option value="">Any event</option>
             {(events.data ?? [])
               .filter((e) => e.outfit_selection !== false)
               .map((e) => (

@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 /**
  * Lets the hosts reword the copy guests see. `only` / `exclude` keep the
  * portal-wide pages (welcome page, site-wide wording) on the platform screen
- * and the event pages on the host screen.
+ * and the celebration pages on the host screen.
  */
 export function HostContent({
   only,

@@ -1,5 +1,5 @@
 /**
- * Turns whatever functions the host has entered into the one-line summaries the
+ * Turns whatever events the host has entered into the one-line summaries the
  * guest pages show, so no date, city or count is ever hard-coded.
  */
 
@@ -61,8 +61,8 @@ export function scheduleHeadline(events: ScheduleEvent[]): string {
 }
 
 /**
- * The small line above the heading. Derived from the guest's own functions, so a
- * single-day event never reads "weekend" and a fortnight of functions never does either.
+ * The small line above the heading. Derived from the guest's own events, so a
+ * single-day celebration never reads "weekend" and a fortnight of events never does either.
  */
 export function scheduleEyebrow(events: ScheduleEvent[]): string {
   const dates = [
@@ -70,7 +70,7 @@ export function scheduleEyebrow(events: ScheduleEvent[]): string {
   ].sort();
 
   if (events.length === 0) return "Your invitation";
-  if (dates.length === 0) return events.length === 1 ? "Your function" : "Your functions";
+  if (dates.length === 0) return events.length === 1 ? "Your event" : "Your events";
   if (dates.length === 1) return "The wedding day";
 
   const first = day(dates[0] as string);
@@ -84,14 +84,14 @@ export function scheduleEyebrow(events: ScheduleEvent[]): string {
   return "The wedding celebrations";
 }
 
-/** e.g. "Four functions across three days, four dress codes." */
+/** e.g. "Four events across three days, four dress codes." */
 export function scheduleSummary(events: ScheduleEvent[]): string {
-  if (events.length === 0) return "The functions are still being finalised.";
+  if (events.length === 0) return "The events are still being finalised.";
 
   const days = new Set(events.map((e) => e.event_date).filter(Boolean)).size;
   const codes = new Set(events.map((e) => e.dress_code).filter(Boolean)).size;
 
-  const parts = [`${asWord(events.length)} function${events.length === 1 ? "" : "s"}`];
+  const parts = [`${asWord(events.length)} event${events.length === 1 ? "" : "s"}`];
   if (days > 1) parts.push(`across ${asWord(days).toLowerCase()} days`);
   if (codes > 0)
     parts.push(`${asWord(codes).toLowerCase()} dress code${codes === 1 ? "" : "s"}`);
