@@ -185,8 +185,20 @@ function HostPage() {
   return <HostDashboard />;
 }
 
+const TAB_TITLES: Record<string, string> = {
+  overview: "Overview",
+  invitations: "Your celebration",
+  functions: "Events",
+  guests: "Guests",
+  wardrobe: "Wardrobe",
+  setup: "Setup",
+};
+
 function HostDashboard() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { tab = "overview" } = Route.useSearch();
+  const tabTitle = TAB_TITLES[tab] ?? "Run the celebration";
   const { has, isPlatformAdmin } = useFeatures();
   const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
   const [editingId, setEditingId] = useState<string | null>(null);
