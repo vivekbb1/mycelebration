@@ -474,7 +474,14 @@ export function HostGuestList() {
                       <Badge variant="secondary">{categoryLabel(r.category)}</Badge>
                     </p>
                     {r.household ? (
-                      <p className="truncate text-xs text-primary">{r.household}</p>
+                      <Link
+                        to="/family/$household"
+                        params={{ household: encodeURIComponent(r.household) }}
+                        className="block truncate text-xs text-primary underline-offset-4 hover:underline"
+                      >
+                        {r.household}
+                      </Link>
+
                     ) : null}
                     <p className="truncate text-xs text-muted-foreground">
                       {r.code}

@@ -1,4 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Check, Search, X, Clock } from "lucide-react";
@@ -293,7 +295,14 @@ export function HostRsvp() {
                   {group.households.map((h) => (
                     <li key={`${group.id}-${h.name}`} className="rounded-lg border border-border p-3">
                       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                        <p className="min-w-0 truncate text-sm">{h.name}</p>
+                        <Link
+                          to="/family/$household"
+                          params={{ household: encodeURIComponent(h.name) }}
+                          className="min-w-0 truncate text-sm underline-offset-4 hover:underline"
+                        >
+                          {h.name}
+                        </Link>
+
                         <Badge
                           variant={h.status === "pending" ? "outline" : "default"}
                           className="shrink-0"
