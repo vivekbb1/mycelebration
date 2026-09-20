@@ -39,7 +39,7 @@ export function HostFunctionAccess() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, invite_id")
+        .select("id, guest_name, household, tags, invite_id")
         .order("household");
       if (error) throw error;
       return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
