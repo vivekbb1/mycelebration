@@ -108,8 +108,6 @@ export function HostImport() {
   const [perPage, setPerPage] = useState("12");
   const [readyToShip, setReadyToShip] = useState(false);
   const [shipInDays, setShipInDays] = useState("any");
-  // Menswear pages offer a shipping timeline rather than a ready-to-ship tick.
-  const isMenswear = category.startsWith("mens-shop/");
   const [colour, setColour] = useState("all");
   const [sort, setSort] = useState("listed");
   const [results, setResults] = useState<ListLook[] | null>(null);
