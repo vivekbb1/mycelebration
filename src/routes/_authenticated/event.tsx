@@ -16,16 +16,17 @@ import { GuestTravel } from "@/components/guest-travel";
 export const Route = createFileRoute("/_authenticated/event")({
   head: () => ({
     meta: [
-      { title: "Wedding Weekend — Dates, Venues & RSVP" },
+      { title: "Your Schedule — Dates, Venues & Replies" },
       {
         name: "description",
         content:
-          "Every function of the wedding weekend: dates, timings, venues, dress codes and your RSVP.",
+          "The functions you're invited to: dates, timings, venues, dress codes, head counts and your replies.",
       },
-      { property: "og:title", content: "Wedding Weekend — Dates, Venues & RSVP" },
+      { property: "og:title", content: "Your Schedule — Dates, Venues & Replies" },
       {
         property: "og:description",
-        content: "Mehndi, sangeet, ceremony and reception — timings, venues, dress code and RSVP.",
+        content:
+          "Your functions with timings, venues and dress codes — reply for each one and add travel details.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
