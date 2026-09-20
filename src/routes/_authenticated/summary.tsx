@@ -135,7 +135,9 @@ function ConfirmPage() {
   });
 
   const garmentOptions = useMemo(() => GARMENTS, []);
-  const rows = looks.data ?? [];
+  const rows = (looks.data ?? []).filter((r) =>
+    guestEvent.allows(r.outfits?.event_id ?? null),
+  );
 
   return (
     <main className="bg-zari">
