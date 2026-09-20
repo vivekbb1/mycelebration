@@ -205,8 +205,9 @@ export function HostArrivals() {
   const households = useMemo(() => {
     const set = new Set<string>();
     for (const g of guests.data ?? []) if (g.household) set.add(g.household);
-    return [...set].sort((a, b) => a.localeCompare(b));
-  }, [guests.data]);
+    const all = [...set].sort((a, b) => a.localeCompare(b));
+    return mineOnly ? all.filter((h) => myHouseholds.has(h)) : all;
+  }, [guests.data, mineOnly, myHouseholds]);
 
 
   const refresh = async () => {
