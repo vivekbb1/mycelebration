@@ -617,8 +617,11 @@ function HostDashboard() {
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
               ) : null}
-              {has("guest_tracker") || has("guest_communication") ? (
-                <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
+              {has("guest_communication") ? (
+                <TabsTrigger value="hosts">Follow-ups</TabsTrigger>
+              ) : null}
+              {has("guest_tracker") ? (
+                <TabsTrigger value="tracker">Tracker</TabsTrigger>
               ) : null}
             </TabsList>
             <TabsContent value="list" className="mt-6">
