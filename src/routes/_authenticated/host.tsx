@@ -1025,9 +1025,11 @@ function HostDashboard() {
                 <HostByBoutique />
               </TabsContent>
             ) : null}
-            <TabsContent value="fees" className="mt-6">
-              <HostFees audience="guest" />
-            </TabsContent>
+            {has("fees") ? (
+              <TabsContent value="fees" className="mt-6">
+                <HostFees audience="guest" />
+              </TabsContent>
+            ) : null}
             {has("vendor_management") ? (
               <TabsContent value="vendors" className="mt-6">
                 <HostVendors />
