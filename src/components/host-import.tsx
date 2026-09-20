@@ -20,12 +20,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 
-const CATEGORIES = [
+// The shop keeps womenswear and menswear in separate sections with their own
+// category names, so each list is offered on its own.
+const WOMEN_CATEGORIES = [
   { path: "clothing/lehenga", label: "Lehengas" },
   { path: "clothing/lehenga/bridal", label: "Lehengas — bridal" },
   { path: "clothing/lehenga/bridesmaid", label: "Lehengas — bridesmaid" },
@@ -39,6 +43,25 @@ const CATEGORIES = [
   { path: "clothing/kurta-sets-salwar-kameez", label: "Kurta sets / salwar kameez" },
   { path: "clothing/gown", label: "Gowns" },
   { path: "clothing/kaftan", label: "Kaftans" },
+];
+
+const MEN_CATEGORIES = [
+  { path: "mens-shop/sherwani", label: "Sherwanis" },
+  { path: "mens-shop/bandhgala", label: "Bandhgalas" },
+  { path: "mens-shop/jodhpuri-suit", label: "Jodhpuri suits" },
+  { path: "mens-shop/indowestern", label: "Indo-western" },
+  { path: "mens-shop/nehru-jacket", label: "Nehru jackets" },
+  { path: "mens-shop/jackets", label: "Jackets" },
+  { path: "mens-shop/waist-coat", label: "Waistcoats" },
+  { path: "mens-shop/kurta-set", label: "Kurta sets" },
+  { path: "mens-shop/kurta-pajama", label: "Kurta pyjamas" },
+  { path: "mens-shop/kurtas", label: "Kurtas" },
+  { path: "mens-shop/angrakha", label: "Angrakhas" },
+  { path: "mens-shop/suit-set", label: "Suit sets" },
+  { path: "mens-shop/suits", label: "Suits" },
+  { path: "mens-shop/tuxedo", label: "Tuxedos" },
+  { path: "mens-shop/ethnic", label: "Everything ethnic" },
+  { path: "mens-shop/mens-dupatta", label: "Dupattas & stoles" },
 ];
 
 type ListLook = {
@@ -68,6 +91,16 @@ export function HostImport() {
   const [singleBusy, setSingleBusy] = useState(false);
 
   const [category, setCategory] = useState("clothing/lehenga");
+
+  // Choosing a menswear category also sets who the looks are for, so a host
+  // never has to remember the "For" box.
+  const chooseCategory = (path: string) => {
+    setCategory(path);
+    setPage(1);
+    setResults(null);
+    setPicked([]);
+    setGender(path.startsWith("mens-shop/") ? "men" : "women");
+  };
   const [minPrice, setMinPrice] = useState("0");
   const [maxPrice, setMaxPrice] = useState("30000");
   const [page, setPage] = useState(1);
@@ -325,16 +358,27 @@ export function HostImport() {
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label>Category</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={chooseCategory}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((c) => (
-                  <SelectItem key={c.path} value={c.path}>
-                    {c.label}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  <SelectLabel>For women</SelectLabel>
+                  {WOMEN_CATEGORIES.map((c) => (
+                    <SelectItem key={c.path} value={c.path}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>For men</SelectLabel>
+                  {MEN_CATEGORIES.map((c) => (
+                    <SelectItem key={c.path} value={c.path}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
