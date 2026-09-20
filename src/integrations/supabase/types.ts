@@ -21,6 +21,9 @@ export type Database = {
           features: Json
           id: string
           name: string
+          price_amount: number | null
+          price_currency: string
+          price_period: string
           sort_order: number
           updated_at: string
         }
@@ -30,6 +33,9 @@ export type Database = {
           features?: Json
           id: string
           name: string
+          price_amount?: number | null
+          price_currency?: string
+          price_period?: string
           sort_order?: number
           updated_at?: string
         }
@@ -39,6 +45,9 @@ export type Database = {
           features?: Json
           id?: string
           name?: string
+          price_amount?: number | null
+          price_currency?: string
+          price_period?: string
           sort_order?: number
           updated_at?: string
         }
@@ -1268,6 +1277,9 @@ export type Database = {
           features: Json
           id: string
           name: string
+          price_amount: number | null
+          price_currency: string
+          price_period: string
           sort_order: number
           updated_at: string
         }
@@ -1277,6 +1289,9 @@ export type Database = {
           features?: Json
           id: string
           name: string
+          price_amount?: number | null
+          price_currency?: string
+          price_period?: string
           sort_order?: number
           updated_at?: string
         }
@@ -1286,6 +1301,9 @@ export type Database = {
           features?: Json
           id?: string
           name?: string
+          price_amount?: number | null
+          price_currency?: string
+          price_period?: string
           sort_order?: number
           updated_at?: string
         }
