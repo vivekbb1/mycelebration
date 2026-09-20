@@ -451,32 +451,29 @@ export function HostImport() {
               </SelectContent>
             </Select>
           </div>
-          {isMenswear ? (
-            <div className="space-y-2 sm:col-span-2">
-              <Label>How soon it ships</Label>
-              <Select value={shipInDays} onValueChange={setShipInDays}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any shipping time</SelectItem>
-                  {PERNIA_SHIP_TIMES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <label className="flex items-end gap-2 pb-2 sm:col-span-2">
-              <Checkbox
-                checked={readyToShip}
-                onCheckedChange={(v) => setReadyToShip(v === true)}
-              />
-              <span className="text-sm">Ready to ship only (no tailoring wait)</span>
-            </label>
-          )}
+          <div className="space-y-2">
+            <Label>How soon it ships</Label>
+            <Select value={shipInDays} onValueChange={setShipInDays}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any shipping time</SelectItem>
+                {PERNIA_SHIP_TIMES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <label className="flex items-end gap-2 pb-2">
+            <Checkbox
+              checked={readyToShip}
+              onCheckedChange={(v) => setReadyToShip(v === true)}
+            />
+            <span className="text-sm">Ready to ship only (no tailoring wait)</span>
+          </label>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button disabled={listBusy} onClick={() => runSearch(1)}>
