@@ -410,6 +410,20 @@ export function HostFunctionAccess() {
           <tbody>
             {visible.map((f) => (
               <tr key={f.household} className="border-b border-border last:border-0">
+                <td className="p-4 align-top">
+                  <Checkbox
+                    aria-label={`Pick ${f.household} for bulk assigning`}
+                    checked={pickedFamilies.has(f.household)}
+                    onCheckedChange={() =>
+                      setPickedFamilies((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(f.household)) next.delete(f.household);
+                        else next.add(f.household);
+                        return next;
+                      })
+                    }
+                  />
+                </td>
                 <td className="p-4">
                   <p>{f.household}</p>
                   {f.names.length > 0 ? (
