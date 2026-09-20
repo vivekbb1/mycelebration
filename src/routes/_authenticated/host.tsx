@@ -627,6 +627,9 @@ function HostDashboard() {
                 <TabsTrigger value="hosts">Hosts &amp; guests</TabsTrigger>
               ) : null}
             </TabsList>
+            <TabsContent value="list" className="mt-6">
+              <GuestListPage />
+            </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
             </TabsContent>
