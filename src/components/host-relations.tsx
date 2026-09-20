@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { splitTags } from "@/lib/tags";
 import { suggestFollowUp, type FollowUpSuggestion } from "@/lib/followup.functions";
 import { sendFollowUpReminders } from "@/lib/followup-reminders.functions";
 
