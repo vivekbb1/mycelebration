@@ -11,7 +11,7 @@ import { GuestTabs } from "@/components/guest-tabs";
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
-const GUEST_TAB_PATHS = ["/invitation", "/portal", "/schedule", "/outfits", "/confirm", "/measurements", "/plan", "/pay"];
+const GUEST_TAB_PATHS = ["/invite", "/portal", "/schedule", "/outfits", "/summary", "/measurements", "/plan", "/pay"];
 
 /** Host-side pages belong back on the host page; everything else on the invitation. */
 const HOST_PATHS = ["/guests", "/guest", "/host", "/hosts", "/platform", "/upgrade"];
@@ -26,7 +26,7 @@ export function SiteNav() {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
   const isHostPage = HOST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  const backTo = isHostPage && pathname !== "/host" ? "/host" : "/invitation";
+  const backTo = isHostPage && pathname !== "/host" ? "/host" : "/invite";
   const backLabel =
     backTo === "/host" ? "Back to host" : t("nav.back", "Back to your invitation");
 
@@ -62,7 +62,7 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
         <Link
-          to="/invitation"
+          to="/invite"
           className="font-display flex shrink-0 items-center truncate text-base tracking-wide sm:text-lg"
         >
           {branding.logo_url ? (

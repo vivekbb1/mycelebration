@@ -91,7 +91,7 @@ function DeliveryPage() {
           The hosts haven't shared delivery details. They'll be in touch with you directly.
         </p>
         <Button asChild size="sm" className="mt-6">
-          <Link to="/invitation">Back to your invitation</Link>
+          <Link to="/invite">Back to your invitation</Link>
         </Button>
       </main>
     );

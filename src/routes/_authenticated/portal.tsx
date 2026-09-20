@@ -430,7 +430,7 @@ function PortalPage() {
                           })}
                         </ul>
                         <Button asChild size="sm" variant="outline" className="mt-3">
-                          <Link to="/confirm">Confirm garment, designer and size</Link>
+                          <Link to="/summary">Confirm garment, designer and size</Link>
                         </Button>
                       </>
                     )}

@@ -203,7 +203,7 @@ function EventPage() {
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Dates, venues and dress codes for each function are on{" "}
-        <Link to="/invitation" className="text-primary underline-offset-4 hover:underline">
+        <Link to="/invite" className="text-primary underline-offset-4 hover:underline">
           your invitation
         </Link>
         .
