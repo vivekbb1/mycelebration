@@ -6,6 +6,7 @@ import { Car, BedDouble, Mail, Plus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { splitTags } from "@/lib/tags";
 import { sendArrivalDetails } from "@/lib/arrival-email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,17 +81,58 @@ export function HostArrivals() {
     notes: "",
   });
 
+  const [onlyMine, setOnlyMine] = useState(true);
+
   const guests = useQuery({
     queryKey: ["arrivals-guests", selectedEvent],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, email, invite_id")
+        .select("id, guest_name, household, email, invite_id, tags")
         .order("guest_name");
       if (error) throw error;
       return (data ?? []).filter((g) => !selectedEvent || !g.invite_id || g.invite_id === selectedEvent);
     },
   });
+
+  /** Which families this host looks after — named against them, or carrying one of their tags. */
+  const mine = useQuery({
+    queryKey: ["arrivals-mine"],
+    queryFn: async () => {
+      const auth = await supabase.auth.getUser();
+      const meId = auth.data.user?.id ?? null;
+      if (!meId) return { meId, inviteIds: [] as string[], tags: [] as string[] };
+      const [direct, tagLinks, tagNames] = await Promise.all([
+        supabase.from("guest_hosts").select("invite_id").eq("host_id", meId),
+        supabase.from("guest_tag_hosts").select("tag_id").eq("host_id", meId),
+        supabase.from("guest_tags").select("id, name"),
+      ]);
+      const nameOf = new Map((tagNames.data ?? []).map((t) => [t.id, t.name.toLowerCase()]));
+      return {
+        meId,
+        inviteIds: (direct.data ?? []).map((r) => r.invite_id as string),
+        tags: (tagLinks.data ?? [])
+          .map((r) => nameOf.get(r.tag_id as string))
+          .filter((n): n is string => Boolean(n)),
+      };
+    },
+  });
+
+  /** Families this host is responsible for, by name. */
+  const myHouseholds = useMemo(() => {
+    const ids = new Set(mine.data?.inviteIds ?? []);
+    const tags = new Set(mine.data?.tags ?? []);
+    const set = new Set<string>();
+    for (const g of guests.data ?? []) {
+      if (!g.household) continue;
+      const carries = splitTags((g.tags as string | null) ?? "").some((t) => tags.has(t));
+      if (ids.has(g.id) || carries) set.add(g.household);
+    }
+    return set;
+  }, [guests.data, mine.data]);
+
+  const hasOwn = myHouseholds.size > 0;
+  const mineOnly = onlyMine && hasOwn;
 
   const vendors = useQuery({
     queryKey: ["arrivals-vendors", selectedEvent],
@@ -164,8 +206,9 @@ export function HostArrivals() {
   const households = useMemo(() => {
     const set = new Set<string>();
     for (const g of guests.data ?? []) if (g.household) set.add(g.household);
-    return [...set].sort((a, b) => a.localeCompare(b));
-  }, [guests.data]);
+    const all = [...set].sort((a, b) => a.localeCompare(b));
+    return mineOnly ? all.filter((h) => myHouseholds.has(h)) : all;
+  }, [guests.data, mineOnly, myHouseholds]);
 
 
   const refresh = async () => {
@@ -282,6 +325,24 @@ export function HostArrivals() {
 
   return (
     <div className="space-y-6">
+      {hasOwn ? (
+        <section className="panel flex flex-wrap items-center justify-between gap-3 p-4 sm:p-6">
+          <div className="min-w-0">
+            <h2 className="text-xl">Whose guests</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {onlyMine
+                ? `Showing the ${myHouseholds.size} ${
+                    myHouseholds.size === 1 ? "family" : "families"
+                  } you look after.`
+                : "Showing every family on this celebration."}
+            </p>
+          </div>
+          <Button type="button" variant="outline" onClick={() => setOnlyMine((v) => !v)}>
+            {onlyMine ? "Show everyone" : "Show only mine"}
+          </Button>
+        </section>
+      ) : null}
+
       <section className="panel p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
           <Car className="size-4 text-primary" /> Cars and drivers
