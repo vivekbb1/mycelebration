@@ -370,8 +370,34 @@ export function HostTags() {
                     )}
                   </td>
                   <td className="p-4 text-muted-foreground">{r.families}</td>
-                  <td className="p-4 text-xs text-muted-foreground">
-                    {r.id ? "Yes" : "Typed on a guest"}
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      {(hosts.data ?? []).map((h) => {
+                        const on = (tagHosts.data ?? []).some(
+                          (row) => row.tag_id === r.id && row.host_id === h.id,
+                        );
+                        return (
+                          <button
+                            key={h.id}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void toggleHost(r.id, r.name, h.id)}
+                            className={`rounded-full border px-2.5 py-0.5 text-xs transition ${
+                              on
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border text-muted-foreground hover:border-primary/50"
+                            }`}
+                          >
+                            {h.name}
+                          </button>
+                        );
+                      })}
+                      {(hosts.data ?? []).length === 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          Invite hosts under Setup &rarr; Hosts first.
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="p-4">
                     <div className="flex flex-wrap items-center justify-end gap-2">
