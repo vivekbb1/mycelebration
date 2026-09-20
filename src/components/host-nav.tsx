@@ -62,7 +62,9 @@ export function HostProfileMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <EventPickerCompact />
+      <SelectedEventProvider>
+        <EventPickerCompact />
+      </SelectedEventProvider>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" aria-label="Your account">
