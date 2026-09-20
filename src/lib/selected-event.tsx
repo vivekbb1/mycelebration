@@ -28,13 +28,23 @@ function publish(id: string) {
  */
 export function SelectedEventProvider({ children }: { children: ReactNode }) {
   const invites = useInvites();
-  const [inviteId, setInviteId] = useState("");
+  const [inviteId, setLocal] = useState(shared);
   const [loaded, setLoaded] = useState(false);
+
+  const setInviteId = (id: string) => publish(id);
+
+  useEffect(() => {
+    listeners.add(setLocal);
+    return () => {
+      listeners.delete(setLocal);
+    };
+  }, []);
 
   useEffect(() => {
     if (loaded) return;
     const stored = typeof window === "undefined" ? null : window.localStorage.getItem(KEY);
-    if (stored) setInviteId(stored);
+    if (stored && !shared) publish(stored);
+    else setLocal(shared);
     setLoaded(true);
   }, [loaded]);
 
