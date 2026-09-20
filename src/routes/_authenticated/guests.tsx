@@ -225,14 +225,31 @@ export function GuestListPage() {
     const q = filter.trim().toLowerCase();
     return q
       ? list.filter((r) =>
-          [r.name, r.email, r.phone, r.code, r.household, categoryLabel(r.category), ...r.looks]
+          [
+            r.name,
+            r.email,
+            r.phone,
+            r.code,
+            r.household,
+            r.tags,
+            categoryLabel(r.category),
+            ...r.looks,
+          ]
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
             .includes(q),
         )
       : list;
-  }, [scopedInvites, profiles.data, reservations.data, outfits.data, measurements.data, filter]);
+  }, [
+    scopedInvites,
+    profiles.data,
+    reservations.data,
+    outfits.data,
+    measurements.data,
+    assignedHouseholds,
+    filter,
+  ]);
 
   const stats = useMemo(() => {
     const all = scopedInvites.length;
