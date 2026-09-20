@@ -128,6 +128,38 @@ export function HostArrivals() {
     },
   });
 
+  /** Each family's reply, worked out from the events they've said yes or no to. */
+  const replies = useQuery({
+    queryKey: ["household-rsvp-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("household_rsvp_summary");
+      if (error) throw error;
+      const map = new Map<string, { status: string; yes: number; answered: number }>();
+      for (const row of (data ?? []) as {
+        household: string;
+        status: string;
+        events_yes: number;
+        events_answered: number;
+      }[]) {
+        map.set(row.household, {
+          status: row.status,
+          yes: row.events_yes,
+          answered: row.events_answered,
+        });
+      }
+      return map;
+    },
+  });
+
+  const replyOf = (household: string) => replies.data?.get(household);
+
+  const replyLabel = (household: string) => {
+    const r = replyOf(household);
+    if (!r) return "no answer yet";
+    if (r.status === "no") return "can't come";
+    return `coming to ${r.yes} of ${r.answered}`;
+  };
+
   /** Families on this celebration, so a car or a room is always tied to one. */
   const households = useMemo(() => {
     const set = new Set<string>();
@@ -135,9 +167,11 @@ export function HostArrivals() {
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [guests.data]);
 
+
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["guest-transport"] });
     await queryClient.invalidateQueries({ queryKey: ["guest-stays"] });
+    await queryClient.invalidateQueries({ queryKey: ["household-rsvp-summary"] });
   };
 
   const addRide = async () => {
@@ -254,7 +288,8 @@ export function HostArrivals() {
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Assign a car for each arrival and departure, then move it along as the driver sets off,
-          meets the guest and drops them off.
+          meets the guest and drops them off. Each family shows their reply, so you only arrange
+          cars for guests who are coming.
         </p>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -268,7 +303,7 @@ export function HostArrivals() {
               <option value="">Choose a family…</option>
               {households.map((h) => (
                 <option key={h} value={h}>
-                  {h}
+                  {h} — {replyLabel(h)}
                 </option>
               ))}
             </select>
@@ -400,6 +435,9 @@ export function HostArrivals() {
                 ) : null}
                 <Badge variant="outline">{KINDS.find((k) => k.value === r.kind)?.label ?? r.kind}</Badge>
                 <Badge>{r.status}</Badge>
+                <Badge variant={replyOf(r.household)?.status === "no" ? "destructive" : "secondary"}>
+                  {replyLabel(r.household)}
+                </Badge>
                 <span className="text-xs text-muted-foreground">{timeLabel(r.scheduled_at)}</span>
                 <Button
                   variant="ghost"
@@ -464,7 +502,7 @@ export function HostArrivals() {
               <option value="">Choose a family…</option>
               {households.map((h) => (
                 <option key={h} value={h}>
-                  {h}
+                  {h} — {replyLabel(h)}
                 </option>
               ))}
             </select>
@@ -564,6 +602,9 @@ export function HostArrivals() {
                   <span className="text-xs text-muted-foreground">{s.guest_name}</span>
                 ) : null}
                 <Badge>{s.status}</Badge>
+                <Badge variant={replyOf(s.household)?.status === "no" ? "destructive" : "secondary"}>
+                  {replyLabel(s.household)}
+                </Badge>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -625,6 +666,9 @@ export function HostArrivals() {
             .map((h) => (
               <li key={h} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
                 <span className="min-w-0 flex-1 truncate text-sm">{h}</span>
+                <Badge variant={replyOf(h)?.status === "no" ? "destructive" : "secondary"}>
+                  {replyLabel(h)}
+                </Badge>
                 <Button
                   size="sm"
                   variant="outline"

@@ -1867,6 +1867,15 @@ export type Database = {
           name: string
         }[]
       }
+      household_rsvp_summary: {
+        Args: never
+        Returns: {
+          events_answered: number
+          events_yes: number
+          household: string
+          status: string
+        }[]
+      }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       my_branding: { Args: never; Returns: Json }
@@ -1881,6 +1890,7 @@ export type Database = {
       my_fees_enabled: { Args: never; Returns: boolean }
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
+      sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "guest"
