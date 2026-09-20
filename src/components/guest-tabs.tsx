@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BadgeCheck, CalendarCheck, LayoutGrid, Mail, Ruler, Shirt } from "lucide-react";
+import { BadgeCheck, CalendarCheck, Mail, Ruler, Shirt } from "lucide-react";
 
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
