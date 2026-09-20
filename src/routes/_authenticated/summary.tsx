@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
+import { GuestArrivals } from "@/components/guest-arrivals";
+
 
 export const Route = createFileRoute("/_authenticated/summary")({
   head: () => ({
@@ -65,6 +67,22 @@ function ConfirmPage() {
       return (data as boolean | null) ?? true;
     },
   });
+
+  const me = useQuery({
+    queryKey: ["summary-me"],
+    queryFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("household")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      return data ?? null;
+    },
+  });
+  const household = (me.data?.household ?? "").trim();
+
 
   const looks = useQuery({
     queryKey: ["confirm-looks"],
@@ -279,9 +297,16 @@ function ConfirmPage() {
           </ul>
         )}
 
+        {household ? (
+          <div className="mt-8">
+            <GuestArrivals household={household} />
+          </div>
+        ) : null}
+
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Something not right? Message the hosts from your invitation page.
         </p>
+
       </div>
     </main>
   );

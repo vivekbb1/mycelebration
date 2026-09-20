@@ -620,7 +620,7 @@ function HostDashboard() {
                 <TabsTrigger value="travel">Count</TabsTrigger>
               ) : null}
               {has("arrivals") ? (
-                <TabsTrigger value="arrivals">Arrivals</TabsTrigger>
+                <TabsTrigger value="arrivals">Logistics</TabsTrigger>
               ) : null}
 
               {has("guest_communication") ? (
