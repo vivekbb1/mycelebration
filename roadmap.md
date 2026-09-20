@@ -35,3 +35,7 @@ Open, for the host to do
 - Note: Paddle ruled out (physical attire in the offering); seller country AE, so Stripe with tax calculation and collection only (automatic_tax), not managed_payments.
 
 - Event fees: fee rules (flat / per head / per function) live in event_fees; manual payments in fee_payments. Card checkout still pending Stripe.
+
+## Payments (open)
+- Stripe not switched on yet (user chose "build the pages first"). When ready: payments--enable_stripe_payments, then products for packages/add-ons and guest event fees; no tax automation for now (user chose none); never managed_payments (seller country AE).
+- /upgrade "Pay by card" button and /pay "Pay by card" button are disabled placeholders waiting on Stripe checkout.
