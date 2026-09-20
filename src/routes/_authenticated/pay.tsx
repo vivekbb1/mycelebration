@@ -194,17 +194,23 @@ function PayPage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-xs tracking-[0.2em] text-primary uppercase">Your charges</p>
-      <h1 className="mt-2 text-3xl sm:text-4xl">What's payable</h1>
-      <p className="mt-3 text-sm text-muted-foreground">
+    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <p className="text-eyebrow">Your charges</p>
+      <h1 className="mt-3 text-3xl sm:text-4xl">What's payable</h1>
+      <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         These are the charges for the events your family has said yes to.
       </p>
 
-      <section className="panel mt-8 p-4 sm:p-6">
+      <section className="panel mt-6 p-4 sm:p-6">
         <h2 className="flex items-center gap-2 text-xl">
-          <Wallet className="size-5 text-primary" /> Your charges
+          <Wallet className="size-5 text-primary" /> Who owes what
         </h2>
+        {lines.length > 0 ? (
+          <p className="mt-2 text-2xl">
+            {formatMoney(due, totals[0]?.[0] ?? "INR")}
+            <span className="ml-2 text-sm text-muted-foreground">still to send</span>
+          </p>
+        ) : null}
         {outfitsCovered.data !== false ? (
           <p className="mt-3 rounded-md bg-secondary/60 p-3 text-sm">
             Your hosts are covering the outfits — there's nothing for you to pay towards what you
