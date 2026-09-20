@@ -120,11 +120,25 @@ export function HostWorkload() {
     return set;
   }, [replies.data]);
 
-  const rows = useMemo(() => {
-    const byHost = new Map<string, string[]>();
-    for (const row of links.data ?? []) {
-      byHost.set(row.host_id, [...(byHost.get(row.host_id) ?? []), row.invite_id]);
+  /** Every guest a host looks after: named against them, or carrying one of their tags. */
+  const guestIdsByHost = useMemo(() => {
+    const byHost = new Map<string, Set<string>>();
+    const add = (hostId: string, guestId: string) => {
+      const set = byHost.get(hostId) ?? new Set<string>();
+      set.add(guestId);
+      byHost.set(hostId, set);
+    };
+    for (const row of links.data ?? []) add(row.host_id, row.invite_id);
+    for (const g of guests.data ?? []) {
+      for (const tag of splitTags(g.tags)) {
+        for (const host of tagHosts.data?.get(tag) ?? []) add(host, g.id);
+      }
     }
+    return byHost;
+  }, [links.data, guests.data, tagHosts.data]);
+
+  const rows = useMemo(() => {
+    const byHost = guestIdsByHost;
     const guestById = new Map((guests.data ?? []).map((g) => [g.id, g]));
     const notesFor = new Map<string, Note[]>();
     for (const n of notes.data ?? []) {
