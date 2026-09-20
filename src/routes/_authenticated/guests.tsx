@@ -297,7 +297,26 @@ export function GuestListPage() {
     )}&body=${encodeURIComponent(inviteText(name, code))}`;
   };
 
-  const mailInvite = async (id: string, name: string, email: string | null, code: string) => {
+  /** Notes on the guest that their invitation has gone out. */
+  const markInvited = async (id: string) => {
+    await supabase
+      .from("invite_codes")
+      .update({ invite_sent_at: new Date().toISOString() })
+      .eq("id", id);
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
+  };
+
+  const mailInvite = async (
+    id: string,
+    name: string,
+    email: string | null,
+    code: string,
+    assigned: boolean,
+  ) => {
+    if (!assigned) {
+      toast.error(`Choose which days ${name} is invited to first, on the Assign tab.`);
+      return;
+    }
     if (!email) {
       toast.error(`Add an email address for ${name} first, or copy the message instead.`);
       return;
@@ -312,48 +331,28 @@ export function GuestListPage() {
     setSendingId(null);
     if (result.sent) {
       toast.success(`Invitation emailed to ${email}.`);
+      await markInvited(id);
       return;
     }
     // No sender domain yet — hand the ready-made invitation to the host's own mail app.
     openMailApp(name, email, code);
+    await markInvited(id);
     toast.message("Opening your mail app with the invitation ready to send.", {
       description: "Set up a sending domain and the portal will send these for you automatically.",
     });
   };
 
-  const mailEveryone = async () => {
-    const pending = rows.filter((r) => r.email && !r.registered);
-    if (pending.length === 0) {
-      toast.message("Everyone with an email address has already registered.");
+  /** Free-text tags the hosts keep on a guest (table, side of the family, notes). */
+  const saveTags = async (id: string, value: string) => {
+    const { error } = await supabase
+      .from("invite_codes")
+      .update({ tags: value.trim() || null })
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
       return;
     }
-    setBulkBusy(true);
-    let sent = 0;
-    for (const r of pending) {
-      try {
-        const result = await emailInvite({ data: { inviteId: r.key } });
-        if (result.sent) sent += 1;
-      } catch {
-        // ignore and report at the end
-      }
-    }
-    setBulkBusy(false);
-    if (sent > 0) {
-      toast.success(`Invitation emailed to ${sent} guest${sent === 1 ? "" : "s"}.`);
-      return;
-    }
-    const all = pending
-      .map((r) => `${r.name} <${r.email}>\n${inviteText(r.name, r.code)}`)
-      .join("\n\n———\n\n");
-    try {
-      await navigator.clipboard.writeText(all);
-      toast.message(`Copied ${pending.length} invitations to your clipboard.`, {
-        description:
-          "Sending from the portal needs a domain of your own — until then paste these into email or WhatsApp.",
-      });
-    } catch {
-      toast.error("Couldn't send or copy. Use the mail button on each guest instead.");
-    }
+    await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
 
