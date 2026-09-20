@@ -611,9 +611,6 @@ function HostDashboard() {
               <TabsTrigger value="list">List</TabsTrigger>
               <TabsTrigger value="invited">Assign</TabsTrigger>
               <TabsTrigger value="replies">RSVP</TabsTrigger>
-              {has("wardrobe_picker") ? (
-                <TabsTrigger value="picks">Outfit picks</TabsTrigger>
-              ) : null}
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Travel &amp; numbers</TabsTrigger>
               ) : null}
@@ -634,11 +631,6 @@ function HostDashboard() {
               <HostRsvp />
               {has("messaging") ? <HostMessages /> : null}
             </TabsContent>
-            {has("wardrobe_picker") ? (
-              <TabsContent value="picks" className="mt-6">
-                <HostPicks />
-              </TabsContent>
-            ) : null}
             {has("rsvp_extended") ? (
               <TabsContent value="travel" className="mt-6">
                 <HostTravel />
@@ -684,8 +676,14 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="outfits">Outfits</TabsTrigger>
               <TabsTrigger value="import">Add from a shop</TabsTrigger>
+              <TabsTrigger value="picks">Selection</TabsTrigger>
               {has("delivery") ? <TabsTrigger value="logistics">Delivery plan</TabsTrigger> : null}
             </TabsList>
+
+            <TabsContent value="picks" className="mt-6">
+              <HostPicks />
+            </TabsContent>
+
 
         <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
 
