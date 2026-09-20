@@ -200,6 +200,20 @@ function FamilyPage() {
     },
   });
 
+  // Hosts can read their guests' measurements, so the tailor's numbers are here too.
+  const measurements = useQuery({
+    queryKey: ["family-measurements", name, userIds.join(",")],
+    enabled: isHost && userIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("measurements")
+        .select("*")
+        .in("guest_id", userIds);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const savePassport = async (
     id: string,
     field: "passport_number" | "passport_nationality" | "passport_expiry",

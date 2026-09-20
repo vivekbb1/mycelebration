@@ -199,7 +199,7 @@ export function HostEvents() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+    <div className="grid min-w-0 gap-6 [&>*]:min-w-0 lg:grid-cols-[1fr_1.1fr]">
       <CollapsiblePanel
         title={editingId ? "Edit event" : "Add an event"}
         subtitle="Everything you enter here appears on the guests' celebration page and in their RSVP."
