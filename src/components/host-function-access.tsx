@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useSelectedEvent } from "@/lib/selected-event";
 
 /** Tags are kept as a comma list on each guest, shown as hashtags. */
-function splitTags(raw: string | null | undefined): string[] {
+export function splitTags(raw: string | null | undefined): string[] {
   return (raw ?? "")
     .split(",")
     .map((t) => t.trim().replace(/^#+/, "").toLowerCase())
