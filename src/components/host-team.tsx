@@ -151,6 +151,9 @@ export function HostTeam() {
     });
   }, [hostRoles.data, profiles.data]);
 
+  const target0 = (roleId: string) => hosts.find((h) => h.roleId === roleId);
+  const iAmOwner = hosts.some((h) => h.userId === me.data && h.owner);
+
   const candidates = useMemo(() => {
     const hostIds = new Set(hosts.map((h) => h.userId));
     return (profiles.data ?? []).filter((p) => !hostIds.has(p.id));
@@ -181,6 +184,10 @@ export function HostTeam() {
   };
 
   const removeHost = async (roleId: string, userId: string, name: string) => {
+    if (!iAmOwner || target0(roleId)?.owner) {
+      toast.error("Only the main host can remove co-hosts, and the main host can't be removed.");
+      return;
+    }
     if (userId === me.data) {
       toast.error("You can't remove your own host access.");
       return;
@@ -341,15 +348,17 @@ export function HostTeam() {
                     <p className="truncate text-xs text-muted-foreground">{h.email}</p>
                   ) : null}
                 </div>
+                {iAmOwner && !h.owner && h.userId !== me.data ? (
                 <Button
                   variant="ghost"
                   size="icon"
-                  disabled={busy || h.userId === me.data || hosts.length <= 1}
+                  disabled={busy}
                   aria-label={`Remove host access for ${h.name}`}
                   onClick={() => removeHost(h.roleId, h.userId, h.name)}
                 >
                   <UserMinus className="size-4" />
                 </Button>
+                ) : null}
               </li>
             ))}
           </ul>
