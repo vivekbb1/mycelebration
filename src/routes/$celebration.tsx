@@ -23,7 +23,7 @@ export const Route = createFileRoute("/$celebration")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Not found — Celebration" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Not found — My Celebration" }, { name: "robots", content: "noindex" }],
       };
     }
     const title = `${loaderData.name}`;

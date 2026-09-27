@@ -24,13 +24,13 @@ import {
 export const Route = createFileRoute("/_authenticated/atelier")({
   head: () => ({
     meta: [
-      { title: "Atelier Orders — The Wedding Wardrobe" },
+      { title: "Atelier Orders — My Celebration" },
       {
         name: "description",
         content:
           "Boutique and tailor view: the looks reserved from your atelier, with each guest's measurements and the event they're for.",
       },
-      { property: "og:title", content: "Atelier Orders — The Wedding Wardrobe" },
+      { property: "og:title", content: "Atelier Orders — My Celebration" },
       {
         property: "og:description",
         content: "Your boutique's orders for the wedding, with guest measurements for tailoring.",

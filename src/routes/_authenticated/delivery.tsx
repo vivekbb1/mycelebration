@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/delivery")({
   head: () => ({
     meta: [
-      { title: "Your Outfit Delivery Plan — The Wedding Wardrobe" },
+      { title: "Your Outfit Delivery Plan — My Celebration" },
       {
         name: "description",
         content:
           "Your reserved looks, their sizes, when they are tailored and how they reach your hotel room on arrival.",
       },
-      { property: "og:title", content: "Your Outfit Delivery Plan — The Wedding Wardrobe" },
+      { property: "og:title", content: "Your Outfit Delivery Plan — My Celebration" },
       {
         property: "og:description",
         content:

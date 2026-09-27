@@ -63,7 +63,7 @@ export const saveEmailSettings = createServerFn({ method: "POST" })
       id: "default",
       provider: data.provider,
       from_email: email || null,
-      from_name: (data.fromName ?? "").trim() || "The Wedding Wardrobe",
+      from_name: (data.fromName ?? "").trim() || "My Celebration",
       updated_at: new Date().toISOString(),
     });
     if (error) return { ok: false, error: error.message };

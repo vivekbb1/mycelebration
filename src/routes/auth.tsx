@@ -21,13 +21,13 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign In — Celebration" },
+      { title: "Sign In — My Celebration" },
       {
         name: "description",
         content:
           "Sign in with your invitation code to see your events, reply, choose your look and send measurements.",
       },
-      { property: "og:title", content: "Sign In — Celebration" },
+      { property: "og:title", content: "Sign In — My Celebration" },
       {
         property: "og:description",
         content: "Register with your invitation code to open the guest wardrobe.",
@@ -133,7 +133,7 @@ function AuthPage() {
     <div className="bg-zari flex min-h-dvh flex-col bg-background">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
         <Link to="/" className="font-display text-lg tracking-wide">
-          {t("landing.brand", "Celebration")}
+          {t("landing.brand", "My Celebration")}
         </Link>
       </header>
 
