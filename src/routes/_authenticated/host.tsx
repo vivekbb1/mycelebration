@@ -696,11 +696,16 @@ function HostDashboard() {
               <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="import">Bulk Upload</TabsTrigger>
               <TabsTrigger value="picks">Selection</TabsTrigger>
+              <TabsTrigger value="orders">Orders</TabsTrigger>
               {has("delivery") ? <TabsTrigger value="logistics">Delivery</TabsTrigger> : null}
             </TabsList>
 
             <TabsContent value="picks" className="mt-6">
               <HostPicks />
+            </TabsContent>
+
+            <TabsContent value="orders" className="mt-6">
+              <HostOrders />
             </TabsContent>
 
 
