@@ -727,31 +727,40 @@ export type Database = {
           author_id: string | null
           author_name: string | null
           body: string
+          channel: string
           created_at: string
+          external_id: string | null
           from_host: boolean
           household: string
           id: string
           read_at: string | null
+          subject: string | null
         }
         Insert: {
           author_id?: string | null
           author_name?: string | null
           body: string
+          channel?: string
           created_at?: string
+          external_id?: string | null
           from_host?: boolean
           household: string
           id?: string
           read_at?: string | null
+          subject?: string | null
         }
         Update: {
           author_id?: string | null
           author_name?: string | null
           body?: string
+          channel?: string
           created_at?: string
+          external_id?: string | null
           from_host?: boolean
           household?: string
           id?: string
           read_at?: string | null
+          subject?: string | null
         }
         Relationships: []
       }
@@ -1109,6 +1118,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inbound_unmatched: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          external_id: string | null
+          household: string | null
+          id: string
+          resolved_at: string | null
+          sender: string
+          sender_name: string | null
+          subject: string | null
+        }
+        Insert: {
+          body: string
+          channel: string
+          created_at?: string
+          external_id?: string | null
+          household?: string | null
+          id?: string
+          resolved_at?: string | null
+          sender: string
+          sender_name?: string | null
+          subject?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          external_id?: string | null
+          household?: string | null
+          id?: string
+          resolved_at?: string | null
+          sender?: string
+          sender_name?: string | null
+          subject?: string | null
+        }
+        Relationships: []
       }
       invite_codes: {
         Row: {
@@ -1883,6 +1931,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_broadcasts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          failed_count: number
+          failures: Json
+          id: string
+          invite_id: string | null
+          language: string
+          sent_count: number
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          failures?: Json
+          id?: string
+          invite_id?: string | null
+          language?: string
+          sent_count?: number
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          failures?: Json
+          id?: string
+          invite_id?: string | null
+          language?: string
+          sent_count?: number
+          template_name?: string
+        }
+        Relationships: []
       }
     }
     Views: {
