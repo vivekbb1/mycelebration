@@ -160,7 +160,7 @@ function ConfirmPage() {
 
   return (
     <main className="bg-zari">
-      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <p className="text-center text-eyebrow">Your summary</p>
         <h1 className="mt-3 text-center text-3xl sm:text-4xl">Everything in one place</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground">
