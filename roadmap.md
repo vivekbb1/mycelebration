@@ -1,9 +1,11 @@
 # Roadmap — multi-celebration platform
 - [x] Phase 1: celebration hosts, owner/co-host, host codes tied to a celebration
 - [x] Phase 2: per-celebration access rules on every table and file
-- [ ] Tenancy check page for the operator
-- [x] Phase 3: per-celebration email sender, wording, logistics (branding already per celebration via themes)
+- [x] Tenancy check page for the operator (Platform page)
+- [x] Phase 3: per-celebration email sender, wording, logistics
 - [x] Phase 4: packages/add-ons/requests per celebration
 - [x] Host dashboard package column reads celebration packages
-- [ ] Phase 5: create-a-celebration flow, picker polish, host dashboard queries filtered by celebration
-- [ ] Phase 6: .env out of git, inbound messages filed per celebration
+- [x] Phase 5: create-a-celebration switches to it; picker; per-celebration screens
+- [x] Phase 6: inbound messages filed per celebration (.env holds only public keys — left as is)
+- [x] Guests with a listed email join by signing in
+- [ ] Browser walkthroughs (guest code → look → tracker; new celebration setup) — not run
