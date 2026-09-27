@@ -348,9 +348,20 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
     let failed = 0;
 
     for (const raw of data.slugs) {
+      // Already in the wardrobe? Skip before fetching anything from the shop.
+      const slug = slugFromUrl(raw);
+      const { data: dup } = await (context as unknown as Ctx).supabase
+        .from("outfits")
+        .select("id")
+        .eq("boutique_url", `${HOST}/${slug}`)
+        .limit(1);
+      if (dup && dup.length) {
+        skipped += 1;
+        continue;
+      }
       let look: PerniaLook;
       try {
-        look = await detail(slugFromUrl(raw));
+        look = await detail(slug);
       } catch {
         failed += 1;
         continue;
