@@ -102,21 +102,6 @@ export function HostPicks() {
     return map;
   }, [reservations.data, outfitById]);
 
-  /** Families stay together, so a couple's picks sit side by side. */
-  const sortedGuests = useMemo(
-    () =>
-      [...(guests.data ?? [])].sort(
-        (a, b) =>
-          ((a.household as string | null) ?? "zzzz").localeCompare(
-            (b.household as string | null) ?? "zzzz",
-          ) || (a.full_name ?? "").localeCompare(b.full_name ?? ""),
-      ),
-    [guests.data],
-  );
-
-  const loading =
-    events.isLoading || guests.isLoading || outfits.isLoading || reservations.isLoading;
-
   /** The guest list as invited (invitation codes), so reminders can go out by email. */
   const invited = useQuery({
     queryKey: ["host-picks-invited", selectedInvite],
@@ -129,6 +114,26 @@ export function HostPicks() {
       return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
     },
   });
+
+  /** Families stay together, so a couple's picks sit side by side.
+   *  Only people holding an invitation in this celebration are listed —
+   *  hosts and stray accounts never appear. */
+  const sortedGuests = useMemo(() => {
+    const onList = new Set(
+      (invited.data ?? []).map((g) => g.claimed_by).filter((v): v is string => Boolean(v)),
+    );
+    return [...(guests.data ?? [])]
+      .filter((g) => onList.has(g.id))
+      .sort(
+        (a, b) =>
+          ((a.household as string | null) ?? "zzzz").localeCompare(
+            (b.household as string | null) ?? "zzzz",
+          ) || (a.full_name ?? "").localeCompare(b.full_name ?? ""),
+      );
+  }, [guests.data, invited.data]);
+
+  const loading =
+    events.isLoading || guests.isLoading || outfits.isLoading || reservations.isLoading;
 
   const remind = useServerFn(sendOutfitReminder);
   const [sending, setSending] = useState<string | null>(null);
@@ -298,13 +303,13 @@ export function HostPicks() {
         </p>
         {measurements.isLoading ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
-        ) : (measurements.data ?? []).length === 0 ? (
+        ) : (measurements.data ?? []).filter((m) => sortedGuests.some((g) => g.id === m.guest_id)).length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
             Nobody has sent their measurements yet.
           </p>
         ) : (
           <div className="mt-5 space-y-4">
-            {(measurements.data ?? []).map((m) => {
+            {(measurements.data ?? []).filter((m) => sortedGuests.some((g) => g.id === m.guest_id)).map((m) => {
               const unit = (m.unit as string | null) ?? "cm";
               const guest = (guests.data ?? []).find((g) => g.id === m.guest_id);
               const fields: Array<[string, unknown]> = [
