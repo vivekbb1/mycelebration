@@ -46,7 +46,7 @@ async function importOne(db: any, job: any, rawSlug: string): Promise<"imported"
   } catch {
     return "failed";
   }
-  const { data: dup } = await db.from("outfits").select("id").eq("boutique_url", `${HOST}/${slug}`).limit(1);
+  const { data: dup } = await db.from("outfits").select("id").eq("invite_id", job.invite_id).eq("boutique_url", `${HOST}/${slug}`).limit(1);
   if (dup?.length) return "skipped";
   let look;
   try {
@@ -55,7 +55,7 @@ async function importOne(db: any, job: any, rawSlug: string): Promise<"imported"
     return "failed";
   }
   if (look.sku) {
-    const { data: dupSku } = await db.from("outfits").select("id").eq("source_sku", look.sku).limit(1);
+    const { data: dupSku } = await db.from("outfits").select("id").eq("invite_id", job.invite_id).eq("source_sku", look.sku).limit(1);
     if (dupSku?.length) return "skipped";
   }
   const { copyImages } = await import("@/lib/outfit-images.server");
@@ -76,6 +76,7 @@ async function importOne(db: any, job: any, rawSlug: string): Promise<"imported"
     notes: look.description || null,
     event_id: job.event_id,
     boutique_id: job.boutique_id,
+    invite_id: job.invite_id,
   });
   if (error) return error.code === "23505" ? "skipped" : "failed";
   return "imported";
