@@ -315,6 +315,7 @@ function HostDashboard() {
       if (fGender !== "all" && o.gender !== fGender) return false;
       if (fType !== "all" && (o.garment_type ?? "") !== fType) return false;
       if (fStatus === "reserved" && !reserved.has(o.id)) return false;
+      if (fStatus === "pinned" && !o.is_pinned) return false;
       if (fStatus === "available" && reserved.has(o.id)) return false;
       return true;
     });
@@ -438,6 +439,19 @@ function HostDashboard() {
     }
     toast.success(`${selected.length} look${selected.length === 1 ? "" : "s"} updated.`);
     setSelected([]);
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+  };
+
+  const setPinned = async (ids: string[], pinned: boolean) => {
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("outfits").update({ is_pinned: pinned }).in("id", ids);
+    setBulkBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(pinned ? "Pinned for guests." : "Unpinned.");
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
 
@@ -967,6 +981,7 @@ function HostDashboard() {
                   <SelectItem value="all">Any status</SelectItem>
                   <SelectItem value="available">Available</SelectItem>
                   <SelectItem value="reserved">Chosen by a guest</SelectItem>
+                  <SelectItem value="pinned">Pinned</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1052,6 +1067,12 @@ function HostDashboard() {
                       Set
                     </Button>
                   </div>
+                  <Button variant="outline" disabled={bulkBusy} onClick={() => setPinned(selected, true)}>
+                    <Pin className="size-4" /> Pin
+                  </Button>
+                  <Button variant="outline" disabled={bulkBusy} onClick={() => setPinned(selected, false)}>
+                    Unpin
+                  </Button>
                   <Button variant="destructive" disabled={bulkBusy} onClick={bulkRemove}>
                     <Trash2 className="size-4" /> Remove selected
                   </Button>
@@ -1117,6 +1138,15 @@ function HostDashboard() {
                     ) : (
                       <Badge className="hidden sm:inline-flex">Available</Badge>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={bulkBusy}
+                      aria-label={o.is_pinned ? `Unpin ${o.title}` : `Pin ${o.title}`}
+                      onClick={() => setPinned([o.id], !o.is_pinned)}
+                    >
+                      <Pin className={`size-4 ${o.is_pinned ? "fill-current text-primary" : "text-muted-foreground"}`} />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
