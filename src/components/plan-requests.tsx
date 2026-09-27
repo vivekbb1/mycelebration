@@ -144,7 +144,7 @@ export function PlanRequests() {
                   size="sm"
                   variant="ghost"
                   disabled={busy === r.id}
-                  onClick={() => decide(r.id, r.user_id, r.plan_id, r.addonIds, false)}
+                  onClick={() => decide(r.id, r.invite_id, r.plan_id, r.addonIds, false)}
                 >
                   <X className="size-4" /> Decline
                 </Button>
