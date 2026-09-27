@@ -1224,6 +1224,7 @@ export type Database = {
           branding_preset_id: string | null
           created_at: string
           created_by: string | null
+          custom_domain: string | null
           fees_enabled: boolean
           id: string
           name: string
@@ -1238,6 +1239,7 @@ export type Database = {
           branding_preset_id?: string | null
           created_at?: string
           created_by?: string | null
+          custom_domain?: string | null
           fees_enabled?: boolean
           id?: string
           name: string
@@ -1252,6 +1254,7 @@ export type Database = {
           branding_preset_id?: string | null
           created_at?: string
           created_by?: string | null
+          custom_domain?: string | null
           fees_enabled?: boolean
           id?: string
           name?: string
@@ -1851,6 +1854,7 @@ export type Database = {
         Returns: boolean
       }
       celebration_by_slug: { Args: { _slug: string }; Returns: Json }
+      celebration_slug_for_domain: { Args: { _host: string }; Returns: string }
       claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
       has_role: {

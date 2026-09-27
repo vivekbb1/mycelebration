@@ -1,11 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Ruler, Sparkles, ShieldCheck, HandHeart } from "lucide-react";
 
 import heroAttire from "@/assets/hero-attire.jpg";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
+import { slugForThisDomain } from "@/lib/domain-celebration.functions";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const slug = await slugForThisDomain();
+    if (slug) throw redirect({ to: "/$celebration", params: { celebration: slug } });
+  },
   head: () => ({
     meta: [
       { title: "Celebration — One Place for the Whole Wedding" },

@@ -48,7 +48,11 @@ export const FEATURES = [
     label: "Logistics",
     blurb: "Cars, drivers and transport vendors, plus hotel rooms and check-in",
   },
-
+  {
+    key: "custom_domain",
+    label: "Own web address",
+    blurb: "A custom domain that opens straight onto the celebration page",
+  },
 ] as const;
 
 export type FeatureKey = (typeof FEATURES)[number]["key"];
