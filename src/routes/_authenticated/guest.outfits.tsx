@@ -714,7 +714,7 @@ function Lookbook() {
                     </Badge>
                   ) : null}
                   {outfit.is_pinned ? (
-                    <Badge className="absolute bottom-3 left-3 gap-1">
+                    <Badge className="absolute top-14 right-3 gap-1">
                       <Pin className="size-3" /> Host's pick
                     </Badge>
                   ) : null}
