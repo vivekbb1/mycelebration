@@ -52,6 +52,38 @@ const emptyEvent: EventForm = {
   invite_id: "",
 };
 
+/**
+ * Keeps "Order in the schedule" a clean 1, 2, 3… run within one celebration.
+ * The event just saved goes to the number the host typed and the others shift
+ * around it; left blank, it slots in by date and time.
+ */
+async function renumberEvents(inviteId: string, savedId: string, wanted: number | null) {
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, sort_order, event_date, start_time")
+    .eq("invite_id", inviteId);
+  if (error || !data) return;
+  const key = (e: (typeof data)[number]) => `${e.event_date ?? "9999"} ${e.start_time ?? ""}`;
+  const others = data
+    .filter((e) => e.id !== savedId)
+    .sort((a, b) => a.sort_order - b.sort_order || key(a).localeCompare(key(b)));
+  const saved = data.find((e) => e.id === savedId);
+  if (!saved) return;
+  let at: number;
+  if (wanted != null) at = Math.min(Math.max(wanted, 1), others.length + 1) - 1;
+  else {
+    at = others.findIndex((e) => key(e) > key(saved));
+    if (at < 0) at = others.length;
+  }
+  const ordered = [...others.slice(0, at), saved, ...others.slice(at)];
+  await Promise.all(
+    ordered
+      .map((e, i) => ({ e, n: i + 1 }))
+      .filter(({ e, n }) => e.sort_order !== n)
+      .map(({ e, n }) => supabase.from("events").update({ sort_order: n }).eq("id", e.id)),
+  );
+}
+
 export function HostEvents() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<EventForm>({ ...emptyEvent });
@@ -137,6 +169,7 @@ export function HostEvents() {
       outfit_selection: form.outfit_selection,
       invite_id: chosenInvite,
     };
+    let savedId = editingId;
     try {
       if (editingId) {
         await guardedUpdate({
@@ -148,8 +181,16 @@ export function HostEvents() {
           label: `“${parsed.data.name}”`,
         });
       } else {
-        const { error } = await supabase.from("events").insert(payload);
+        const { data: row, error } = await supabase
+          .from("events")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        savedId = row.id;
+      }
+      if (savedId) {
+        await renumberEvents(chosenInvite, savedId, Number.isFinite(order) ? order : null);
       }
     } catch (e) {
       setBusy(false);
@@ -316,7 +357,7 @@ export function HostEvents() {
                 inputMode="numeric"
                 maxLength={3}
                 value={form.sort_order}
-                placeholder="1"
+                placeholder="Leave blank to order by date"
                 onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))}
               />
             </div>
