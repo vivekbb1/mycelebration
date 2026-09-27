@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { HostDashboard } from "@/components/host-dashboard";
 
 /**
  * At-a-glance numbers for the hosts: who has replied, who has confirmed a look,
@@ -191,6 +192,7 @@ export function HostOverview() {
           {loading ? <li className="text-sm text-muted-foreground">Loading…</li> : null}
         </ul>
       </section>
+      <HostDashboard />
     </div>
   );
 }
