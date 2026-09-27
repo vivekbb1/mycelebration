@@ -18,7 +18,6 @@ import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
 import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
-import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
 import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
@@ -34,6 +33,8 @@ import { Route as AuthenticatedSummaryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedFamilyHouseholdRouteImport } from './routes/_authenticated/family.$household'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
+import { Route as AuthenticatedHostIndexRouteImport } from './routes/_authenticated/host.index'
+import { Route as AuthenticatedHostSplatRouteImport } from './routes/_authenticated/host.$'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 import { Route as ApiPublicEmailInboundRouteImport } from './routes/api/public/email/inbound'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp/webhook'
@@ -81,11 +82,6 @@ const AuthenticatedEventRoute = AuthenticatedEventRouteImport.update({
 const AuthenticatedGuestsRoute = AuthenticatedGuestsRouteImport.update({
   id: '/guests',
   path: '/guests',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
-  id: '/host',
-  path: '/host',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHostsRoute = AuthenticatedHostsRouteImport.update({
@@ -166,6 +162,16 @@ const AuthenticatedGuestGuestIdRoute =
     path: '/guest/$guestId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHostIndexRoute = AuthenticatedHostIndexRouteImport.update({
+  id: '/host/',
+  path: '/host/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHostSplatRoute = AuthenticatedHostSplatRouteImport.update({
+  id: '/host/$',
+  path: '/host/$',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicFollowupRemindersRoute =
   ApiPublicFollowupRemindersRouteImport.update({
     id: '/api/public/followup-reminders',
@@ -199,7 +205,6 @@ export interface FileRoutesByFullPath {
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
-  '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
   '/invite': typeof AuthenticatedInviteRoute
@@ -215,7 +220,9 @@ export interface FileRoutesByFullPath {
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/host/$': typeof AuthenticatedHostSplatRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
+  '/host/': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -229,7 +236,6 @@ export interface FileRoutesByTo {
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
-  '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
   '/invite': typeof AuthenticatedInviteRoute
@@ -245,7 +251,9 @@ export interface FileRoutesByTo {
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/host/$': typeof AuthenticatedHostSplatRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
+  '/host': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -261,7 +269,6 @@ export interface FileRoutesById {
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
   '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
-  '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
   '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
@@ -277,7 +284,9 @@ export interface FileRoutesById {
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/_authenticated/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/_authenticated/host/$': typeof AuthenticatedHostSplatRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
+  '/_authenticated/host/': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -293,7 +302,6 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/event'
     | '/guests'
-    | '/host'
     | '/hosts'
     | '/invitation'
     | '/invite'
@@ -309,7 +317,9 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/family/$household'
     | '/guest/$guestId'
+    | '/host/$'
     | '/api/public/followup-reminders'
+    | '/host/'
     | '/api/public/email/inbound'
     | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
@@ -323,7 +333,6 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/event'
     | '/guests'
-    | '/host'
     | '/hosts'
     | '/invitation'
     | '/invite'
@@ -339,7 +348,9 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/family/$household'
     | '/guest/$guestId'
+    | '/host/$'
     | '/api/public/followup-reminders'
+    | '/host'
     | '/api/public/email/inbound'
     | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
@@ -354,7 +365,6 @@ export interface FileRouteTypes {
     | '/_authenticated/delivery'
     | '/_authenticated/event'
     | '/_authenticated/guests'
-    | '/_authenticated/host'
     | '/_authenticated/hosts'
     | '/_authenticated/invitation'
     | '/_authenticated/invite'
@@ -370,7 +380,9 @@ export interface FileRouteTypes {
     | '/_authenticated/upgrade'
     | '/_authenticated/family/$household'
     | '/_authenticated/guest/$guestId'
+    | '/_authenticated/host/$'
     | '/api/public/followup-reminders'
+    | '/_authenticated/host/'
     | '/api/public/email/inbound'
     | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
@@ -450,13 +462,6 @@ declare module '@tanstack/react-router' {
       path: '/guests'
       fullPath: '/guests'
       preLoaderRoute: typeof AuthenticatedGuestsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/host': {
-      id: '/_authenticated/host'
-      path: '/host'
-      fullPath: '/host'
-      preLoaderRoute: typeof AuthenticatedHostRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/hosts': {
@@ -564,6 +569,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGuestGuestIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/host/': {
+      id: '/_authenticated/host/'
+      path: '/host'
+      fullPath: '/host/'
+      preLoaderRoute: typeof AuthenticatedHostIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/host/$': {
+      id: '/_authenticated/host/$'
+      path: '/host/$'
+      fullPath: '/host/$'
+      preLoaderRoute: typeof AuthenticatedHostSplatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/followup-reminders': {
       id: '/api/public/followup-reminders'
       path: '/api/public/followup-reminders'
@@ -601,7 +620,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
   AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
-  AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
   AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
@@ -617,6 +635,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedFamilyHouseholdRoute: typeof AuthenticatedFamilyHouseholdRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
+  AuthenticatedHostSplatRoute: typeof AuthenticatedHostSplatRoute
+  AuthenticatedHostIndexRoute: typeof AuthenticatedHostIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -625,7 +645,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
   AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
-  AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
   AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
@@ -641,6 +660,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedFamilyHouseholdRoute: AuthenticatedFamilyHouseholdRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
+  AuthenticatedHostSplatRoute: AuthenticatedHostSplatRoute,
+  AuthenticatedHostIndexRoute: AuthenticatedHostIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

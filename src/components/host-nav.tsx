@@ -1,3 +1,4 @@
+import { hostSplat, parseHostPath } from "@/lib/host-url";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   CalendarDays,
@@ -36,11 +37,9 @@ export const headerTabClass = (active: boolean) =>
 /** The host tabs that live in the top bar. */
 export function HostTabs() {
   const { has } = useFeatures();
-  const active = useRouterState({
-    select: (s) => (s.location.search as { tab?: string })?.tab ?? "overview",
-  });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const onHost = pathname === "/host";
+  const onHost = pathname === "/host" || pathname.startsWith("/host/");
+  const active = parseHostPath(pathname.replace(/^\/host\/?/, "")).section;
 
   const tabs = [
     { value: "overview", label: "Overview", icon: LayoutDashboard, show: true },
@@ -55,8 +54,8 @@ export function HostTabs() {
       {tabs.map((t) => (
         <Link
           key={t.value}
-          to="/host"
-          search={{ tab: t.value }}
+          to="/host/$"
+          params={{ _splat: hostSplat(t.value) }}
           aria-label={t.label}
           className={headerTabClass(onHost && active === t.value)}
         >
@@ -93,7 +92,7 @@ export function HostProfileMenu() {
           <DropdownMenuLabel>Your account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link to="/host" search={{ tab: "setup" }}>
+            <Link to="/host/$" params={{ _splat: "setup" }}>
               <Settings className="mr-2 size-4" /> Setup
             </Link>
           </DropdownMenuItem>

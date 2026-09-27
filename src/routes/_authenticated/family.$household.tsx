@@ -268,7 +268,7 @@ function FamilyPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link to="/host" search={{ tab: "guests" }}>
+        <Link to="/host/$" params={{ _splat: "guests" }}>
           <ArrowLeft className="size-4" /> Back to the guest list
         </Link>
       </Button>
