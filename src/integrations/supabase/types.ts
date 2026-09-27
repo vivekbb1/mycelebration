@@ -2729,6 +2729,7 @@ export type Database = {
           invite_id: string
         }[]
       }
+      my_contact: { Args: never; Returns: Json }
       my_event_ids: {
         Args: never
         Returns: {
@@ -2759,6 +2760,10 @@ export type Database = {
           total: number
           unlinked: number
         }[]
+      }
+      update_my_contact: {
+        Args: { _email: string; _phone: string }
+        Returns: undefined
       }
       wake_outfit_import_worker: {
         Args: { _base_url: string }

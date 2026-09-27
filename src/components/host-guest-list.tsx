@@ -1,3 +1,4 @@
+import { wardrobeLabel } from "@/lib/wardrobe-options";
 import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -469,7 +470,7 @@ export function HostGuestList() {
                       {r.name}
                       {r.gender ? (
                         <Badge variant="outline">
-                          {r.gender === "men" ? "Menswear" : "Womenswear"}
+                          {wardrobeLabel(r.gender)}
                         </Badge>
                       ) : null}
                       <Badge variant="secondary">{categoryLabel(r.category)}</Badge>

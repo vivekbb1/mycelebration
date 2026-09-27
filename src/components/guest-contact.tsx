@@ -18,25 +18,20 @@ export function GuestContact() {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Reads the details the hosts hold for this guest, so both always match.
   const profile = useQuery({
     queryKey: ["my-contact"],
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, phone, whatsapp")
-        .eq("id", userData.user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("my_contact");
       if (error) throw error;
-      return data;
+      return (data ?? null) as { email: string | null; phone: string | null } | null;
     },
   });
 
   useEffect(() => {
     if (loaded || !profile.data) return;
     setEmail(profile.data.email ?? "");
-    setPhone(profile.data.phone ?? profile.data.whatsapp ?? "");
+    setPhone(profile.data.phone ?? "");
     setLoaded(true);
   }, [loaded, profile.data]);
 
@@ -47,10 +42,10 @@ export function GuestContact() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ email: email.trim() || null, phone: phone.trim() || null })
-      .eq("id", profile.data.id);
+    const { error } = await supabase.rpc("update_my_contact", {
+      _email: email.trim(),
+      _phone: phone.trim(),
+    });
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -58,6 +53,7 @@ export function GuestContact() {
     }
     toast.success("Saved — the hosts can reach you on this.");
     await qc.invalidateQueries({ queryKey: ["my-contact"] });
+    await qc.invalidateQueries({ queryKey: ["family-members"] });
   };
 
   return (

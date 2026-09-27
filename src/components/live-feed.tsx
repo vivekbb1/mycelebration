@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { browseEventFeed, claimFeedLook, type FeedLook } from "@/lib/feed.functions";
 
 const AUDIENCES = [
-  { value: "women", label: "Women's" },
-  { value: "men", label: "Men's" },
-  { value: "kids", label: "Children's" },
+  { value: "men", label: "Men" },
+  { value: "women", label: "Women" },
+  { value: "boy", label: "Boy" },
+  { value: "girl", label: "Girl" },
 ];
 
 /**

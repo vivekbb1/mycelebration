@@ -1,3 +1,4 @@
+import { WARDROBES, WARDROBE_VALUES, isWardrobe, wardrobeLabel } from "@/lib/wardrobe-options";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LiveFeed } from "@/components/live-feed";
@@ -244,10 +245,10 @@ function Lookbook() {
 
   // The wardrobes this family actually needs: a family of only men never sees womenswear.
   const familyWardrobes = new Set(
-    people.map((p) => p.gender).filter((g): g is string => g === "men" || g === "women"),
+    people.map((p) => p.gender).filter((g): g is string => isWardrobe(g)),
   );
   const onlyWardrobe = familyWardrobes.size === 1 ? [...familyWardrobes][0] : null;
-  const everyoneKnown = people.every((p) => p.gender === "men" || p.gender === "women");
+  const everyoneKnown = people.every((p) => isWardrobe(p.gender));
   // Switching only makes sense when we don't already know who this family is.
   const canSwitchWardrobe = !(everyoneKnown && onlyWardrobe);
 
@@ -423,25 +424,19 @@ function Lookbook() {
                 Which rail should we open for {chosen ? chosen.name : "you"}?
               </p>
               <div className="mt-5 grid gap-3">
-                <Button
-                  onClick={() =>
-                    chosen
-                      ? setWardrobeOverride((prev) => ({ ...prev, [chosen.name]: "women" }))
-                      : saveGender("women")
-                  }
-                >
-                  {chosen ? `${chosen.name} — women's looks` : "Women's looks"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    chosen
-                      ? setWardrobeOverride((prev) => ({ ...prev, [chosen.name]: "men" }))
-                      : saveGender("men")
-                  }
-                >
-                  {chosen ? `${chosen.name} — men's looks` : "Men's looks"}
-                </Button>
+                {WARDROBES.map((w, i) => (
+                  <Button
+                    key={w.value}
+                    variant={i === 0 ? "default" : "outline"}
+                    onClick={() =>
+                      chosen
+                        ? setWardrobeOverride((prev) => ({ ...prev, [chosen.name]: w.value }))
+                        : saveGender(w.value)
+                    }
+                  >
+                    {chosen ? `${chosen.name} — ${w.label.toLowerCase()}` : w.label}
+                  </Button>
+                ))}
                 {chosen ? (
                   <Button variant="ghost" onClick={() => setActivePerson(null)}>
                     Choose someone else
@@ -566,14 +561,15 @@ function Lookbook() {
         ) : null}
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Showing {activeName}&rsquo;s {wardrobe === "men" ? "men's" : "women's"} looks
+          Showing {activeName}&rsquo;s {wardrobeLabel(wardrobe).toLowerCase()} looks
           {canSwitchWardrobe ? (
             <>
               {" — "}
               <button
                 className="text-primary underline-offset-4 hover:underline"
                 onClick={() => {
-                  const next = wardrobe === "men" ? "women" : "men";
+                  const idx = WARDROBE_VALUES.indexOf(wardrobe ?? "");
+                  const next = WARDROBE_VALUES[(idx + 1) % WARDROBE_VALUES.length] ?? "men";
                   setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
                   if (people.length <= 1) void saveGender(next);
                 }}

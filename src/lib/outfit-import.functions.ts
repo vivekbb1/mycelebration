@@ -19,7 +19,7 @@ export const startOutfitImport = createServerFn({ method: "POST" })
       inviteId: data?.inviteId ? String(data.inviteId) : null,
       eventId: data?.eventId ? String(data.eventId) : null,
       boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
-      gender: ["men", "women", "unisex", "kids"].includes(String(data?.gender)) ? String(data?.gender) : null,
+      gender: ["men", "women", "unisex", "boy", "girl"].includes(String(data?.gender)) ? String(data?.gender) : null,
     }),
   )
   .handler(async ({ data, context }) => {

@@ -20,7 +20,7 @@ export type FeedLook = {
 };
 
 type Ctx = { supabase: any; userId: string };
-const AUDIENCES = ["women", "men", "kids"] as const;
+const AUDIENCES = ["women", "men", "boy", "girl"] as const;
 
 async function access(ctx: Ctx, eventId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
