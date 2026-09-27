@@ -248,7 +248,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
         minPrice: Math.max(0, Math.min(2_000_000, Math.round(Number(data?.minPrice) || 0))),
         maxPrice: Math.max(1, Math.min(2_000_000, Math.round(Number(data?.maxPrice) || 30000))),
         page: Math.max(1, Math.min(200, Math.round(Number(data?.page) || 1))),
-        perPage: Math.max(4, Math.min(48, Math.round(Number(data?.perPage) || 12))),
+        perPage: Math.max(4, Math.min(500, Math.round(Number(data?.perPage) || 12))),
         readyToShip: Boolean(data?.readyToShip),
         colour,
         shipInDays,
@@ -293,11 +293,19 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
 
     let total = 0;
     const pooled: any[] = [];
-    for (let n = firstShopPage; n <= lastShopPage; n += 1) {
-      const res = await shopPage(n);
-      total = res.total || total;
-      pooled.push(...res.products);
-      if (res.products.length < SHOP_PAGE) break;
+    let done = false;
+    for (let n = firstShopPage; n <= lastShopPage && !done; n += 6) {
+      const batch = [];
+      for (let k = n; k < n + 6 && k <= lastShopPage; k += 1) batch.push(k);
+      const results = await Promise.all(batch.map((k) => shopPage(k)));
+      for (const res of results) {
+        total = res.total || total;
+        pooled.push(...res.products);
+        if (res.products.length < SHOP_PAGE) {
+          done = true;
+          break;
+        }
+      }
     }
 
     const offset = from - (firstShopPage - 1) * SHOP_PAGE;
