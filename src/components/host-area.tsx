@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { hostSplat, parseHostPath, HOST_SUB_LABELS } from "@/lib/host-url";
 import { useFeatures } from "@/lib/features";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -53,28 +54,6 @@ import { HostBroadcast } from "@/components/host-broadcast";
 
 
 
-export const Route = createFileRoute("/_authenticated/host")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string } =>
-    typeof search['tab'] === "string" ? { tab: search['tab'] } : {},
-  head: () => ({
-    meta: [
-      { title: "Host Dashboard — My Celebration" },
-      {
-        name: "description",
-        content:
-          "Add and edit outfits, and see which looks are reserved, who sent measurements and who hasn't responded.",
-      },
-      { property: "og:title", content: "Host Dashboard — My Celebration" },
-      {
-        property: "og:description",
-        content: "Run your celebration: outfits, reservations, measurements and RSVPs.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: HostRoute,
-});
 
 const outfitSchema = z.object({
   title: z.string().trim().min(2, "Give the outfit a name").max(120),
@@ -204,7 +183,10 @@ const TAB_TITLES: Record<string, string> = {
 function HostDashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { tab = "overview" } = Route.useSearch();
+  const { _splat } = useParams({ strict: false }) as { _splat?: string };
+  const { section: tab, sub } = parseHostPath(_splat);
+  const go = (section: string, subTab?: string | null) =>
+    navigate({ to: "/host/$", params: { _splat: hostSplat(section, subTab) } });
   const tabTitle = TAB_TITLES[tab] ?? "Run the celebration";
   const { has, isPlatformAdmin } = useFeatures();
   const [form, setForm] = useState<OutfitForm>({ ...emptyOutfit });
@@ -480,7 +462,7 @@ function HostDashboard() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => navigate({ to: "/host", search: { tab: v } })}
+        onValueChange={(v) => go(v)}
         className="mt-8"
       >
 
@@ -612,7 +594,7 @@ function HostDashboard() {
 
         {!has("guest_list") ? null : (
         <TabsContent value="guests" className="mt-6">
-          <Tabs defaultValue="list">
+          <Tabs value={sub ?? "list"} onValueChange={(v) => go("guests", v)}>
             <TabsList>
               <TabsTrigger value="list">List</TabsTrigger>
               <TabsTrigger value="tags">Tags</TabsTrigger>
@@ -701,7 +683,7 @@ function HostDashboard() {
 
         {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
-          <Tabs defaultValue="outfits">
+          <Tabs value={sub ?? "outfits"} onValueChange={(v) => go("wardrobe", v)}>
             <TabsList>
               <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="import">Bulk Upload</TabsTrigger>
@@ -1031,9 +1013,10 @@ function HostDashboard() {
 
         <TabsContent value="setup" className="mt-6">
           <Tabs
-            defaultValue={
-              has("vendor_management") ? "boutiques" : has("fees") ? "fees" : "hosts"
+            value={
+              sub ?? (has("vendor_management") ? "boutiques" : has("fees") ? "fees" : "hosts")
             }
+            onValueChange={(v) => go("setup", v)}
           >
             <TabsList>
               {has("vendor_management") ? (
@@ -1114,7 +1097,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 /** Wraps the host area so every tab works on the same chosen celebration. */
-function HostRoute() {
+export function HostRoute() {
   return (
     <SelectedEventProvider>
       <HostPage />
