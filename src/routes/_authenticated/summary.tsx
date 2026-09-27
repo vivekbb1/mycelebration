@@ -229,6 +229,13 @@ function ConfirmPage() {
                     </div>
                   </div>
 
+                  {done ? (
+                    <p className="mt-5 rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                      Confirmed and locked — the atelier is working from these details. To change
+                      anything, message your hosts.
+                    </p>
+                  ) : (
+                  <>
                   <div className="mt-5 grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label htmlFor={`g-${row.id}`}>Garment</Label>
@@ -286,12 +293,14 @@ function ConfirmPage() {
                       className="gap-2"
                     >
                       <Shirt className="size-4" />
-                      {done ? "Update my confirmation" : "Confirm this look"}
+                      Confirm this look
                     </Button>
                     <Button asChild size="sm" variant="ghost">
                       <Link to="/measurements">Send measurements</Link>
                     </Button>
                   </div>
+                  </>
+                  )}
                 </li>
               );
             })}
