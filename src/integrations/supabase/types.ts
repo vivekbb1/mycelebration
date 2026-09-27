@@ -334,6 +334,77 @@ export type Database = {
           },
         ]
       }
+      celebration_content: {
+        Row: {
+          invite_id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          invite_id: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          invite_id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebration_content_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celebration_content_key_fkey"
+            columns: ["key"]
+            isOneToOne: false
+            referencedRelation: "site_content"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      celebration_email_settings: {
+        Row: {
+          from_email: string | null
+          from_name: string | null
+          invite_id: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          from_email?: string | null
+          from_name?: string | null
+          invite_id: string
+          provider?: string
+          updated_at?: string
+        }
+        Update: {
+          from_email?: string | null
+          from_name?: string | null
+          invite_id?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebration_email_settings_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: true
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       celebration_hosts: {
         Row: {
           created_at: string

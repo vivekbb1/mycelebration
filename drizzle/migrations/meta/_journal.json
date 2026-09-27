@@ -463,6 +463,13 @@
       "when": 1790527220740,
       "tag": "0065_per_celebration_unique_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1790528495087,
+      "tag": "0066_per_celebration_email_and_wording",
+      "breakpoints": true
     }
   ]
 }
