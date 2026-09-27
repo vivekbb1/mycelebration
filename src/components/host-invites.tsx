@@ -13,6 +13,7 @@ import { slugProblem, slugify } from "@/lib/celebration-slug";
 import { Link } from "@tanstack/react-router";
 import { useFeatures } from "@/lib/features";
 import { CelebrationQr } from "@/components/celebration-qr";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 type Draft = Omit<Branding, "id">;
 
@@ -373,6 +374,7 @@ export function HostInvites() {
     },
   });
 
+  const selected = useSelectedEvent();
   const create = useMutation({
     mutationFn: async () => {
       const clean = name.trim();
@@ -385,8 +387,9 @@ export function HostInvites() {
       if (error) throw error;
       return data.id as string;
     },
-    onSuccess: (newId) => {
-      // Switch straight to the new celebration so the next screens work on it.
+    onSuccess: async (newId) => {
+      // Refresh the list first, then switch to the new celebration so the next screens work on it.
+      await qc.refetchQueries({ queryKey: ["invite-sets"] });
       if (newId) selected.setInviteId(newId);
       setName("");
       setNote("");
