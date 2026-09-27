@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Download, Plus, Trash2, Upload, Users } from "lucide-react";
+import { Copy, Download, Mail, MessageCircle, Plus, RefreshCw, Trash2, Upload, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -187,7 +187,7 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, created_at, needs_wardrobe, invite_id")
+        .select("id, name, code, email, created_at, needs_wardrobe, invite_id")
         .order("name");
       if (error) throw error;
       return data;
@@ -880,6 +880,30 @@ export function HostFamilies() {
                     onClick={() => copyFamilyInvite(f.name, f.code)}
                   >
                     <Copy className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Send ${f.name}'s invitation on WhatsApp`}
+                    onClick={() => shareWhatsApp(f.name, f.code)}
+                  >
+                    <MessageCircle className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Email ${f.name}'s invitation`}
+                    onClick={() => shareEmail(f.name, f.code, (f as { email?: string | null }).email ?? null)}
+                  >
+                    <Mail className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Make a new code for ${f.name}`}
+                    onClick={() => newCode(f.id, f.name)}
+                  >
+                    <RefreshCw className="size-4" />
                   </Button>
                   <Button
                     variant="ghost"
