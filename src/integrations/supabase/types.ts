@@ -1158,6 +1158,21 @@ export type Database = {
           },
         ]
       }
+      import_worker_key: {
+        Row: {
+          id: number
+          token: string
+        }
+        Insert: {
+          id?: number
+          token?: string
+        }
+        Update: {
+          id?: number
+          token?: string
+        }
+        Relationships: []
+      }
       inbound_unmatched: {
         Row: {
           body: string
@@ -1563,6 +1578,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      outfit_import_items: {
+        Row: {
+          attempts: number
+          claimed_at: string | null
+          id: number
+          job_id: string
+          slug: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          claimed_at?: string | null
+          id?: number
+          job_id: string
+          slug: string
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          claimed_at?: string | null
+          id?: number
+          job_id?: string
+          slug?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outfit_import_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "outfit_import_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outfit_import_jobs: {
+        Row: {
+          boutique_id: string | null
+          created_at: string
+          created_by: string
+          event_id: string | null
+          failed: number
+          finished_at: string | null
+          gender: string | null
+          id: string
+          imported: number
+          skipped: number
+          status: string
+          total: number
+        }
+        Insert: {
+          boutique_id?: string | null
+          created_at?: string
+          created_by?: string
+          event_id?: string | null
+          failed?: number
+          finished_at?: string | null
+          gender?: string | null
+          id?: string
+          imported?: number
+          skipped?: number
+          status?: string
+          total?: number
+        }
+        Update: {
+          boutique_id?: string | null
+          created_at?: string
+          created_by?: string
+          event_id?: string | null
+          failed?: number
+          finished_at?: string | null
+          gender?: string | null
+          id?: string
+          imported?: number
+          skipped?: number
+          status?: string
+          total?: number
+        }
+        Relationships: []
       }
       outfits: {
         Row: {
@@ -2107,6 +2202,14 @@ export type Database = {
       celebration_slug_for_domain: { Args: { _host: string }; Returns: string }
       claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
+      claim_outfit_import_item: {
+        Args: never
+        Returns: {
+          item_id: number
+          job_id: string
+          slug: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2146,6 +2249,10 @@ export type Database = {
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
+      wake_outfit_import_worker: {
+        Args: { _base_url: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "guest"

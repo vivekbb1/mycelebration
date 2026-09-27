@@ -393,6 +393,20 @@
       "when": 1790512491431,
       "tag": "0055_outfit_feeds",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1790517177210,
+      "tag": "0056_background_outfit_import",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1790517204073,
+      "tag": "0057_worker_wake_timeout",
+      "breakpoints": true
     }
   ]
 }
