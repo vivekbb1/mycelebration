@@ -498,6 +498,13 @@
       "when": 1790529712667,
       "tag": "0070_fix_invites_owner_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1790530759426,
+      "tag": "0071_sync_guest_wardrobe_to_profile",
+      "breakpoints": true
     }
   ]
 }
