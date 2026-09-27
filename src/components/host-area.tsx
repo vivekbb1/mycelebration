@@ -686,7 +686,7 @@ function HostDashboard() {
         {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
           <Tabs value={sub ?? "outfits"} onValueChange={(v) => go("wardrobe", v)}>
-            <TabsList>
+            <TabsList className="max-w-full justify-start overflow-x-auto">  
               <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="import">Bulk Upload</TabsTrigger>
               <TabsTrigger value="feeds">Live feeds</TabsTrigger>
@@ -708,9 +708,9 @@ function HostDashboard() {
             </TabsContent>
 
 
-        <TabsContent value="outfits" className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <TabsContent value="outfits" className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
 
-          <div className="panel h-fit p-4 sm:p-6">
+          <div className="panel h-fit min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Copy the image link and product link from Pernia's Pop-Up Shop (or any boutique) and
@@ -885,7 +885,7 @@ function HostDashboard() {
             </div>
           </div>
 
-          <div className="panel h-fit p-4 sm:p-6">
+          <div className="panel h-fit min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">In the lookbook ({outfitList.length})</h2>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <Checkbox
@@ -948,7 +948,7 @@ function HostDashboard() {
               {outfitList.map((o) => {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
                 return (
-                  <li key={o.id} className="flex items-center gap-3 py-3">
+                  <li key={o.id} className="flex items-center gap-2 py-3 sm:gap-3">
                     <Checkbox
                       checked={selected.includes(o.id)}
                       aria-label={`Select ${o.title}`}
@@ -974,11 +974,11 @@ function HostDashboard() {
                       </p>
                     </div>
                     {res ? (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="hidden max-w-28 truncate sm:inline-flex">
                         {guestName(res.guest_id, res.guest_name)}
                       </Badge>
                     ) : (
-                      <Badge>Available</Badge>
+                      <Badge className="hidden sm:inline-flex">Available</Badge>
                     )}
                     <Button
                       variant="ghost"
