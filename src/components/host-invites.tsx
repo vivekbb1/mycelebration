@@ -586,7 +586,7 @@ function PageLook({ inviteId }: { inviteId: string }) {
     if (!file.type.startsWith("image/")) { toast.error("Choose an image file."); return; }
     if (file.size > 8 * 1024 * 1024) { toast.error("Keep images under 8 MB."); return; }
     setBusy(kind);
-    const path = `celebration-page/${inviteId}/${kind}-${Date.now()}-${file.name.replace(/[^a-z0-9.]+/gi, "-")}`;
+    const path = `${inviteId}/celebration-page/${kind}-${Date.now()}-${file.name.replace(/[^a-z0-9.]+/gi, "-")}`;
     const up = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
     if (up.error) {
       setBusy(null);

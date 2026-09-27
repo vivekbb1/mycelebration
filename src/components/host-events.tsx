@@ -100,7 +100,8 @@ export function HostEvents() {
     setUploading(true);
     try {
       const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
-      const path = `${crypto.randomUUID()}.${ext}`;
+      if (!chosenInvite) throw new Error("Choose a celebration first.");
+      const path = `${chosenInvite}/${crypto.randomUUID()}.${ext}`;
       const up = await supabase.storage.from("event-images").upload(path, file, {
         contentType: file.type || "image/jpeg",
         upsert: false,
