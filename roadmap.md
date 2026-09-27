@@ -10,4 +10,6 @@
 - [x] Guests with a listed email join by signing in
 - [x] Setup wizard (name, sender, logistics, package, add-ons); fixed create-celebration bug
 - [x] Browser walkthroughs: wizard, Host dashboard, Overview, Budget, guest reserve+confirm, tracker
-- [ ] Make 9 screens follow the chosen celebration: boutiques, order build, by-boutique, live feeds, flights, bulk upload, messages, travel counts, workload
+- [x] Make 9 screens follow the chosen celebration: boutiques, order build, by-boutique, live feeds, flights, bulk upload, messages, travel counts, workload
+- [x] Wardrobe menu per family member (tested: men → women → men)
+- [ ] Card payments: hosts pay packages + guests pay event fees (waiting on user to switch on test mode)
