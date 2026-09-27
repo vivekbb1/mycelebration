@@ -515,6 +515,7 @@ export type Database = {
           email: string | null
           id: string
           invite_id: string | null
+          link_opened_at: string | null
           name: string
           needs_wardrobe: boolean
         }
@@ -525,6 +526,7 @@ export type Database = {
           email?: string | null
           id?: string
           invite_id?: string | null
+          link_opened_at?: string | null
           name: string
           needs_wardrobe?: boolean
         }
@@ -535,6 +537,7 @@ export type Database = {
           email?: string | null
           id?: string
           invite_id?: string | null
+          link_opened_at?: string | null
           name?: string
           needs_wardrobe?: boolean
         }
@@ -1252,6 +1255,7 @@ export type Database = {
           id: string
           invite_id: string | null
           invite_sent_at: string | null
+          link_opened_at: string | null
           passport_expiry: string | null
           passport_nationality: string | null
           passport_number: string | null
@@ -1280,6 +1284,7 @@ export type Database = {
           id?: string
           invite_id?: string | null
           invite_sent_at?: string | null
+          link_opened_at?: string | null
           passport_expiry?: string | null
           passport_nationality?: string | null
           passport_number?: string | null
@@ -1308,6 +1313,7 @@ export type Database = {
           id?: string
           invite_id?: string | null
           invite_sent_at?: string | null
+          link_opened_at?: string | null
           passport_expiry?: string | null
           passport_nationality?: string | null
           passport_number?: string | null
@@ -2291,6 +2297,7 @@ export type Database = {
       }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
+      mark_invite_opened: { Args: { _code: string }; Returns: undefined }
       my_branding: { Args: never; Returns: Json }
       my_event_ids: {
         Args: never
