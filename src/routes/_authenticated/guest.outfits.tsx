@@ -56,6 +56,7 @@ type Outfit = {
   notes: string | null;
   images: string[] | null;
   is_available: boolean;
+  created_at?: string | null;
 };
 
 function Lookbook() {
@@ -932,6 +933,13 @@ function Lookbook() {
             );
           })}
         </div>
+        {filtered.length > limit ? (
+          <div className="mt-6 flex justify-center">
+            <Button variant="outline" onClick={() => setLimit((n) => n + 24)}>
+              Show more ({filtered.length - limit} left)
+            </Button>
+          </div>
+        ) : null}
         </>
       )}
 
