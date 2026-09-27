@@ -563,12 +563,26 @@ export function HostImport() {
               variant="ghost"
               size="sm"
               onClick={() =>
-                setPicked((p) =>
-                  p.length === results.length ? [] : results.map((l) => l.slug),
-                )
+                setPicked((p) => {
+                  const here = results.map((l) => l.slug);
+                  return here.every((x) => p.includes(x))
+                    ? p.filter((x) => !here.includes(x))
+                    : [...new Set([...p, ...here])];
+                })
               }
             >
-              {picked.length === results.length ? "Clear selection" : "Select all on this page"}
+              {results.every((l) => picked.includes(l.slug)) ? "Clear this page" : "Select all on this page"}
+            </Button>
+          ) : null}
+          {results && results.length && total > results.length ? (
+            <Button variant="ghost" size="sm" disabled={allBusy} onClick={selectAllPages}>
+              {allBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+              Select all {Math.min(total, SELECT_ALL_CAP).toLocaleString()} across every page
+            </Button>
+          ) : null}
+          {picked.length ? (
+            <Button variant="ghost" size="sm" onClick={() => setPicked([])}>
+              Clear all ({picked.length})
             </Button>
           ) : null}
           {picked.length ? (
@@ -582,7 +596,7 @@ export function HostImport() {
               ) : (
                 <Download className="size-4" />
               )}
-              Add {picked.length} selected
+              {importProgress ? `Adding ${importProgress}…` : `Add ${picked.length} selected`}
             </Button>
           ) : null}
         </div>
