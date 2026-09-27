@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSiteContent } from "@/lib/site-content";
+import { celebrationStyle, useCelebrationBySlug } from "@/lib/public-celebration";
 
 const searchSchema = z.object({
   code: z.string().max(64).optional().catch(undefined),
   mode: z.enum(["signin", "signup"]).optional().catch(undefined),
+  c: z.string().max(80).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -56,6 +58,7 @@ function AuthPage() {
   const { t } = useSiteContent();
   const search = Route.useSearch();
   const navigate = useNavigate();
+  const celebration = useCelebrationBySlug(search.c).data ?? null;
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"signin" | "signup">(
     search.mode === "signin" ? "signin" : "signup",
@@ -130,17 +133,35 @@ function AuthPage() {
   };
 
   return (
-    <div className="bg-zari flex min-h-dvh flex-col bg-background">
+    <div
+      className="bg-zari flex min-h-dvh flex-col bg-background"
+      style={celebrationStyle(celebration)}
+    >
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5">
-        <Link to="/" className="font-display text-lg tracking-wide">
-          {t("landing.brand", "My Celebration")}
-        </Link>
+        {celebration?.slug ? (
+          <Link
+            to="/$celebration"
+            params={{ celebration: celebration.slug }}
+            className="flex items-center gap-3 font-display text-lg tracking-wide"
+          >
+            {celebration.cover_logo_url ? (
+              <img src={celebration.cover_logo_url} alt="" className="h-9 w-auto object-contain" />
+            ) : null}
+            {celebration.name}
+          </Link>
+        ) : (
+          <Link to="/" className="font-display text-lg tracking-wide">
+            {t("landing.brand", "My Celebration")}
+          </Link>
+        )}
       </header>
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">
         <div className="panel p-4 sm:p-6 sm:p-8">
           <p className="text-eyebrow">{t("auth.eyebrow", "Guests and hosts")}</p>
-          <h1 className="mt-3 text-3xl">{t("auth.title", "Welcome")}</h1>
+          <h1 className="mt-3 text-3xl">
+            {celebration ? celebration.name : t("auth.title", "Welcome")}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {t(
               "auth.body",
