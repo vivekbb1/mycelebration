@@ -524,12 +524,42 @@ export function HostFamilies() {
     }
   };
 
-  const copyFamilyInvite = async (name: string, code: string) => {
+  const inviteMessage = (name: string, code: string) => {
     const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
-    const message =
-      `Dear ${name},\n\nAs our gift, we've put together a wardrobe of festive outfits for the wedding.\n\n` +
-      `Open your invitation: ${link}\nYour family code: ${code}\n\n` +
-      `One code for the whole family — inside, choose the person first, then their look.\n\nWith love,\nThe hosts`;
+    return {
+      link,
+      message:
+        `Dear ${name},\n\nYou're invited to join our celebration.\n\n` +
+        `Open your invitation: ${link}\nYour family code: ${code}\n\n` +
+        `One code for the whole family — sign up with it once, then everyone can reply and choose their look.\n\nWith love,\nThe hosts`,
+    };
+  };
+
+  const shareWhatsApp = (name: string, code: string) => {
+    const { message } = inviteMessage(name, code);
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+  };
+
+  const shareEmail = (name: string, code: string, email: string | null) => {
+    const { message } = inviteMessage(name, code);
+    window.location.href = `mailto:${encodeURIComponent(email ?? "")}?subject=${encodeURIComponent(
+      "Your invitation and family code",
+    )}&body=${encodeURIComponent(message)}`;
+  };
+
+  const newCode = async (id: string, name: string) => {
+    if (!window.confirm(`Make a new code for ${name}? The old code will stop working for anyone who hasn't joined yet.`)) return;
+    const { error } = await supabase.from("families").update({ code: makeFamilyCode(name) }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`New code made for ${name}.`);
+    void queryClient.invalidateQueries();
+  };
+
+  const copyFamilyInvite = async (name: string, code: string) => {
+    const { link, message } = inviteMessage(name, code);
     try {
       await navigator.clipboard.writeText(message);
       toast.success("Family invitation copied — paste it into WhatsApp or email.");
