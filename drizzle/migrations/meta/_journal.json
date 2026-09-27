@@ -491,6 +491,13 @@
       "when": 1790529180244,
       "tag": "0069_tenancy_report",
       "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1790529712667,
+      "tag": "0070_fix_invites_owner_trigger",
+      "breakpoints": true
     }
   ]
 }

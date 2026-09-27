@@ -53,7 +53,7 @@ export function HostBudget() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, sort_order")
+        .select("id, name, sort_order, invite_id")
         .order("sort_order");
       if (error) throw error;
       return data ?? [];
@@ -232,7 +232,9 @@ export function HostBudget() {
               onChange={(e) => setDraft({ ...draft, event_id: e.target.value })}
             >
               <option value="">Not tied to one</option>
-              {(events.data ?? []).map((e) => (
+              {(events.data ?? [])
+                .filter((e) => !(draft.invite_id || selectedEvent) || e.invite_id === (draft.invite_id || selectedEvent))
+                .map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name}
                 </option>
