@@ -51,6 +51,55 @@ export function HostTravel() {
     },
   });
 
+  const invited = useQuery({
+    queryKey: ["all-household-event-invites"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("household_event_invites")
+        .select("household, event_id");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  /** Per event: families invited, replied, coming, declined and still to reply. */
+  const stats = useMemo(() => {
+    const map = new Map<
+      string,
+      { invited: number; replied: number; confirmed: number; declined: number; pending: number }
+    >();
+    const invitedBy = new Map<string, Set<string>>();
+    for (const r of invited.data ?? []) {
+      const set = invitedBy.get(r.event_id) ?? new Set<string>();
+      set.add(r.household);
+      invitedBy.set(r.event_id, set);
+    }
+    const answers = new Map<string, Map<string, boolean>>();
+    for (const a of attendance.data ?? []) {
+      const m = answers.get(a.event_id) ?? new Map<string, boolean>();
+      m.set(a.household, a.attending);
+      answers.set(a.event_id, m);
+    }
+    const ids = new Set([...invitedBy.keys(), ...answers.keys()]);
+    for (const id of ids) {
+      const inv = invitedBy.get(id) ?? new Set<string>();
+      const ans = answers.get(id) ?? new Map<string, boolean>();
+      const all = new Set([...inv, ...ans.keys()]);
+      let confirmed = 0;
+      let declined = 0;
+      for (const v of ans.values()) (v ? confirmed++ : declined++);
+      const replied = confirmed + declined;
+      map.set(id, {
+        invited: all.size,
+        replied,
+        confirmed,
+        declined,
+        pending: Math.max(0, all.size - replied),
+      });
+    }
+    return map;
+  }, [invited.data, attendance.data]);
+
   const totals = useMemo(() => {
     const map = new Map<string, number>();
     for (const row of attendance.data ?? []) {
@@ -135,6 +184,7 @@ export function HostTravel() {
                   <span className="text-xs text-muted-foreground">{dateLabel(t.date)}</span>
                   <Badge variant="outline">{t.heads} guests</Badge>
                 </div>
+                <EventStats s={stats.get(t.id)} />
                 {t.people.length === 0 ? (
                   <p className="mt-1 text-sm text-muted-foreground">No one has confirmed yet.</p>
                 ) : (
@@ -187,6 +237,7 @@ export function HostTravel() {
               <p className="text-sm">{e.name}</p>
               <p className="mt-1 text-2xl">{totals.get(e.id) ?? 0}</p>
               <p className="text-xs text-muted-foreground">{dateLabel(e.event_date)}</p>
+              <EventStats s={stats.get(e.id)} />
             </div>
           ))}
           {list.length === 0 ? (
@@ -213,5 +264,31 @@ export function HostTravel() {
 
     </div>
 
+  );
+}
+
+type Stats = { invited: number; replied: number; confirmed: number; declined: number; pending: number };
+
+/** Family counts for one event: invited, replied, confirmed, declined, not replied. */
+function EventStats({ s }: { s: Stats | undefined }) {
+  const v = s ?? { invited: 0, replied: 0, confirmed: 0, declined: 0, pending: 0 };
+  const items = [
+    { label: "Invited", value: v.invited, tone: "text-foreground" },
+    { label: "Replied", value: v.replied, tone: "text-foreground" },
+    { label: "Confirmed", value: v.confirmed, tone: "text-primary" },
+    { label: "Declined", value: v.declined, tone: "text-destructive" },
+    { label: "Not replied", value: v.pending, tone: "text-muted-foreground" },
+  ];
+  return (
+    <div className="mt-3 grid grid-cols-5 gap-1 rounded-lg bg-muted/50 p-2 text-center">
+      {items.map((i) => (
+        <div key={i.label} className="min-w-0">
+          <p className={`text-base leading-tight ${i.tone}`}>{i.value}</p>
+          <p className="truncate text-[10px] uppercase tracking-wide text-muted-foreground">
+            {i.label}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
