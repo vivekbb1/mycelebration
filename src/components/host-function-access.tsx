@@ -48,7 +48,7 @@ export function HostFunctionAccess() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, event_date, sort_order, invite_id")
+        .select("id, name, event_date, sort_order, invite_id, outfit_selection")
         .order("sort_order");
       if (error) throw error;
       // Only the celebration being worked on, so ticks never land on another one.
@@ -194,6 +194,10 @@ export function HostFunctionAccess() {
     setApplyTags(new Set());
   };
 
+  /** The event's own setting (Events tab) is the starting point for every family. */
+  const eventDefault = (eventId: string) =>
+    (events.data ?? []).find((e) => e.id === eventId)?.outfit_selection !== false;
+
   const rowsFor = (household: string) =>
     (access.data ?? []).filter((r) => r.household === household);
 
@@ -206,7 +210,7 @@ export function HostFunctionAccess() {
   /** Does this family get to choose an outfit for this event? Default: yes. */
   const picksOutfit = (household: string, eventId: string) => {
     const row = rowsFor(household).find((r) => r.event_id === eventId);
-    return row ? row.outfit_selection !== false : true;
+    return row ? row.outfit_selection !== false : eventDefault(eventId);
   };
 
   const toggleOutfit = async (household: string, eventId: string) => {
@@ -220,7 +224,7 @@ export function HostFunctionAccess() {
         (events.data ?? []).map((e) => ({
           household,
           event_id: e.id,
-          outfit_selection: e.id !== eventId,
+          outfit_selection: e.id === eventId ? !eventDefault(e.id) : eventDefault(e.id),
         })),
       );
       setBusy(false);
@@ -240,7 +244,7 @@ export function HostFunctionAccess() {
           .eq("id", existing.id)
       : await supabase
           .from("household_event_invites")
-          .insert({ household, event_id: eventId, outfit_selection: false });
+          .insert({ household, event_id: eventId, outfit_selection: !eventDefault(eventId) });
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -263,7 +267,7 @@ export function HostFunctionAccess() {
       const all = (events.data ?? []).filter((e) => e.id !== eventId);
       const { error } = await supabase
         .from("household_event_invites")
-        .insert(all.map((e) => ({ household, event_id: e.id })));
+        .insert(all.map((e) => ({ household, event_id: e.id, outfit_selection: eventDefault(e.id) })));
       setBusy(false);
       if (error) {
         toast.error(error.message);
@@ -276,7 +280,9 @@ export function HostFunctionAccess() {
     const existing = rows.find((r) => r.event_id === eventId);
     const { error } = existing
       ? await supabase.from("household_event_invites").delete().eq("id", existing.id)
-      : await supabase.from("household_event_invites").insert({ household, event_id: eventId });
+      : await supabase
+          .from("household_event_invites")
+          .insert({ household, event_id: eventId, outfit_selection: eventDefault(eventId) });
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -305,7 +311,7 @@ export function HostFunctionAccess() {
     const rows = families
       .filter((f) => rowsFor(f.household).length > 0)
       .filter((f) => !rowsFor(f.household).some((r) => r.event_id === eventId))
-      .map((f) => ({ household: f.household, event_id: eventId }));
+      .map((f) => ({ household: f.household, event_id: eventId, outfit_selection: eventDefault(eventId) }));
     if (rows.length === 0) {
       setBusy(false);
       toast.success(`Everyone already sees ${eventName}.`);
@@ -364,7 +370,7 @@ export function HostFunctionAccess() {
           [...next].map((id) => ({
             household,
             event_id: id,
-            outfit_selection: rows.find((r) => r.event_id === id)?.outfit_selection ?? true,
+            outfit_selection: rows.find((r) => r.event_id === id)?.outfit_selection ?? eventDefault(id),
           })),
         );
         if (error) {
@@ -453,6 +459,19 @@ export function HostFunctionAccess() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {(events.data ?? []).length > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                const all = (events.data ?? []).map((e) => e.id);
+                const allOn = all.every((id) => pickedEvents.has(id));
+                setPickedEvents(allOn ? new Set() : new Set(all));
+              }}
+              className="rounded-full border border-dashed border-primary px-3 py-1.5 text-xs text-primary transition hover:bg-primary/10"
+            >
+              {(events.data ?? []).every((e) => pickedEvents.has(e.id)) ? "Clear events" : "Select all events"}
+            </button>
+          ) : null}
           {(events.data ?? []).map((ev) => {
             const on = pickedEvents.has(ev.id);
             return (
