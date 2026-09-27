@@ -78,7 +78,7 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
     const greeting = fullName ? `${escapeHtml(fullName)},` : "Hello,";
     const html = emailShell(`
     <div style="padding:30px">
-      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:#caa04b;margin:0">The Wedding Wardrobe</p>
+      <p style="letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:#caa04b;margin:0">My Celebration</p>
       <h1 style="font-size:26px;margin:12px 0 10px">You've been asked to help host</h1>
       <p style="color:#c9c3b5;font-size:15px;line-height:1.6;margin:0 0 18px">
         ${greeting} you can now help run the wedding wardrobe — the guest list, the functions,

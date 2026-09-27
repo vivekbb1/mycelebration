@@ -13,13 +13,13 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "Celebration — One Place for the Whole Wedding" },
+      { title: "My Celebration — One Place for the Whole Wedding" },
       {
         name: "description",
         content:
           "Invite your guests, track replies event by event, set aside what they wear, collect measurements and arrange their cars and rooms — all in one place.",
       },
-      { property: "og:title", content: "Celebration — One Place for the Whole Wedding" },
+      { property: "og:title", content: "My Celebration — One Place for the Whole Wedding" },
       {
         property: "og:description",
         content:
@@ -74,7 +74,7 @@ function Landing() {
     <div className="bg-zari min-h-dvh bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
         <span className="font-display text-lg tracking-wide">
-          {t("landing.brand", "Celebration")}
+          {t("landing.brand", "My Celebration")}
         </span>
         <Button asChild variant="ghost" size="sm">
           <Link to="/auth" search={{ mode: "signin" }}>

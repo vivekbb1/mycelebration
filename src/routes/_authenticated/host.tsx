@@ -56,13 +56,13 @@ export const Route = createFileRoute("/_authenticated/host")({
     typeof search['tab'] === "string" ? { tab: search['tab'] } : {},
   head: () => ({
     meta: [
-      { title: "Host Dashboard — The Wedding Wardrobe" },
+      { title: "Host Dashboard — My Celebration" },
       {
         name: "description",
         content:
           "Add and edit outfits, and see which looks are reserved, who sent measurements and who hasn't responded.",
       },
-      { property: "og:title", content: "Host Dashboard — The Wedding Wardrobe" },
+      { property: "og:title", content: "Host Dashboard — My Celebration" },
       {
         property: "og:description",
         content: "Manage the wedding wardrobe: outfits, reservations, measurements and RSVPs.",

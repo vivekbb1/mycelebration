@@ -50,10 +50,10 @@ export async function readEmailSettings(): Promise<Settings> {
     return {
       provider: (data?.provider as EmailProvider) ?? "lovable",
       fromEmail: data?.from_email ?? null,
-      fromName: data?.from_name?.trim() || "The Wedding Wardrobe",
+      fromName: data?.from_name?.trim() || "My Celebration",
     };
   } catch {
-    return { provider: "lovable", fromEmail: null, fromName: "The Wedding Wardrobe" };
+    return { provider: "lovable", fromEmail: null, fromName: "My Celebration" };
   }
 }
 

@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/guest/$guestId")({
   head: () => ({
     meta: [
-      { title: "Guest view — The Wedding Wardrobe" },
+      { title: "Guest view — My Celebration" },
       {
         name: "description",
         content:
           "See a guest's portal exactly as they see it: their reserved looks, measurements and RSVP.",
       },
-      { property: "og:title", content: "Guest view — The Wedding Wardrobe" },
+      { property: "og:title", content: "Guest view — My Celebration" },
       {
         property: "og:description",
         content: "Host view of one guest's reserved looks, measurements and RSVP.",

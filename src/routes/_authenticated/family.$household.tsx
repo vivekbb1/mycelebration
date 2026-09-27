@@ -14,13 +14,13 @@ import { splitTags } from "@/components/host-function-access";
 export const Route = createFileRoute("/_authenticated/family/$household")({
   head: () => ({
     meta: [
-      { title: "Family file — The Wedding Wardrobe" },
+      { title: "Family file — My Celebration" },
       {
         name: "description",
         content:
           "Everything about one family in one place: members, contact details, head count, replies, flights, passports and looks.",
       },
-      { property: "og:title", content: "Family file — The Wedding Wardrobe" },
+      { property: "og:title", content: "Family file — My Celebration" },
       {
         property: "og:description",
         content: "One family's details, replies, travel and wardrobe choices for hosts.",
