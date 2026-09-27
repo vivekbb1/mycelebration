@@ -94,6 +94,7 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
     </div>`);
 
     const result = await sendGuestEmail({
+      inviteId: data.inviteId,
       to: email,
       subject: "You've been invited to help host on My Celebration",
       html,

@@ -38,10 +38,27 @@ type Settings = {
   fromName: string;
 };
 
-/** Reads the host's chosen sending route. Falls back to Lovable sending. */
-export async function readEmailSettings(): Promise<Settings> {
+/**
+ * Reads the sending route for a celebration. A celebration's own setting wins;
+ * otherwise the platform default applies, then Lovable sending.
+ */
+export async function readEmailSettings(inviteId?: string | null): Promise<Settings> {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (inviteId) {
+      const { data: own } = await supabaseAdmin
+        .from("celebration_email_settings")
+        .select("provider, from_email, from_name")
+        .eq("invite_id", inviteId)
+        .maybeSingle();
+      if (own) {
+        return {
+          provider: (own.provider as EmailProvider) ?? "lovable",
+          fromEmail: own.from_email ?? null,
+          fromName: own.from_name?.trim() || "My Celebration",
+        };
+      }
+    }
     const { data } = await supabaseAdmin
       .from("email_settings")
       .select("provider, from_email, from_name")
@@ -103,9 +120,9 @@ export async function sendGuestEmail(options: {
   to: string;
   subject: string;
   html: string;
+  inviteId?: string | null;
 }): Promise<SendResult> {
-  const settings = await readEmailSettings();
-  const ready = providerReadiness();
+  const settings = await readEmailSettings(options.inviteId);
   const { to, subject, html } = options;
 
   if (settings.provider === "none") return { sent: false, reason: "email_turned_off" };

@@ -1,3 +1,4 @@
+import { useGuestEvent } from "@/lib/guest-event";
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -37,14 +38,16 @@ export function parseTimeline(value: unknown): TimelineStep[] {
 
 /** Whether the host has the delivery plan switched on for guests. */
 export function useDeliveryPlan() {
+  const { inviteId } = useGuestEvent();
   return useQuery({
-    queryKey: ["logistics-enabled"],
+    queryKey: ["logistics-enabled", inviteId],
+    enabled: Boolean(inviteId),
     staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("logistics")
         .select("enabled")
-        .limit(1)
+        .eq("invite_id", inviteId)
         .maybeSingle();
       if (error) throw error;
       return { enabled: data?.enabled ?? true };

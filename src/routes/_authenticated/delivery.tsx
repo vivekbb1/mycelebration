@@ -1,3 +1,4 @@
+import { useGuestEvent } from "@/lib/guest-event";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BedDouble, Ruler, MapPin, MessageCircle, Mail, CalendarClock } from "lucide-react";
@@ -30,13 +31,15 @@ export const Route = createFileRoute("/_authenticated/delivery")({
 });
 
 function DeliveryPage() {
+  const { inviteId } = useGuestEvent();
   const logistics = useQuery({
-    queryKey: ["logistics"],
+    queryKey: ["logistics", inviteId],
+    enabled: Boolean(inviteId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("logistics")
         .select("*")
-        .limit(1)
+        .eq("invite_id", inviteId)
         .maybeSingle();
       if (error) throw error;
       return data;

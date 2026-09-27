@@ -43,11 +43,15 @@ export const sendArrivalDetails = createServerFn({ method: "POST" })
 
     const { data: guest } = await context.supabase
       .from("invite_codes")
-      .select("guest_name, email, household")
+      .select("guest_name, email, household, invite_id")
       .eq("id", data.inviteId)
       .maybeSingle();
 
     if (!guest) return { sent: false, reason: "guest_not_found" };
+    if (guest.invite_id) {
+      const { data: isHost } = await context.supabase.rpc("is_celebration_host", { _invite_id: guest.invite_id });
+      if (!isHost) return { sent: false, reason: "forbidden" };
+    }
     if (!guest.email) return { sent: false, reason: "no_email" };
     if (!guest.household) return { sent: false, reason: "nothing_to_send" };
 
@@ -125,6 +129,7 @@ export const sendArrivalDetails = createServerFn({ method: "POST" })
     </div>`);
 
     return sendGuestEmail({
+      inviteId: guest.invite_id,
       to: guest.email,
       subject: `${guest.guest_name}, your car and hotel details`,
       html,

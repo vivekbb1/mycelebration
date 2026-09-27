@@ -120,6 +120,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
     </div>`);
 
     return sendGuestEmail({
+      inviteId: guest.invite_id,
       to: guest.email,
       subject: `${guest.guest_name}, please choose your outfit`,
       html,

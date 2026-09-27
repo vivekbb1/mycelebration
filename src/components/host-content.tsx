@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { RotateCcw } from "lucide-react";
 
 import { guardedUpdate } from "@/lib/save-guard";
+import { supabase } from "@/integrations/supabase/client";
 import { SITE_CONTENT_KEY, useSiteContent, type ContentRow } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,14 +22,17 @@ export function HostContent({
   exclude,
   heading = "Wording",
   intro = "Choose a page, then edit its headlines, paragraphs and buttons. Save and guests see the new wording straight away.",
+  inviteId = null,
 }: {
+  /** Celebration whose own wording is edited; null edits the platform-wide wording. */
+  inviteId?: string | null;
   only?: string[];
   exclude?: string[];
   heading?: string;
   intro?: string;
 } = {}) {
   const queryClient = useQueryClient();
-  const { rows: allRows, isLoading } = useSiteContent();
+  const { rows: allRows, isLoading } = useSiteContent({ inviteId });
   const rows = useMemo(
     () =>
       allRows.filter(
@@ -38,6 +42,7 @@ export function HostContent({
     [allRows, only, exclude],
   );
   const [draft, setDraft] = useState<Record<string, string>>({});
+  useEffect(() => setDraft({}), [inviteId]);
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState("");
 
@@ -95,6 +100,21 @@ export function HostContent({
         return;
       }
       try {
+        if (inviteId) {
+          // Back to the platform wording: drop this celebration's own line.
+          const { error } =
+            value === (row.base_value ?? row.default_value)
+              ? await supabase
+                  .from("celebration_content")
+                  .delete()
+                  .eq("invite_id", inviteId)
+                  .eq("key", row.key)
+              : await supabase
+                  .from("celebration_content")
+                  .upsert({ invite_id: inviteId, key: row.key, value });
+          if (error) throw new Error(error.message);
+          continue;
+        }
         await guardedUpdate({
           table: "site_content",
           idColumn: "key",

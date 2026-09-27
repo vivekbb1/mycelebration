@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { getEmailSettings, saveEmailSettings, sendTestEmail } from "@/lib/email-settings.functions";
 
 type Provider = "lovable" | "resend" | "sendgrid" | "brevo" | "none";
@@ -46,7 +47,12 @@ export function HostEmail() {
   const save = useServerFn(saveEmailSettings);
   const test = useServerFn(sendTestEmail);
 
-  const settings = useQuery({ queryKey: ["email-settings"], queryFn: () => load({ data: {} } as never) });
+  const { inviteId } = useSelectedEvent();
+  const settings = useQuery({
+    queryKey: ["email-settings", inviteId],
+    enabled: Boolean(inviteId),
+    queryFn: () => load({ data: { inviteId } }),
+  });
 
   const [provider, setProvider] = useState<Provider>("lovable");
   const [fromEmail, setFromEmail] = useState("");
@@ -69,7 +75,7 @@ export function HostEmail() {
   };
 
   const saving = useMutation({
-    mutationFn: () => save({ data: { provider, fromEmail, fromName } }),
+    mutationFn: () => save({ data: { inviteId, provider, fromEmail, fromName } }),
     onSuccess: (result) => {
       if (!result.ok) {
         toast.error(result.error ?? "Couldn't save that.");
@@ -82,7 +88,7 @@ export function HostEmail() {
   });
 
   const testing = useMutation({
-    mutationFn: () => test({ data: { to: testTo.trim() } }),
+    mutationFn: () => test({ data: { inviteId, to: testTo.trim() } }),
     onSuccess: (result) => {
       if (!result.ok) {
         toast.error(result.error ?? "Couldn't send the test.");

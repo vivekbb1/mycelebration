@@ -132,6 +132,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     </div>`);
 
     return sendGuestEmail({
+      inviteId: invite.invite_id,
       to: invite.email,
       subject: `${invite.guest_name}, your invitation and outfit plan`,
       html,
