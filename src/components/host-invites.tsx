@@ -214,6 +214,7 @@ function WebAddress({ invite }: { invite: Invite }) {
           ) : null}
         </div>
       ) : null}
+      <OwnDomain invite={invite} />
       <label className="block text-sm">
         A welcome line for that page (optional)
         <Textarea
@@ -229,6 +230,83 @@ function WebAddress({ invite }: { invite: Invite }) {
           className="mt-1"
         />
       </label>
+    </div>
+  );
+}
+
+/** The celebration's own domain — only for hosts with the "Own web address" add-on. */
+function OwnDomain({ invite }: { invite: Invite }) {
+  const { has } = useFeatures();
+  const qc = useQueryClient();
+  const [value, setValue] = useState(invite.custom_domain ?? "");
+  useEffect(() => setValue(invite.custom_domain ?? ""), [invite.custom_domain]);
+
+  const save = useMutation({
+    mutationFn: async (domain: string | null) => {
+      const { error } = await supabase
+        .from("invites")
+        .update({ custom_domain: domain, updated_at: new Date().toISOString() })
+        .eq("id", invite.id);
+      if (error) {
+        if (error.code === "23505") throw new Error("Another celebration already uses that domain.");
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invite-sets"] });
+      toast.success("Domain saved — we'll finish connecting it for you.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!has("custom_domain")) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        Want your own domain, like kushkhyati.com?{" "}
+        <Link to="/upgrade" className="text-primary hover:underline">
+          Add "Own web address" on Your package
+        </Link>
+        .
+      </p>
+    );
+  }
+
+  const clean = value
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/.*$/, "");
+  const valid = !clean || /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(clean);
+
+  return (
+    <div className="space-y-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <Globe className="size-4 text-primary" />
+        <span className="text-sm text-muted-foreground">Own domain</span>
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="kushkhyati.com"
+          className="h-9 w-52"
+          aria-label={`Own domain for ${invite.name}`}
+        />
+        <Button
+          type="button"
+          size="sm"
+          disabled={save.isPending || !valid || clean === (invite.custom_domain ?? "")}
+          onClick={() => save.mutate(clean || null)}
+        >
+          {invite.custom_domain ? "Update" : "Save"}
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {!valid
+          ? "That doesn't look like a domain — type it like kushkhyati.com."
+          : !invite.slug
+            ? "Set the web address above first, so the domain knows which page to open."
+            : "Once saved, the platform team connects it; then the domain opens straight onto this celebration's page."}
+      </p>
     </div>
   );
 }
