@@ -25,7 +25,7 @@ export const sendWelcomeEmail = createServerFn({ method: "POST" })
       let link = `${PUBLIC_ORIGIN}/guest/invite`;
       if (data.slug) {
         const { data: c } = await context.supabase.rpc("celebration_by_slug", { _slug: data.slug });
-        const row = Array.isArray(c) ? c[0] : c;
+        const row = (Array.isArray(c) ? c[0] : c) as { slug?: string; name?: string } | null;
         if (row?.slug) {
           name = row.name ?? name;
           link = `${PUBLIC_ORIGIN}/${row.slug}`;
