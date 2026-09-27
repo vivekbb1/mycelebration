@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useGuestEvent } from "@/lib/guest-event";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 /** Everything a host can be given. Keys are stored in plans and subscriptions. */
 export const FEATURES = [
@@ -60,14 +62,22 @@ export type FeatureKey = (typeof FEATURES)[number]["key"];
 export const featureLabel = (key: string) =>
   FEATURES.find((f) => f.key === key)?.label ?? key.replace(/_/g, " ");
 
-/** What the signed-in host may use, plus whether they run the platform. */
+/**
+ * What the celebration being viewed includes (the host's chosen one, else the
+ * guest's), plus whether the signed-in person runs the platform.
+ */
 export function useFeatures() {
+  const selected = useSelectedEvent().inviteId;
+  const guest = useGuestEvent().inviteId;
+  const inviteId = selected || guest || "";
   const mine = useQuery({
-    queryKey: ["my-features"],
+    queryKey: ["my-features", inviteId],
     staleTime: 60_000,
     queryFn: async () => {
       const [features, admin] = await Promise.all([
-        supabase.rpc("my_features"),
+        inviteId
+          ? supabase.rpc("celebration_features", { _invite_id: inviteId })
+          : supabase.rpc("my_features"),
         supabase.rpc("is_platform_admin"),
       ]);
       const list = Array.isArray(features.data) ? (features.data as string[]) : [];
