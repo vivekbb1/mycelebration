@@ -330,6 +330,13 @@
       "when": 1789915544796,
       "tag": "0046_rsvp_from_event_answers",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790501776175,
+      "tag": "0047_celebration_custom_domain",
+      "breakpoints": true
     }
   ]
 }
