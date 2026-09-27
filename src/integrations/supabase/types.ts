@@ -1518,6 +1518,35 @@ export type Database = {
         }
         Relationships: []
       }
+      outfit_favourites: {
+        Row: {
+          created_at: string
+          id: string
+          outfit_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          outfit_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          outfit_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outfit_favourites_outfit_id_fkey"
+            columns: ["outfit_id"]
+            isOneToOne: false
+            referencedRelation: "outfits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outfit_feed_hidden: {
         Row: {
           created_at: string
@@ -1697,6 +1726,7 @@ export type Database = {
           image_url: string | null
           images: Json
           is_available: boolean
+          is_pinned: boolean
           notes: string | null
           price_inr: number | null
           price_note: string | null
@@ -1719,6 +1749,7 @@ export type Database = {
           image_url?: string | null
           images?: Json
           is_available?: boolean
+          is_pinned?: boolean
           notes?: string | null
           price_inr?: number | null
           price_note?: string | null
@@ -1741,6 +1772,7 @@ export type Database = {
           image_url?: string | null
           images?: Json
           is_available?: boolean
+          is_pinned?: boolean
           notes?: string | null
           price_inr?: number | null
           price_note?: string | null

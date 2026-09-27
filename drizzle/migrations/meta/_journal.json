@@ -414,6 +414,13 @@
       "when": 1790523193367,
       "tag": "0058_email_delivery_events",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1790523525814,
+      "tag": "0059_outfit_favourites_pins",
+      "breakpoints": true
     }
   ]
 }
