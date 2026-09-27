@@ -5,6 +5,7 @@ import { Plane, Users, CalendarClock, Check, X, ChevronDown, ChevronUp } from "l
 
 import { supabase } from "@/integrations/supabase/client";
 import { GuestArrivals } from "@/components/guest-arrivals";
+import { GuestPassports } from "@/components/guest-passports";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -465,6 +466,11 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             <Button className="mt-5" disabled={busy} onClick={saveTravel}>
               {current ? "Update travel details" : "Save travel details"}
             </Button>
+
+            <GuestPassports
+              household={household}
+              people={[...new Set([myName, ...(people.data ?? []).map((p) => p.name)].filter(Boolean))]}
+            />
           </>
         ) : null}
       </section>

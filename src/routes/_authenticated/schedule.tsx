@@ -120,7 +120,7 @@ function EventPage() {
     setNoteTouched(false);
     await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
     // Saying yes takes them straight to what's expected of them (outfit slots, dates).
-    if (status === "yes") navigate({ to: "/plan" });
+    if (status === "yes") navigate({ to: "/outfits" });
   };
 
   const guestEvent = useGuestEvent();
