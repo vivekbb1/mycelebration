@@ -81,10 +81,22 @@ export function GuestPassports({ household, people }: { household: string; peopl
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
-  if (!household || people.length === 0) return null;
+  if (!household || people.length === 0) {
+    return (
+      <div>
+        <h3 className="flex items-center gap-2 text-lg">
+          <FileText className="size-4 text-primary" /> Passports for check-in
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your account isn't linked to a family yet — open your invitation code first, then add
+          passports here.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-6 border-t border-border pt-6">
+    <div>
       <h3 className="flex items-center gap-2 text-lg">
         <FileText className="size-4 text-primary" /> Passports for check-in
       </h3>

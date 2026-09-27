@@ -466,13 +466,15 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             <Button className="mt-5" disabled={busy} onClick={saveTravel}>
               {current ? "Update travel details" : "Save travel details"}
             </Button>
-
-            <GuestPassports
-              household={household}
-              people={[...new Set([myName, ...(people.data ?? []).map((p) => p.name)].filter(Boolean))]}
-            />
           </>
         ) : null}
+      </section>
+
+      <section className="panel mt-6 p-4 sm:p-6">
+        <GuestPassports
+          household={household}
+          people={[...new Set([myName, ...(people.data ?? []).map((p) => p.name)].filter(Boolean))]}
+        />
       </section>
     </>
   );
