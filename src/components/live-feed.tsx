@@ -94,7 +94,7 @@ export function LiveFeed({
       ? await supabase.from("outfit_feed_hidden").delete().eq("event_id", eventId).eq("slug", look.slug)
       : await supabase.from("outfit_feed_hidden").insert({ event_id: eventId, slug: look.slug });
     setBusy(null);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setLooks((prev) => prev.map((l) => (l.slug === look.slug ? { ...l, hidden: !l.hidden } : l)));
   };
 

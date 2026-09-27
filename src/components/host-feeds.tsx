@@ -78,10 +78,10 @@ export function HostFeeds() {
     Object.values(CATEGORIES).flat().find((c) => c.path === p)?.label ?? p;
 
   const add = async () => {
-    if (!eventId) return toast.error("Choose the event first.");
+    if (!eventId) { toast.error("Choose the event first."); return; }
     const path = (category === "custom" ? customPath : category).trim().replace(/^\/+|\/+$/g, "");
     if (!/^[a-z0-9\-]+(\/[a-z0-9\-]+){0,2}$/.test(path)) {
-      return toast.error("That category path doesn't look right, e.g. clothing/lehenga");
+      { toast.error("That category path doesn't look right, e.g. clothing/lehenga"); return; }
     }
     setBusy(true);
     const { error } = await supabase.from("outfit_feeds").insert({
@@ -96,14 +96,14 @@ export function HostFeeds() {
       sort_order: (feeds.data?.length ?? 0) + 1,
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Feed saved — guests see these looks now.");
     await queryClient.invalidateQueries({ queryKey: ["outfit-feeds"] });
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("outfit_feeds").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await queryClient.invalidateQueries({ queryKey: ["outfit-feeds"] });
   };
 
