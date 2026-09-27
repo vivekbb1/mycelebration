@@ -4,7 +4,7 @@ import { LiveFeed } from "@/components/live-feed";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Lock, Check, MapPin } from "lucide-react";
+import { CalendarDays, Lock, Check, MapPin, Heart, Pin } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/guest/outfits")({
 
 type Outfit = {
   id: string;
+  is_pinned?: boolean;
   event_id: string | null;
   title: string;
   designer: string | null;
@@ -63,6 +64,22 @@ function Lookbook() {
   const [activeEvent, setActiveEvent] = useState<string>("all");
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [favOnly, setFavOnly] = useState(false);
+  const favourites = useQuery({
+    queryKey: ["outfit-favourites"],
+    queryFn: async () => {
+      const { data } = await supabase.from("outfit_favourites").select("outfit_id");
+      return new Set((data ?? []).map((f) => f.outfit_id));
+    },
+  });
+  const toggleFavourite = async (id: string) => {
+    const isFav = favourites.data?.has(id);
+    const { error } = isFav
+      ? await supabase.from("outfit_favourites").delete().eq("outfit_id", id)
+      : await supabase.from("outfit_favourites").insert({ outfit_id: id });
+    if (error) return;
+    await favourites.refetch();
+  };
   const [activePerson, setActivePerson] = useState<string | null>(null);
   const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
   const { needsWardrobe } = useNeedsWardrobe();
@@ -243,9 +260,10 @@ function Lookbook() {
       (!wardrobe || (o.gender ?? "women") === wardrobe),
   );
 
-  const visible = selectable.filter(
-    (o) => activeEvent === "all" || o.event_id === activeEvent,
-  );
+  const visible = selectable
+    .filter((o) => activeEvent === "all" || o.event_id === activeEvent)
+    .filter((o) => !favOnly || favourites.data?.has(o.id))
+    .sort((a, b) => Number(!!b.is_pinned) - Number(!!a.is_pinned));
 
   const reserve = async (outfit: Outfit) => {
     setBusyId(outfit.id);
@@ -659,7 +677,23 @@ function Lookbook() {
           </p>
         </div>
       ) : (
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <>
+        <div className="mt-6 flex justify-end">
+          <Button
+            size="sm"
+            variant={favOnly ? "default" : "outline"}
+            onClick={() => setFavOnly((v) => !v)}
+          >
+            <Heart className={`mr-1 size-4 ${favOnly ? "fill-current" : ""}`} />
+            Favourites{favourites.data?.size ? ` (${favourites.data.size})` : ""}
+          </Button>
+        </div>
+        {favOnly && visible.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Tap the heart on any look to save it here.
+          </p>
+        ) : null}
+        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((outfit) => {
             const heldBy = mineByOutfit.has(outfit.id)
               ? (mineByOutfit.get(outfit.id) ?? activeName)
@@ -679,6 +713,19 @@ function Lookbook() {
                       {mine ? `For ${activeName}` : heldBy ? `For ${heldBy}` : "Reserved"}
                     </Badge>
                   ) : null}
+                  {outfit.is_pinned ? (
+                    <Badge className="absolute bottom-3 left-3 gap-1">
+                      <Pin className="size-3" /> Host's pick
+                    </Badge>
+                  ) : null}
+                  <button
+                    type="button"
+                    aria-label={favourites.data?.has(outfit.id) ? "Remove from favourites" : "Add to favourites"}
+                    onClick={() => toggleFavourite(outfit.id)}
+                    className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-background/85 text-primary shadow"
+                  >
+                    <Heart className={`size-4 ${favourites.data?.has(outfit.id) ? "fill-current" : ""}`} />
+                  </button>
                 </div>
 
                 <div className="flex flex-1 flex-col p-5">
