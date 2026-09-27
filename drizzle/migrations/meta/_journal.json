@@ -505,6 +505,13 @@
       "when": 1790530759426,
       "tag": "0071_sync_guest_wardrobe_to_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1790531584083,
+      "tag": "0072_wardrobe_boy_girl_and_guest_contact",
+      "breakpoints": true
     }
   ]
 }
