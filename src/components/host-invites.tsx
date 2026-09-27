@@ -119,7 +119,8 @@ function WebAddress({ invite }: { invite: Invite }) {
     setIntro(invite.public_intro ?? "");
   }, [invite.slug, invite.public_intro]);
 
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  // Guests always get the public address, never the preview one.
+  const origin = "https://mycelebration.app";
   const suggestion = slugify(invite.name);
 
   const save = useMutation({
@@ -167,7 +168,7 @@ function WebAddress({ invite }: { invite: Invite }) {
       <div className="flex flex-wrap items-center gap-2">
         <Globe className="size-4 text-primary" />
         <span className="text-sm text-muted-foreground">Web address</span>
-        <span className="text-xs text-muted-foreground">{origin}/</span>
+        <span className="text-xs text-muted-foreground">mycelebration.app/</span>
         <Input
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
