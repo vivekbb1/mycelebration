@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ORDER_STATUSES, orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 
 /**
@@ -24,21 +25,30 @@ import { ORDER_STATUSES, orderStatusLabel, orderStatusVariant } from "@/lib/orde
 export function HostByBoutique() {
   const queryClient = useQueryClient();
 
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const boutiques = useQuery({
-    queryKey: ["boutiques"],
+    queryKey: ["boutiques", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("boutiques").select("*").order("name");
+      let q = supabase.from("boutiques").select("*").order("name");
+      if (inviteId) {
+        const links = await supabase.from("boutique_celebrations").select("boutique_id").eq("invite_id", inviteId);
+        if (links.error) throw links.error;
+        q = q.in("id", (links.data ?? []).map((l) => l.boutique_id));
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
 
   const outfits = useQuery({
-    queryKey: ["outfits"],
+    queryKey: ["outfits", "by-boutique", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("outfits")
         .select("*")
+        .match(scope)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -46,11 +56,12 @@ export function HostByBoutique() {
   });
 
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", "by-boutique", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("id, name")
+        .match(scope)
         .order("sort_order");
       if (error) throw error;
       return data;
@@ -58,11 +69,12 @@ export function HostByBoutique() {
   });
 
   const reservations = useQuery({
-    queryKey: ["reservations"],
+    queryKey: ["reservations", "by-boutique", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, created_at, order_status");
+        .select("id, outfit_id, guest_id, guest_name, created_at, order_status")
+        .match(scope);
       if (error) throw error;
       return data;
     },
