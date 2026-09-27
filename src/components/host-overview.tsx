@@ -64,35 +64,38 @@ export function HostOverview() {
     },
   });
 
+  // Count only people on the guest list — hosts and leftover accounts
+  // without an invitation are ignored, so the cards match the list below.
   const rsvp = useMemo(() => {
-    const rows = profiles.data ?? [];
-    const yes = rows.filter((p) => p.rsvp_status === "yes").length;
-    const no = rows.filter((p) => p.rsvp_status === "no").length;
-    const registered = rows.length;
-    const invited = (invites.data ?? []).length;
-    const households = new Set(
-      (invites.data ?? []).map((i) => i.household ?? i.guest_name),
-    ).size;
+    const list = invites.data ?? [];
+    const byId = new Map((profiles.data ?? []).map((p) => [p.id, p]));
+    const claimed = list.filter((i) => i.claimed_by && byId.has(i.claimed_by));
+    const status = (i: (typeof list)[number]) => byId.get(i.claimed_by!)?.rsvp_status;
+    const yes = claimed.filter((i) => status(i) === "yes").length;
+    const no = claimed.filter((i) => status(i) === "no").length;
+    const invited = list.length;
+    const households = new Set(list.map((i) => i.household ?? i.guest_name)).size;
     return {
       invited,
       households,
-      registered,
-      notRegistered: Math.max(invited - registered, 0),
+      registered: claimed.length,
+      guestIds: new Set(claimed.map((i) => i.claimed_by!)),
+      notRegistered: invited - claimed.length,
       yes,
       no,
-      waiting: Math.max(registered - yes - no, 0),
+      waiting: invited - yes - no,
     };
   }, [profiles.data, invites.data]);
 
   const chosen = useMemo(() => {
-    const rows = reservations.data ?? [];
+    const rows = (reservations.data ?? []).filter((r) => rsvp.guestIds.has(r.guest_id));
     const guests = new Set(rows.map((r) => r.guest_id)).size;
     return {
       looks: rows.length,
       guests,
       stillToChoose: Math.max(rsvp.registered - guests, 0),
     };
-  }, [reservations.data, rsvp.registered]);
+  }, [reservations.data, rsvp.registered, rsvp.guestIds]);
 
   const byFunction = useMemo(() => {
     const outfitById = new Map((outfits.data ?? []).map((o) => [o.id, o]));
