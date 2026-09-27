@@ -39,3 +39,13 @@ Open, for the host to do
 ## Payments (open)
 - Stripe not switched on yet (user chose "build the pages first"). When ready: payments--enable_stripe_payments, then products for packages/add-ons and guest event fees; no tax automation for now (user chose none); never managed_payments (seller country AE).
 - /upgrade "Pay by card" button and /pay "Pay by card" button are disabled placeholders waiting on Stripe checkout.
+
+## Sep 27 requests
+- [x] Celebration web address shows mycelebration.app/<name>; all email/invite links use mycelebration.app
+- [x] Sender domain verified; test host invite sent and accepted to vivekbb@hotmail.com
+- [x] Confirmed outfits locked for guests (database + pages); hosts can still change them
+- [ ] Junk folder: new-domain warmup; user to add DMARC at registrar, mark "Not junk"
+- [ ] kushkhyati.com — blocked: user must own/connect it in Project Settings → Domains (hosts can't connect domains themselves)
+- [ ] Real price for Own web address add-on — blocked: needs price from user
+- [ ] Card payment for add-ons (Stripe) — blocked: user go-ahead to switch on
+- [ ] WhatsApp sending — blocked: user to choose provider (e.g. Twilio); email replies can't flow back (send-only)
