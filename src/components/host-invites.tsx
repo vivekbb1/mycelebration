@@ -12,6 +12,7 @@ import { BRANDING_DEFAULTS, fontStack, type Branding } from "@/lib/branding";
 import { slugProblem, slugify } from "@/lib/celebration-slug";
 import { Link } from "@tanstack/react-router";
 import { useFeatures } from "@/lib/features";
+import { CelebrationQr } from "@/components/celebration-qr";
 
 type Draft = Omit<Branding, "id">;
 
@@ -218,6 +219,7 @@ function WebAddress({ invite }: { invite: Invite }) {
           ) : null}
         </div>
       ) : null}
+      {link && invite.slug ? <CelebrationQr link={link} name={invite.slug} /> : null}
       <OwnDomain invite={invite} />
       <PageLook inviteId={invite.id} />
       <label className="block text-sm">
