@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, Download, Plus, Trash2, Upload, Users } from "lucide-react";
+import { Copy, Download, Mail, MessageCircle, Plus, RefreshCw, Trash2, Upload, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -187,7 +187,7 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, created_at, needs_wardrobe, invite_id")
+        .select("id, name, code, email, created_at, needs_wardrobe, invite_id")
         .order("name");
       if (error) throw error;
       return data;
@@ -524,12 +524,42 @@ export function HostFamilies() {
     }
   };
 
-  const copyFamilyInvite = async (name: string, code: string) => {
+  const inviteMessage = (name: string, code: string) => {
     const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
-    const message =
-      `Dear ${name},\n\nAs our gift, we've put together a wardrobe of festive outfits for the wedding.\n\n` +
-      `Open your invitation: ${link}\nYour family code: ${code}\n\n` +
-      `One code for the whole family — inside, choose the person first, then their look.\n\nWith love,\nThe hosts`;
+    return {
+      link,
+      message:
+        `Dear ${name},\n\nYou're invited to join our celebration.\n\n` +
+        `Open your invitation: ${link}\nYour family code: ${code}\n\n` +
+        `One code for the whole family — sign up with it once, then everyone can reply and choose their look.\n\nWith love,\nThe hosts`,
+    };
+  };
+
+  const shareWhatsApp = (name: string, code: string) => {
+    const { message } = inviteMessage(name, code);
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+  };
+
+  const shareEmail = (name: string, code: string, email: string | null) => {
+    const { message } = inviteMessage(name, code);
+    window.location.href = `mailto:${encodeURIComponent(email ?? "")}?subject=${encodeURIComponent(
+      "Your invitation and family code",
+    )}&body=${encodeURIComponent(message)}`;
+  };
+
+  const newCode = async (id: string, name: string) => {
+    if (!window.confirm(`Make a new code for ${name}? The old code will stop working for anyone who hasn't joined yet.`)) return;
+    const { error } = await supabase.from("families").update({ code: makeFamilyCode(name) }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`New code made for ${name}.`);
+    void queryClient.invalidateQueries();
+  };
+
+  const copyFamilyInvite = async (name: string, code: string) => {
+    const { link, message } = inviteMessage(name, code);
     try {
       await navigator.clipboard.writeText(message);
       toast.success("Family invitation copied — paste it into WhatsApp or email.");
@@ -850,6 +880,30 @@ export function HostFamilies() {
                     onClick={() => copyFamilyInvite(f.name, f.code)}
                   >
                     <Copy className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Send ${f.name}'s invitation on WhatsApp`}
+                    onClick={() => shareWhatsApp(f.name, f.code)}
+                  >
+                    <MessageCircle className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Email ${f.name}'s invitation`}
+                    onClick={() => shareEmail(f.name, f.code, (f as { email?: string | null }).email ?? null)}
+                  >
+                    <Mail className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Make a new code for ${f.name}`}
+                    onClick={() => newCode(f.id, f.name)}
+                  >
+                    <RefreshCw className="size-4" />
                   </Button>
                   <Button
                     variant="ghost"
