@@ -32,6 +32,7 @@ import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostGuestList } from "@/components/host-guest-list";
 import { HostTags } from "@/components/host-tags";
 import { HostPicks } from "@/components/host-picks";
+import { HostFeeds } from "@/components/host-feeds";
 import { HostOrders } from "@/components/host-orders";
 import { HostTravel } from "@/components/host-travel";
 import { HostArrivals } from "@/components/host-arrivals";
@@ -688,10 +689,15 @@ function HostDashboard() {
             <TabsList>
               <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="import">Bulk Upload</TabsTrigger>
+              <TabsTrigger value="feeds">Live feeds</TabsTrigger>
               <TabsTrigger value="picks">Selection</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
               {has("delivery") ? <TabsTrigger value="logistics">Delivery</TabsTrigger> : null}
             </TabsList>
+
+            <TabsContent value="feeds" className="mt-6">
+              <HostFeeds />
+            </TabsContent>
 
             <TabsContent value="picks" className="mt-6">
               <HostPicks />
