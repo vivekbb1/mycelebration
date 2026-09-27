@@ -5,7 +5,7 @@ import { LiveFeed } from "@/components/live-feed";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Lock, Check, MapPin, Heart, Pin } from "lucide-react";
+import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search, LayoutGrid, LayoutList } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
