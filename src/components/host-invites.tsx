@@ -574,27 +574,28 @@ function PageLook({ inviteId }: { inviteId: string }) {
     public_accent?: string | null;
   }) => {
     const { error } = await supabase.from("invites").update(patch).eq("id", inviteId);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Saved.");
     qc.invalidateQueries({ queryKey: ["page-look", inviteId] });
     qc.invalidateQueries({ queryKey: ["public-celebration"] });
   };
 
   const upload = async (kind: "public_logo_url" | "public_bg_url", file: File) => {
-    if (!file.type.startsWith("image/")) return toast.error("Choose an image file.");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Keep images under 8 MB.");
+    if (!file.type.startsWith("image/")) { toast.error("Choose an image file."); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error("Keep images under 8 MB."); return; }
     setBusy(kind);
     const path = `celebration-page/${inviteId}/${kind}-${Date.now()}-${file.name.replace(/[^a-z0-9.]+/gi, "-")}`;
     const up = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
     if (up.error) {
       setBusy(null);
-      return toast.error(up.error.message);
+      toast.error(up.error.message);
+      return;
     }
     const signed = await supabase.storage
       .from("event-images")
       .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
     setBusy(null);
-    if (signed.error || !signed.data) return toast.error("Could not save the image.");
+    if (signed.error || !signed.data) { toast.error("Could not save the image."); return; }
     await save({ [kind]: signed.data.signedUrl });
   };
 

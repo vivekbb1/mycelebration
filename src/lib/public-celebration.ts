@@ -38,9 +38,9 @@ export function celebrationStyle(c: PublicCelebration | null | undefined): React
   const accent = safeAccent(c.accent);
   const style: Record<string, string> = {};
   if (c.bg_url && /^https:\/\//i.test(c.bg_url)) {
-    style.backgroundImage = `linear-gradient(color-mix(in oklab, var(--background) 72%, transparent), color-mix(in oklab, var(--background) 88%, transparent)), url("${c.bg_url.replace(/"/g, "")}")`;
-    style.backgroundSize = "cover";
-    style.backgroundPosition = "center";
+    style["backgroundImage"] = `linear-gradient(color-mix(in oklab, var(--background) 72%, transparent), color-mix(in oklab, var(--background) 88%, transparent)), url("${c.bg_url.replace(/"/g, "")}")`;
+    style["backgroundSize"] = "cover";
+    style["backgroundPosition"] = "center";
   }
   if (accent) {
     style["--primary"] = accent;
