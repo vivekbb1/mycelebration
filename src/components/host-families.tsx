@@ -1,3 +1,4 @@
+import { randomCode } from "@/lib/secure-code";
 import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -77,17 +78,17 @@ function wardrobeFrom(value: string): Wardrobe {
   return "";
 }
 
-/** A short, readable family code: surname + four digits. */
+/** A short, readable family code: surname + eight random characters. */
 function makeFamilyCode(familyName: string) {
   const words = familyName.replace(/[^a-zA-Z ]/g, " ").trim().split(/\s+/);
   const base = (words[words.length - 1] ?? "FAMILY").toUpperCase().slice(0, 8) || "FAMILY";
-  return `${base}-${Math.floor(1000 + Math.random() * 9000)}`;
+  return `${base}-${randomCode(8)}`;
 }
 
 function makeMemberCode(name: string) {
   const base =
     name.trim().split(/\s+/)[0]?.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 8) || "GUEST";
-  return `${base}-${Math.floor(1000 + Math.random() * 9000)}`;
+  return `${base}-${randomCode(8)}`;
 }
 
 type ParsedRow = {

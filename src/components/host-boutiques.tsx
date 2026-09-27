@@ -1,3 +1,4 @@
+import { randomCode } from "@/lib/secure-code";
 import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,7 +36,7 @@ function makeCode(name: string) {
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, "")
       .slice(0, 6) || "ATELIER";
-  const tail = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4);
+  const tail = randomCode(8);
   return `${stem}-${tail}`;
 }
 

@@ -1,3 +1,4 @@
+import { randomCode } from "@/lib/secure-code";
 import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -19,10 +20,7 @@ const inviteSchema = z.object({
 });
 
 function makeCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out = "";
-  for (let i = 0; i < 6; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
-  return `HOST-${out}`;
+  return `HOST-${randomCode(10)}`;
 }
 
 /** Invites another host by email and emails them a registration link. */
