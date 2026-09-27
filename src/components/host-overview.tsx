@@ -4,30 +4,31 @@ import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { HostDashboard } from "@/components/host-dashboard";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 /**
  * At-a-glance numbers for the hosts: who has replied, who has confirmed a look,
  * and which events are attracting the most outfit selections.
  */
 export function HostOverview() {
+  const { inviteId } = useSelectedEvent();
   const events = useQuery({
-    queryKey: ["overview-events"],
+    queryKey: ["overview-events", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, name, event_date, outfit_selection, sort_order")
-        .order("sort_order");
+      let q = supabase.from("events").select("id, name, event_date, outfit_selection, sort_order");
+      if (inviteId) q = q.eq("invite_id", inviteId);
+      const { data, error } = await q.order("sort_order");
       if (error) throw error;
       return data;
     },
   });
 
   const invites = useQuery({
-    queryKey: ["overview-invites"],
+    queryKey: ["overview-invites", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invite_codes")
-        .select("id, guest_name, household, claimed_by");
+      let q = supabase.from("invite_codes").select("id, guest_name, household, claimed_by");
+      if (inviteId) q = q.eq("invite_id", inviteId);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -45,20 +46,22 @@ export function HostOverview() {
   });
 
   const outfits = useQuery({
-    queryKey: ["overview-outfits"],
+    queryKey: ["overview-outfits", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("outfits").select("id, title, event_id");
+      let q = supabase.from("outfits").select("id, title, event_id");
+      if (inviteId) q = q.eq("invite_id", inviteId);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
 
   const reservations = useQuery({
-    queryKey: ["overview-reservations"],
+    queryKey: ["overview-reservations", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name");
+      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name");
+      if (inviteId) q = q.eq("invite_id", inviteId);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },

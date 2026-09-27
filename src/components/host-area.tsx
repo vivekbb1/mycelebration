@@ -197,6 +197,7 @@ function HostDashboard() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const { inviteId: selectedEvent } = useSelectedEvent();
   const events = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
@@ -233,11 +234,11 @@ function HostDashboard() {
 
 
   const reservations = useQuery({
-    queryKey: ["reservations"],
+    queryKey: ["reservations", selectedEvent],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, created_at");
+      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, created_at");
+      if (selectedEvent) q = q.eq("invite_id", selectedEvent);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -255,20 +256,22 @@ function HostDashboard() {
   });
 
   const invites = useQuery({
-    queryKey: ["invites"],
+    queryKey: ["invites", selectedEvent],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invite_codes")
-        .select("id, code, guest_name, email, claimed_by");
+      let q = supabase.from("invite_codes").select("id, code, guest_name, email, claimed_by");
+      if (selectedEvent) q = q.eq("invite_id", selectedEvent);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
 
   const measurements = useQuery({
-    queryKey: ["all-measurements"],
+    queryKey: ["all-measurements", selectedEvent],
     queryFn: async () => {
-      const { data, error } = await supabase.from("measurements").select("*");
+      let q = supabase.from("measurements").select("*");
+      if (selectedEvent) q = q.eq("invite_id", selectedEvent);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -279,8 +282,6 @@ function HostDashboard() {
     invites.data?.find((i) => i.claimed_by === guestId)?.guest_name ||
     fallback ||
     "Guest";
-
-  const { inviteId: selectedEvent } = useSelectedEvent();
 
   /** Only the events and looks that belong to the celebration being worked on. */
   const eventList = useMemo(
@@ -349,7 +350,10 @@ function HostDashboard() {
     const measured = new Set((measurements.data ?? []).map((m) => m.guest_id)).size;
     const invited = (invites.data ?? []).length;
     const silent = (invites.data ?? []).filter((i) => !i.claimed_by).length;
-    const awaitingRsvp = (profiles.data ?? []).filter((p) => p.rsvp_status === "pending").length;
+    const mine = new Set((invites.data ?? []).map((i) => i.claimed_by).filter(Boolean));
+    const awaitingRsvp = (profiles.data ?? []).filter(
+      (p) => mine.has(p.id) && p.rsvp_status === "pending",
+    ).length;
     return { total, reserved, available: total - reserved, measured, invited, silent, awaitingRsvp };
   }, [outfitList, reservations.data, measurements.data, invites.data, profiles.data]);
 
