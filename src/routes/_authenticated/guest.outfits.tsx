@@ -65,6 +65,7 @@ function Lookbook() {
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [favOnly, setFavOnly] = useState(false);
+  const [picksOnly, setPicksOnly] = useState(false);
   const favourites = useQuery({
     queryKey: ["outfit-favourites"],
     queryFn: async () => {
@@ -263,6 +264,7 @@ function Lookbook() {
   const visible = selectable
     .filter((o) => activeEvent === "all" || o.event_id === activeEvent)
     .filter((o) => !favOnly || favourites.data?.has(o.id))
+    .filter((o) => !picksOnly || o.is_pinned)
     .sort((a, b) => Number(!!b.is_pinned) - Number(!!a.is_pinned));
 
   const reserve = async (outfit: Outfit) => {
@@ -678,7 +680,17 @@ function Lookbook() {
         </div>
       ) : (
         <>
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
+          {selectable.some((o) => o.is_pinned) ? (
+            <Button
+              size="sm"
+              variant={picksOnly ? "default" : "outline"}
+              onClick={() => setPicksOnly((v) => !v)}
+            >
+              <Pin className="mr-1 size-4" />
+              Recommended by your hosts ({selectable.filter((o) => o.is_pinned).length})
+            </Button>
+          ) : null}
           <Button
             size="sm"
             variant={favOnly ? "default" : "outline"}
@@ -715,7 +727,7 @@ function Lookbook() {
                   ) : null}
                   {outfit.is_pinned ? (
                     <Badge className="absolute top-14 right-3 gap-1">
-                      <Pin className="size-3" /> Host's pick
+                      <Pin className="size-3" /> Recommended
                     </Badge>
                   ) : null}
                   <button
