@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 
@@ -82,7 +83,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
     if (waiting.length === 0) return { sent: false, reason: "already_chosen" };
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
-    const origin = new URL(getRequest().url).origin;
+    const origin = PUBLIC_ORIGIN;
     const link = `${origin}/outfits`;
 
     const rows = waiting

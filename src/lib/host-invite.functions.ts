@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
@@ -71,7 +72,7 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
       }
     }
 
-    const origin = new URL(getRequest().url).origin;
+    const origin = PUBLIC_ORIGIN;
     const link = `${origin}/auth?code=${encodeURIComponent(code)}`;
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");

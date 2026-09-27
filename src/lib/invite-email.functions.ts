@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 
@@ -81,7 +82,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     }
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
-    const origin = new URL(getRequest().url).origin;
+    const origin = PUBLIC_ORIGIN;
     const link = `${origin}/auth?code=${encodeURIComponent(invite.code)}`;
     const planLink = `${origin}/plan`;
 
