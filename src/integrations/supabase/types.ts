@@ -1479,6 +1479,91 @@ export type Database = {
         }
         Relationships: []
       }
+      outfit_feed_hidden: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outfit_feed_hidden_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outfit_feeds: {
+        Row: {
+          audience: string
+          category: string
+          colour: string | null
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          label: string | null
+          max_price: number
+          min_price: number
+          ready_to_ship: boolean
+          ship_in_days: string | null
+          sort_order: number
+        }
+        Insert: {
+          audience?: string
+          category: string
+          colour?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          label?: string | null
+          max_price?: number
+          min_price?: number
+          ready_to_ship?: boolean
+          ship_in_days?: string | null
+          sort_order?: number
+        }
+        Update: {
+          audience?: string
+          category?: string
+          colour?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          label?: string | null
+          max_price?: number
+          min_price?: number
+          ready_to_ship?: boolean
+          ship_in_days?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outfit_feeds_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outfits: {
         Row: {
           boutique_id: string | null
