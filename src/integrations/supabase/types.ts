@@ -2752,6 +2752,14 @@ export type Database = {
         Args: { _household: string; _invite_id: string }
         Returns: undefined
       }
+      tenancy_report: {
+        Args: never
+        Returns: {
+          table_name: string
+          total: number
+          unlinked: number
+        }[]
+      }
       wake_outfit_import_worker: {
         Args: { _base_url: string }
         Returns: undefined

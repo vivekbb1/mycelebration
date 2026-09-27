@@ -484,6 +484,13 @@
       "when": 1790529061579,
       "tag": "0068_claim_invites_by_email",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1790529180244,
+      "tag": "0069_tenancy_report",
+      "breakpoints": true
     }
   ]
 }
