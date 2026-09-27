@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { BRANDING_DEFAULTS, fontStack, type Branding } from "@/lib/branding";
 import { slugProblem, slugify } from "@/lib/celebration-slug";
+import { Link } from "@tanstack/react-router";
+import { useFeatures } from "@/lib/features";
 
 type Draft = Omit<Branding, "id">;
 
@@ -21,6 +23,7 @@ export type Invite = {
   created_at: string;
   slug: string | null;
   public_intro: string | null;
+  custom_domain: string | null;
 };
 
 type Theme = { id: string; name: string; settings: Draft };
