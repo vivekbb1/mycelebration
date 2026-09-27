@@ -193,9 +193,11 @@ function Lookbook() {
     },
   });
 
+  // The family's own setting wins; otherwise the event's setting from the Events tab.
   const familyPicks = (eventId: string) => {
     const row = (myAccess.data ?? []).find((r) => r.event_id === eventId);
-    return row ? row.outfit_selection !== false : true;
+    if (row) return row.outfit_selection !== false;
+    return (events.data ?? []).find((e) => e.id === eventId)?.outfit_selection !== false;
   };
 
   // Events where the hosts dress the guests, and the ones where guests wear their own.
@@ -203,10 +205,10 @@ function Lookbook() {
   const eventList = (events.data ?? []).filter((e) => guestEvent.allows(e.id));
 
   const pickableEvents = eventList.filter(
-    (e) => e.outfit_selection !== false && familyPicks(e.id),
+    (e) => familyPicks(e.id),
   );
   const ownOutfitEvents = eventList.filter(
-    (e) => e.outfit_selection === false || !familyPicks(e.id),
+    (e) => !familyPicks(e.id),
   );
   const ownOutfitIds = new Set(ownOutfitEvents.map((e) => e.id));
 
