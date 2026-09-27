@@ -26,7 +26,7 @@ export function HostOverview() {
   const invites = useQuery({
     queryKey: ["overview-invites", inviteId],
     queryFn: async () => {
-      let q = supabase.from("invite_codes").select("id, guest_name, household, claimed_by");
+      let q = supabase.from("invite_codes").select("id, guest_name, household, claimed_by, rsvp_status");
       if (inviteId) q = q.eq("invite_id", inviteId);
       const { data, error } = await q;
       if (error) throw error;
@@ -73,9 +73,13 @@ export function HostOverview() {
     const list = invites.data ?? [];
     const byId = new Map((profiles.data ?? []).map((p) => [p.id, p]));
     const claimed = list.filter((i) => i.claimed_by && byId.has(i.claimed_by));
-    const status = (i: (typeof list)[number]) => byId.get(i.claimed_by!)?.rsvp_status;
-    const yes = claimed.filter((i) => status(i) === "yes").length;
-    const no = claimed.filter((i) => status(i) === "no").length;
+    // A reply recorded by a host on the invitation counts too, even before sign-up.
+    const status = (i: (typeof list)[number]) => {
+      const own = i.claimed_by ? byId.get(i.claimed_by)?.rsvp_status : undefined;
+      return own === "yes" || own === "no" ? own : i.rsvp_status;
+    };
+    const yes = list.filter((i) => status(i) === "yes").length;
+    const no = list.filter((i) => status(i) === "no").length;
     const invited = list.length;
     const households = new Set(list.map((i) => i.household ?? i.guest_name)).size;
     return {
@@ -141,7 +145,7 @@ export function HostOverview() {
         />
         <Tile
           label="Waiting on a reply"
-          value={rsvp.waiting + rsvp.notRegistered}
+          value={rsvp.waiting}
           note={`${rsvp.notRegistered} not registered yet`}
         />
         <Tile
