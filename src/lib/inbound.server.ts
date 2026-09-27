@@ -6,8 +6,10 @@ const digits = (s: string) => s.replace(/\D/g, "");
 async function matchGuest(channel: "email" | "whatsapp", sender: string) {
   const { data } = await supabaseAdmin
     .from("invite_codes")
-    .select("guest_name, household, email, phone")
-    .not("household", "is", null);
+    .select("guest_name, household, email, phone, invite_id, created_at")
+    .not("household", "is", null)
+    // Newest first: if the same person is on two celebrations, the latest invitation wins.
+    .order("created_at", { ascending: false });
   const rows = data ?? [];
   if (channel === "email") {
     const s = sender.trim().toLowerCase();
@@ -37,6 +39,7 @@ export async function storeInbound(input: {
   if (guest?.household) {
     const { error } = await supabaseAdmin.from("guest_messages").insert({
       household: guest.household,
+      invite_id: guest.invite_id,
       author_name: guest.guest_name ?? input.senderName ?? input.sender,
       from_host: false,
       body,
