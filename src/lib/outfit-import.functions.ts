@@ -14,8 +14,9 @@ async function assertHost(ctx: Ctx) {
 export const startOutfitImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { slugs: string[]; eventId?: string | null; boutiqueId?: string | null; gender?: string | null }) => ({
+    (data: { slugs: string[]; inviteId?: string | null; eventId?: string | null; boutiqueId?: string | null; gender?: string | null }) => ({
       slugs: [...new Set((Array.isArray(data?.slugs) ? data.slugs : []).map(String))].slice(0, 2000),
+      inviteId: data?.inviteId ? String(data.inviteId) : null,
       eventId: data?.eventId ? String(data.eventId) : null,
       boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
       gender: ["men", "women", "unisex", "kids"].includes(String(data?.gender)) ? String(data?.gender) : null,
@@ -29,6 +30,7 @@ export const startOutfitImport = createServerFn({ method: "POST" })
       .from("outfit_import_jobs")
       .insert({
         created_by: ctx.userId,
+        ...(data.inviteId ? { invite_id: data.inviteId } : {}),
         event_id: data.eventId,
         boutique_id: data.boutiqueId,
         gender: data.gender,
@@ -51,12 +53,16 @@ export const startOutfitImport = createServerFn({ method: "POST" })
 /** Recent background imports, newest first. */
 export const listOutfitImports = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data: { inviteId?: string | null } | undefined) => ({
+    inviteId: data?.inviteId ? String(data.inviteId) : null,
+  }))
+  .handler(async ({ data: input, context }) => {
     const ctx = context as unknown as Ctx;
     await assertHost(ctx);
     const { data } = await ctx.supabase
       .from("outfit_import_jobs")
       .select("id,total,imported,skipped,failed,status,created_at,finished_at")
+      .match(input.inviteId ? { invite_id: input.inviteId } : {})
       .order("created_at", { ascending: false })
       .limit(5);
     return (data ?? []) as Array<{
