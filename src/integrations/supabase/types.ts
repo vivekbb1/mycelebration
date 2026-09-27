@@ -764,6 +764,45 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_passports: {
+        Row: {
+          created_at: string
+          doc_path: string | null
+          expiry: string | null
+          household: string
+          id: string
+          nationality: string | null
+          passport_number: string | null
+          person_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_path?: string | null
+          expiry?: string | null
+          household: string
+          id?: string
+          nationality?: string | null
+          passport_number?: string | null
+          person_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_path?: string | null
+          expiry?: string | null
+          household?: string
+          id?: string
+          nationality?: string | null
+          passport_number?: string | null
+          person_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       guest_stays: {
         Row: {
           checkin_date: string | null
@@ -2018,6 +2057,7 @@ export type Database = {
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
       my_features: { Args: never; Returns: Json }
       my_fees_enabled: { Args: never; Returns: boolean }
+      my_household: { Args: never; Returns: string }
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
