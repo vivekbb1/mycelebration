@@ -293,11 +293,19 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
 
     let total = 0;
     const pooled: any[] = [];
-    for (let n = firstShopPage; n <= lastShopPage; n += 1) {
-      const res = await shopPage(n);
-      total = res.total || total;
-      pooled.push(...res.products);
-      if (res.products.length < SHOP_PAGE) break;
+    let done = false;
+    for (let n = firstShopPage; n <= lastShopPage && !done; n += 6) {
+      const batch = [];
+      for (let k = n; k < n + 6 && k <= lastShopPage; k += 1) batch.push(k);
+      const results = await Promise.all(batch.map((k) => shopPage(k)));
+      for (const res of results) {
+        total = res.total || total;
+        pooled.push(...res.products);
+        if (res.products.length < SHOP_PAGE) {
+          done = true;
+          break;
+        }
+      }
     }
 
     const offset = from - (firstShopPage - 1) * SHOP_PAGE;
