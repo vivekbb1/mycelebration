@@ -8,4 +8,6 @@
 - [x] Phase 5: create-a-celebration switches to it; picker; per-celebration screens
 - [x] Phase 6: inbound messages filed per celebration (.env holds only public keys — left as is)
 - [x] Guests with a listed email join by signing in
-- [ ] Browser walkthroughs (guest code → look → tracker; new celebration setup) — not run
+- [x] Setup wizard (name, sender, logistics, package, add-ons); fixed create-celebration bug
+- [x] Browser walkthroughs: wizard, Host dashboard, Overview, Budget, guest reserve+confirm, tracker
+- [ ] Make 9 screens follow the chosen celebration: boutiques, order build, by-boutique, live feeds, flights, bulk upload, messages, travel counts, workload
