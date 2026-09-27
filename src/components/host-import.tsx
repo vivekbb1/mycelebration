@@ -13,6 +13,11 @@ import {
   PERNIA_SHIP_TIMES,
   type PerniaLook,
 } from "@/lib/pernia.functions";
+import {
+  cancelOutfitImport,
+  listOutfitImports,
+  startOutfitImport,
+} from "@/lib/outfit-import.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -243,62 +248,93 @@ export function HostImport() {
     }
   };
 
-  const [importProgress, setImportProgress] = useState<string | null>(null);
+  const importProgress: string | null = null;
+  void importLooks;
+  const startImport = useServerFn(startOutfitImport);
+  const listImports = useServerFn(listOutfitImports);
+  const cancelImport = useServerFn(cancelOutfitImport);
+  const jobs = useQuery({
+    queryKey: ["outfit-import-jobs"],
+    queryFn: () => listImports(),
+    refetchInterval: (q) =>
+      (q.state.data ?? []).some((j) => j.status === "running") ? 4000 : false,
+  });
+  const running = (jobs.data ?? []).filter((j) => j.status === "running");
+  const [seenDone, setSeenDone] = useState(0);
+  const doneTotal = (jobs.data ?? []).reduce((n, j) => n + j.imported, 0);
+  if (doneTotal !== seenDone) {
+    setSeenDone(doneTotal);
+    void refresh();
+    void owned.refetch();
+  }
+
+  // Looks are queued and added on our side, so the browser can be closed.
   const saveSelection = async (slugs: string[]) => {
     if (!slugs.length) return;
     setImportBusy(true);
-    const sum = { imported: 0, skipped: 0, failed: 0 };
-    // One look at a time, so progress is exact and one slow look never sinks the rest.
-    let misses = 0;
     try {
-      for (let i = 0; i < slugs.length; i += 1) {
-        setImportProgress(`${i + 1} of ${slugs.length} · ${sum.imported} added`);
-        const payload = {
-          slugs: [slugs[i] ?? ""],
+      const res = await startImport({
+        data: {
+          slugs,
           eventId: eventId || null,
           boutiqueId: boutiqueId || null,
           gender: gender === "auto" ? null : gender,
-        };
-        let res: { imported: number; skipped: number; failed: number } | null = null;
-        for (let attempt = 0; attempt < 2 && !res; attempt += 1) {
-          try {
-            res = await importLooks({ data: payload });
-          } catch {
-            await new Promise((r) => setTimeout(r, 1000));
-          }
-        }
-        if (!res) {
-          sum.failed += 1;
-          misses += 1;
-          if (misses >= 5 && sum.imported === 0) throw new Error("stopped");
-          continue;
-        }
-        misses = 0;
-        sum.imported += res.imported;
-        sum.skipped += res.skipped;
-        sum.failed += res.failed;
-      }
-      const bits = [
-        sum.imported ? `${sum.imported} added` : null,
-        sum.skipped ? `${sum.skipped} already in the wardrobe` : null,
-        sum.failed ? `${sum.failed} couldn't be read — pick them again to retry` : null,
-      ].filter(Boolean);
-      toast.success(bits.join(" · ") || "Nothing to add");
-      setPicked([]);
-    } catch {
-      toast.error(
-        sum.imported
-          ? `${sum.imported} added, then it stopped. Try adding the rest again.`
-          : "We couldn't reach the shop just now. Please try again in a minute.",
+        },
+      });
+      toast.success(
+        `Adding ${res.total} looks in the background. You can close this page — they'll keep coming in.`,
       );
+      setPicked([]);
+      await jobs.refetch();
+    } catch {
+      toast.error("We couldn't start adding those looks. Please try again.");
     } finally {
-      setImportedTotal((n) => n + sum.imported);
-      setImportProgress(null);
       setImportBusy(false);
-      await refresh();
-      void owned.refetch();
     }
   };
+
+  const jobsPanel = (jobs.data ?? []).length ? (
+    <div className="panel space-y-2 p-4">
+      <p className="text-sm font-medium">Background imports</p>
+      {(jobs.data ?? []).map((j) => {
+        const done = j.imported + j.skipped + j.failed;
+        const pct = j.total ? Math.round((done / j.total) * 100) : 0;
+        return (
+          <div key={j.id} className="space-y-1 text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                {j.status === "running"
+                  ? `Adding ${done} of ${j.total} · ${j.imported} added`
+                  : j.status === "cancelled"
+                    ? `Stopped at ${done} of ${j.total} · ${j.imported} added`
+                    : `Finished · ${j.imported} added${j.skipped ? ` · ${j.skipped} already in the wardrobe` : ""}${j.failed ? ` · ${j.failed} couldn't be read` : ""}`}
+              </span>
+              {j.status === "running" ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={async () => {
+                    await cancelImport({ data: { id: j.id } });
+                    void jobs.refetch();
+                  }}
+                >
+                  Stop
+                </Button>
+              ) : null}
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
+              <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })}
+      {running.length ? (
+        <p className="text-xs text-muted-foreground">
+          This carries on even if you close the page.
+        </p>
+      ) : null}
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-8">
