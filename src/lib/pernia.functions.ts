@@ -8,7 +8,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * category) into the wardrobe instead of typing every field by hand.
  */
 
-const HOST = "https://www.perniaspopupshop.com";
+export const HOST = "https://www.perniaspopupshop.com";
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -41,7 +41,7 @@ async function assertHost(context: Ctx) {
   if (!data) throw new Error("Forbidden");
 }
 
-function slugFromUrl(input: string) {
+export function slugFromUrl(input: string) {
   const raw = input.trim();
   if (!raw) throw new Error("Paste an outfit link");
   const slug = raw.startsWith("http") ? new URL(raw).pathname : raw;
@@ -82,7 +82,7 @@ function garmentOf(title: string) {
   return found ?? null;
 }
 
-async function getJson(url: string) {
+export async function getJson(url: string) {
   const res = await fetch(url, {
     headers: { "user-agent": UA, accept: "application/json" },
   });
@@ -90,7 +90,7 @@ async function getJson(url: string) {
   return (await res.json()) as any;
 }
 
-async function detail(slug: string): Promise<PerniaLook> {
+export async function detail(slug: string): Promise<PerniaLook> {
   const json = await getJson(`${HOST}/napi/newGetProductDetailAPI/${slug}/INR/IN`);
   const r = json?.result;
   if (!r) throw new Error("That outfit could not be read");
@@ -165,7 +165,7 @@ type SortKey = (typeof SORTS)[number];
 
 const SHOP_PAGE = 24;
 
-function mapListing(p: any) {
+export function mapListing(p: any) {
   const title = String(p.short_description ?? p.product_name ?? "Untitled look");
   const images = [p.img, p.hover_image]
     .filter((s): s is string => typeof s === "string")
