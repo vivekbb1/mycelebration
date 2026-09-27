@@ -35,6 +35,8 @@ import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedFamilyHouseholdRouteImport } from './routes/_authenticated/family.$household'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
+import { Route as ApiPublicEmailInboundRouteImport } from './routes/api/public/email/inbound'
+import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
 const IndexRoute = IndexRouteImport.update({
@@ -170,6 +172,17 @@ const ApiPublicFollowupRemindersRoute =
     path: '/api/public/followup-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicEmailInboundRoute = ApiPublicEmailInboundRouteImport.update({
+  id: '/api/public/email/inbound',
+  path: '/api/public/email/inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWhatsappWebhookRoute =
+  ApiPublicWhatsappWebhookRouteImport.update({
+    id: '/api/public/whatsapp/webhook',
+    path: '/api/public/whatsapp/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -203,6 +216,8 @@ export interface FileRoutesByFullPath {
   '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
+  '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -231,6 +246,8 @@ export interface FileRoutesByTo {
   '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
+  '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -261,6 +278,8 @@ export interface FileRoutesById {
   '/_authenticated/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
+  '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -291,6 +310,8 @@ export interface FileRouteTypes {
     | '/family/$household'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
+    | '/api/public/email/inbound'
+    | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -319,6 +340,8 @@ export interface FileRouteTypes {
     | '/family/$household'
     | '/guest/$guestId'
     | '/api/public/followup-reminders'
+    | '/api/public/email/inbound'
+    | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -348,6 +371,8 @@ export interface FileRouteTypes {
     | '/_authenticated/family/$household'
     | '/_authenticated/guest/$guestId'
     | '/api/public/followup-reminders'
+    | '/api/public/email/inbound'
+    | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -357,6 +382,8 @@ export interface RootRouteChildren {
   CelebrationRoute: typeof CelebrationRoute
   AuthRoute: typeof AuthRoute
   ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
+  ApiPublicEmailInboundRoute: typeof ApiPublicEmailInboundRoute
+  ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -544,6 +571,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicFollowupRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/email/inbound': {
+      id: '/api/public/email/inbound'
+      path: '/api/public/email/inbound'
+      fullPath: '/api/public/email/inbound'
+      preLoaderRoute: typeof ApiPublicEmailInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/whatsapp/webhook': {
+      id: '/api/public/whatsapp/webhook'
+      path: '/api/public/whatsapp/webhook'
+      fullPath: '/api/public/whatsapp/webhook'
+      preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -611,6 +652,8 @@ const rootRouteChildren: RootRouteChildren = {
   CelebrationRoute: CelebrationRoute,
   AuthRoute: AuthRoute,
   ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
+  ApiPublicEmailInboundRoute: ApiPublicEmailInboundRoute,
+  ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
