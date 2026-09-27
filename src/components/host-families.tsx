@@ -182,6 +182,24 @@ export function HostFamilies() {
   const { inviteId: selectedEvent } = useSelectedEvent();
   const chosenInvite = inviteId || selectedEvent || inviteList[0]?.id || "";
 
+  const deliveryIssues = useQuery({
+    queryKey: ["email-delivery-events"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("email_delivery_events")
+        .select("recipient, event_type, created_at")
+        .order("created_at", { ascending: false });
+      const map: Record<string, string> = {};
+      for (const r of data ?? []) if (!map[r.recipient]) map[r.recipient] = r.event_type;
+      return map;
+    },
+  });
+  const issueLabel: Record<string, string> = {
+    bounced: "Email bounced",
+    complaint: "Marked as spam",
+    unsubscribed: "Unsubscribed",
+  };
+
   const families = useQuery({
     queryKey: ["families"],
     queryFn: async () => {
@@ -779,6 +797,13 @@ export function HostFamilies() {
                     <Users className="size-4 text-primary" />
                     {f.name}
                     <Badge variant="outline">{f.code}</Badge>
+                    {(() => {
+                      const em = ((f as { email?: string | null }).email ?? "").toLowerCase();
+                      const issue = em ? deliveryIssues.data?.[em] : undefined;
+                      return issue ? (
+                        <Badge variant="destructive">{issueLabel[issue] ?? issue}</Badge>
+                      ) : null;
+                    })()}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     Invitation
