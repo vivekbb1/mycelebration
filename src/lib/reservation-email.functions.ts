@@ -25,7 +25,7 @@ export const sendReservationEmail = createServerFn({ method: "POST" })
 
     const { data: outfit, error } = await context.supabase
       .from("outfits")
-      .select("title, designer, image_url, size_note, price_note, garment_type, event_id")
+      .select("title, designer, image_url, size_note, price_note, garment_type, event_id, invite_id")
       .eq("id", data.outfitId)
       .maybeSingle();
     if (error || !outfit) return { sent: false, reason: "outfit_not_found" };
@@ -51,6 +51,7 @@ export const sendReservationEmail = createServerFn({ method: "POST" })
     const { data: plan } = await context.supabase
       .from("logistics")
       .select("hotel_name, checkin_note, measurements_deadline, team_name, team_whatsapp")
+      .eq("invite_id", outfit.invite_id ?? "00000000-0000-0000-0000-000000000000")
       .limit(1)
       .maybeSingle();
 
@@ -112,6 +113,7 @@ export const sendReservationEmail = createServerFn({ method: "POST" })
     </div>`);
 
     return sendGuestEmail({
+      inviteId: outfit.invite_id,
       to,
       subject: `Confirmed: ${outfit.title}${functionName ? ` for the ${functionName}` : ""}`,
       html,
