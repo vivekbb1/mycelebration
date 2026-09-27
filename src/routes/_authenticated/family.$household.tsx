@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFeatures } from "@/lib/features";
+import { GuestPassports } from "@/components/guest-passports";
 import { splitTags } from "@/components/host-function-access";
 
 export const Route = createFileRoute("/_authenticated/family/$household")({
@@ -355,6 +356,11 @@ function FamilyPage() {
               ))}
             </ul>
           )}
+        </section>
+
+        <section className="panel p-4 sm:p-6">
+          <h2 className="text-xl">Passports sent by the family</h2>
+          <GuestPassports household={name} people={rows.map((p) => p.guest_name)} />
         </section>
 
         <section className="panel p-4 sm:p-6">
