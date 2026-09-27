@@ -83,7 +83,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
     const origin = PUBLIC_ORIGIN;
-    const link = `${origin}/outfits`;
+    const link = `${origin}/guest/outfits`;
 
     const rows = waiting
       .map(

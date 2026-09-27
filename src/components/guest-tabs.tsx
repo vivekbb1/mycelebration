@@ -17,7 +17,7 @@ import { headerTabClass } from "@/components/host-nav";
 import { useSiteContent } from "@/lib/site-content";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 
-const GUEST_PATHS = ["/invite", "/schedule", "/outfits", "/summary", "/measurements", "/plan", "/pay"] as const;
+const GUEST_PATHS = ["/guest/invite", "/guest/schedule", "/guest/outfits", "/guest/summary", "/guest/measurements", "/plan", "/pay"] as const;
 
 /** The four things a guest ever does, as quiet underlined tabs in the header. */
 export function GuestTabs() {
@@ -28,16 +28,16 @@ export function GuestTabs() {
   if (!GUEST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
 
   const tabs = [
-    { to: "/invite", label: t("nav.tab_invite", "Invite"), icon: Mail },
-    { to: "/schedule", label: t("nav.tab_rsvp", "Schedule"), icon: CalendarCheck },
-    { to: "/outfits", label: t("nav.tab_outfit", "Outfits"), icon: Shirt },
-    { to: "/measurements", label: t("nav.tab_measurement", "Measurements"), icon: Ruler },
-    { to: "/summary", label: t("nav.tab_confirm", "Summary"), icon: BadgeCheck },
+    { to: "/guest/invite", label: t("nav.tab_invite", "Invite"), icon: Mail },
+    { to: "/guest/schedule", label: t("nav.tab_rsvp", "Schedule"), icon: CalendarCheck },
+    { to: "/guest/outfits", label: t("nav.tab_outfit", "Outfits"), icon: Shirt },
+    { to: "/guest/measurements", label: t("nav.tab_measurement", "Measurements"), icon: Ruler },
+    { to: "/guest/summary", label: t("nav.tab_confirm", "Summary"), icon: BadgeCheck },
   ].filter(
     // RSVP-only families never see the wardrobe steps.
     (tab) =>
       needsWardrobe ||
-      (tab.to !== "/outfits" && tab.to !== "/measurements" && tab.to !== "/summary"),
+      (tab.to !== "/guest/outfits" && tab.to !== "/guest/measurements" && tab.to !== "/guest/summary"),
   );
 
   return (
