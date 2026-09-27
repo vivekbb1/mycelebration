@@ -1,3 +1,4 @@
+import { useSelectedEvent } from "@/lib/selected-event";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ const emptyFields: Fields = {
 };
 
 export function HostLogistics() {
+  const { inviteId } = useSelectedEvent();
   const queryClient = useQueryClient();
   const [fields, setFields] = useState<Fields>({ ...emptyFields });
   const [timeline, setTimeline] = useState<TimelineStep[]>([]);
@@ -42,9 +44,14 @@ export function HostLogistics() {
   const [enabled, setEnabled] = useState(true);
 
   const plan = useQuery({
-    queryKey: ["logistics"],
+    queryKey: ["logistics", inviteId],
+    enabled: Boolean(inviteId),
     queryFn: async () => {
-      const { data, error } = await supabase.from("logistics").select("*").limit(1).maybeSingle();
+      const { data, error } = await supabase
+        .from("logistics")
+        .select("*")
+        .eq("invite_id", inviteId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -52,7 +59,12 @@ export function HostLogistics() {
 
   useEffect(() => {
     const row = plan.data;
-    if (!row) return;
+    if (!row) {
+      setFields({ ...emptyFields });
+      setEnabled(true);
+      setTimeline([]);
+      return;
+    }
     setFields({
       intro: row.intro ?? "",
       hotel_name: row.hotel_name ?? "",
@@ -104,7 +116,7 @@ export function HostLogistics() {
       } else {
         const { error } = await supabase
           .from("logistics")
-          .insert({ ...payload, singleton: true });
+          .insert({ ...payload, singleton: true, invite_id: inviteId });
         if (error) throw error;
       }
     } catch (e) {
