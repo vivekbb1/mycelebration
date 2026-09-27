@@ -137,8 +137,11 @@ function AuthPage() {
 
   const finishSocial = async () => {
     const code = localStorage.getItem(PENDING_CODE) ?? "";
+    const slug = localStorage.getItem(PENDING_SLUG) || search.c || null;
     localStorage.removeItem(PENDING_CODE);
+    localStorage.removeItem(PENDING_SLUG);
     if (code) await claimInvite(code);
+    void sendWelcomeEmail({ data: { slug } }).catch(() => {});
     navigate({ to: code.trim().toUpperCase().startsWith("HOST-") ? "/host" : "/guest/invite" });
   };
 
