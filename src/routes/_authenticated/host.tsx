@@ -31,6 +31,7 @@ import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostGuestList } from "@/components/host-guest-list";
 import { HostTags } from "@/components/host-tags";
 import { HostPicks } from "@/components/host-picks";
+import { HostOrders } from "@/components/host-orders";
 import { HostTravel } from "@/components/host-travel";
 import { HostArrivals } from "@/components/host-arrivals";
 
