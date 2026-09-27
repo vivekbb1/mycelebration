@@ -83,7 +83,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
     const origin = PUBLIC_ORIGIN;
     const link = `${origin}/auth?code=${encodeURIComponent(invite.code)}`;
-    const planLink = `${origin}/plan`;
+    const planLink = `${origin}/guest/summary`;
 
     const scheduleHtml =
       events.length > 0

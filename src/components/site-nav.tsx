@@ -26,7 +26,8 @@ export function SiteNav() {
   const onGuestTab = GUEST_TAB_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
-  const isHostPage = HOST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isHostPage =
+    !onGuestTab && HOST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const backTo = isHostPage && pathname !== "/host" ? "/host" : "/guest/invite";
   const backLabel =
     backTo === "/host" ? "Back to host" : t("nav.back", "Back to your invitation");

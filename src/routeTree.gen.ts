@@ -33,6 +33,11 @@ import { Route as AuthenticatedSummaryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedFamilyHouseholdRouteImport } from './routes/_authenticated/family.$household'
 import { Route as AuthenticatedGuestGuestIdRouteImport } from './routes/_authenticated/guest.$guestId'
+import { Route as AuthenticatedGuestInviteRouteImport } from './routes/_authenticated/guest.invite'
+import { Route as AuthenticatedGuestMeasurementsRouteImport } from './routes/_authenticated/guest.measurements'
+import { Route as AuthenticatedGuestOutfitsRouteImport } from './routes/_authenticated/guest.outfits'
+import { Route as AuthenticatedGuestScheduleRouteImport } from './routes/_authenticated/guest.schedule'
+import { Route as AuthenticatedGuestSummaryRouteImport } from './routes/_authenticated/guest.summary'
 import { Route as AuthenticatedHostIndexRouteImport } from './routes/_authenticated/host.index'
 import { Route as AuthenticatedHostSplatRouteImport } from './routes/_authenticated/host.$'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
@@ -162,6 +167,36 @@ const AuthenticatedGuestGuestIdRoute =
     path: '/guest/$guestId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGuestInviteRoute =
+  AuthenticatedGuestInviteRouteImport.update({
+    id: '/guest/invite',
+    path: '/guest/invite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGuestMeasurementsRoute =
+  AuthenticatedGuestMeasurementsRouteImport.update({
+    id: '/guest/measurements',
+    path: '/guest/measurements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGuestOutfitsRoute =
+  AuthenticatedGuestOutfitsRouteImport.update({
+    id: '/guest/outfits',
+    path: '/guest/outfits',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGuestScheduleRoute =
+  AuthenticatedGuestScheduleRouteImport.update({
+    id: '/guest/schedule',
+    path: '/guest/schedule',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGuestSummaryRoute =
+  AuthenticatedGuestSummaryRouteImport.update({
+    id: '/guest/summary',
+    path: '/guest/summary',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHostIndexRoute = AuthenticatedHostIndexRouteImport.update({
   id: '/host/',
   path: '/host/',
@@ -220,6 +255,11 @@ export interface FileRoutesByFullPath {
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/guest/invite': typeof AuthenticatedGuestInviteRoute
+  '/guest/measurements': typeof AuthenticatedGuestMeasurementsRoute
+  '/guest/outfits': typeof AuthenticatedGuestOutfitsRoute
+  '/guest/schedule': typeof AuthenticatedGuestScheduleRoute
+  '/guest/summary': typeof AuthenticatedGuestSummaryRoute
   '/host/$': typeof AuthenticatedHostSplatRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/host/': typeof AuthenticatedHostIndexRoute
@@ -251,6 +291,11 @@ export interface FileRoutesByTo {
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/guest/invite': typeof AuthenticatedGuestInviteRoute
+  '/guest/measurements': typeof AuthenticatedGuestMeasurementsRoute
+  '/guest/outfits': typeof AuthenticatedGuestOutfitsRoute
+  '/guest/schedule': typeof AuthenticatedGuestScheduleRoute
+  '/guest/summary': typeof AuthenticatedGuestSummaryRoute
   '/host/$': typeof AuthenticatedHostSplatRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/host': typeof AuthenticatedHostIndexRoute
@@ -284,6 +329,11 @@ export interface FileRoutesById {
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/_authenticated/family/$household': typeof AuthenticatedFamilyHouseholdRoute
   '/_authenticated/guest/$guestId': typeof AuthenticatedGuestGuestIdRoute
+  '/_authenticated/guest/invite': typeof AuthenticatedGuestInviteRoute
+  '/_authenticated/guest/measurements': typeof AuthenticatedGuestMeasurementsRoute
+  '/_authenticated/guest/outfits': typeof AuthenticatedGuestOutfitsRoute
+  '/_authenticated/guest/schedule': typeof AuthenticatedGuestScheduleRoute
+  '/_authenticated/guest/summary': typeof AuthenticatedGuestSummaryRoute
   '/_authenticated/host/$': typeof AuthenticatedHostSplatRoute
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/_authenticated/host/': typeof AuthenticatedHostIndexRoute
@@ -317,6 +367,11 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/family/$household'
     | '/guest/$guestId'
+    | '/guest/invite'
+    | '/guest/measurements'
+    | '/guest/outfits'
+    | '/guest/schedule'
+    | '/guest/summary'
     | '/host/$'
     | '/api/public/followup-reminders'
     | '/host/'
@@ -348,6 +403,11 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/family/$household'
     | '/guest/$guestId'
+    | '/guest/invite'
+    | '/guest/measurements'
+    | '/guest/outfits'
+    | '/guest/schedule'
+    | '/guest/summary'
     | '/host/$'
     | '/api/public/followup-reminders'
     | '/host'
@@ -380,6 +440,11 @@ export interface FileRouteTypes {
     | '/_authenticated/upgrade'
     | '/_authenticated/family/$household'
     | '/_authenticated/guest/$guestId'
+    | '/_authenticated/guest/invite'
+    | '/_authenticated/guest/measurements'
+    | '/_authenticated/guest/outfits'
+    | '/_authenticated/guest/schedule'
+    | '/_authenticated/guest/summary'
     | '/_authenticated/host/$'
     | '/api/public/followup-reminders'
     | '/_authenticated/host/'
@@ -569,6 +634,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGuestGuestIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/guest/invite': {
+      id: '/_authenticated/guest/invite'
+      path: '/guest/invite'
+      fullPath: '/guest/invite'
+      preLoaderRoute: typeof AuthenticatedGuestInviteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/guest/measurements': {
+      id: '/_authenticated/guest/measurements'
+      path: '/guest/measurements'
+      fullPath: '/guest/measurements'
+      preLoaderRoute: typeof AuthenticatedGuestMeasurementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/guest/outfits': {
+      id: '/_authenticated/guest/outfits'
+      path: '/guest/outfits'
+      fullPath: '/guest/outfits'
+      preLoaderRoute: typeof AuthenticatedGuestOutfitsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/guest/schedule': {
+      id: '/_authenticated/guest/schedule'
+      path: '/guest/schedule'
+      fullPath: '/guest/schedule'
+      preLoaderRoute: typeof AuthenticatedGuestScheduleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/guest/summary': {
+      id: '/_authenticated/guest/summary'
+      path: '/guest/summary'
+      fullPath: '/guest/summary'
+      preLoaderRoute: typeof AuthenticatedGuestSummaryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/host/': {
       id: '/_authenticated/host/'
       path: '/host'
@@ -635,6 +735,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedFamilyHouseholdRoute: typeof AuthenticatedFamilyHouseholdRoute
   AuthenticatedGuestGuestIdRoute: typeof AuthenticatedGuestGuestIdRoute
+  AuthenticatedGuestInviteRoute: typeof AuthenticatedGuestInviteRoute
+  AuthenticatedGuestMeasurementsRoute: typeof AuthenticatedGuestMeasurementsRoute
+  AuthenticatedGuestOutfitsRoute: typeof AuthenticatedGuestOutfitsRoute
+  AuthenticatedGuestScheduleRoute: typeof AuthenticatedGuestScheduleRoute
+  AuthenticatedGuestSummaryRoute: typeof AuthenticatedGuestSummaryRoute
   AuthenticatedHostSplatRoute: typeof AuthenticatedHostSplatRoute
   AuthenticatedHostIndexRoute: typeof AuthenticatedHostIndexRoute
 }
@@ -660,6 +765,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedFamilyHouseholdRoute: AuthenticatedFamilyHouseholdRoute,
   AuthenticatedGuestGuestIdRoute: AuthenticatedGuestGuestIdRoute,
+  AuthenticatedGuestInviteRoute: AuthenticatedGuestInviteRoute,
+  AuthenticatedGuestMeasurementsRoute: AuthenticatedGuestMeasurementsRoute,
+  AuthenticatedGuestOutfitsRoute: AuthenticatedGuestOutfitsRoute,
+  AuthenticatedGuestScheduleRoute: AuthenticatedGuestScheduleRoute,
+  AuthenticatedGuestSummaryRoute: AuthenticatedGuestSummaryRoute,
   AuthenticatedHostSplatRoute: AuthenticatedHostSplatRoute,
   AuthenticatedHostIndexRoute: AuthenticatedHostIndexRoute,
 }
