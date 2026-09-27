@@ -348,12 +348,14 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
         continue;
       }
 
+      const { copyImages } = await import("@/lib/outfit-images.server");
+      const images = await copyImages(look.sku || look.slug.replace(/\.html$/, ""), look.images);
       const { error } = await (context as unknown as Ctx).supabase.from("outfits").insert({
         title: look.title,
         designer: look.designer,
         boutique_url: look.url,
-        image_url: look.images[0] ?? null,
-        images: look.images,
+        image_url: images[0] ?? null,
+        images,
         color_family: look.color,
         garment_type: look.garmentType,
         silhouette: look.silhouette,

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Rss, Trash2 } from "lucide-react";
+import { Download, Rss, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { importFeedPage } from "@/lib/feed.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -99,6 +101,36 @@ export function HostFeeds() {
     if (error) { toast.error(error.message); return; }
     toast.success("Feed saved — guests see these looks now.");
     await queryClient.invalidateQueries({ queryKey: ["outfit-feeds"] });
+  };
+
+  const importPage = useServerFn(importFeedPage);
+  const [importing, setImporting] = useState<string | null>(null);
+  const [progress, setProgress] = useState("");
+
+  const importAll = async (id: string) => {
+    setImporting(id);
+    let total = 0;
+    let skipped = 0;
+    let failed = 0;
+    try {
+      for (let page = 1; page <= 50; page += 1) {
+        setProgress(`Importing… ${total} saved so far`);
+        const res = await importPage({ data: { feedId: id, page } });
+        total += res.imported;
+        skipped += res.skipped;
+        failed += res.failed;
+        if (!res.more) break;
+      }
+      toast.success(
+        `${total} looks saved to your wardrobe${skipped ? `, ${skipped} already there` : ""}${failed ? `, ${failed} failed` : ""}.`,
+      );
+      await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Import stopped.");
+    } finally {
+      setImporting(null);
+      setProgress("");
+    }
   };
 
   const remove = async (id: string) => {
@@ -224,9 +256,15 @@ export function HostFeeds() {
                 {f.ship_in_days ? ` · ${PERNIA_SHIP_TIMES.find((s) => s.value === f.ship_in_days)?.label}` : ""}
                 {f.ready_to_ship ? " · ready to ship" : ""}
               </span>
+              <span className="flex items-center gap-1">
+              <Button size="sm" variant="outline" disabled={importing !== null} onClick={() => importAll(f.id)}>
+                <Download className="size-4" />
+                {importing === f.id ? progress : "Import this feed now"}
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => remove(f.id)} aria-label="Remove feed">
                 <Trash2 className="size-4" />
               </Button>
+              </span>
             </li>
           ))}
           {forEvent.length === 0 ? (

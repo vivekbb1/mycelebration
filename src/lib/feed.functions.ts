@@ -170,14 +170,16 @@ export const claimFeedLook = createServerFn({ method: "POST" })
       outfitId = existing?.id ?? null;
     }
     if (!outfitId) {
+      const { copyImages } = await import("@/lib/outfit-images.server");
+      const images = await copyImages(look.sku || slug.replace(/\.html$/, ""), look.images);
       const { data: row, error } = await supabaseAdmin
         .from("outfits")
         .insert({
           title: look.title,
           designer: look.designer,
           boutique_url: look.url,
-          image_url: look.images[0] ?? null,
-          images: look.images,
+          image_url: images[0] ?? null,
+          images,
           color_family: look.color,
           garment_type: look.garmentType,
           silhouette: look.silhouette,
@@ -207,4 +209,61 @@ export const claimFeedLook = createServerFn({ method: "POST" })
       );
     }
     return { outfitId, title: look.title };
+  });
+
+/** Imports one shop page (up to 24 looks) of a saved feed into the wardrobe,
+ *  copying the photos. The host's screen calls it page by page. */
+export const importFeedPage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { feedId: string; page: number }) => ({
+    feedId: String(d?.feedId ?? ""),
+    page: Math.max(1, Math.min(100, Math.round(Number(d?.page) || 1))),
+  }))
+  .handler(async ({ data, context }) => {
+    const ctx = context as unknown as Ctx;
+    const { data: role } = await ctx.supabase
+      .from("user_roles").select("role").eq("user_id", ctx.userId).eq("role", "admin").maybeSingle();
+    if (!role) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { copyImages } = await import("@/lib/outfit-images.server");
+
+    const { data: feed } = await supabaseAdmin.from("outfit_feeds").select("*").eq("id", data.feedId).maybeSingle();
+    if (!feed) throw new Error("Feed not found");
+    const [{ products, more }, { data: hidden }] = await Promise.all([
+      shopPage(feed, data.page),
+      supabaseAdmin.from("outfit_feed_hidden").select("slug").eq("event_id", feed.event_id),
+    ]);
+    const hiddenSet = new Set((hidden ?? []).map((h) => h.slug));
+    const listed = products.map(mapListing).filter((l) => l.sku && !l.soldOut && !hiddenSet.has(l.slug));
+
+    const { data: saved } = listed.length
+      ? await supabaseAdmin.from("outfits").select("source_sku").in("source_sku", listed.map((l) => l.sku))
+      : { data: [] as { source_sku: string | null }[] };
+    const savedSet = new Set((saved ?? []).map((s) => s.source_sku));
+
+    let imported = 0;
+    let failed = 0;
+    const skipped = listed.filter((l) => savedSet.has(l.sku)).length;
+    const todo = listed.filter((l) => !savedSet.has(l.sku));
+    await Promise.all(
+      todo.map(async (l) => {
+        const images = await copyImages(l.sku, l.images, 2);
+        const { error } = await supabaseAdmin.from("outfits").insert({
+          title: l.title,
+          designer: l.designer,
+          boutique_url: l.url,
+          image_url: images[0] ?? null,
+          images,
+          garment_type: l.garmentType,
+          price_note: l.price ? `₹${l.price}` : null,
+          price_inr: l.priceInr || null,
+          source_sku: l.sku,
+          gender: feed.audience,
+          event_id: feed.event_id,
+        });
+        if (error) failed += 1;
+        else imported += 1;
+      }),
+    );
+    return { imported, skipped, failed, more };
   });

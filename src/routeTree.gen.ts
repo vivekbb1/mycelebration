@@ -42,6 +42,7 @@ import { Route as AuthenticatedHostIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedHostSplatRouteImport } from './routes/_authenticated/host.$'
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 import { Route as ApiPublicEmailInboundRouteImport } from './routes/api/public/email/inbound'
+import { Route as ApiPublicOutfitImageSplatRouteImport } from './routes/api/public/outfit-image.$'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
@@ -218,6 +219,12 @@ const ApiPublicEmailInboundRoute = ApiPublicEmailInboundRouteImport.update({
   path: '/api/public/email/inbound',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOutfitImageSplatRoute =
+  ApiPublicOutfitImageSplatRouteImport.update({
+    id: '/api/public/outfit-image/$',
+    path: '/api/public/outfit-image/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWhatsappWebhookRoute =
   ApiPublicWhatsappWebhookRouteImport.update({
     id: '/api/public/whatsapp/webhook',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/host/': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
+  '/api/public/outfit-image/$': typeof ApiPublicOutfitImageSplatRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -300,6 +308,7 @@ export interface FileRoutesByTo {
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/host': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
+  '/api/public/outfit-image/$': typeof ApiPublicOutfitImageSplatRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -338,6 +347,7 @@ export interface FileRoutesById {
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/_authenticated/host/': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
+  '/api/public/outfit-image/$': typeof ApiPublicOutfitImageSplatRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/api/public/followup-reminders'
     | '/host/'
     | '/api/public/email/inbound'
+    | '/api/public/outfit-image/$'
     | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/api/public/followup-reminders'
     | '/host'
     | '/api/public/email/inbound'
+    | '/api/public/outfit-image/$'
     | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
   id:
@@ -449,6 +461,7 @@ export interface FileRouteTypes {
     | '/api/public/followup-reminders'
     | '/_authenticated/host/'
     | '/api/public/email/inbound'
+    | '/api/public/outfit-image/$'
     | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
@@ -460,6 +473,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
   ApiPublicEmailInboundRoute: typeof ApiPublicEmailInboundRoute
+  ApiPublicOutfitImageSplatRoute: typeof ApiPublicOutfitImageSplatRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
@@ -697,6 +711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEmailInboundRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/outfit-image/$': {
+      id: '/api/public/outfit-image/$'
+      path: '/api/public/outfit-image/$'
+      fullPath: '/api/public/outfit-image/$'
+      preLoaderRoute: typeof ApiPublicOutfitImageSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/whatsapp/webhook': {
       id: '/api/public/whatsapp/webhook'
       path: '/api/public/whatsapp/webhook'
@@ -784,6 +805,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
   ApiPublicEmailInboundRoute: ApiPublicEmailInboundRoute,
+  ApiPublicOutfitImageSplatRoute: ApiPublicOutfitImageSplatRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
