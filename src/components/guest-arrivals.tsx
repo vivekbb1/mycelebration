@@ -87,7 +87,8 @@ export function GuestArrivals({ household }: { household: string }) {
   const replyList = replies.data ?? [];
   const rideList = rides.data ?? [];
   const stayList = stays.data ?? [];
-  if (rideList.length === 0 && stayList.length === 0 && replyList.length === 0) return null;
+  void replyList;
+  if (rideList.length === 0 && stayList.length === 0) return null;
 
   return (
     <section className="panel p-4 sm:p-6">
@@ -95,23 +96,6 @@ export function GuestArrivals({ household }: { household: string }) {
       <p className="mt-1 text-sm text-muted-foreground">
         Your hosts have arranged these for you. Anything not right, just let them know.
       </p>
-
-      {replyList.length > 0 ? (
-        <ul className="mt-4 space-y-2">
-          {replyList.map((r) => (
-            <li
-              key={r.event_id}
-              className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3"
-            >
-              <span className="min-w-0 flex-1 truncate text-sm">{r.name}</span>
-              <span className="text-xs text-muted-foreground">{dayLabel(r.date)}</span>
-              <Badge variant={r.attending ? "default" : "destructive"}>
-                {r.attending ? `${r.guest_count} coming` : "not coming"}
-              </Badge>
-            </li>
-          ))}
-        </ul>
-      ) : null}
 
       {rideList.length > 0 ? (
         <ul className="mt-4 space-y-3">
