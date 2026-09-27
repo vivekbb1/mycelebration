@@ -237,7 +237,7 @@ export const importFeedPage = createServerFn({ method: "POST" })
     const listed = products.map(mapListing).filter((l) => l.sku && !l.soldOut && !hiddenSet.has(l.slug));
 
     const { data: saved } = listed.length
-      ? await supabaseAdmin.from("outfits").select("source_sku").eq("invite_id", feed.invite_id).in("source_sku", listed.map((l) => l.sku))
+      ? await supabaseAdmin.from("outfits").select("source_sku").eq("invite_id", feed.invite_id as string).in("source_sku", listed.map((l) => l.sku))
       : { data: [] as { source_sku: string | null }[] };
     const savedSet = new Set((saved ?? []).map((s) => s.source_sku));
 
