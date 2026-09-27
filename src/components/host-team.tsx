@@ -62,9 +62,9 @@ export function HostTeam() {
         toast.success(`Invitation sent to ${email}.`);
       } else {
         const link = result.link ?? "";
-        const subject = encodeURIComponent("You've been invited to host the wedding wardrobe");
+        const subject = encodeURIComponent("You've been invited to help host on My Celebration");
         const body = encodeURIComponent(
-          `You can now help run the wedding wardrobe.\n\nRegister here: ${link}\nHost code: ${result.code}\n`,
+          `You can now help run the celebration.\n\nRegister here: ${link}\nHost code: ${result.code}\n`,
         );
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
         toast.success(

@@ -116,7 +116,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
       <p style="letter-spacing:.18em;text-transform:uppercase;font-size:11px;color:#b08637;margin:0">You're invited</p>
       <h1 style="font-size:26px;margin:12px 0 10px;color:#57302c">${escapeHtml(invite.guest_name)}, here are your days with us</h1>
       <p style="color:#8a6a62;font-size:15px;line-height:1.6;margin:0 0 20px">
-        Everything below is yours — your functions, the look set aside for you and where to send your
+        Everything below is yours — your events, the look set aside for you and where to send your
         measurements. Tailoring and delivery are on us.
       </p>
       ${scheduleHtml}

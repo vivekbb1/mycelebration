@@ -88,7 +88,7 @@ export const sendTestEmail = createServerFn({ method: "POST" })
     const { sendGuestEmail, emailShell } = await import("@/lib/email.server");
     const result = await sendGuestEmail({
       to: data.to,
-      subject: "Test note from the wedding wardrobe",
+      subject: "Test note from My Celebration",
       html: emailShell(
         `<div style="padding:28px"><h2 style="margin:0 0 12px">It works</h2>
          <p style="margin:0">If you can read this, invitations and confirmations will reach your guests.</p></div>`,

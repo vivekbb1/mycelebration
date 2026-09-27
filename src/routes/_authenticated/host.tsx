@@ -65,7 +65,7 @@ export const Route = createFileRoute("/_authenticated/host")({
       { property: "og:title", content: "Host Dashboard — My Celebration" },
       {
         property: "og:description",
-        content: "Manage the wedding wardrobe: outfits, reservations, measurements and RSVPs.",
+        content: "Run your celebration: outfits, reservations, measurements and RSVPs.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

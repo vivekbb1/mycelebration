@@ -155,27 +155,30 @@ export function HostImport() {
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
   };
 
+  const searchPayload = (p: number, per: number) => ({
+    category,
+    minPrice: Number(minPrice) || 0,
+    maxPrice: Number(maxPrice) || 30000,
+    page: p,
+    perPage: per,
+    readyToShip,
+    shipInDays: shipTimes.length ? shipTimes : null,
+    colour: colour === "all" ? null : colour,
+    sort,
+  });
+
   const runSearch = async (nextPage = 1) => {
     setListBusy(true);
     try {
       const res = await searchCategory({
-        data: {
-          category,
-          minPrice: Number(minPrice) || 0,
-          maxPrice: Number(maxPrice) || 30000,
-          page: nextPage,
-          perPage: Number(perPage) || 12,
-          readyToShip,
-          shipInDays: shipTimes.length ? shipTimes : null,
-          colour: colour === "all" ? null : colour,
-          sort,
-        },
+        data: searchPayload(nextPage, Number(perPage) || 12),
       });
       setResults(res.looks);
       setTotal(res.total);
       setTotalPages(res.totalPages);
       setPage(res.page);
-      setPicked([]);
+      // Keep picks while paging; a fresh search starts over.
+      if (nextPage === 1) setPicked([]);
       if (res.looks.length === 0) toast.info("No looks in that price range — widen it a little.");
     } catch {
       toast.error("Pernia's didn't answer just now. Try again in a moment.");
@@ -184,31 +187,73 @@ export function HostImport() {
     }
   };
 
+  const [allBusy, setAllBusy] = useState(false);
+  const SELECT_ALL_CAP = 1000;
+  const selectAllPages = async () => {
+    setAllBusy(true);
+    try {
+      const per = 48;
+      const pages = Math.min(200, Math.ceil(Math.min(total, SELECT_ALL_CAP) / per));
+      const slugs = new Set<string>(picked);
+      for (let p = 1; p <= pages; p += 1) {
+        const res = await searchCategory({ data: searchPayload(p, per) });
+        res.looks.forEach((l) => slugs.add(l.slug));
+        if (res.looks.length < per) break;
+      }
+      const list = [...slugs].slice(0, SELECT_ALL_CAP);
+      setPicked(list);
+      toast.success(
+        total > SELECT_ALL_CAP
+          ? `Picked the first ${list.length.toLocaleString()} looks — narrow the filters to reach the rest.`
+          : `Picked all ${list.length.toLocaleString()} looks.`,
+      );
+    } catch {
+      toast.error("Pernia's didn't answer just now. Try again in a moment.");
+    } finally {
+      setAllBusy(false);
+    }
+  };
+
+  const [importProgress, setImportProgress] = useState<string | null>(null);
   const saveSelection = async (slugs: string[]) => {
     if (!slugs.length) return;
     setImportBusy(true);
+    const sum = { imported: 0, skipped: 0, failed: 0 };
     try {
-      const res = await importLooks({
-        data: {
-          slugs,
-          eventId: eventId || null,
-          boutiqueId: boutiqueId || null,
-          gender: gender === "auto" ? null : gender,
-        },
-      });
+      for (let i = 0; i < slugs.length; i += 60) {
+        if (slugs.length > 60) {
+          setImportProgress(`${Math.min(i + 60, slugs.length)} of ${slugs.length}`);
+        }
+        const res = await importLooks({
+          data: {
+            slugs: slugs.slice(i, i + 60),
+            eventId: eventId || null,
+            boutiqueId: boutiqueId || null,
+            gender: gender === "auto" ? null : gender,
+          },
+        });
+        sum.imported += res.imported;
+        sum.skipped += res.skipped;
+        sum.failed += res.failed;
+      }
       const bits = [
-        res.imported ? `${res.imported} added` : null,
-        res.skipped ? `${res.skipped} already in the wardrobe` : null,
-        res.failed ? `${res.failed} couldn't be read` : null,
+        sum.imported ? `${sum.imported} added` : null,
+        sum.skipped ? `${sum.skipped} already in the wardrobe` : null,
+        sum.failed ? `${sum.failed} couldn't be read` : null,
       ].filter(Boolean);
       toast.success(bits.join(" · ") || "Nothing to add");
-      setImportedTotal((n) => n + res.imported);
       setPicked([]);
-      await refresh();
     } catch {
-      toast.error("We couldn't add those looks. Please try again.");
+      toast.error(
+        sum.imported
+          ? `${sum.imported} added, then it stopped. Try adding the rest again.`
+          : "We couldn't add those looks. Please try again.",
+      );
     } finally {
+      setImportedTotal((n) => n + sum.imported);
+      setImportProgress(null);
       setImportBusy(false);
+      await refresh();
     }
   };
 
@@ -518,12 +563,26 @@ export function HostImport() {
               variant="ghost"
               size="sm"
               onClick={() =>
-                setPicked((p) =>
-                  p.length === results.length ? [] : results.map((l) => l.slug),
-                )
+                setPicked((p) => {
+                  const here = results.map((l) => l.slug);
+                  return here.every((x) => p.includes(x))
+                    ? p.filter((x) => !here.includes(x))
+                    : [...new Set([...p, ...here])];
+                })
               }
             >
-              {picked.length === results.length ? "Clear selection" : "Select all on this page"}
+              {results.every((l) => picked.includes(l.slug)) ? "Clear this page" : "Select all on this page"}
+            </Button>
+          ) : null}
+          {results && results.length && total > results.length ? (
+            <Button variant="ghost" size="sm" disabled={allBusy} onClick={selectAllPages}>
+              {allBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+              Select all {Math.min(total, SELECT_ALL_CAP).toLocaleString()} across every page
+            </Button>
+          ) : null}
+          {picked.length ? (
+            <Button variant="ghost" size="sm" onClick={() => setPicked([])}>
+              Clear all ({picked.length})
             </Button>
           ) : null}
           {picked.length ? (
@@ -537,7 +596,7 @@ export function HostImport() {
               ) : (
                 <Download className="size-4" />
               )}
-              Add {picked.length} selected
+              {importProgress ? `Adding ${importProgress}…` : `Add ${picked.length} selected`}
             </Button>
           ) : null}
         </div>
