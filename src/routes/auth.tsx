@@ -81,6 +81,11 @@ function AuthPage() {
     code: search.code ?? "",
   });
 
+  // Record that the invitation link was opened, so hosts can see who clicked.
+  useEffect(() => {
+    if (search.code) void supabase.rpc("mark_invite_opened", { _code: search.code });
+  }, [search.code]);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = signUpSchema.safeParse(signUpForm);
