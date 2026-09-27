@@ -377,12 +377,17 @@ export function HostInvites() {
     mutationFn: async () => {
       const clean = name.trim();
       if (clean.length < 2) throw new Error("Give the celebration a name first.");
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("invites")
-        .insert({ name: clean, note: note.trim() || null });
+        .insert({ name: clean, note: note.trim() || null })
+        .select("id")
+        .single();
       if (error) throw error;
+      return data.id as string;
     },
-    onSuccess: () => {
+    onSuccess: (newId) => {
+      // Switch straight to the new celebration so the next screens work on it.
+      if (newId) selected.setInviteId(newId);
       setName("");
       setNote("");
       qc.invalidateQueries({ queryKey: ["invite-sets"] });
