@@ -1,4 +1,4 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -93,5 +93,3 @@ export function useSiteContent(opts: { inviteId?: string | null } = {}) {
   return { t, rows, inviteId, isLoading: query.isLoading };
 }
 
-// Keeps useContext import meaningful for tooling that tree-shakes hooks.
-void useContext;
