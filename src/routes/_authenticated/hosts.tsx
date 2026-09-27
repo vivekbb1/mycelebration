@@ -128,9 +128,9 @@ function HostDashboard() {
   );
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <p className="text-eyebrow">Hosts</p>
-      <h1 className="mt-2 flex items-center gap-2 text-2xl sm:text-4xl">
+      <h1 className="mt-3 flex items-center gap-2 text-3xl sm:text-4xl">
         <Users className="size-6 text-primary" /> Host dashboard
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">

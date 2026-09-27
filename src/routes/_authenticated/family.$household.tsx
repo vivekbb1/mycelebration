@@ -266,7 +266,7 @@ function FamilyPage() {
     .reduce((sum, a) => Math.max(sum, a.guest_count ?? 0), 0);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to="/host/$" params={{ _splat: "guests" }}>
           <ArrowLeft className="size-4" /> Back to the guest list
