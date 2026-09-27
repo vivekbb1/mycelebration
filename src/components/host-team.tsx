@@ -2,7 +2,7 @@ import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Mail, ShieldCheck, Trash2, UserMinus } from "lucide-react";
+import { Copy, Mail, Pencil, ShieldCheck, Trash2, UserMinus } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { inviteHostByEmail } from "@/lib/host-invite.functions";
@@ -237,6 +237,57 @@ export function HostTeam() {
     await queryClient.invalidateQueries({ queryKey: ["host-roles"] });
   };
 
+  const validEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+
+  /** Fix the address on a host invitation that hasn't been used yet. */
+  const editInviteEmail = async (id: string, current: string) => {
+    const next = window.prompt("Email for this host invitation", current)?.trim();
+    if (!next || next === current) return;
+    if (!validEmail(next)) return void toast.error("Enter a valid email address.");
+    setBusy(true);
+    const { error } = await supabase.from("host_invites").update({ email: next }).eq("id", id);
+    setBusy(false);
+    if (error) return void toast.error("We couldn't change that email.");
+    toast.success("Email updated. Copy the link again to send it to the new address.");
+    await queryClient.invalidateQueries({ queryKey: ["host-invites"] });
+  };
+
+  /** They already registered under another email: give that account host access. */
+  const linkInvite = async (id: string, userId: string) => {
+    if (!userId) return;
+    const person = candidates.find((c) => c.id === userId);
+    if (!window.confirm(`Make ${person?.full_name || person?.email || "this person"} a host using their registered account?`)) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("celebration_hosts")
+      .insert({ user_id: userId, invite_id: inviteId, role: "host" });
+    if (error && error.code !== "23505") {
+      setBusy(false);
+      return void toast.error("We couldn't add that host.");
+    }
+    await supabase
+      .from("host_invites")
+      .update({ claimed_by: userId, claimed_at: new Date().toISOString() })
+      .eq("id", id);
+    setBusy(false);
+    toast.success("They're now a host.");
+    await queryClient.invalidateQueries({ queryKey: ["host-invites"] });
+    await queryClient.invalidateQueries({ queryKey: ["host-roles"] });
+  };
+
+  /** Change the contact email saved for a host (not their sign-in). */
+  const editHostEmail = async (userId: string, current: string | null) => {
+    const next = window.prompt("Contact email for this host", current ?? "")?.trim();
+    if (!next || next === current) return;
+    if (!validEmail(next)) return void toast.error("Enter a valid email address.");
+    setBusy(true);
+    const { error } = await supabase.from("profiles").update({ email: next }).eq("id", userId);
+    setBusy(false);
+    if (error) return void toast.error("We couldn't change that email.");
+    toast.success("Contact email updated.");
+    await queryClient.invalidateQueries({ queryKey: ["all-profiles"] });
+  };
+
   const pendingInvites = (hostInvites.data ?? []).filter((i) => !i.claimed_by);
 
   return (
@@ -280,7 +331,7 @@ export function HostTeam() {
               <p className="text-eyebrow">Waiting to register ({pendingInvites.length})</p>
               <ul className="mt-3 divide-y divide-border/60">
                 {pendingInvites.map((i) => (
-                  <li key={i.id} className="flex items-center justify-between gap-2 py-3">
+                  <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm">{i.full_name || i.email}</p>
                       <p className="truncate text-xs text-muted-foreground">
@@ -289,6 +340,15 @@ export function HostTeam() {
                       </p>
                     </div>
                     <div className="flex shrink-0 gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={busy}
+                        aria-label={`Edit email for ${i.email}`}
+                        onClick={() => editInviteEmail(i.id, i.email)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -307,6 +367,23 @@ export function HostTeam() {
                         <Trash2 className="size-4" />
                       </Button>
                     </div>
+                    {iAmOwner && candidates.length > 0 ? (
+                      <select
+                        aria-label={`Already registered under another email`}
+                        className="field-select mt-1 h-8 w-full py-0 text-xs"
+                        value=""
+                        disabled={busy}
+                        onChange={(e) => void linkInvite(i.id, e.target.value)}
+                      >
+                        <option value="">Registered with another email? Pick them…</option>
+                        {candidates.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.full_name || "Unnamed"}
+                            {c.email ? ` · ${c.email}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -372,9 +449,20 @@ export function HostTeam() {
                       </Badge>
                     ) : null}
                   </p>
-                  {h.email ? (
-                    <p className="truncate text-xs text-muted-foreground">{h.email}</p>
-                  ) : null}
+                  <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                    {h.email ?? "No email"}
+                    {h.userId !== me.data ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        aria-label={`Edit email for ${h.name}`}
+                        onClick={() => editHostEmail(h.userId, h.email)}
+                        className="text-primary"
+                      >
+                        <Pencil className="size-3" />
+                      </button>
+                    ) : null}
+                  </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                 {iAmOwner ? (
