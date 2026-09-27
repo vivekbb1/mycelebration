@@ -219,19 +219,35 @@ export function HostImport() {
     if (!slugs.length) return;
     setImportBusy(true);
     const sum = { imported: 0, skipped: 0, failed: 0 };
+    // Small batches: each look fetches its detail page and copies up to 6 photos,
+    // so big batches time out. A failed batch is retried once, then skipped.
+    const BATCH = 8;
+    let failedBatches = 0;
     try {
-      for (let i = 0; i < slugs.length; i += 60) {
-        if (slugs.length > 60) {
-          setImportProgress(`${Math.min(i + 60, slugs.length)} of ${slugs.length}`);
+      for (let i = 0; i < slugs.length; i += BATCH) {
+        setImportProgress(
+          `${i} of ${slugs.length} (${sum.imported} added)`,
+        );
+        const payload = {
+          slugs: slugs.slice(i, i + BATCH),
+          eventId: eventId || null,
+          boutiqueId: boutiqueId || null,
+          gender: gender === "auto" ? null : gender,
+        };
+        let res: { imported: number; skipped: number; failed: number } | null = null;
+        for (let attempt = 0; attempt < 2 && !res; attempt += 1) {
+          try {
+            res = await importLooks({ data: payload });
+          } catch {
+            await new Promise((r) => setTimeout(r, 1500));
+          }
         }
-        const res = await importLooks({
-          data: {
-            slugs: slugs.slice(i, i + 60),
-            eventId: eventId || null,
-            boutiqueId: boutiqueId || null,
-            gender: gender === "auto" ? null : gender,
-          },
-        });
+        if (!res) {
+          failedBatches += 1;
+          sum.failed += payload.slugs.length;
+          if (failedBatches >= 3 && sum.imported === 0) throw new Error("stopped");
+          continue;
+        }
         sum.imported += res.imported;
         sum.skipped += res.skipped;
         sum.failed += res.failed;
@@ -239,7 +255,7 @@ export function HostImport() {
       const bits = [
         sum.imported ? `${sum.imported} added` : null,
         sum.skipped ? `${sum.skipped} already in the wardrobe` : null,
-        sum.failed ? `${sum.failed} couldn't be read` : null,
+        sum.failed ? `${sum.failed} couldn't be read — pick them again to retry` : null,
       ].filter(Boolean);
       toast.success(bits.join(" · ") || "Nothing to add");
       setPicked([]);
@@ -247,7 +263,7 @@ export function HostImport() {
       toast.error(
         sum.imported
           ? `${sum.imported} added, then it stopped. Try adding the rest again.`
-          : "We couldn't add those looks. Please try again.",
+          : "We couldn't reach the shop just now. Please try again in a minute.",
       );
     } finally {
       setImportedTotal((n) => n + sum.imported);
