@@ -219,6 +219,7 @@ function WebAddress({ invite }: { invite: Invite }) {
         </div>
       ) : null}
       <OwnDomain invite={invite} />
+      <PageLook inviteId={invite.id} />
       <label className="block text-sm">
         A welcome line for that page (optional)
         <Textarea
@@ -546,5 +547,111 @@ export function InviteThemes() {
         </ul>
       )}
     </section>
+  );
+}
+
+
+/** Logo, background photo and accent colour for the celebration's own page and its sign-in page. */
+function PageLook({ inviteId }: { inviteId: string }) {
+  const qc = useQueryClient();
+  const look = useQuery({
+    queryKey: ["page-look", inviteId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("public_logo_url, public_bg_url, public_accent")
+        .eq("id", inviteId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const save = async (patch: {
+    public_logo_url?: string | null;
+    public_bg_url?: string | null;
+    public_accent?: string | null;
+  }) => {
+    const { error } = await supabase.from("invites").update(patch).eq("id", inviteId);
+    if (error) return toast.error(error.message);
+    toast.success("Saved.");
+    qc.invalidateQueries({ queryKey: ["page-look", inviteId] });
+    qc.invalidateQueries({ queryKey: ["public-celebration"] });
+  };
+
+  const upload = async (kind: "public_logo_url" | "public_bg_url", file: File) => {
+    if (!file.type.startsWith("image/")) return toast.error("Choose an image file.");
+    if (file.size > 8 * 1024 * 1024) return toast.error("Keep images under 8 MB.");
+    setBusy(kind);
+    const path = `celebration-page/${inviteId}/${kind}-${Date.now()}-${file.name.replace(/[^a-z0-9.]+/gi, "-")}`;
+    const up = await supabase.storage.from("event-images").upload(path, file, { upsert: true });
+    if (up.error) {
+      setBusy(null);
+      return toast.error(up.error.message);
+    }
+    const signed = await supabase.storage
+      .from("event-images")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setBusy(null);
+    if (signed.error || !signed.data) return toast.error("Could not save the image.");
+    await save({ [kind]: signed.data.signedUrl });
+  };
+
+  const d = look.data;
+  const Img = ({ kind, label }: { kind: "public_logo_url" | "public_bg_url"; label: string }) => (
+    <div className="space-y-2">
+      <p className="text-sm">{label}</p>
+      {d?.[kind] ? (
+        <img src={d[kind]!} alt="" className="h-16 w-auto rounded border border-border object-contain" />
+      ) : (
+        <p className="text-xs text-muted-foreground">None — uses your usual branding.</p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Input
+          type="file"
+          accept="image/*"
+          className="max-w-56"
+          disabled={busy === kind}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void upload(kind, f);
+            e.target.value = "";
+          }}
+        />
+        {d?.[kind] ? (
+          <Button size="sm" variant="ghost" onClick={() => void save({ [kind]: null })}>
+            Remove
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-3 rounded-md border border-border/60 p-3">
+      <p className="text-sm font-medium">How the page looks</p>
+      <p className="text-xs text-muted-foreground">
+        Shown on the celebration's page and on the sign-in page guests reach from it.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Img kind="public_logo_url" label="Logo" />
+        <Img kind="public_bg_url" label="Background photo" />
+      </div>
+      <label className="flex flex-wrap items-center gap-2 text-sm">
+        Accent colour
+        <input
+          type="color"
+          value={d?.public_accent ?? "#8a5a2b"}
+          onChange={(e) => void save({ public_accent: e.target.value })}
+          className="h-8 w-12 cursor-pointer rounded border border-border bg-transparent"
+        />
+        {d?.public_accent ? (
+          <Button size="sm" variant="ghost" onClick={() => void save({ public_accent: null })}>
+            Use default
+          </Button>
+        ) : null}
+      </label>
+    </div>
   );
 }
