@@ -334,6 +334,45 @@ export type Database = {
           },
         ]
       }
+      celebration_addons: {
+        Row: {
+          addon_id: string
+          created_at: string
+          id: string
+          invite_id: string
+          note: string | null
+        }
+        Insert: {
+          addon_id: string
+          created_at?: string
+          id?: string
+          invite_id: string
+          note?: string | null
+        }
+        Update: {
+          addon_id?: string
+          created_at?: string
+          id?: string
+          invite_id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebration_addons_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celebration_addons_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       celebration_content: {
         Row: {
           invite_id: string
@@ -433,6 +472,51 @@ export type Database = {
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      celebration_subscriptions: {
+        Row: {
+          created_at: string
+          features_extra: Json
+          invite_id: string
+          note: string | null
+          plan_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features_extra?: Json
+          invite_id: string
+          note?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features_extra?: Json
+          invite_id?: string
+          note?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebration_subscriptions_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: true
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celebration_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
@@ -2096,6 +2180,7 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           id: string
+          invite_id: string | null
           note: string | null
           plan_id: string | null
           status: string
@@ -2108,6 +2193,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           id?: string
+          invite_id?: string | null
           note?: string | null
           plan_id?: string | null
           status?: string
@@ -2120,6 +2206,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           id?: string
+          invite_id?: string | null
           note?: string | null
           plan_id?: string | null
           status?: string
@@ -2127,6 +2214,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "plan_requests_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "plan_requests_plan_id_fkey"
             columns: ["plan_id"]
@@ -2574,6 +2668,11 @@ export type Database = {
         Returns: boolean
       }
       celebration_by_slug: { Args: { _slug: string }; Returns: Json }
+      celebration_features: { Args: { _invite_id: string }; Returns: Json }
+      celebration_has_feature: {
+        Args: { _invite_id: string; _key: string }
+        Returns: boolean
+      }
       celebration_slug_for_domain: { Args: { _host: string }; Returns: string }
       claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
