@@ -295,6 +295,31 @@ function HostDashboard() {
     [outfits.data, allowedEventIds],
   );
 
+  const [fq, setFq] = useState("");
+  const [fEvent, setFEvent] = useState("all");
+  const [fGender, setFGender] = useState("all");
+  const [fType, setFType] = useState("all");
+  const [fStatus, setFStatus] = useState("all");
+  const [bulkType, setBulkType] = useState("");
+  const typeOptions = useMemo(
+    () =>
+      Array.from(new Set(outfitList.map((o) => o.garment_type).filter(Boolean) as string[])).sort(),
+    [outfitList],
+  );
+  const shownList = useMemo(() => {
+    const q = fq.trim().toLowerCase();
+    const reserved = new Set((reservations.data ?? []).map((r) => r.outfit_id));
+    return outfitList.filter((o) => {
+      if (q && !`${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""}`.toLowerCase().includes(q)) return false;
+      if (fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
+      if (fGender !== "all" && o.gender !== fGender) return false;
+      if (fType !== "all" && (o.garment_type ?? "") !== fType) return false;
+      if (fStatus === "reserved" && !reserved.has(o.id)) return false;
+      if (fStatus === "available" && reserved.has(o.id)) return false;
+      return true;
+    });
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, reservations.data]);
+
   const eventName = (id: string | null) =>
     eventList.find((e) => e.id === id)?.name ?? "No event";
 
@@ -389,11 +414,21 @@ function HostDashboard() {
   const toggleSelected = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
-  const bulkAssign = async (field: "event_id" | "boutique_id", value: string) => {
+  const bulkAssign = async (
+    field: "event_id" | "boutique_id" | "gender" | "garment_type",
+    value: string,
+  ) => {
     if (selected.length === 0) return;
     setBulkBusy(true);
-    const next = value === "none" ? null : value;
-    const patch = field === "event_id" ? { event_id: next } : { boutique_id: next };
+    const next = value === "none" || value === "" ? null : value;
+    const patch =
+      field === "event_id"
+        ? { event_id: next }
+        : field === "boutique_id"
+          ? { boutique_id: next }
+          : field === "gender"
+            ? { gender: value }
+            : { garment_type: next };
     const { error } = await supabase.from("outfits").update(patch).in("id", selected);
 
     setBulkBusy(false);
@@ -886,19 +921,67 @@ function HostDashboard() {
           </div>
 
           <div className="panel h-fit min-w-0 p-4 sm:p-6">
-            <h2 className="text-xl">In the lookbook ({outfitList.length})</h2>
+            <h2 className="text-xl">
+              In the lookbook ({shownList.length}
+              {shownList.length !== outfitList.length ? ` of ${outfitList.length}` : ""})
+            </h2>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <Input
+                className="col-span-2 sm:col-span-3"
+                placeholder="Search name, designer or code"
+                value={fq}
+                onChange={(e) => setFq(e.target.value)}
+              />
+              <Select value={fEvent} onValueChange={setFEvent}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All events</SelectItem>
+                  <SelectItem value="none">No event</SelectItem>
+                  {eventList.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={fGender} onValueChange={setFGender}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Everyone</SelectItem>
+                  <SelectItem value="women">Women</SelectItem>
+                  <SelectItem value="men">Men</SelectItem>
+                  <SelectItem value="kids">Children</SelectItem>
+                  <SelectItem value="unisex">Unisex</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={fType} onValueChange={setFType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {typeOptions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={fStatus} onValueChange={setFStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any status</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="reserved">Chosen by a guest</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <Checkbox
                 id="select-all-looks"
                 checked={
-                  outfitList.length > 0 && selected.length === outfitList.length
+                  shownList.length > 0 && shownList.every((o) => selected.includes(o.id))
                 }
                 onCheckedChange={(v) =>
-                  setSelected(v ? outfitList.map((o) => o.id) : [])
+                  setSelected(v ? shownList.map((o) => o.id) : [])
                 }
               />
               <Label htmlFor="select-all-looks" className="text-xs font-normal">
-                Select all — then edit or remove several looks at once
+                Select all shown — then edit or remove several looks at once
               </Label>
             </div>
 
@@ -934,6 +1017,41 @@ function HostDashboard() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <Select disabled={bulkBusy} onValueChange={(v) => bulkAssign("gender", v)}>
+                    <SelectTrigger className="w-full sm:w-44">
+                      <SelectValue placeholder="Set who it's for" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="women">Women</SelectItem>
+                      <SelectItem value="men">Men</SelectItem>
+                      <SelectItem value="kids">Children</SelectItem>
+                      <SelectItem value="unisex">Unisex</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex w-full gap-2 sm:w-auto">
+                    <Input
+                      className="sm:w-40"
+                      list="garment-types"
+                      placeholder="Category, e.g. Lehenga"
+                      value={bulkType}
+                      onChange={(e) => setBulkType(e.target.value)}
+                    />
+                    <datalist id="garment-types">
+                      {typeOptions.map((t) => (
+                        <option key={t} value={t} />
+                      ))}
+                    </datalist>
+                    <Button
+                      variant="outline"
+                      disabled={bulkBusy}
+                      onClick={async () => {
+                        await bulkAssign("garment_type", bulkType.trim());
+                        setBulkType("");
+                      }}
+                    >
+                      Set
+                    </Button>
+                  </div>
                   <Button variant="destructive" disabled={bulkBusy} onClick={bulkRemove}>
                     <Trash2 className="size-4" /> Remove selected
                   </Button>
@@ -945,7 +1063,7 @@ function HostDashboard() {
             ) : null}
 
             <ul className="mt-4 divide-y divide-border">
-              {outfitList.map((o) => {
+              {shownList.map((o) => {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
                 return (
                   <li key={o.id} className="flex items-center gap-2 py-3 sm:gap-3">
@@ -970,7 +1088,26 @@ function HostDashboard() {
                       <p className="truncate text-xs text-muted-foreground">
                         {eventName(o.event_id)}
                         {o.designer ? ` · ${o.designer}` : ""}
-                        {o.price_note ? ` · ${o.price_note}` : ""}
+                        {o.garment_type ? ` · ${o.garment_type}` : ""}
+                      </p>
+                      <p className="flex flex-wrap items-center gap-x-3 text-xs">
+                        {o.price_inr != null ? (
+                          <span>₹{Number(o.price_inr).toLocaleString("en-IN")}</span>
+                        ) : o.price_note ? (
+                          <span>{o.price_note}</span>
+                        ) : (
+                          <span className="text-muted-foreground">No price</span>
+                        )}
+                        {o.boutique_url ? (
+                          <a
+                            href={o.boutique_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary underline"
+                          >
+                            Shop link
+                          </a>
+                        ) : null}
                       </p>
                     </div>
                     {res ? (
@@ -999,8 +1136,10 @@ function HostDashboard() {
                   </li>
                 );
               })}
-              {outfitList.length === 0 ? (
-                <li className="py-4 text-sm text-muted-foreground">No outfits added yet.</li>
+              {shownList.length === 0 ? (
+                <li className="py-4 text-sm text-muted-foreground">
+                  {outfitList.length === 0 ? "No outfits added yet." : "No looks match these filters."}
+                </li>
               ) : null}
             </ul>
           </div>
