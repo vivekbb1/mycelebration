@@ -74,7 +74,10 @@ export function GuestPassports({ household, people }: { household: string; peopl
 
   const view = async (path: string) => {
     const { data, error } = await supabase.storage.from("passports").createSignedUrl(path, 300);
-    if (error || !data) return toast.error("Couldn't open that file.");
+    if (error || !data) {
+      toast.error("Couldn't open that file.");
+      return;
+    }
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
