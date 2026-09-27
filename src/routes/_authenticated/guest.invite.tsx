@@ -246,7 +246,7 @@ function InvitationPage() {
 
   return (
     <main className="bg-zari">
-      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <section className="invite-card p-8 text-center sm:p-12">
           <div className="relative">
             {branding.cover_logo_url ? (
