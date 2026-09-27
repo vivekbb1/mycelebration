@@ -435,6 +435,13 @@
       "when": 1790525132020,
       "tag": "0061_drop_broad_event_images_read",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1790525758339,
+      "tag": "0062_lock_host_claim_and_gate_paid_tables",
+      "breakpoints": true
     }
   ]
 }
