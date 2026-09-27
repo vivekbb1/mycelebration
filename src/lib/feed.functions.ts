@@ -247,7 +247,15 @@ export const importFeedPage = createServerFn({ method: "POST" })
     const todo = listed.filter((l) => !savedSet.has(l.sku));
     await Promise.all(
       todo.map(async (l) => {
-        const images = await copyImages(l.sku, l.images, 2);
+        // The listing only carries two photos; the look's own page has them all.
+        let source = l.images;
+        try {
+          const full = await detail(l.slug);
+          if (full.images.length) source = full.images;
+        } catch {
+          /* keep the listing photos */
+        }
+        const images = await copyImages(l.sku, source, 6);
         const { error } = await supabaseAdmin.from("outfits").insert({
           title: l.title,
           designer: l.designer,
