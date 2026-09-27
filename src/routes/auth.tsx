@@ -5,8 +5,10 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { sendWelcomeEmail } from "@/lib/welcome-email.functions";
 
 const PENDING_CODE = "mc-pending-invite-code";
+const PENDING_SLUG = "mc-pending-celebration";
 import { claimGuestInvite, type ClaimResult } from "@/lib/guest-access.functions";
 import { claimHostInvite } from "@/lib/host-invite.functions";
 import { Button } from "@/components/ui/button";
@@ -137,8 +139,11 @@ function AuthPage() {
 
   const finishSocial = async () => {
     const code = localStorage.getItem(PENDING_CODE) ?? "";
+    const slug = localStorage.getItem(PENDING_SLUG) || search.c || null;
     localStorage.removeItem(PENDING_CODE);
+    localStorage.removeItem(PENDING_SLUG);
     if (code) await claimInvite(code);
+    void sendWelcomeEmail({ data: { slug } }).catch(() => {});
     navigate({ to: code.trim().toUpperCase().startsWith("HOST-") ? "/host" : "/guest/invite" });
   };
 
@@ -154,6 +159,7 @@ function AuthPage() {
   const social = async (provider: "google" | "microsoft" | "apple") => {
     const code = (tab === "signup" ? signUpForm.code : signInForm.code).trim();
     localStorage.setItem(PENDING_CODE, code);
+    localStorage.setItem(PENDING_SLUG, search.c ?? "");
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth`,

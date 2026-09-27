@@ -452,6 +452,50 @@ function Lookbook() {
       </p>
 
       <section className="panel mt-6 p-4 sm:p-5">
+        <p className="text-eyebrow">Your family's profile</p>
+        <h2 className="mt-2 text-xl">
+          {me.data?.household ? `${me.data.household} family` : me.data?.full_name || "Your family"}
+        </h2>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(people.length ? people : [{ name: me.data?.full_name || "You" }]).map((person) => {
+            const picks = (reservations.data ?? [])
+              .filter(
+                (r) =>
+                  (r.guest_name ?? me.data?.full_name ?? "") === person.name ||
+                  (people.length <= 1 && !r.guest_name),
+              )
+              .map((r) => ({ r, o: (outfits.data ?? []).find((o) => o.id === r.outfit_id) }))
+              .filter((x) => x.o);
+            return (
+              <li key={person.name} className="rounded-md border border-border p-3">
+                <p className="font-medium">{person.name}</p>
+                {picks.length ? (
+                  <ul className="mt-2 space-y-2">
+                    {picks.map(({ r, o }) => (
+                      <li key={r.id} className="flex items-center gap-3 text-sm">
+                        {o!.image_url ? (
+                          <img src={o!.image_url} alt="" className="size-10 rounded object-cover" />
+                        ) : null}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate">{o!.title}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {eventList.find((e) => e.id === o!.event_id)?.name ?? "Any event"} ·{" "}
+                            {r.status === "confirmed" ? "Confirmed" : "Chosen"}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground">No look chosen yet.</p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="panel mt-6 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="size-4 shrink-0 text-primary" />
