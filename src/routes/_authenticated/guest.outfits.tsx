@@ -91,20 +91,24 @@ function Lookbook() {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData.user;
       if (!user) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, invite_claimed, gender, household")
-        .eq("id", user.id)
-        .maybeSingle();
-      return (
-        data ?? {
-          id: user.id,
-          full_name: "",
-          invite_claimed: false,
-          gender: null as string | null,
-          household: null as string | null,
-        }
-      );
+      const [{ data }, guestOf] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, full_name, invite_claimed, gender, household")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase.rpc("my_guest_invite_ids"),
+      ]);
+      // A host account is "claimed" too, but only a guest code unlocks the wardrobe.
+      const isGuest = (guestOf.data ?? []).length > 0;
+      const row = data ?? {
+        id: user.id,
+        full_name: "",
+        invite_claimed: false,
+        gender: null as string | null,
+        household: null as string | null,
+      };
+      return { ...row, invite_claimed: Boolean(row.invite_claimed) && isGuest };
     },
   });
 
