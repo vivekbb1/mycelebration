@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Signed reads of event images" ON storage.objects;
