@@ -176,9 +176,9 @@ function UpgradePage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-xs tracking-[0.2em] text-primary uppercase">Your package</p>
-      <h1 className="mt-2 text-3xl sm:text-4xl">Choose what your celebration includes</h1>
+    <main className="min-h-dvh mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <p className="text-eyebrow">Your package</p>
+      <h1 className="mt-3 text-3xl sm:text-4xl">Choose what your celebration includes</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
         Every package below lists exactly what it opens up. Pick one, add anything extra, and tell
         us anything we should know — we'll switch it on for your account.

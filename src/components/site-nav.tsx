@@ -73,7 +73,7 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
       <div
         className={`mx-auto flex h-14 w-full items-center gap-2 px-4 sm:gap-3 sm:px-6 ${
-          isHostPage ? "max-w-6xl" : "max-w-4xl lg:px-8"
+          isHostPage ? "max-w-6xl lg:px-8" : "max-w-4xl lg:px-8"
         }`}
       >
 
