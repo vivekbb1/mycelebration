@@ -36,7 +36,7 @@ export function useInvites() {
     queryFn: async (): Promise<Invite[]> => {
       const { data, error } = await supabase
         .from("invites")
-        .select("id, name, note, branding_preset_id, created_at, slug, public_intro")
+        .select("id, name, note, branding_preset_id, created_at, slug, public_intro, custom_domain")
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as Invite[];
