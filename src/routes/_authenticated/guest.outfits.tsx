@@ -790,6 +790,7 @@ function Lookbook() {
             );
           })}
         </div>
+        </>
       )}
 
       {activeEvent !== "all" && pickableEvents.some((e) => e.id === activeEvent) ? (
