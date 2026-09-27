@@ -18,7 +18,6 @@ import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
 import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedGuestsRouteImport } from './routes/_authenticated/guests'
-import { Route as AuthenticatedHostRouteImport } from './routes/_authenticated/host'
 import { Route as AuthenticatedHostsRouteImport } from './routes/_authenticated/hosts'
 import { Route as AuthenticatedInvitationRouteImport } from './routes/_authenticated/invitation'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
@@ -81,11 +80,6 @@ const AuthenticatedEventRoute = AuthenticatedEventRouteImport.update({
 const AuthenticatedGuestsRoute = AuthenticatedGuestsRouteImport.update({
   id: '/guests',
   path: '/guests',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedHostRoute = AuthenticatedHostRouteImport.update({
-  id: '/host',
-  path: '/host',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHostsRoute = AuthenticatedHostsRouteImport.update({
@@ -199,7 +193,6 @@ export interface FileRoutesByFullPath {
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
-  '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
   '/invite': typeof AuthenticatedInviteRoute
@@ -229,7 +222,6 @@ export interface FileRoutesByTo {
   '/delivery': typeof AuthenticatedDeliveryRoute
   '/event': typeof AuthenticatedEventRoute
   '/guests': typeof AuthenticatedGuestsRoute
-  '/host': typeof AuthenticatedHostRoute
   '/hosts': typeof AuthenticatedHostsRoute
   '/invitation': typeof AuthenticatedInvitationRoute
   '/invite': typeof AuthenticatedInviteRoute
@@ -261,7 +253,6 @@ export interface FileRoutesById {
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
   '/_authenticated/event': typeof AuthenticatedEventRoute
   '/_authenticated/guests': typeof AuthenticatedGuestsRoute
-  '/_authenticated/host': typeof AuthenticatedHostRoute
   '/_authenticated/hosts': typeof AuthenticatedHostsRoute
   '/_authenticated/invitation': typeof AuthenticatedInvitationRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
@@ -293,7 +284,6 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/event'
     | '/guests'
-    | '/host'
     | '/hosts'
     | '/invitation'
     | '/invite'
@@ -323,7 +313,6 @@ export interface FileRouteTypes {
     | '/delivery'
     | '/event'
     | '/guests'
-    | '/host'
     | '/hosts'
     | '/invitation'
     | '/invite'
@@ -354,7 +343,6 @@ export interface FileRouteTypes {
     | '/_authenticated/delivery'
     | '/_authenticated/event'
     | '/_authenticated/guests'
-    | '/_authenticated/host'
     | '/_authenticated/hosts'
     | '/_authenticated/invitation'
     | '/_authenticated/invite'
@@ -450,13 +438,6 @@ declare module '@tanstack/react-router' {
       path: '/guests'
       fullPath: '/guests'
       preLoaderRoute: typeof AuthenticatedGuestsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/host': {
-      id: '/_authenticated/host'
-      path: '/host'
-      fullPath: '/host'
-      preLoaderRoute: typeof AuthenticatedHostRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/hosts': {
@@ -601,7 +582,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDeliveryRoute: typeof AuthenticatedDeliveryRoute
   AuthenticatedEventRoute: typeof AuthenticatedEventRoute
   AuthenticatedGuestsRoute: typeof AuthenticatedGuestsRoute
-  AuthenticatedHostRoute: typeof AuthenticatedHostRoute
   AuthenticatedHostsRoute: typeof AuthenticatedHostsRoute
   AuthenticatedInvitationRoute: typeof AuthenticatedInvitationRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
@@ -625,7 +605,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDeliveryRoute: AuthenticatedDeliveryRoute,
   AuthenticatedEventRoute: AuthenticatedEventRoute,
   AuthenticatedGuestsRoute: AuthenticatedGuestsRoute,
-  AuthenticatedHostRoute: AuthenticatedHostRoute,
   AuthenticatedHostsRoute: AuthenticatedHostsRoute,
   AuthenticatedInvitationRoute: AuthenticatedInvitationRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
