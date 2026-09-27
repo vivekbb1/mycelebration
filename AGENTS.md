@@ -16,3 +16,4 @@
 - Storage paths start with the celebration id (`<invite_id>/...`; passports `<invite_id>/<household>/...`). Why: storage rules check the first folder.
 
 - Per-celebration settings override platform defaults: `celebration_email_settings` over `email_settings`, `celebration_content` over `site_content`. Why: hosts reword and send for their own celebration without touching others.
+- Packages live on the celebration: `celebration_subscriptions`, `celebration_addons`, `plan_requests.invite_id`; features via `celebration_features(invite_id)`. Why: one upgrade applies to one celebration only.

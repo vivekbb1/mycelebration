@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { featureLabel } from "@/lib/features";
+import { EventPicker, SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 import { formatMoney } from "@/lib/fees";
 
 export const Route = createFileRoute("/_authenticated/upgrade")({
@@ -30,12 +31,17 @@ export const Route = createFileRoute("/_authenticated/upgrade")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: UpgradePage,
+  component: () => (
+    <SelectedEventProvider>
+      <UpgradePage />
+    </SelectedEventProvider>
+  ),
 });
 
 type FeeRow = { label: string; currency: string; base_amount: number; per_guest_amount: number };
 
 function UpgradePage() {
+  const { inviteId } = useSelectedEvent();
   const qc = useQueryClient();
   const [chosenPlan, setChosenPlan] = useState<string | null>(null);
   const [chosenAddons, setChosenAddons] = useState<string[]>([]);
@@ -75,20 +81,20 @@ function UpgradePage() {
   });
 
   const mine = useQuery({
-    queryKey: ["upgrade-mine", me.data],
-    enabled: !!me.data,
+    queryKey: ["upgrade-mine", inviteId],
+    enabled: !!me.data && !!inviteId,
     queryFn: async () => {
       const [sub, own, request] = await Promise.all([
         supabase
-          .from("host_subscriptions")
+          .from("celebration_subscriptions")
           .select("plan_id, status")
-          .eq("user_id", me.data as string)
+          .eq("invite_id", inviteId)
           .maybeSingle(),
-        supabase.from("host_addons").select("addon_id").eq("user_id", me.data as string),
+        supabase.from("celebration_addons").select("addon_id").eq("invite_id", inviteId),
         supabase
           .from("plan_requests")
           .select("id, plan_id, addon_ids, status, note, created_at")
-          .eq("user_id", me.data as string)
+          .eq("invite_id", inviteId)
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
@@ -147,7 +153,7 @@ function UpgradePage() {
     setChosenAddons((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
 
   const sendRequest = async () => {
-    if (!me.data) return;
+    if (!me.data || !inviteId) return;
     if (!chosenPlan && chosenAddons.length === 0) {
       toast.error("Pick a package or an add-on first.");
       return;
@@ -155,6 +161,7 @@ function UpgradePage() {
     setBusy(true);
     const { error } = await supabase.from("plan_requests").insert({
       user_id: me.data,
+      invite_id: inviteId,
       plan_id: chosenPlan,
       addon_ids: chosenAddons,
       note: note.trim() || null,
@@ -183,6 +190,10 @@ function UpgradePage() {
         Every package below lists exactly what it opens up. Pick one, add anything extra, and tell
         us anything we should know — we'll switch it on for your account.
       </p>
+
+      <div className="mt-6 max-w-sm">
+        <EventPicker />
+      </div>
 
       <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

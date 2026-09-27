@@ -470,6 +470,13 @@
       "when": 1790528495087,
       "tag": "0066_per_celebration_email_and_wording",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1790528730181,
+      "tag": "0067_packages_per_celebration",
+      "breakpoints": true
     }
   ]
 }

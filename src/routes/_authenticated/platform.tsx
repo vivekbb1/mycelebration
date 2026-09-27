@@ -110,32 +110,42 @@ function PlatformAdmin() {
     queryKey: ["platform-hosts"],
     enabled: isPlatformAdmin,
     queryFn: async () => {
-      const roles = await supabase.from("user_roles").select("user_id, role").eq("role", "admin");
-      if (roles.error) throw roles.error;
-      const ids = (roles.data ?? []).map((r) => r.user_id);
+      // One row per celebration: packages belong to a celebration, not a person.
+      const celebrations = await supabase.from("invites").select("id, name").order("created_at");
+      if (celebrations.error) throw celebrations.error;
+      const ids = (celebrations.data ?? []).map((c) => c.id);
       if (ids.length === 0) return [];
-      const [profiles, subs, hostAddons] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email").in("id", ids),
+      const [owners, subs, hostAddons] = await Promise.all([
+        supabase.from("celebration_hosts").select("invite_id, user_id, role").in("invite_id", ids),
         supabase
-          .from("host_subscriptions")
-          .select("user_id, plan_id, features_extra, status")
-          .in("user_id", ids),
-        supabase.from("host_addons").select("user_id, addon_id").in("user_id", ids),
+          .from("celebration_subscriptions")
+          .select("invite_id, plan_id, features_extra, status")
+          .in("invite_id", ids),
+        supabase.from("celebration_addons").select("invite_id, addon_id").in("invite_id", ids),
       ]);
-      if (profiles.error) throw profiles.error;
+      if (owners.error) throw owners.error;
       if (subs.error) throw subs.error;
       if (hostAddons.error) throw hostAddons.error;
-      return ids.map((id) => {
-        const sub = subs.data?.find((s) => s.user_id === id);
-        const profile = profiles.data?.find((p) => p.id === id);
+      const ownerIds = [...new Set((owners.data ?? []).filter((o) => o.role === "owner").map((o) => o.user_id))];
+      const profiles = ownerIds.length
+        ? await supabase.from("profiles").select("id, full_name, email").in("id", ownerIds)
+        : { data: [] as { id: string; full_name: string; email: string | null }[] };
+      return (celebrations.data ?? []).map((c) => {
+        const id = c.id;
+        const sub = subs.data?.find((s) => s.invite_id === id);
+        const ownerEmails = (owners.data ?? [])
+          .filter((o) => o.invite_id === id && o.role === "owner")
+          .map((o) => profiles.data?.find((p) => p.id === o.user_id))
+          .map((p) => p?.email || p?.full_name)
+          .filter(Boolean);
         return {
           id,
-          name: profile?.full_name || "Host",
-          email: profile?.email ?? "",
+          name: c.name || "Celebration",
+          email: ownerEmails.join(", "),
           plan_id: sub?.plan_id ?? "free",
           status: sub?.status ?? "active",
           extras: Array.isArray(sub?.features_extra) ? (sub?.features_extra as string[]) : [],
-          addons: (hostAddons.data ?? []).filter((a) => a.user_id === id).map((a) => a.addon_id),
+          addons: (hostAddons.data ?? []).filter((a) => a.invite_id === id).map((a) => a.addon_id),
         };
       });
     },
@@ -256,16 +266,16 @@ function PlatformAdmin() {
 
   const toggleHostAddon = async (userId: string, addonId: string, on: boolean) => {
     const { error } = on
-      ? await supabase.from("host_addons").delete().eq("user_id", userId).eq("addon_id", addonId)
-      : await supabase.from("host_addons").insert({ user_id: userId, addon_id: addonId });
+      ? await supabase.from("celebration_addons").delete().eq("invite_id", userId).eq("addon_id", addonId)
+      : await supabase.from("celebration_addons").insert({ invite_id: userId, addon_id: addonId });
     if (error) return void toast.error(error.message);
     await refresh(["platform-hosts", "my-features"]);
   };
 
   const setHostPlan = async (userId: string, planId: string) => {
     const { error } = await supabase
-      .from("host_subscriptions")
-      .upsert({ user_id: userId, plan_id: planId }, { onConflict: "user_id" });
+      .from("celebration_subscriptions")
+      .upsert({ invite_id: userId, plan_id: planId }, { onConflict: "invite_id" });
     if (error) return void toast.error(error.message);
     toast.success("Package changed.");
     await refresh(["platform-hosts", "my-features"]);
@@ -274,16 +284,16 @@ function PlatformAdmin() {
   const toggleExtra = async (userId: string, extras: string[], key: string) => {
     const next = extras.includes(key) ? extras.filter((f) => f !== key) : [...extras, key];
     const { error } = await supabase
-      .from("host_subscriptions")
-      .upsert({ user_id: userId, features_extra: next }, { onConflict: "user_id" });
+      .from("celebration_subscriptions")
+      .upsert({ invite_id: userId, features_extra: next }, { onConflict: "invite_id" });
     if (error) return void toast.error(error.message);
     await refresh(["platform-hosts", "my-features"]);
   };
 
   const setStatus = async (userId: string, status: string) => {
     const { error } = await supabase
-      .from("host_subscriptions")
-      .upsert({ user_id: userId, status }, { onConflict: "user_id" });
+      .from("celebration_subscriptions")
+      .upsert({ invite_id: userId, status }, { onConflict: "invite_id" });
     if (error) return void toast.error(error.message);
     toast.success(status === "active" ? "Subscription switched on." : "Subscription paused.");
     await refresh(["platform-hosts", "my-features"]);
@@ -312,7 +322,7 @@ function PlatformAdmin() {
         <ShieldCheck className="size-6 text-primary" /> Packages &amp; add-ons
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Build the packages you sell, keep a few add-ons for the extras, then put every host account
+        Build the packages you sell, keep a few add-ons for the extras, then put every celebration
         on a package and switch on the add-ons they've paid for. Prices below are what hosts see on
         their own package page.
       </p>
@@ -521,7 +531,7 @@ function PlatformAdmin() {
 
       <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl">Host accounts ({shown.length})</h2>
+          <h2 className="text-xl">Celebrations ({shown.length})</h2>
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -629,7 +639,7 @@ function PlatformAdmin() {
             );
           })}
           {shown.length === 0 ? (
-            <li className="py-4 text-sm text-muted-foreground">No host accounts yet.</li>
+            <li className="py-4 text-sm text-muted-foreground">No celebrations yet.</li>
           ) : null}
         </ul>
       </section>
