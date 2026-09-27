@@ -322,7 +322,7 @@ function PlatformAdmin() {
         <ShieldCheck className="size-6 text-primary" /> Packages &amp; add-ons
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Build the packages you sell, keep a few add-ons for the extras, then put every host account
+        Build the packages you sell, keep a few add-ons for the extras, then put every celebration
         on a package and switch on the add-ons they've paid for. Prices below are what hosts see on
         their own package page.
       </p>
@@ -531,7 +531,7 @@ function PlatformAdmin() {
 
       <section className="panel mt-8 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl">Host accounts ({shown.length})</h2>
+          <h2 className="text-xl">Celebrations ({shown.length})</h2>
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -639,7 +639,7 @@ function PlatformAdmin() {
             );
           })}
           {shown.length === 0 ? (
-            <li className="py-4 text-sm text-muted-foreground">No host accounts yet.</li>
+            <li className="py-4 text-sm text-muted-foreground">No celebrations yet.</li>
           ) : null}
         </ul>
       </section>
