@@ -1,24 +1,21 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RESERVED_SLUGS } from "@/lib/celebration-slug";
 
-type PublicCelebration = {
-  name: string;
-  intro: string | null;
-  cover_logo_url: string | null;
-};
+import {
+  celebrationStyle,
+  fetchCelebrationBySlug,
+  type PublicCelebration,
+} from "@/lib/public-celebration";
 
 export const Route = createFileRoute("/$celebration")({
   loader: async ({ params }): Promise<PublicCelebration> => {
     const slug = params.celebration.toLowerCase();
     if (RESERVED_SLUGS.has(slug)) throw notFound();
-    const { data, error } = await supabase.rpc("celebration_by_slug", { _slug: slug });
-    if (error) throw notFound();
-    const row = (data ?? null) as PublicCelebration | null;
-    if (!row?.name) throw notFound();
-    return row;
+    const row = await fetchCelebrationBySlug(slug);
+    if (!row) throw notFound();
+    return { ...row, slug: row.slug ?? slug };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -49,7 +46,10 @@ function CelebrationPage() {
   const celebration = Route.useLoaderData();
 
   return (
-    <div className="bg-zari flex min-h-dvh flex-col bg-background">
+    <div
+      className="bg-zari flex min-h-dvh flex-col bg-background"
+      style={celebrationStyle(celebration)}
+    >
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-16 text-center">
         {celebration.cover_logo_url ? (
           <img
@@ -67,10 +67,12 @@ function CelebrationPage() {
         ) : null}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg">
-            <Link to="/auth">I have an invitation code</Link>
+            <Link to="/auth" search={{ c: celebration.slug ?? undefined }}>
+              I have an invitation code
+            </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link to="/auth" search={{ mode: "signin" }}>
+            <Link to="/auth" search={{ mode: "signin", c: celebration.slug ?? undefined }}>
               I already registered
             </Link>
           </Button>
