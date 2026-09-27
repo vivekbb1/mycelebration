@@ -17,6 +17,7 @@ export type HostInviteResult = {
 const inviteSchema = z.object({
   email: z.string().trim().email("Enter a valid email").max(255),
   fullName: z.string().trim().max(100).optional(),
+  inviteId: z.string().uuid(),
 });
 
 function makeCode() {
@@ -28,11 +29,10 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inviteSchema.parse(data))
   .handler(async ({ data, context }): Promise<HostInviteResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
+    const { data: isOwner } = await context.supabase.rpc("is_celebration_owner", {
+      _invite_id: data.inviteId,
     });
-    if (!isAdmin) return { ok: false, error: "Only a host can invite other hosts." };
+    if (!isOwner) return { ok: false, error: "Only an owner of this celebration can invite other hosts." };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const email = data.email.toLowerCase();
@@ -42,6 +42,7 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
       .from("host_invites")
       .select("id, code, claimed_by")
       .ilike("email", email)
+      .eq("invite_id", data.inviteId)
       .maybeSingle();
 
     let code = existing?.code ?? makeCode();
@@ -55,13 +56,13 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
     } else {
       const { error } = await supabaseAdmin
         .from("host_invites")
-        .insert({ email, full_name: fullName, code, invited_by: context.userId });
+        .insert({ email, full_name: fullName, code, invited_by: context.userId, invite_id: data.inviteId });
       if (error) {
         if (error.code === "23505") {
           code = makeCode();
           const retry = await supabaseAdmin
             .from("host_invites")
-            .insert({ email, full_name: fullName, code, invited_by: context.userId });
+            .insert({ email, full_name: fullName, code, invited_by: context.userId, invite_id: data.inviteId });
           if (retry.error) return { ok: false, error: "We couldn't create that invitation." };
         } else {
           return { ok: false, error: "We couldn't create that invitation." };
@@ -111,7 +112,7 @@ export const claimHostInvite = createServerFn({ method: "POST" })
 
     const { data: invite } = await supabaseAdmin
       .from("host_invites")
-      .select("id, code, email, full_name, claimed_by")
+      .select("id, code, email, full_name, claimed_by, invite_id")
       .ilike("code", data.code.trim())
       .maybeSingle();
 
@@ -120,9 +121,10 @@ export const claimHostInvite = createServerFn({ method: "POST" })
       return { ok: false, error: "That host invitation has already been used" };
     }
 
+    if (!invite.invite_id) return { ok: false, error: "That host code isn't linked to a celebration." };
     const { error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .insert({ user_id: userId, role: "admin" });
+      .from("celebration_hosts")
+      .insert({ user_id: userId, invite_id: invite.invite_id, role: "host" });
     if (roleError && roleError.code !== "23505") {
       return { ok: false, error: "We couldn't give you host access. Please try again." };
     }
