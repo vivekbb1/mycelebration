@@ -64,7 +64,7 @@ export function SiteNav() {
   const guestCelebrations = useGuestEvent().list;
   const brandName =
     onGuestTab && guestCelebrations.length === 1
-      ? guestCelebrations[0].name
+      ? (guestCelebrations[0]?.name ?? "My Celebration")
       : onGuestTab && guestCelebrations.length > 1
         ? "My Celebration"
         : t("nav.brand", "Our Wedding");
