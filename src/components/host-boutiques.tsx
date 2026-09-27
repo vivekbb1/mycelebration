@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 type BoutiqueForm = {
   name: string;
@@ -45,19 +46,27 @@ export function HostBoutiques() {
   const [form, setForm] = useState<BoutiqueForm>({ ...empty });
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const boutiques = useQuery({
-    queryKey: ["boutiques"],
+    queryKey: ["boutiques", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("boutiques").select("*").order("name");
+      let q = supabase.from("boutiques").select("*").order("name");
+      if (inviteId) {
+        const links = await supabase.from("boutique_celebrations").select("boutique_id").eq("invite_id", inviteId);
+        if (links.error) throw links.error;
+        q = q.in("id", (links.data ?? []).map((l) => l.boutique_id));
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
 
   const outfits = useQuery({
-    queryKey: ["outfits"],
+    queryKey: ["outfits", "boutique-counts", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("outfits").select("id, boutique_id");
+      const { data, error } = await supabase.from("outfits").select("id, boutique_id").match(scope);
       if (error) throw error;
       return data;
     },
@@ -75,12 +84,22 @@ export function HostBoutiques() {
         city: form.city.trim() || null,
         notes: form.notes.trim() || null,
       };
-      const { error } = editingId
-        ? await supabase.from("boutiques").update(payload).eq("id", editingId)
-        : await supabase
-            .from("boutiques")
-            .insert({ ...payload, access_code: makeCode(name) });
-      if (error) throw new Error(error.message);
+      if (editingId) {
+        const { error } = await supabase.from("boutiques").update(payload).eq("id", editingId);
+        if (error) throw new Error(error.message);
+      } else {
+        const { data: made, error } = await supabase
+          .from("boutiques")
+          .insert({ ...payload, access_code: makeCode(name) })
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        if (inviteId && made) {
+          await supabase
+            .from("boutique_celebrations")
+            .upsert({ boutique_id: made.id, invite_id: inviteId }, { ignoreDuplicates: true });
+        }
+      }
     },
     onSuccess: async () => {
       toast.success(editingId ? "Boutique updated." : "Boutique added.");

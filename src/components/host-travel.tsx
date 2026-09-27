@@ -4,6 +4,7 @@ import { Users, AlertTriangle, CalendarClock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 const dateLabel = (value: string | null) =>
   value
@@ -16,12 +17,15 @@ const dateLabel = (value: string | null) =>
 
 /** Flights in and out, head counts per event, and who lands too late for one. */
 export function HostTravel() {
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const events = useQuery({
-    queryKey: ["travel-events"],
+    queryKey: ["travel-events", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("id, name, event_date, sort_order")
+        .match(scope)
         .order("sort_order");
       if (error) throw error;
       return data;
@@ -29,11 +33,12 @@ export function HostTravel() {
   });
 
   const plans = useQuery({
-    queryKey: ["all-travel-plans"],
+    queryKey: ["all-travel-plans", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("travel_plans")
         .select("*")
+        .match(scope)
         .order("household");
       if (error) throw error;
       return data;
@@ -41,22 +46,24 @@ export function HostTravel() {
   });
 
   const attendance = useQuery({
-    queryKey: ["all-event-attendance"],
+    queryKey: ["all-event-attendance", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_attendance")
-        .select("household, event_id, attending, guest_count");
+        .select("household, event_id, attending, guest_count")
+        .match(scope);
       if (error) throw error;
       return data;
     },
   });
 
   const invited = useQuery({
-    queryKey: ["all-household-event-invites"],
+    queryKey: ["all-household-event-invites", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("household_event_invites")
-        .select("household, event_id");
+        .select("household, event_id")
+        .match(scope);
       if (error) throw error;
       return data;
     },

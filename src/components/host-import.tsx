@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 // The shop keeps womenswear and menswear in separate sections with their own
 // category names, so each list is offered on its own.
@@ -125,8 +126,10 @@ export function HostImport() {
 
   // Everything already in the wardrobe, traced by shop link and SKU, so
   // duplicates are hidden from the results and never picked twice.
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const owned = useQuery({
-    queryKey: ["wardrobe-owned-links"],
+    queryKey: ["wardrobe-owned-links", inviteId],
     queryFn: async () => {
       const links = new Set<string>();
       const skus = new Set<string>();
@@ -134,6 +137,7 @@ export function HostImport() {
         const { data, error } = await supabase
           .from("outfits")
           .select("boutique_url, source_sku")
+          .match(scope)
           .range(from, from + 999);
         if (error) throw error;
         for (const r of data) {
@@ -151,11 +155,12 @@ export function HostImport() {
   const hiddenCount = (results?.length ?? 0) - shown.length;
 
   const events = useQuery({
-    queryKey: ["events"],
+    queryKey: ["events", "import", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("id, name, sort_order")
+        .match(scope)
         .order("sort_order");
       if (error) throw error;
       return data;
@@ -163,9 +168,15 @@ export function HostImport() {
   });
 
   const boutiques = useQuery({
-    queryKey: ["boutiques"],
+    queryKey: ["boutiques", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("boutiques").select("id, name").order("name");
+      let q = supabase.from("boutiques").select("id, name").order("name");
+      if (inviteId) {
+        const links = await supabase.from("boutique_celebrations").select("boutique_id").eq("invite_id", inviteId);
+        if (links.error) throw links.error;
+        q = q.in("id", (links.data ?? []).map((l) => l.boutique_id));
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -254,8 +265,8 @@ export function HostImport() {
   const listImports = useServerFn(listOutfitImports);
   const cancelImport = useServerFn(cancelOutfitImport);
   const jobs = useQuery({
-    queryKey: ["outfit-import-jobs"],
-    queryFn: () => listImports(),
+    queryKey: ["outfit-import-jobs", inviteId],
+    queryFn: () => listImports({ data: { inviteId: inviteId || null } }),
     refetchInterval: (q) =>
       (q.state.data ?? []).some((j) => j.status === "running") ? 4000 : false,
   });
@@ -276,6 +287,7 @@ export function HostImport() {
       const res = await startImport({
         data: {
           slugs,
+          inviteId: inviteId || null,
           eventId: eventId || null,
           boutiqueId: boutiqueId || null,
           gender: gender === "auto" ? null : gender,

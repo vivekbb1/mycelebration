@@ -3,6 +3,7 @@ import { Plane } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 const dateLabel = (value: string | null) =>
   value
@@ -15,12 +16,15 @@ const dateLabel = (value: string | null) =>
 
 /** Arrival and departure details guests have given, shown on the RSVP board. */
 export function HostFlights() {
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const plans = useQuery({
-    queryKey: ["all-travel-plans"],
+    queryKey: ["all-travel-plans", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("travel_plans")
         .select("*")
+        .match(scope)
         .order("household");
       if (error) throw error;
       return data ?? [];

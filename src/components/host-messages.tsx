@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 type Message = {
   id: string;
@@ -36,6 +37,8 @@ export function HostMessages() {
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
 
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const me = useQuery({
     queryKey: ["me-host-messages"],
     queryFn: async () => {
@@ -51,11 +54,12 @@ export function HostMessages() {
   });
 
   const messages = useQuery({
-    queryKey: ["host-messages"],
+    queryKey: ["host-messages", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("guest_messages")
         .select("id, household, author_name, from_host, body, created_at, channel, subject")
+        .match(scope)
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as Message[];
@@ -63,9 +67,9 @@ export function HostMessages() {
   });
 
   const families = useQuery({
-    queryKey: ["message-households"],
+    queryKey: ["message-households", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("families").select("name").order("name");
+      const { data, error } = await supabase.from("families").select("name").match(scope).order("name");
       if (error) throw error;
       return (data ?? []).map((f) => f.name as string);
     },
@@ -107,6 +111,7 @@ export function HostMessages() {
       author_name: me.data?.full_name ?? "Your host",
       from_host: true,
       body,
+      ...(inviteId ? { invite_id: inviteId } : {}),
     });
     setBusy(null);
     if (error) {

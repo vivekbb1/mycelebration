@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LiveFeed } from "@/components/live-feed";
 import { PERNIA_COLOURS, PERNIA_SHIP_TIMES } from "@/lib/pernia.functions";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 const CATEGORIES: Record<string, { path: string; label: string }[]> = {
   women: [
@@ -54,12 +55,15 @@ export function HostFeeds() {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const events = useQuery({
-    queryKey: ["feed-events"],
+    queryKey: ["feed-events", inviteId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("id, name, event_date, outfit_selection")
+        .match(scope)
         .order("sort_order");
       if (error) throw error;
       return data.filter((e) => e.outfit_selection !== false);
@@ -67,9 +71,9 @@ export function HostFeeds() {
   });
 
   const feeds = useQuery({
-    queryKey: ["outfit-feeds"],
+    queryKey: ["outfit-feeds", inviteId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("outfit_feeds").select("*").order("sort_order");
+      const { data, error } = await supabase.from("outfit_feeds").select("*").match(scope).order("sort_order");
       if (error) throw error;
       return data;
     },

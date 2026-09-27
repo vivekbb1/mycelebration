@@ -5,6 +5,7 @@ import { CalendarClock, Gauge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { splitTags } from "@/lib/tags";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 type Guest = {
   id: string;
@@ -32,12 +33,14 @@ export function HostWorkload() {
   const today = new Date().toISOString().slice(0, 10);
   const weekAhead = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
 
+  const { inviteId } = useSelectedEvent();
+  const scope = inviteId ? { invite_id: inviteId } : {};
   const hosts = useQuery({
-    queryKey: ["workload-hosts"],
+    queryKey: ["workload-hosts", inviteId],
     queryFn: async () => {
-      const roles = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      const roles = await supabase.from("celebration_hosts").select("user_id").match(scope);
       if (roles.error) throw roles.error;
-      const ids = (roles.data ?? []).map((r) => r.user_id);
+      const ids = [...new Set((roles.data ?? []).map((r) => r.user_id))];
       if (ids.length === 0) return [] as { id: string; name: string }[];
       const people = await supabase.from("profiles").select("id, full_name, email").in("id", ids);
       if (people.error) throw people.error;
@@ -49,11 +52,12 @@ export function HostWorkload() {
   });
 
   const guests = useQuery({
-    queryKey: ["workload-guests"],
+    queryKey: ["workload-guests", inviteId],
     queryFn: async (): Promise<Guest[]> => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, household, tags");
+        .select("id, guest_name, household, tags")
+        .match(scope);
       if (error) throw error;
       return data as Guest[];
     },
@@ -70,9 +74,9 @@ export function HostWorkload() {
 
   /** Which hosts look after which tags. */
   const tagHosts = useQuery({
-    queryKey: ["workload-tag-hosts"],
+    queryKey: ["workload-tag-hosts", inviteId],
     queryFn: async () => {
-      const tags = await supabase.from("guest_tags").select("id, name");
+      const tags = await supabase.from("guest_tags").select("id, name").match(scope);
       if (tags.error) throw tags.error;
       const rows = await supabase.from("guest_tag_hosts").select("tag_id, host_id");
       if (rows.error) throw rows.error;
