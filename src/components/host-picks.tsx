@@ -1,3 +1,4 @@
+import { wardrobeLabel } from "@/lib/wardrobe-options";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -250,7 +251,7 @@ export function HostPicks() {
                         ) : null}
                         <p className="text-xs text-muted-foreground">
                           {g.rsvp_status}
-                          {g.gender ? ` · ${g.gender === "men" ? "menswear" : "womenswear"}` : ""}
+                          {g.gender ? ` · ${wardrobeLabel(g.gender)}` : ""}
                         </p>
                       </td>
                       {pickable.map((ev) => {

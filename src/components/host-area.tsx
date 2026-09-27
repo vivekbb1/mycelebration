@@ -912,7 +912,8 @@ function HostDashboard() {
                     <SelectItem value="women">Women</SelectItem>
                     <SelectItem value="men">Men</SelectItem>
                     <SelectItem value="unisex">Anyone</SelectItem>
-                    <SelectItem value="kids">Kids</SelectItem>
+                    <SelectItem value="boy">Boy</SelectItem>
+                    <SelectItem value="girl">Girl</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -968,7 +969,8 @@ function HostDashboard() {
                   <SelectItem value="all">Everyone</SelectItem>
                   <SelectItem value="women">Women</SelectItem>
                   <SelectItem value="men">Men</SelectItem>
-                  <SelectItem value="kids">Children</SelectItem>
+                  <SelectItem value="boy">Boy</SelectItem>
+                  <SelectItem value="girl">Girl</SelectItem>
                   <SelectItem value="unisex">Unisex</SelectItem>
                 </SelectContent>
               </Select>
@@ -1045,7 +1047,8 @@ function HostDashboard() {
                     <SelectContent>
                       <SelectItem value="women">Women</SelectItem>
                       <SelectItem value="men">Men</SelectItem>
-                      <SelectItem value="kids">Children</SelectItem>
+                      <SelectItem value="boy">Boy</SelectItem>
+                      <SelectItem value="girl">Girl</SelectItem>
                       <SelectItem value="unisex">Unisex</SelectItem>
                     </SelectContent>
                   </Select>

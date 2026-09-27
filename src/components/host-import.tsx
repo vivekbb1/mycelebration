@@ -397,7 +397,8 @@ export function HostImport() {
                 <SelectItem value="women">Women</SelectItem>
                 <SelectItem value="men">Men</SelectItem>
                 <SelectItem value="unisex">Anyone</SelectItem>
-                <SelectItem value="kids">Kids</SelectItem>
+                <SelectItem value="boy">Boy</SelectItem>
+                <SelectItem value="girl">Girl</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">

@@ -15,8 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { useInvites } from "@/components/host-invites";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
+import { WARDROBES, wardrobeLabel } from "@/lib/wardrobe-options";
 
-type Wardrobe = "" | "women" | "men";
+type Wardrobe = "" | "women" | "men" | "boy" | "girl";
 
 type MemberDraft = {
   name: string;
@@ -45,7 +46,7 @@ const memberSchema = z.object({
   name: z.string().trim().min(2, "Every person needs a name").max(100),
   email: z.string().trim().max(255).refine(emailOk, "Check the email address"),
   phone: z.string().trim().max(40),
-  gender: z.enum(["", "women", "men"]),
+  gender: z.enum(["", "women", "men", "boy", "girl"]),
   category: z.string().trim().max(40),
 });
 
@@ -54,8 +55,10 @@ const familySchema = z.object({
   members: z.array(memberSchema).min(1, "Add at least one person"),
 });
 
-const MEN_WORDS = ["m", "male", "man", "husband", "son", "boy", "menswear", "men"];
-const WOMEN_WORDS = ["f", "female", "woman", "wife", "daughter", "girl", "womenswear", "women"];
+const MEN_WORDS = ["m", "male", "man", "husband", "menswear", "men"];
+const WOMEN_WORDS = ["f", "female", "woman", "wife", "womenswear", "women"];
+const BOY_WORDS = ["boy", "son", "boys"];
+const GIRL_WORDS = ["girl", "daughter", "girls"];
 
 /** Reads a guest group from a spreadsheet cell; anything unknown stays "family". */
 function categoryFrom(value: string): string {
@@ -75,6 +78,8 @@ function wardrobeFrom(value: string): Wardrobe {
   const v = value.trim().toLowerCase();
   if (MEN_WORDS.includes(v)) return "men";
   if (WOMEN_WORDS.includes(v)) return "women";
+  if (BOY_WORDS.includes(v)) return "boy";
+  if (GIRL_WORDS.includes(v)) return "girl";
   return "";
 }
 
@@ -218,7 +223,9 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, email, phone, category, gender, family_id, claimed_by");
+        .select("id, guest_name, email, phone, category, gender, family_id, claimed_by, created_at")
+        .order("created_at")
+        .order("id");
       if (error) throw error;
       return data;
     },
@@ -453,7 +460,7 @@ export function HostFamilies() {
         m.email ?? "",
         m.phone ?? "",
         categoryLabel(m.category),
-        m.gender === "men" ? "menswear" : m.gender === "women" ? "womenswear" : "",
+        m.gender ? wardrobeLabel(m.gender) : "",
       ]),
     );
     const sample = [
@@ -694,8 +701,7 @@ export function HostFamilies() {
               <div className="mt-2 flex flex-wrap gap-2">
                 {[
                   { value: "", label: "Let them choose" },
-                  { value: "women", label: "Womenswear" },
-                  { value: "men", label: "Menswear" },
+                  ...WARDROBES,
                 ].map((opt) => (
                   <Button
                     key={opt.value || "any"}
@@ -861,9 +867,12 @@ export function HostFamilies() {
                               onChange={(e) => void updateMember(m.id, { gender: e.target.value })}
                             >
                               <option value="">Wardrobe not set</option>
-                              <option value="women">Womenswear</option>
-                              <option value="men">Menswear</option>
-                              <option value="kids">Kids</option>
+                              {WARDROBES.map((w) => (
+                                <option key={w.value} value={w.value}>
+                                  {w.label}
+                                </option>
+                              ))}
+                              {m.gender === "kids" ? <option value="kids">Kids (old)</option> : null}
                             </select>
                             <Input
                               defaultValue={m.email ?? ""}

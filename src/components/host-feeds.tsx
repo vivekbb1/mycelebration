@@ -36,10 +36,11 @@ const CATEGORIES: Record<string, { path: string; label: string }[]> = {
     { path: "mens-shop/suits", label: "Suits" },
     { path: "mens-shop/tuxedo", label: "Tuxedos" },
   ],
-  kids: [],
+  boy: [],
+  girl: [],
 };
 
-const AUD_LABEL: Record<string, string> = { women: "Women's", men: "Men's", kids: "Children's" };
+const AUD_LABEL: Record<string, string> = { women: "Women", men: "Men", boy: "Boy", girl: "Girl", kids: "Kids" };
 
 /** Saved shop filters per event and audience, feeding the guests' lookbook live. */
 export function HostFeeds() {
@@ -182,9 +183,10 @@ export function HostFeeds() {
                 setCategory(CATEGORIES[a]?.[0]?.path ?? "custom");
               }}
             >
-              <option value="women">Women's</option>
-              <option value="men">Men's</option>
-              <option value="kids">Children's</option>
+              <option value="men">Men</option>
+              <option value="women">Women</option>
+              <option value="boy">Boy</option>
+              <option value="girl">Girl</option>
             </select>
           </div>
           <div className="space-y-2">

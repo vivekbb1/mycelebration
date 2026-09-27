@@ -331,7 +331,7 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
       slugs: (Array.isArray(data?.slugs) ? data.slugs : []).slice(0, 60).map((s) => String(s)),
       eventId: data?.eventId ? String(data.eventId) : null,
       boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
-      gender: ["men", "women", "unisex", "kids"].includes(String(data?.gender)) ? String(data?.gender) : null,
+      gender: ["men", "women", "unisex", "boy", "girl"].includes(String(data?.gender)) ? String(data?.gender) : null,
     }),
   )
   .handler(async ({ data, context }) => {
