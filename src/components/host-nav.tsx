@@ -25,7 +25,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFeatures } from "@/lib/features";
-import { EventPickerCompact, SelectedEventProvider } from "@/lib/selected-event";
+import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
+import { useInvites } from "@/components/host-invites";
+import { Check } from "lucide-react";
 
 /** Shared header tab styling for hosts and guests alike. */
 export const headerTabClass = (active: boolean) =>
@@ -79,17 +81,15 @@ export function HostProfileMenu() {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <SelectedEventProvider>
-        <EventPickerCompact />
-      </SelectedEventProvider>
+    <SelectedEventProvider>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" aria-label="Your account">
             <User className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuContent align="end" className="w-60">
+          <CelebrationChoices />
           <DropdownMenuLabel>Your account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
@@ -120,6 +120,26 @@ export function HostProfileMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </SelectedEventProvider>
+  );
+}
+
+/** Which celebration the host is working on — shown only with two or more. */
+function CelebrationChoices() {
+  const { inviteId, setInviteId } = useSelectedEvent();
+  const invites = useInvites();
+  const list = invites.data ?? [];
+  if (list.length < 2) return null;
+  return (
+    <>
+      <DropdownMenuLabel>Working on</DropdownMenuLabel>
+      {list.map((i) => (
+        <DropdownMenuItem key={i.id} onSelect={() => setInviteId(i.id)}>
+          <Check className={`mr-2 size-4 ${i.id === inviteId ? "opacity-100" : "opacity-0"}`} />
+          <span className="truncate">{i.name}</span>
+        </DropdownMenuItem>
+      ))}
+      <DropdownMenuSeparator />
+    </>
   );
 }
