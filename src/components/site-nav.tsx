@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
 import { useBranding } from "@/lib/branding";
+import { useGuestEvent } from "@/lib/guest-event";
 import { GuestProfileMenu, GuestTabs } from "@/components/guest-tabs";
 import { HostProfileMenu, HostTabs } from "@/components/host-nav";
 
@@ -60,6 +61,14 @@ export function SiteNav() {
     navigate({ to: "/" });
   };
 
+  const guestCelebrations = useGuestEvent().list;
+  const brandName =
+    onGuestTab && guestCelebrations.length === 1
+      ? (guestCelebrations[0]?.name ?? "My Celebration")
+      : onGuestTab && guestCelebrations.length > 1
+        ? "My Celebration"
+        : t("nav.brand", "Our Wedding");
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
       <div
@@ -76,12 +85,12 @@ export function SiteNav() {
           {branding.logo_url ? (
             <img
               src={branding.logo_url}
-              alt={t("nav.brand", "Our Wedding")}
+              alt={brandName}
               style={{ height: Math.min(branding.logo_height, 40) }}
               className="w-auto"
             />
           ) : (
-            t("nav.brand", "Our Wedding")
+            brandName
           )}
         </Link>
 

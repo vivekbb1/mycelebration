@@ -11,6 +11,7 @@ import {
   Sparkles,
   User,
   Users,
+  Eye,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -94,6 +95,11 @@ export function HostProfileMenu() {
           <DropdownMenuItem asChild>
             <Link to="/host/$" params={{ _splat: "setup" }}>
               <Settings className="mr-2 size-4" /> Setup
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/guest/invite">
+              <Eye className="mr-2 size-4" /> Guest area
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
