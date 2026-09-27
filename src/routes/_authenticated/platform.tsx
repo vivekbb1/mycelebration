@@ -675,6 +675,8 @@ function PlatformAdmin() {
         <HostBranding />
       </div>
 
+      <TenancyCheck />
+
       <div className="mt-6">
         <Badge variant="outline">You see everything as the platform owner</Badge>
       </div>
@@ -683,6 +685,49 @@ function PlatformAdmin() {
 }
 
 /** One-line rename for the portal, shown on the welcome page and in emails. */
+/** Shows, per list, how many saved rows aren't tied to any celebration (those only you can see). */
+function TenancyCheck() {
+  const report = useQuery({
+    queryKey: ["tenancy-report"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("tenancy_report");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const rows = report.data ?? [];
+  const loose = rows.filter((r) => Number(r.unlinked) > 0);
+  return (
+    <section className="panel mt-8 p-4 sm:p-6">
+      <h2 className="text-xl">Celebration separation check</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Every saved item should belong to one celebration so hosts never see each other's guests.
+      </p>
+      {report.isLoading ? (
+        <p className="mt-4 text-sm text-muted-foreground">Checking…</p>
+      ) : report.isError ? (
+        <p className="mt-4 text-sm text-destructive">Couldn't run the check.</p>
+      ) : loose.length === 0 ? (
+        <p className="mt-4 text-sm">
+          <Check className="mr-1 inline size-4 text-primary" />
+          All {rows.length} lists are fully tied to a celebration.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-1 text-sm">
+          {loose.map((r) => (
+            <li key={r.table_name} className="flex justify-between gap-4">
+              <span>{r.table_name.replace(/_/g, " ")}</span>
+              <span className="text-muted-foreground">
+                {String(r.unlinked)} of {String(r.total)} not linked (hidden from hosts)
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function PortalName() {
   const queryClient = useQueryClient();
   const { rows } = useSiteContent();
