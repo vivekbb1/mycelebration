@@ -569,7 +569,7 @@ function Lookbook() {
                 className="text-primary underline-offset-4 hover:underline"
                 onClick={() => {
                   const idx = WARDROBE_VALUES.indexOf(wardrobe ?? "");
-                  const next = WARDROBE_VALUES[(idx + 1) % WARDROBE_VALUES.length];
+                  const next = WARDROBE_VALUES[(idx + 1) % WARDROBE_VALUES.length] ?? "men";
                   setWardrobeOverride((prev) => ({ ...prev, [activeName]: next }));
                   if (people.length <= 1) void saveGender(next);
                 }}
