@@ -64,7 +64,7 @@ export function HostBranding() {
     setUploadingLogo(true);
     try {
       const ext = (file.name.split(".").pop() ?? "png").toLowerCase().slice(0, 5);
-      const path = `logo-${crypto.randomUUID()}.${ext}`;
+      const path = `platform/logo-${crypto.randomUUID()}.${ext}`;
       const up = await supabase.storage.from("event-images").upload(path, file, {
         contentType: file.type || "image/png",
         upsert: false,

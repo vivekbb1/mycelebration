@@ -6,12 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 type Ctx = { supabase: any; userId: string };
 
 async function assertHost(ctx: Ctx) {
-  const { data } = await ctx.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", ctx.userId)
-    .eq("role", "admin")
-    .maybeSingle();
+  const { data } = await ctx.supabase.rpc("is_any_host");
   if (!data) throw new Error("Forbidden");
 }
 

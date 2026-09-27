@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      boutique_celebrations: {
+        Row: {
+          boutique_id: string
+          created_at: string
+          invite_id: string
+        }
+        Insert: {
+          boutique_id: string
+          created_at?: string
+          invite_id: string
+        }
+        Update: {
+          boutique_id?: string
+          created_at?: string
+          invite_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boutique_celebrations_boutique_id_fkey"
+            columns: ["boutique_id"]
+            isOneToOne: false
+            referencedRelation: "boutiques"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boutique_celebrations_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boutique_members: {
         Row: {
           boutique_id: string
@@ -192,6 +225,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          invite_id: string | null
           name: string
           settings: Json
           updated_at: string
@@ -200,6 +234,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          invite_id?: string | null
           name: string
           settings: Json
           updated_at?: string
@@ -208,11 +243,20 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          invite_id?: string | null
           name?: string
           settings?: Json
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "branding_presets_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       budget_items: {
         Row: {
@@ -290,6 +334,38 @@ export type Database = {
           },
         ]
       }
+      celebration_hosts: {
+        Row: {
+          created_at: string
+          id: string
+          invite_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebration_hosts_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_delivery_events: {
         Row: {
           created_at: string
@@ -346,6 +422,7 @@ export type Database = {
           guest_count: number
           household: string
           id: string
+          invite_id: string | null
           updated_at: string
         }
         Insert: {
@@ -355,6 +432,7 @@ export type Database = {
           guest_count?: number
           household: string
           id?: string
+          invite_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -364,6 +442,7 @@ export type Database = {
           guest_count?: number
           household?: string
           id?: string
+          invite_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -372,6 +451,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendance_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
             referencedColumns: ["id"]
           },
         ]
@@ -760,6 +846,7 @@ export type Database = {
           from_host: boolean
           household: string
           id: string
+          invite_id: string | null
           read_at: string | null
           subject: string | null
         }
@@ -773,6 +860,7 @@ export type Database = {
           from_host?: boolean
           household: string
           id?: string
+          invite_id?: string | null
           read_at?: string | null
           subject?: string | null
         }
@@ -786,10 +874,19 @@ export type Database = {
           from_host?: boolean
           household?: string
           id?: string
+          invite_id?: string | null
           read_at?: string | null
           subject?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guest_messages_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       guest_passports: {
         Row: {
@@ -798,6 +895,7 @@ export type Database = {
           expiry: string | null
           household: string
           id: string
+          invite_id: string | null
           nationality: string | null
           passport_number: string | null
           person_name: string
@@ -810,6 +908,7 @@ export type Database = {
           expiry?: string | null
           household: string
           id?: string
+          invite_id?: string | null
           nationality?: string | null
           passport_number?: string | null
           person_name: string
@@ -822,13 +921,22 @@ export type Database = {
           expiry?: string | null
           household?: string
           id?: string
+          invite_id?: string | null
           nationality?: string | null
           passport_number?: string | null
           person_name?: string
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guest_passports_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       guest_stays: {
         Row: {
@@ -1091,6 +1199,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          invite_id: string | null
           invited_by: string | null
         }
         Insert: {
@@ -1101,6 +1210,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          invite_id?: string | null
           invited_by?: string | null
         }
         Update: {
@@ -1111,9 +1221,18 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          invite_id?: string | null
           invited_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "host_invites_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       host_subscriptions: {
         Row: {
@@ -1159,6 +1278,7 @@ export type Database = {
           event_id: string
           household: string
           id: string
+          invite_id: string | null
           outfit_selection: boolean
         }
         Insert: {
@@ -1166,6 +1286,7 @@ export type Database = {
           event_id: string
           household: string
           id?: string
+          invite_id?: string | null
           outfit_selection?: boolean
         }
         Update: {
@@ -1173,6 +1294,7 @@ export type Database = {
           event_id?: string
           household?: string
           id?: string
+          invite_id?: string | null
           outfit_selection?: boolean
         }
         Relationships: [
@@ -1181,6 +1303,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_event_invites_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
             referencedColumns: ["id"]
           },
         ]
@@ -1208,6 +1337,7 @@ export type Database = {
           external_id: string | null
           household: string | null
           id: string
+          invite_id: string | null
           resolved_at: string | null
           sender: string
           sender_name: string | null
@@ -1220,6 +1350,7 @@ export type Database = {
           external_id?: string | null
           household?: string | null
           id?: string
+          invite_id?: string | null
           resolved_at?: string | null
           sender: string
           sender_name?: string | null
@@ -1232,12 +1363,21 @@ export type Database = {
           external_id?: string | null
           household?: string | null
           id?: string
+          invite_id?: string | null
           resolved_at?: string | null
           sender?: string
           sender_name?: string | null
           subject?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inbound_unmatched_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invite_codes: {
         Row: {
@@ -1425,6 +1565,7 @@ export type Database = {
           hotel_name: string | null
           id: string
           intro: string
+          invite_id: string | null
           measurements_deadline: string | null
           singleton: boolean
           team_email: string | null
@@ -1441,6 +1582,7 @@ export type Database = {
           hotel_name?: string | null
           id?: string
           intro?: string
+          invite_id?: string | null
           measurements_deadline?: string | null
           singleton?: boolean
           team_email?: string | null
@@ -1457,6 +1599,7 @@ export type Database = {
           hotel_name?: string | null
           id?: string
           intro?: string
+          invite_id?: string | null
           measurements_deadline?: string | null
           singleton?: boolean
           team_email?: string | null
@@ -1465,7 +1608,15 @@ export type Database = {
           timeline?: Json
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "logistics_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: true
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       measurements: {
         Row: {
@@ -1478,6 +1629,7 @@ export type Database = {
           hip: number | null
           id: string
           inseam: number | null
+          invite_id: string | null
           notes: string | null
           shoulder: number | null
           sleeve_length: number | null
@@ -1496,6 +1648,7 @@ export type Database = {
           hip?: number | null
           id?: string
           inseam?: number | null
+          invite_id?: string | null
           notes?: string | null
           shoulder?: number | null
           sleeve_length?: number | null
@@ -1514,6 +1667,7 @@ export type Database = {
           hip?: number | null
           id?: string
           inseam?: number | null
+          invite_id?: string | null
           notes?: string | null
           shoulder?: number | null
           sleeve_length?: number | null
@@ -1522,28 +1676,46 @@ export type Database = {
           updated_at?: string
           waist?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "measurements_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       outfit_favourites: {
         Row: {
           created_at: string
           id: string
+          invite_id: string | null
           outfit_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          invite_id?: string | null
           outfit_id: string
           user_id?: string
         }
         Update: {
           created_at?: string
           id?: string
+          invite_id?: string | null
           outfit_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "outfit_favourites_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "outfit_favourites_outfit_id_fkey"
             columns: ["outfit_id"]
@@ -1558,18 +1730,21 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          invite_id: string | null
           slug: string
         }
         Insert: {
           created_at?: string
           event_id: string
           id?: string
+          invite_id?: string | null
           slug: string
         }
         Update: {
           created_at?: string
           event_id?: string
           id?: string
+          invite_id?: string | null
           slug?: string
         }
         Relationships: [
@@ -1578,6 +1753,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outfit_feed_hidden_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
             referencedColumns: ["id"]
           },
         ]
@@ -1591,6 +1773,7 @@ export type Database = {
           created_by: string | null
           event_id: string
           id: string
+          invite_id: string | null
           label: string | null
           max_price: number
           min_price: number
@@ -1606,6 +1789,7 @@ export type Database = {
           created_by?: string | null
           event_id: string
           id?: string
+          invite_id?: string | null
           label?: string | null
           max_price?: number
           min_price?: number
@@ -1621,6 +1805,7 @@ export type Database = {
           created_by?: string | null
           event_id?: string
           id?: string
+          invite_id?: string | null
           label?: string | null
           max_price?: number
           min_price?: number
@@ -1634,6 +1819,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outfit_feeds_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
             referencedColumns: ["id"]
           },
         ]
@@ -1684,6 +1876,7 @@ export type Database = {
           gender: string | null
           id: string
           imported: number
+          invite_id: string | null
           skipped: number
           status: string
           total: number
@@ -1698,6 +1891,7 @@ export type Database = {
           gender?: string | null
           id?: string
           imported?: number
+          invite_id?: string | null
           skipped?: number
           status?: string
           total?: number
@@ -1712,11 +1906,20 @@ export type Database = {
           gender?: string | null
           id?: string
           imported?: number
+          invite_id?: string | null
           skipped?: number
           status?: string
           total?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "outfit_import_jobs_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       outfits: {
         Row: {
@@ -1731,6 +1934,7 @@ export type Database = {
           id: string
           image_url: string | null
           images: Json
+          invite_id: string | null
           is_available: boolean
           is_pinned: boolean
           notes: string | null
@@ -1754,6 +1958,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: Json
+          invite_id?: string | null
           is_available?: boolean
           is_pinned?: boolean
           notes?: string | null
@@ -1777,6 +1982,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           images?: Json
+          invite_id?: string | null
           is_available?: boolean
           is_pinned?: boolean
           notes?: string | null
@@ -1801,6 +2007,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outfits_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
             referencedColumns: ["id"]
           },
         ]
@@ -1970,6 +2183,7 @@ export type Database = {
           guest_id: string
           guest_name: string | null
           id: string
+          invite_id: string | null
           order_amount: number | null
           order_currency: string
           order_note: string | null
@@ -1994,6 +2208,7 @@ export type Database = {
           guest_id: string
           guest_name?: string | null
           id?: string
+          invite_id?: string | null
           order_amount?: number | null
           order_currency?: string
           order_note?: string | null
@@ -2018,6 +2233,7 @@ export type Database = {
           guest_id?: string
           guest_name?: string | null
           id?: string
+          invite_id?: string | null
           order_amount?: number | null
           order_currency?: string
           order_note?: string | null
@@ -2034,6 +2250,13 @@ export type Database = {
           tracking_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "reservations_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reservations_outfit_id_fkey"
             columns: ["outfit_id"]
@@ -2092,6 +2315,7 @@ export type Database = {
           guest_name: string | null
           household: string
           id: string
+          invite_id: string | null
           notes: string | null
           party_size: number | null
           updated_at: string
@@ -2108,6 +2332,7 @@ export type Database = {
           guest_name?: string | null
           household: string
           id?: string
+          invite_id?: string | null
           notes?: string | null
           party_size?: number | null
           updated_at?: string
@@ -2124,11 +2349,20 @@ export type Database = {
           guest_name?: string | null
           household?: string
           id?: string
+          invite_id?: string | null
           notes?: string | null
           party_size?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "travel_plans_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -2255,6 +2489,14 @@ export type Database = {
     }
     Functions: {
       apply_due_guest_transfers: { Args: never; Returns: number }
+      boutique_host_can_manage: {
+        Args: { _boutique_id: string }
+        Returns: boolean
+      }
+      boutique_sees_celebration: {
+        Args: { _invite_id: string }
+        Returns: boolean
+      }
       can_boutique_see_guest: { Args: { _guest_id: string }; Returns: boolean }
       can_boutique_see_outfit: {
         Args: { _outfit_id: string }
@@ -2272,6 +2514,8 @@ export type Database = {
           slug: string
         }[]
       }
+      code_celebration: { Args: { _code_id: string }; Returns: string }
+      default_celebration_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2279,6 +2523,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      host_can_see_user: { Args: { _user_id: string }; Returns: boolean }
       household_members: {
         Args: never
         Returns: {
@@ -2295,10 +2540,24 @@ export type Database = {
           status: string
         }[]
       }
+      is_any_host: { Args: never; Returns: boolean }
       is_boutique_member: { Args: { _boutique_id: string }; Returns: boolean }
+      is_celebration_host: { Args: { _invite_id: string }; Returns: boolean }
+      is_celebration_owner: { Args: { _invite_id: string }; Returns: boolean }
+      is_guest_of: { Args: { _invite_id: string }; Returns: boolean }
+      is_my_household: {
+        Args: { _household: string; _invite_id: string }
+        Returns: boolean
+      }
       is_platform_admin: { Args: never; Returns: boolean }
       mark_invite_opened: { Args: { _code: string }; Returns: undefined }
       my_branding: { Args: never; Returns: Json }
+      my_celebration_ids: {
+        Args: never
+        Returns: {
+          invite_id: string
+        }[]
+      }
       my_event_ids: {
         Args: never
         Returns: {
@@ -2308,10 +2567,20 @@ export type Database = {
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
       my_features: { Args: never; Returns: Json }
       my_fees_enabled: { Args: never; Returns: boolean }
+      my_guest_invite_ids: {
+        Args: never
+        Returns: {
+          invite_id: string
+        }[]
+      }
       my_household: { Args: never; Returns: string }
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
+      sync_household_rsvp_in: {
+        Args: { _household: string; _invite_id: string }
+        Returns: undefined
+      }
       wake_outfit_import_worker: {
         Args: { _base_url: string }
         Returns: undefined

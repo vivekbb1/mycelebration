@@ -1,53 +1,8 @@
-# Wedding Wardrobe — roadmap
-
-Done
-- [x] Guest portal: invite-code unlock, reserve a look (one guest per outfit), guided measurements, "my wardrobe" view
-- [x] Event page: host-managed functions (date, timing, venue, address, dress code, note, RSVP deadline) + RSVP, linked from the lookbook
-- [x] Host dashboard: reserved looks, measurements in, not registered, no RSVP; add/edit/delete outfits
-- [x] Host guest list: invite by name/email, per-guest progress, copy or email the invitation code
-- [x] Host "Functions" tab and "Delivery plan" tab — nothing hardcoded
-- [x] Reservation confirmation email + per-guest invitation email
-- [x] All sample data cleared
-- [x] Multiple hosts: "Hosts" tab to share host access with other registered people, remove a host (never the last one or yourself)
-- [x] View as guest: read-only guest portal per guest (reserved looks, measurements, RSVP), opened from the guest list
-
-New tasks (this turn)
-- [ ] Sender domain: check email domain status and set it up so invitation + confirmation emails reach real guests, then send a test invite
-- [ ] Real Pernia's outfits in the Outfits tab — needs the host's actual photo/product links (host access can only be claimed by the host themselves)
-- [x] Tailor / boutique portal: a stylist at each designer or boutique signs in and sees only their own orders (reserved outfits + the guest's measurements, no other boutique's looks)
-
-Open, for the host to do
-- [ ] Claim host access at `/host` (first sign-up wins), then add the real functions, delivery plan and looks
-- [ ] Provide a domain you own for sending email
-
-## Done (latest)
-- Per-family function access: host "Invited to" tab ticks which functions each family may see; guests only see those functions and their outfits. Functions from the printed invitation (Mehendi, Bollywood Night, Acha Sathiyaro, Wedding, Reception) loaded with dates, venues and attire.
-- Couples/families: each person gets their own invitation code but shares a family name; men/women wardrobe per guest, guests can pick their own if unset; lookbook shows only matching looks with a switch; importer has a wardrobe override; guest list and picks group families together.
-- Host "By boutique" tab: looks grouped by atelier with reserving guest + measurement status.
-- Bulk invite guests (paste name/email per line) + "Email everyone pending" with clipboard fallback.
-- Bulk outfit edit: multi-select, set function/boutique, remove several looks.
-- Invitation email falls back to the host's own mail app until a sending domain is verified.
-
-## Payments (waiting on the user's go-ahead)
-- [ ] Card payments via Stripe (built-in, Lovable-managed). Not enabled yet — user said "not yet".
-- [ ] Hosts pay for a package + add-ons: subscription and one-off (per-event) charges.
-- [ ] Hosts can also collect payments from their own guests for paid events (host-as-seller payouts).
-- Note: Paddle ruled out (physical attire in the offering); seller country AE, so Stripe with tax calculation and collection only (automatic_tax), not managed_payments.
-
-- Event fees: fee rules (flat / per head / per function) live in event_fees; manual payments in fee_payments. Card checkout still pending Stripe.
-
-## Payments (open)
-- Stripe not switched on yet (user chose "build the pages first"). When ready: payments--enable_stripe_payments, then products for packages/add-ons and guest event fees; no tax automation for now (user chose none); never managed_payments (seller country AE).
-- /upgrade "Pay by card" button and /pay "Pay by card" button are disabled placeholders waiting on Stripe checkout.
-
-## Sep 27 requests
-- [x] Celebration web address shows mycelebration.app/<name>; all email/invite links use mycelebration.app
-- [x] Sender domain verified; test host invite sent and accepted to vivekbb@hotmail.com
-- [x] Confirmed outfits locked for guests (database + pages); hosts can still change them
-- [ ] Junk folder: new-domain warmup; user to add DMARC at registrar, mark "Not junk"
-- [ ] kushkhyati.com — blocked: user must own/connect it in Project Settings → Domains (hosts can't connect domains themselves)
-- [ ] Real price for Own web address add-on — blocked: needs price from user
-- [ ] Card payment for add-ons (Stripe) — blocked: user go-ahead to switch on
-- [ ] WhatsApp sending — blocked: user to choose provider (e.g. Twilio); email replies can't flow back (send-only)
-- [ ] Inbound email mailboxes into guest Messages — blocked: user to choose mailbox provider (Microsoft 365 like Conares WA / Google Workspace / forwarding) and supply access
-- [ ] WhatsApp broadcasts to guests via Meta WhatsApp Cloud API (same approach as Conares WA) — blocked: user go-ahead + WhatsApp Business token, phone number ID, approved templates
+# Roadmap — multi-celebration platform
+- [x] Phase 1: celebration hosts, owner/co-host, host codes tied to a celebration
+- [x] Phase 2: per-celebration access rules on every table and file
+- [ ] Tenancy check page for the operator
+- [ ] Phase 3: per-celebration email sender, branding, wording, logistics editing (host editing of these is operator-only until then)
+- [ ] Phase 4: packages/add-ons/requests per celebration
+- [ ] Phase 5: create-a-celebration flow, picker polish, host dashboard queries filtered by celebration
+- [ ] Phase 6: .env out of git, inbound messages filed per celebration

@@ -36,12 +36,27 @@ export function GuestPassports({ household, people }: { household: string; peopl
     },
   });
 
+  const celebration = useQuery({
+    queryKey: ["household-celebration", household],
+    enabled: Boolean(household),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("invite_codes")
+        .select("invite_id")
+        .eq("household", household)
+        .not("invite_id", "is", null)
+        .limit(1)
+        .maybeSingle();
+      return (data?.invite_id as string | null) ?? null;
+    },
+  });
+
   const byName = new Map((rows.data ?? []).map((r) => [r.person_name, r]));
 
   const save = async (person: string, patch: Partial<Omit<Row, "id" | "person_name">>) => {
     const { error } = await supabase
       .from("guest_passports")
-      .upsert({ household, person_name: person, ...patch }, { onConflict: "household,person_name" });
+      .upsert({ household, person_name: person, invite_id: celebration.data ?? null, ...patch }, { onConflict: "invite_id,household,person_name" });
     if (error) {
       toast.error(error.message);
       return false;
@@ -57,7 +72,12 @@ export function GuestPassports({ household, people }: { household: string; peopl
     }
     setBusy(person);
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const path = `${household}/${person.replace(/[^\p{L}\p{N}]+/gu, "-")}-${Date.now()}.${ext}`;
+    if (!celebration.data) {
+      toast.error("We couldn't find this family's celebration.");
+      setBusy(null);
+      return;
+    }
+    const path = `${celebration.data}/${household}/${person.replace(/[^\p{L}\p{N}]+/gu, "-")}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("passports").upload(path, file, { upsert: true });
     if (error) {
       setBusy(null);

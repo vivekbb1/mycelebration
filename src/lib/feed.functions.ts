@@ -23,17 +23,17 @@ type Ctx = { supabase: any; userId: string };
 const AUDIENCES = ["women", "men", "kids"] as const;
 
 async function access(ctx: Ctx, eventId: string) {
-  const { data: role } = await ctx.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", ctx.userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (role) return { isHost: true };
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: ev } = await supabaseAdmin.from("events").select("invite_id").eq("id", eventId).maybeSingle();
+  const inviteId = (ev?.invite_id as string | null) ?? null;
+  if (inviteId) {
+    const { data: isHost } = await ctx.supabase.rpc("is_celebration_host", { _invite_id: inviteId });
+    if (isHost) return { isHost: true, inviteId };
+  }
   const { data: ids } = await ctx.supabase.rpc("my_event_ids");
   const ok = ((ids ?? []) as { event_id: string }[]).some((r) => r.event_id === eventId);
-  if (!ok) throw new Error("Forbidden");
-  return { isHost: false };
+  if (!ok || !inviteId) throw new Error("Forbidden");
+  return { isHost: false, inviteId };
 }
 
 async function shopPage(feed: any, page: number) {
@@ -76,7 +76,7 @@ export const browseEventFeed = createServerFn({ method: "POST" })
   .inputValidator((d: { eventId: string; audience: string; page?: number }) => inputOf(d))
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as Ctx;
-    const { isHost } = await access(ctx, data.eventId);
+    const { isHost, inviteId } = await access(ctx, data.eventId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: feeds } = await supabaseAdmin
@@ -102,7 +102,7 @@ export const browseEventFeed = createServerFn({ method: "POST" })
     // Looks already saved in the wardrobe show in the regular lookbook instead.
     const skus = listed.map((l) => l.sku).filter(Boolean);
     const { data: saved } = skus.length
-      ? await supabaseAdmin.from("outfits").select("source_sku").in("source_sku", skus)
+      ? await supabaseAdmin.from("outfits").select("source_sku").eq("invite_id", inviteId).in("source_sku", skus)
       : { data: [] as { source_sku: string | null }[] };
     const savedSet = new Set((saved ?? []).map((s) => s.source_sku));
 
@@ -133,7 +133,7 @@ export const claimFeedLook = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as Ctx;
-    await access(ctx, data.eventId);
+    const { inviteId } = await access(ctx, data.eventId);
     const slug = slugFromUrl(data.slug);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -166,6 +166,7 @@ export const claimFeedLook = createServerFn({ method: "POST" })
         .from("outfits")
         .select("id")
         .eq("source_sku", look.sku)
+        .eq("invite_id", inviteId)
         .maybeSingle();
       outfitId = existing?.id ?? null;
     }
@@ -221,14 +222,13 @@ export const importFeedPage = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as Ctx;
-    const { data: role } = await ctx.supabase
-      .from("user_roles").select("role").eq("user_id", ctx.userId).eq("role", "admin").maybeSingle();
-    if (!role) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { copyImages } = await import("@/lib/outfit-images.server");
 
     const { data: feed } = await supabaseAdmin.from("outfit_feeds").select("*").eq("id", data.feedId).maybeSingle();
     if (!feed) throw new Error("Feed not found");
+    const { data: isHost } = await ctx.supabase.rpc("is_celebration_host", { _invite_id: feed.invite_id });
+    if (!isHost) throw new Error("Forbidden");
     const [{ products, more }, { data: hidden }] = await Promise.all([
       shopPage(feed, data.page),
       supabaseAdmin.from("outfit_feed_hidden").select("slug").eq("event_id", feed.event_id),
@@ -237,7 +237,7 @@ export const importFeedPage = createServerFn({ method: "POST" })
     const listed = products.map(mapListing).filter((l) => l.sku && !l.soldOut && !hiddenSet.has(l.slug));
 
     const { data: saved } = listed.length
-      ? await supabaseAdmin.from("outfits").select("source_sku").in("source_sku", listed.map((l) => l.sku))
+      ? await supabaseAdmin.from("outfits").select("source_sku").eq("invite_id", feed.invite_id as string).in("source_sku", listed.map((l) => l.sku))
       : { data: [] as { source_sku: string | null }[] };
     const savedSet = new Set((saved ?? []).map((s) => s.source_sku));
 
@@ -268,6 +268,7 @@ export const importFeedPage = createServerFn({ method: "POST" })
           source_sku: l.sku,
           gender: feed.audience,
           event_id: feed.event_id,
+          invite_id: feed.invite_id,
         });
         if (error) failed += 1;
         else imported += 1;

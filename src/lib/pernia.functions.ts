@@ -29,15 +29,10 @@ export type PerniaLook = {
   soldOut: boolean;
 };
 
-type Ctx = { supabase: { from: (t: string) => any }; userId: string };
+type Ctx = { supabase: { from: (t: string) => any; rpc: (f: string, a?: any) => any }; userId: string };
 
 async function assertHost(context: Ctx) {
-  const { data } = await context.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", context.userId)
-    .eq("role", "admin")
-    .maybeSingle();
+  const { data } = await context.supabase.rpc("is_any_host");
   if (!data) throw new Error("Forbidden");
 }
 

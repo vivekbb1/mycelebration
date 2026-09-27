@@ -6,6 +6,7 @@ import { Copy, Mail, ShieldCheck, Trash2, UserMinus } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { inviteHostByEmail } from "@/lib/host-invite.functions";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -24,17 +25,20 @@ import {
  */
 export function HostTeam() {
   const queryClient = useQueryClient();
+  const { inviteId } = useSelectedEvent();
   const [pick, setPick] = useState("");
   const [busy, setBusy] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
 
   const hostInvites = useQuery({
-    queryKey: ["host-invites"],
+    queryKey: ["host-invites", inviteId],
+    enabled: Boolean(inviteId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("host_invites")
         .select("id, email, full_name, code, claimed_by, claimed_at, created_at")
+        .eq("invite_id", inviteId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -50,7 +54,7 @@ export function HostTeam() {
     setBusy(true);
     try {
       const result = await inviteHostByEmail({
-        data: { email, fullName: inviteName.trim() || undefined },
+        data: { email, fullName: inviteName.trim() || undefined, inviteId },
       });
       if (!result.ok) {
         toast.error(result.error ?? "We couldn't send that invitation.");
@@ -110,12 +114,13 @@ export function HostTeam() {
   });
 
   const hostRoles = useQuery({
-    queryKey: ["host-roles"],
+    queryKey: ["host-roles", inviteId],
+    enabled: Boolean(inviteId),
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_roles")
-        .select("id, user_id, created_at")
-        .eq("role", "admin")
+        .from("celebration_hosts")
+        .select("id, user_id, role, created_at")
+        .eq("invite_id", inviteId)
         .order("created_at");
       if (error) throw error;
       return data;
@@ -139,6 +144,7 @@ export function HostTeam() {
       return {
         roleId: r.id,
         userId: r.user_id,
+        owner: r.role === "owner",
         name: p?.full_name || "Host",
         email: p?.email ?? null,
       };
@@ -157,8 +163,8 @@ export function HostTeam() {
     }
     setBusy(true);
     const { error } = await supabase
-      .from("user_roles")
-      .insert({ user_id: pick, role: "admin" });
+      .from("celebration_hosts")
+      .insert({ user_id: pick, invite_id: inviteId, role: "host" });
     setBusy(false);
     if (error) {
       toast.error(
@@ -179,13 +185,14 @@ export function HostTeam() {
       toast.error("You can't remove your own host access.");
       return;
     }
-    if (hosts.length <= 1) {
-      toast.error("There has to be at least one host.");
+    const target = hosts.find((h) => h.roleId === roleId);
+    if (target?.owner && hosts.filter((h) => h.owner).length <= 1) {
+      toast.error("A celebration needs at least one owner.");
       return;
     }
     if (!window.confirm(`Remove host access for ${name}? They keep their guest access.`)) return;
     setBusy(true);
-    const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
+    const { error } = await supabase.from("celebration_hosts").delete().eq("id", roleId);
     setBusy(false);
     if (error) {
       toast.error("We couldn't remove that host. Please try again.");
@@ -275,8 +282,8 @@ export function HostTeam() {
         <section className="panel p-4 sm:p-6">
         <h2 className="text-xl">Add someone already registered</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Hosts share everything: outfits, events, the delivery plan, the guest list and
-          measurements.
+          Hosts of this celebration share its outfits, events, delivery plan, guest list and
+          measurements. They can't see any other celebration.
         </p>
 
 
@@ -319,6 +326,11 @@ export function HostTeam() {
                   <p className="flex items-center gap-2 truncate">
                     <ShieldCheck className="size-4 shrink-0 text-primary" />
                     {h.name}
+                    {h.owner ? (
+                      <Badge variant="outline" className="shrink-0">
+                        Owner
+                      </Badge>
+                    ) : null}
                     {h.userId === me.data ? (
                       <Badge variant="secondary" className="shrink-0">
                         You

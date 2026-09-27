@@ -53,7 +53,8 @@ export const saveEmailSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => saveSchema.parse(data))
   .handler(async ({ data, context }): Promise<EmailSettingsView> => {
-    if (!(await assertHost(context))) return { ok: false, error: "Hosts only." };
+    const { data: isOperator } = await context.supabase.rpc("is_platform_admin");
+    if (!isOperator) return { ok: false, error: "Only the platform operator can change the sender for now." };
     const email = (data.fromEmail ?? "").trim();
     if (email && !/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) {
       return { ok: false, error: "That sender address doesn't look right." };
