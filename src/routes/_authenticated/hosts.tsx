@@ -58,17 +58,22 @@ function HostDashboard() {
       const [profiles, subs, plans, hostAddons, addons, invites, guests, families, reservations] =
         await Promise.all([
           supabase.from("profiles").select("id, full_name, email").in("id", ids),
-          supabase.from("host_subscriptions").select("user_id, plan_id, status").in("user_id", ids),
+          supabase.from("celebration_subscriptions").select("invite_id, plan_id, status"),
           supabase.from("plans").select("id, name"),
-          supabase.from("host_addons").select("user_id, addon_id").in("user_id", ids),
+          supabase.from("celebration_addons").select("invite_id, addon_id"),
           supabase.from("addons").select("id, name"),
-          supabase.from("invites").select("id, created_by"),
+          supabase.from("invites").select("id, name, created_by"),
           supabase
             .from("invite_codes")
             .select("id, invite_id, family_id, rsvp_status, claimed_by"),
           supabase.from("families").select("id, invite_id, needs_wardrobe"),
           supabase.from("reservations").select("guest_id, guest_name"),
         ]);
+      const membership = await supabase
+        .from("celebration_hosts")
+        .select("invite_id, user_id")
+        .in("user_id", ids);
+      if (membership.error) throw membership.error;
       for (const r of [profiles, subs, plans, hostAddons, addons, invites, guests, families, reservations])
         if (r.error) throw r.error;
 
@@ -81,10 +86,22 @@ function HostDashboard() {
 
       return ids.map((id) => {
         const profile = profiles.data?.find((p) => p.id === id);
-        const sub = subs.data?.find((s) => s.user_id === id);
+        // Packages belong to celebrations, so show those of the celebrations this person hosts.
         const myInviteIds = new Set(
-          (invites.data ?? []).filter((i) => i.created_by === id).map((i) => i.id),
+          (membership.data ?? []).filter((m) => m.user_id === id).map((m) => m.invite_id),
         );
+        const mySubs = [...myInviteIds].map((inviteId) => ({
+          inviteId,
+          name: invites.data?.find((i) => i.id === inviteId)?.name ?? "Celebration",
+          sub: subs.data?.find((s) => s.invite_id === inviteId),
+        }));
+        const packageLabel =
+          mySubs.length === 0
+            ? "No celebration"
+            : mySubs.length === 1
+              ? planName(mySubs[0]!.sub?.plan_id ?? null)
+              : mySubs.map((m) => `${planName(m.sub?.plan_id ?? null)} (${m.name})`).join(", ");
+        const anyActive = mySubs.some((m) => (m.sub?.status ?? "active") === "active");
         const familyNeedsWardrobe = new Map(
           (families.data ?? []).map((f) => [f.id, f.needs_wardrobe]),
         );
@@ -94,11 +111,15 @@ function HostDashboard() {
           id,
           name: profile?.full_name || "Host",
           email: profile?.email ?? "",
-          planName: planName(sub?.plan_id ?? null),
-          status: sub?.status ?? "active",
-          addons: (hostAddons.data ?? [])
-            .filter((a) => a.user_id === id)
-            .map((a) => addonName(a.addon_id)),
+          planName: packageLabel,
+          status: mySubs.length === 0 || anyActive ? "active" : "paused",
+          addons: [
+            ...new Set(
+              (hostAddons.data ?? [])
+                .filter((a) => myInviteIds.has(a.invite_id))
+                .map((a) => addonName(a.addon_id)),
+            ),
+          ],
           events: myInviteIds.size,
           guests: mine.length,
           pendingRsvp: mine.filter((g) => (g.rsvp_status ?? "pending") === "pending").length,

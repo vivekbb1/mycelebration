@@ -4,6 +4,6 @@
 - [ ] Tenancy check page for the operator
 - [x] Phase 3: per-celebration email sender, wording, logistics (branding already per celebration via themes)
 - [x] Phase 4: packages/add-ons/requests per celebration
-- [ ] Host dashboard (/hosts) package column still reads old per-person packages
+- [x] Host dashboard package column reads celebration packages
 - [ ] Phase 5: create-a-celebration flow, picker polish, host dashboard queries filtered by celebration
 - [ ] Phase 6: .env out of git, inbound messages filed per celebration
