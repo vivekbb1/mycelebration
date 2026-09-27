@@ -49,3 +49,5 @@ Open, for the host to do
 - [ ] Real price for Own web address add-on — blocked: needs price from user
 - [ ] Card payment for add-ons (Stripe) — blocked: user go-ahead to switch on
 - [ ] WhatsApp sending — blocked: user to choose provider (e.g. Twilio); email replies can't flow back (send-only)
+- [ ] Inbound email mailboxes into guest Messages — blocked: user to choose mailbox provider (Microsoft 365 like Conares WA / Google Workspace / forwarding) and supply access
+- [ ] WhatsApp broadcasts to guests via Meta WhatsApp Cloud API (same approach as Conares WA) — blocked: user go-ahead + WhatsApp Business token, phone number ID, approved templates
