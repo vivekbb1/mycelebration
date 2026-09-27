@@ -297,7 +297,7 @@ export function HostTeam() {
           <h2 className="text-xl">Invite a host by email</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             They don't need an account yet — we email them a link and their own host code, and they
-            become a host as soon as they register.
+            join as a co-host as soon as they register. An owner can make them an owner later.
           </p>
           <div className="mt-5 space-y-3">
             <div className="space-y-2">
