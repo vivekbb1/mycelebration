@@ -121,7 +121,7 @@ export function CelebrationWizard() {
       }
       setStep((s) => s + 1);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't save that step.");
+      toast.error((e as { message?: string })?.message ?? "Couldn't save that step.");
     } finally {
       setBusy(false);
     }
