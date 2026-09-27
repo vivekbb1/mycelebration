@@ -351,6 +351,13 @@
       "when": 1790504493193,
       "tag": "0049_lock_confirmed_outfits",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790505293761,
+      "tag": "0050_renumber_event_order",
+      "breakpoints": true
     }
   ]
 }
