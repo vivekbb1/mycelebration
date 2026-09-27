@@ -12,18 +12,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { orderStatusLabel, orderStatusVariant } from "@/lib/order-status";
 import { GuestArrivals } from "@/components/guest-arrivals";
+import { GuestSummarySnapshot } from "@/components/guest-summary-snapshot";
 
 
 export const Route = createFileRoute("/_authenticated/summary")({
   head: () => ({
     meta: [
-      { title: "Confirm Your Look — Lehenga, Designer & Size" },
+      { title: "Your Summary — Replies, Outfits & Measurements" },
       {
         name: "description",
         content:
           "Check the look set aside for you, confirm the garment, designer and size, and follow its tailoring status.",
       },
-      { property: "og:title", content: "Confirm Your Look — Lehenga, Designer & Size" },
+      { property: "og:title", content: "Your Summary — Replies, Outfits & Measurements" },
       {
         property: "og:description",
         content: "Confirm the garment, designer and size of the outfit chosen for you.",
@@ -160,11 +161,25 @@ function ConfirmPage() {
   return (
     <main className="bg-zari">
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <p className="text-center text-eyebrow">Your look</p>
-        <h1 className="mt-3 text-center text-3xl sm:text-4xl">Confirm what you'll wear</h1>
+        <p className="text-center text-eyebrow">Your summary</p>
+        <h1 className="mt-3 text-center text-3xl sm:text-4xl">Everything in one place</h1>
         <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-relaxed text-muted-foreground">
-          Check the piece set aside for you, tell us the garment, the size and any fabric preference,
-          then confirm. You'll see its tailoring status here as it moves along.
+          Your replies and numbers for each event, the looks you've chosen and whose measurements
+          are in.
+        </p>
+
+        <GuestSummarySnapshot
+          household={household}
+          looks={(looks.data ?? []).map((r) => ({
+            event_id: r.outfits?.event_id ?? null,
+            guest_name: r.guest_name,
+            confirmed: Boolean(r.build_garment && r.build_size),
+          }))}
+        />
+
+        <h2 className="mt-12 text-center text-2xl">Confirm what you'll wear</h2>
+        <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
+          Tell us the garment, size and any fabric preference, then confirm.
         </p>
 
         {outfitsCovered.data !== false ? (
