@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -524,7 +525,7 @@ export function HostFamilies() {
   };
 
   const copyFamilyInvite = async (name: string, code: string) => {
-    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
+    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
     const message =
       `Dear ${name},\n\nAs our gift, we've put together a wardrobe of festive outfits for the wedding.\n\n` +
       `Open your invitation: ${link}\nYour family code: ${code}\n\n` +

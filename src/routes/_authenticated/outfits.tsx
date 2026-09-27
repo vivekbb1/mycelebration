@@ -132,7 +132,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name");
+        .select("id, outfit_id, guest_id, guest_name, status");
       if (error) throw error;
       return data;
     },
@@ -666,7 +666,11 @@ function Lookbook() {
                   ) : null}
 
                   <div className="mt-5 flex flex-wrap items-center gap-2 pt-1">
-                    {mine ? (
+                    {mine && (reservations.data ?? []).some((r) => r.outfit_id === outfit.id && r.status === "confirmed") ? (
+                      <Button variant="secondary" size="sm" disabled>
+                        <Check className="size-4" /> Confirmed — ask your hosts to change it
+                      </Button>
+                    ) : mine ? (
                       <Button
                         variant="outline"
                         size="sm"

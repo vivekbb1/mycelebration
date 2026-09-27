@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -248,7 +249,7 @@ export function HostGuestList() {
 
 
   const copyInvite = async (code: string, guestName: string) => {
-    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
+    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
     const message = `Hi ${guestName}! As our gift, we've put together a wardrobe of festive Indian outfits for the wedding. Open your invitation, pick your look and send your measurements: ${link} (your code: ${code})`;
     try {
       await navigator.clipboard.writeText(message);
@@ -259,7 +260,7 @@ export function HostGuestList() {
   };
 
   const inviteText = (guestName: string, code: string) => {
-    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
+    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
     return (
       `Hi ${guestName},\n\n` +
       `As our gift, we've put together a wardrobe of festive Indian outfits for the wedding.\n\n` +

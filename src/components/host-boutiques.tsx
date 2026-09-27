@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -105,7 +106,7 @@ export function HostBoutiques() {
   };
 
   const copyAccess = async (name: string, code: string) => {
-    const url = `${window.location.origin}/atelier`;
+    const url = `${PUBLIC_ORIGIN}/atelier`;
     const message =
       `Hello from the wedding team — you can now see the looks our guests have reserved from ${name}, ` +
       `along with their measurements for tailoring.\n\n` +

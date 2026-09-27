@@ -1,3 +1,4 @@
+import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -79,7 +80,7 @@ export function HostTeam() {
   };
 
   const copyHostLink = async (code: string) => {
-    const link = `${window.location.origin}/auth?code=${encodeURIComponent(code)}`;
+    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
     try {
       await navigator.clipboard.writeText(link);
       toast.success("Registration link copied.");

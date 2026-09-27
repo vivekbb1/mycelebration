@@ -344,6 +344,13 @@
       "when": 1790504202678,
       "tag": "0048_tighten_function_access",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790504493193,
+      "tag": "0049_lock_confirmed_outfits",
+      "breakpoints": true
     }
   ]
 }
