@@ -123,7 +123,20 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    let emailChecked = false;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      // Guests whose email is already on the guest list join without a code.
+      if (session && !emailChecked && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        emailChecked = true;
+        setTimeout(async () => {
+          const { data: n } = await supabase.rpc("claim_invites_by_email");
+          if (n && n > 0) {
+            router.invalidate();
+            queryClient.invalidateQueries();
+          }
+        }, 0);
+      }
+      if (event === "SIGNED_OUT") emailChecked = false;
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();

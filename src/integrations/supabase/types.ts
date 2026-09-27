@@ -2676,6 +2676,7 @@ export type Database = {
       celebration_slug_for_domain: { Args: { _host: string }; Returns: string }
       claim_host_access: { Args: never; Returns: Json }
       claim_invite: { Args: { _code: string }; Returns: Json }
+      claim_invites_by_email: { Args: never; Returns: number }
       claim_outfit_import_item: {
         Args: never
         Returns: {

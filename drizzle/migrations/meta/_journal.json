@@ -477,6 +477,13 @@
       "when": 1790528730181,
       "tag": "0067_packages_per_celebration",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1790529061579,
+      "tag": "0068_claim_invites_by_email",
+      "breakpoints": true
     }
   ]
 }
