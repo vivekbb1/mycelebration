@@ -20,17 +20,21 @@ export function PlanRequests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plan_requests")
-        .select("id, user_id, plan_id, addon_ids, note, status, created_at")
+        .select("id, user_id, invite_id, plan_id, addon_ids, note, status, created_at")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
       const ids = [...new Set((data ?? []).map((r) => r.user_id))];
-      const [profiles, plans, addons] = await Promise.all([
+      const inviteIds = [...new Set((data ?? []).map((r) => r.invite_id).filter(Boolean))] as string[];
+      const [profiles, plans, addons, celebrations] = await Promise.all([
         ids.length
           ? supabase.from("profiles").select("id, full_name, email").in("id", ids)
           : Promise.resolve({ data: [] as { id: string; full_name: string; email: string | null }[] }),
         supabase.from("plans").select("id, name"),
         supabase.from("addons").select("id, name"),
+        inviteIds.length
+          ? supabase.from("invites").select("id, name").in("id", inviteIds)
+          : Promise.resolve({ data: [] as { id: string; name: string }[] }),
       ]);
       return (data ?? []).map((r) => {
         const who = (profiles.data ?? []).find((p) => p.id === r.user_id);
@@ -39,6 +43,8 @@ export function PlanRequests() {
           ...r,
           addonIds,
           who: who?.full_name || who?.email || "Host",
+          celebration:
+            (celebrations.data ?? []).find((c) => c.id === r.invite_id)?.name ?? "No celebration",
           email: who?.email ?? "",
           planName: (plans.data ?? []).find((p) => p.id === r.plan_id)?.name ?? r.plan_id ?? "—",
           addonNames: addonIds.map(
@@ -51,17 +57,21 @@ export function PlanRequests() {
 
   const decide = async (
     id: string,
-    userId: string,
+    inviteId: string | null,
     planId: string | null,
     addonIds: string[],
     approve: boolean,
   ) => {
     setBusy(id);
-    if (approve) {
+    if (approve && !inviteId) {
+      setBusy(null);
+      return void toast.error("This request isn't linked to a celebration, so it can't be switched on.");
+    }
+    if (approve && inviteId) {
       if (planId) {
         const { error } = await supabase
-          .from("host_subscriptions")
-          .upsert({ user_id: userId, plan_id: planId, status: "active" }, { onConflict: "user_id" });
+          .from("celebration_subscriptions")
+          .upsert({ invite_id: inviteId, plan_id: planId, status: "active" }, { onConflict: "invite_id" });
         if (error) {
           setBusy(null);
           return void toast.error(error.message);
@@ -69,8 +79,8 @@ export function PlanRequests() {
       }
       for (const addonId of addonIds) {
         await supabase
-          .from("host_addons")
-          .upsert({ user_id: userId, addon_id: addonId }, { onConflict: "user_id,addon_id" });
+          .from("celebration_addons")
+          .upsert({ invite_id: inviteId, addon_id: addonId }, { onConflict: "invite_id,addon_id" });
       }
     }
     const { error } = await supabase
@@ -82,7 +92,7 @@ export function PlanRequests() {
       .eq("id", id);
     setBusy(null);
     if (error) return void toast.error(error.message);
-    toast.success(approve ? "Package switched on for them." : "Request declined.");
+    toast.success(approve ? "Package switched on for that celebration." : "Request declined.");
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["plan-requests"] }),
       qc.invalidateQueries({ queryKey: ["platform-hosts"] }),
@@ -116,7 +126,7 @@ export function PlanRequests() {
                 ) : null}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Wants {r.planName}
+                For {r.celebration} · wants {r.planName}
                 {r.addonNames.length ? ` plus ${r.addonNames.join(", ")}` : ""}
               </p>
               {r.note ? <p className="mt-1 text-xs">{r.note}</p> : null}
@@ -126,7 +136,7 @@ export function PlanRequests() {
                 <Button
                   size="sm"
                   disabled={busy === r.id}
-                  onClick={() => decide(r.id, r.user_id, r.plan_id, r.addonIds, true)}
+                  onClick={() => decide(r.id, r.invite_id, r.plan_id, r.addonIds, true)}
                 >
                   <Check className="size-4" /> Switch it on
                 </Button>
