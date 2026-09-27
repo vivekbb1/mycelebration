@@ -407,6 +407,13 @@
       "when": 1790517204073,
       "tag": "0057_worker_wake_timeout",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1790523193367,
+      "tag": "0058_email_delivery_events",
+      "breakpoints": true
     }
   ]
 }
