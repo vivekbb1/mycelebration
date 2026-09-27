@@ -132,7 +132,7 @@ export function HostImport() {
           .range(from, from + 999);
         if (error) throw error;
         for (const r of data) {
-          if (r.boutique_url) links.add(r.boutique_url.split("?")[0].replace(/^https?:\/\/[^/]+\//, ""));
+          if (r.boutique_url) links.add((r.boutique_url.split("?")[0] ?? "").replace(/^https?:\/\/[^/]+\//, ""));
           if (r.source_sku) skus.add(r.source_sku);
         }
         if (data.length < 1000) break;
@@ -254,7 +254,7 @@ export function HostImport() {
       for (let i = 0; i < slugs.length; i += 1) {
         setImportProgress(`${i + 1} of ${slugs.length} · ${sum.imported} added`);
         const payload = {
-          slugs: [slugs[i]],
+          slugs: [slugs[i] ?? ""],
           eventId: eventId || null,
           boutiqueId: boutiqueId || null,
           gender: gender === "auto" ? null : gender,
