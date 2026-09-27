@@ -1231,7 +1231,10 @@ export type Database = {
           note: string | null
           outfits_paid_by_host: boolean
           pay_instructions: string | null
+          public_accent: string | null
+          public_bg_url: string | null
           public_intro: string | null
+          public_logo_url: string | null
           slug: string | null
           updated_at: string
         }
@@ -1246,7 +1249,10 @@ export type Database = {
           note?: string | null
           outfits_paid_by_host?: boolean
           pay_instructions?: string | null
+          public_accent?: string | null
+          public_bg_url?: string | null
           public_intro?: string | null
+          public_logo_url?: string | null
           slug?: string | null
           updated_at?: string
         }
@@ -1261,7 +1267,10 @@ export type Database = {
           note?: string | null
           outfits_paid_by_host?: boolean
           pay_instructions?: string | null
+          public_accent?: string | null
+          public_bg_url?: string | null
           public_intro?: string | null
+          public_logo_url?: string | null
           slug?: string | null
           updated_at?: string
         }
