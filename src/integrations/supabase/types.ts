@@ -1624,6 +1624,7 @@ export type Database = {
       }
       reservations: {
         Row: {
+          amount_paid: number
           build_fabric: string | null
           build_garment: string | null
           build_size: string | null
@@ -1631,12 +1632,23 @@ export type Database = {
           guest_id: string
           guest_name: string | null
           id: string
+          order_amount: number | null
+          order_currency: string
+          order_note: string | null
+          order_placed_at: string | null
+          order_reference: string | null
           order_status: string
           order_status_updated_at: string
           outfit_id: string
+          payment_status: string
+          shipping_carrier: string | null
+          shipping_status: string
           status: string
+          tracking_number: string | null
+          tracking_url: string | null
         }
         Insert: {
+          amount_paid?: number
           build_fabric?: string | null
           build_garment?: string | null
           build_size?: string | null
@@ -1644,12 +1656,23 @@ export type Database = {
           guest_id: string
           guest_name?: string | null
           id?: string
+          order_amount?: number | null
+          order_currency?: string
+          order_note?: string | null
+          order_placed_at?: string | null
+          order_reference?: string | null
           order_status?: string
           order_status_updated_at?: string
           outfit_id: string
+          payment_status?: string
+          shipping_carrier?: string | null
+          shipping_status?: string
           status?: string
+          tracking_number?: string | null
+          tracking_url?: string | null
         }
         Update: {
+          amount_paid?: number
           build_fabric?: string | null
           build_garment?: string | null
           build_size?: string | null
@@ -1657,10 +1680,20 @@ export type Database = {
           guest_id?: string
           guest_name?: string | null
           id?: string
+          order_amount?: number | null
+          order_currency?: string
+          order_note?: string | null
+          order_placed_at?: string | null
+          order_reference?: string | null
           order_status?: string
           order_status_updated_at?: string
           outfit_id?: string
+          payment_status?: string
+          shipping_carrier?: string | null
+          shipping_status?: string
           status?: string
+          tracking_number?: string | null
+          tracking_url?: string | null
         }
         Relationships: [
           {
