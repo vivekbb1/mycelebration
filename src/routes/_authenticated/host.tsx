@@ -49,6 +49,7 @@ import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 import { HostBudget } from "@/components/host-budget";
 import { HostRsvp } from "@/components/host-rsvp";
 import { HostMessages } from "@/components/host-messages";
+import { HostBroadcast } from "@/components/host-broadcast";
 
 
 
@@ -618,6 +619,9 @@ function HostDashboard() {
               <TabsTrigger value="invited">Assign</TabsTrigger>
 
               <TabsTrigger value="replies">RSVP</TabsTrigger>
+              {has("messaging") ? (
+                <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
+              ) : null}
               {has("rsvp_extended") ? (
                 <TabsTrigger value="travel">Count</TabsTrigger>
               ) : null}
@@ -645,6 +649,11 @@ function HostDashboard() {
               <HostRsvp />
               {has("messaging") ? <HostMessages /> : null}
             </TabsContent>
+            {has("messaging") ? (
+              <TabsContent value="broadcast" className="mt-6">
+                <HostBroadcast />
+              </TabsContent>
+            ) : null}
             {has("rsvp_extended") ? (
               <TabsContent value="travel" className="mt-6">
                 <HostTravel />

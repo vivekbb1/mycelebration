@@ -16,6 +16,8 @@ type Message = {
   from_host: boolean;
   body: string;
   created_at: string;
+  channel?: string | null;
+  subject?: string | null;
 };
 
 const when = (iso: string) =>
@@ -53,7 +55,7 @@ export function HostMessages() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("guest_messages")
-        .select("id, household, author_name, from_host, body, created_at")
+        .select("id, household, author_name, from_host, body, created_at, channel, subject")
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as Message[];
@@ -179,7 +181,13 @@ export function HostMessages() {
                           <p className="text-xs text-muted-foreground">
                             {m.from_host ? m.author_name || "Host" : m.author_name || "Guest"} ·{" "}
                             {when(m.created_at)}
+                            {m.channel && m.channel !== "app" ? (
+                              <Badge variant="outline" className="ml-2">
+                                {m.channel === "email" ? "Email" : "WhatsApp"}
+                              </Badge>
+                            ) : null}
                           </p>
+                          {m.subject ? <p className="mt-1 font-medium">{m.subject}</p> : null}
                           <p className="mt-1 whitespace-pre-line">{m.body}</p>
                         </div>
                       ))}
