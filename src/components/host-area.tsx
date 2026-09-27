@@ -40,6 +40,7 @@ import { HostArrivals } from "@/components/host-arrivals";
 import { HostRelations } from "@/components/host-relations";
 import { HostWorkload } from "@/components/host-workload";
 import { HostOverview } from "@/components/host-overview";
+import { HostGuestTracker } from "@/components/host-guest-tracker";
 import { HostLogistics } from "@/components/host-logistics";
 import { HostTeam } from "@/components/host-team";
 import { HostEmail } from "@/components/host-email";
@@ -520,6 +521,7 @@ function HostDashboard() {
         <TabsContent value="overview" className="mt-6 space-y-8">
 
           <HostOverview />
+          <HostGuestTracker />
 
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <Stat label="Outfits" value={stats.total} />
