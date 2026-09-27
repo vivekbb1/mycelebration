@@ -5,7 +5,7 @@ import { LiveFeed } from "@/components/live-feed";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Lock, Check, MapPin, Heart, Pin } from "lucide-react";
+import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search, LayoutGrid, LayoutList } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
@@ -56,6 +56,7 @@ type Outfit = {
   notes: string | null;
   images: string[] | null;
   is_available: boolean;
+  created_at?: string | null;
 };
 
 function Lookbook() {
@@ -67,6 +68,14 @@ function Lookbook() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [favOnly, setFavOnly] = useState(false);
   const [picksOnly, setPicksOnly] = useState(false);
+  const [search, setSearch] = useState("");
+  const [colour, setColour] = useState("");
+  const [designer, setDesigner] = useState("");
+  const [garment, setGarment] = useState("");
+  const [freeOnly, setFreeOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"recommended" | "newest" | "az">("recommended");
+  const [compact, setCompact] = useState(false);
+  const [limit, setLimit] = useState(24);
   const favourites = useQuery({
     queryKey: ["outfit-favourites"],
     queryFn: async () => {
@@ -268,11 +277,42 @@ function Lookbook() {
       (!wardrobe || (o.gender ?? "women") === wardrobe),
   );
 
-  const visible = selectable
-    .filter((o) => activeEvent === "all" || o.event_id === activeEvent)
+  const inEvent = selectable.filter((o) => activeEvent === "all" || o.event_id === activeEvent);
+  const optionsOf = (pick: (o: Outfit) => string | null | undefined) =>
+    [...new Set(inEvent.map((o) => pick(o)?.trim()).filter((v): v is string => Boolean(v)))].sort(
+      (a, b) => a.localeCompare(b),
+    );
+  const colourOptions = optionsOf((o) => o.color_family);
+  const designerOptions = optionsOf((o) => o.designer);
+  const garmentOptions = optionsOf((o) => o.garment_type);
+  const q = search.trim().toLowerCase();
+
+  const filtered = inEvent
     .filter((o) => !favOnly || favourites.data?.has(o.id))
     .filter((o) => !picksOnly || o.is_pinned)
-    .sort((a, b) => Number(!!b.is_pinned) - Number(!!a.is_pinned));
+    .filter((o) => !colour || o.color_family?.trim() === colour)
+    .filter((o) => !designer || o.designer?.trim() === designer)
+    .filter((o) => !garment || o.garment_type?.trim() === garment)
+    .filter((o) => !freeOnly || (o.is_available && !mineByOutfit.has(o.id)))
+    .filter(
+      (o) =>
+        !q ||
+        [o.title, o.designer, o.color_family, o.garment_type]
+          .some((v) => v?.toLowerCase().includes(q)),
+    )
+    .sort((a, b) =>
+      sortBy === "az"
+        ? a.title.localeCompare(b.title)
+        : sortBy === "newest"
+          ? String(b.created_at ?? "").localeCompare(String(a.created_at ?? ""))
+          : Number(!!b.is_pinned) - Number(!!a.is_pinned),
+    );
+  const visible = filtered.slice(0, limit);
+  const filtersOn = Boolean(q || colour || designer || garment || freeOnly || favOnly || picksOnly);
+  const clearFilters = () => {
+    setSearch(""); setColour(""); setDesigner(""); setGarment("");
+    setFreeOnly(false); setFavOnly(false); setPicksOnly(false);
+  };
 
   const reserve = async (outfit: Outfit) => {
     setBusyId(outfit.id);
@@ -673,7 +713,7 @@ function Lookbook() {
 
       {outfits.isLoading ? (
         <p className="mt-10 text-sm text-muted-foreground">Loading the wardrobe…</p>
-      ) : visible.length === 0 ? (
+      ) : inEvent.length === 0 ? (
         <div className="panel mt-8 p-8 text-center">
           <h2 className="text-xl">Nothing here yet</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -682,7 +722,56 @@ function Lookbook() {
         </div>
       ) : (
         <>
-        <div className="mt-6 flex flex-wrap justify-end gap-2">
+        <div className="panel mt-6 space-y-3 p-3 sm:p-4">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setLimit(24); }}
+              placeholder="Search looks, designers, colours…"
+              className="pl-9"
+              maxLength={80}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { label: "Any colour", value: colour, set: setColour, opts: colourOptions },
+              { label: "Any designer", value: designer, set: setDesigner, opts: designerOptions },
+              { label: "Any type", value: garment, set: setGarment, opts: garmentOptions },
+            ].map((f) => (
+              <select
+                key={f.label}
+                aria-label={f.label}
+                className="field-select h-9 w-full text-sm"
+                value={f.value}
+                disabled={f.opts.length === 0}
+                onChange={(e) => { f.set(e.target.value); setLimit(24); }}
+              >
+                <option value="">{f.label}</option>
+                {f.opts.map((o) => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            ))}
+            <select
+              aria-label="Sort"
+              className="field-select h-9 w-full text-sm"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            >
+              <option value="recommended">Recommended first</option>
+              <option value="newest">Newest first</option>
+              <option value="az">A to Z</option>
+            </select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant={freeOnly ? "default" : "outline"}
+              onClick={() => setFreeOnly((v) => !v)}
+            >
+              Still available
+            </Button>
           {selectable.some((o) => o.is_pinned) ? (
             <Button
               size="sm"
@@ -701,13 +790,51 @@ function Lookbook() {
             <Heart className={`mr-1 size-4 ${favOnly ? "fill-current" : ""}`} />
             Favourites{favourites.data?.size ? ` (${favourites.data.size})` : ""}
           </Button>
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                size="icon"
+                variant={compact ? "ghost" : "secondary"}
+                aria-label="Large photos"
+                onClick={() => setCompact(false)}
+              >
+                <LayoutList className="size-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant={compact ? "secondary" : "ghost"}
+                aria-label="Compact grid"
+                onClick={() => setCompact(true)}
+              >
+                <LayoutGrid className="size-4" />
+              </Button>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Showing {Math.min(limit, filtered.length)} of {filtered.length} look
+            {filtered.length === 1 ? "" : "s"}
+            {filtersOn ? (
+              <>
+                {" · "}
+                <button type="button" onClick={clearFilters} className="text-primary underline-offset-4 hover:underline">
+                  Clear filters
+                </button>
+              </>
+            ) : null}
+          </p>
         </div>
+        {filtered.length === 0 && !favOnly ? (
+          <p className="mt-4 text-sm text-muted-foreground">No looks match these filters.</p>
+        ) : null}
         {favOnly && visible.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
             Tap the heart on any look to save it here.
           </p>
         ) : null}
-        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          className={`mt-4 grid ${
+            compact ? "grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" : "gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          }`}
+        >
           {visible.map((outfit) => {
             const heldBy = mineByOutfit.has(outfit.id)
               ? (mineByOutfit.get(outfit.id) ?? activeName)
@@ -742,13 +869,15 @@ function Lookbook() {
                   </button>
                 </div>
 
-                <div className="flex flex-1 flex-col p-5">
-                  {eventName ? <p className="text-eyebrow">{eventName}</p> : null}
-                  <h2 className="mt-2 text-xl leading-snug">{outfit.title}</h2>
+                <div className={`flex flex-1 flex-col ${compact ? "p-3" : "p-5"}`}>
+                  {eventName && !compact ? <p className="text-eyebrow">{eventName}</p> : null}
+                  <h2 className={compact ? "line-clamp-2 text-sm leading-snug" : "mt-2 text-xl leading-snug"}>
+                    {outfit.title}
+                  </h2>
                   {outfit.designer ? (
                     <p className="mt-1 text-sm text-muted-foreground">{outfit.designer}</p>
                   ) : null}
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <div className={`mt-3 flex-wrap gap-2 text-xs text-muted-foreground ${compact ? "hidden" : "flex"}`}>
                     {outfit.color_family ? (
                       <span className="rounded-full border border-border px-2 py-0.5">
                         {outfit.color_family}
@@ -765,7 +894,7 @@ function Lookbook() {
                       </span>
                     ) : null}
                   </div>
-                  {outfit.notes ? (
+                  {outfit.notes && !compact ? (
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                       {outfit.notes}
                     </p>
@@ -804,6 +933,13 @@ function Lookbook() {
             );
           })}
         </div>
+        {filtered.length > limit ? (
+          <div className="mt-6 flex justify-center">
+            <Button variant="outline" onClick={() => setLimit((n) => n + 24)}>
+              Show more ({filtered.length - limit} left)
+            </Button>
+          </div>
+        ) : null}
         </>
       )}
 
