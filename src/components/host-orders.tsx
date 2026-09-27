@@ -31,7 +31,7 @@ type Draft = {
  */
 export function HostOrders() {
   const qc = useQueryClient();
-  const { selectedEvent: inviteId } = useSelectedEvent();
+  const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [filter, setFilter] = useState<"ready" | "placed" | "all">("ready");
 
