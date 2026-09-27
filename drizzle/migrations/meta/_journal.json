@@ -442,6 +442,13 @@
       "when": 1790525758339,
       "tag": "0062_lock_host_claim_and_gate_paid_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1790526123192,
+      "tag": "0063_narrow_public_read_policies",
+      "breakpoints": true
     }
   ]
 }
