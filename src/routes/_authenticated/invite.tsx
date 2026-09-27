@@ -418,7 +418,7 @@ function InvitationPage() {
 
         <div className="mt-12 flex flex-wrap justify-center gap-3 text-center">
           <Button asChild variant="outline" size="sm">
-            <Link to="/plan">
+            <Link to="/summary">
               <Check className="size-4" /> What's expected of you
             </Link>
           </Button>
