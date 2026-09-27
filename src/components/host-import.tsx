@@ -118,6 +118,33 @@ export function HostImport() {
   const [listBusy, setListBusy] = useState(false);
   const [importBusy, setImportBusy] = useState(false);
 
+  // Everything already in the wardrobe, traced by shop link and SKU, so
+  // duplicates are hidden from the results and never picked twice.
+  const owned = useQuery({
+    queryKey: ["wardrobe-owned-links"],
+    queryFn: async () => {
+      const links = new Set<string>();
+      const skus = new Set<string>();
+      for (let from = 0; from < 20000; from += 1000) {
+        const { data, error } = await supabase
+          .from("outfits")
+          .select("boutique_url, source_sku")
+          .range(from, from + 999);
+        if (error) throw error;
+        for (const r of data) {
+          if (r.boutique_url) links.add(r.boutique_url.split("?")[0].replace(/^https?:\/\/[^/]+\//, ""));
+          if (r.source_sku) skus.add(r.source_sku);
+        }
+        if (data.length < 1000) break;
+      }
+      return { links, skus };
+    },
+  });
+  const isOwned = (l: { slug: string; sku?: string }) =>
+    Boolean(owned.data?.links.has(l.slug) || (l.sku && owned.data?.skus.has(l.sku)));
+  const shown = (results ?? []).filter((l) => !isOwned(l));
+  const hiddenCount = (results?.length ?? 0) - shown.length;
+
   const events = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
@@ -197,7 +224,9 @@ export function HostImport() {
       const slugs = new Set<string>(picked);
       for (let p = 1; p <= pages; p += 1) {
         const res = await searchCategory({ data: searchPayload(p, per) });
-        res.looks.forEach((l) => slugs.add(l.slug));
+        res.looks.forEach((l) => {
+          if (!isOwned(l)) slugs.add(l.slug);
+        });
         if (res.looks.length < per) break;
       }
       const list = [...slugs].slice(0, SELECT_ALL_CAP);
@@ -219,17 +248,13 @@ export function HostImport() {
     if (!slugs.length) return;
     setImportBusy(true);
     const sum = { imported: 0, skipped: 0, failed: 0 };
-    // Small batches: each look fetches its detail page and copies up to 6 photos,
-    // so big batches time out. A failed batch is retried once, then skipped.
-    const BATCH = 8;
-    let failedBatches = 0;
+    // One look at a time, so progress is exact and one slow look never sinks the rest.
+    let misses = 0;
     try {
-      for (let i = 0; i < slugs.length; i += BATCH) {
-        setImportProgress(
-          `${i} of ${slugs.length} (${sum.imported} added)`,
-        );
+      for (let i = 0; i < slugs.length; i += 1) {
+        setImportProgress(`${i + 1} of ${slugs.length} · ${sum.imported} added`);
         const payload = {
-          slugs: slugs.slice(i, i + BATCH),
+          slugs: [slugs[i]],
           eventId: eventId || null,
           boutiqueId: boutiqueId || null,
           gender: gender === "auto" ? null : gender,
@@ -239,15 +264,16 @@ export function HostImport() {
           try {
             res = await importLooks({ data: payload });
           } catch {
-            await new Promise((r) => setTimeout(r, 1500));
+            await new Promise((r) => setTimeout(r, 1000));
           }
         }
         if (!res) {
-          failedBatches += 1;
-          sum.failed += payload.slugs.length;
-          if (failedBatches >= 3 && sum.imported === 0) throw new Error("stopped");
+          sum.failed += 1;
+          misses += 1;
+          if (misses >= 5 && sum.imported === 0) throw new Error("stopped");
           continue;
         }
+        misses = 0;
         sum.imported += res.imported;
         sum.skipped += res.skipped;
         sum.failed += res.failed;
@@ -270,6 +296,7 @@ export function HostImport() {
       setImportProgress(null);
       setImportBusy(false);
       await refresh();
+      void owned.refetch();
     }
   };
 
@@ -574,20 +601,23 @@ export function HostImport() {
           {importedTotal ? (
             <Badge variant="secondary">{importedTotal} added to the wardrobe so far</Badge>
           ) : null}
-          {results && results.length ? (
+          {hiddenCount ? (
+            <Badge variant="outline">{hiddenCount} already in the wardrobe — hidden</Badge>
+          ) : null}
+          {shown.length ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={() =>
                 setPicked((p) => {
-                  const here = results.map((l) => l.slug);
+                  const here = shown.map((l) => l.slug);
                   return here.every((x) => p.includes(x))
                     ? p.filter((x) => !here.includes(x))
                     : [...new Set([...p, ...here])];
                 })
               }
             >
-              {results.every((l) => picked.includes(l.slug)) ? "Clear this page" : "Select all on this page"}
+              {shown.every((l) => picked.includes(l.slug)) ? "Clear this page" : "Select all on this page"}
             </Button>
           ) : null}
           {results && results.length && total > results.length ? (
@@ -620,7 +650,7 @@ export function HostImport() {
         {results ? (
           <>
             <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {results.map((look) => {
+              {shown.map((look) => {
                 const on = picked.includes(look.slug);
                 return (
                   <li
