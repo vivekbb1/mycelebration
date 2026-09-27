@@ -290,6 +290,30 @@ export type Database = {
           },
         ]
       }
+      email_delivery_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_type: string
+          id: string
+          recipient: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_type: string
+          id?: string
+          recipient: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_type?: string
+          id?: string
+          recipient?: string
+        }
+        Relationships: []
+      }
       email_settings: {
         Row: {
           from_email: string | null
