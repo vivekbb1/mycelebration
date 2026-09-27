@@ -437,7 +437,7 @@ export function HostImport() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["6", "12", "24", "36", "48"].map((n) => (
+                {["6", "12", "24", "36", "48", "100", "200", "300", "400", "500"].map((n) => (
                   <SelectItem key={n} value={n}>
                     {n} per page
                   </SelectItem>

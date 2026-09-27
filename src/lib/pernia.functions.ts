@@ -248,7 +248,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
         minPrice: Math.max(0, Math.min(2_000_000, Math.round(Number(data?.minPrice) || 0))),
         maxPrice: Math.max(1, Math.min(2_000_000, Math.round(Number(data?.maxPrice) || 30000))),
         page: Math.max(1, Math.min(200, Math.round(Number(data?.page) || 1))),
-        perPage: Math.max(4, Math.min(48, Math.round(Number(data?.perPage) || 12))),
+        perPage: Math.max(4, Math.min(500, Math.round(Number(data?.perPage) || 12))),
         readyToShip: Boolean(data?.readyToShip),
         colour,
         shipInDays,
