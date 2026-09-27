@@ -47,7 +47,7 @@ export const sendWhatsAppBroadcast = createServerFn({ method: "POST" })
       seen.add(to);
       const template: Record<string, unknown> = { name: data.template, language: { code: data.language } };
       if (data.withName) {
-        template.components = [
+        template["components"] = [
           { type: "body", parameters: [{ type: "text", text: g.guest_name || "there" }] },
         ];
       }
