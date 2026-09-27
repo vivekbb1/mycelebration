@@ -14,6 +14,7 @@ import { Link } from "@tanstack/react-router";
 import { useFeatures } from "@/lib/features";
 import { CelebrationQr } from "@/components/celebration-qr";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { CelebrationWizard } from "@/components/celebration-wizard";
 
 type Draft = Omit<Branding, "id">;
 
@@ -416,38 +417,7 @@ export function HostInvites() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-      <div className="panel h-fit p-4 sm:p-6">
-        <h2 className="flex items-center gap-2 text-xl">
-          <Mail className="size-4 text-primary" /> Add a celebration
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          One celebration is a wedding of its own — its own events, its own guest list and its own look.
-          Run as many side by side as you like.
-        </p>
-        <div className="mt-5 space-y-3">
-          <label className="block text-sm">
-            Name
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Kush & Khyati"
-              className="mt-1"
-            />
-          </label>
-          <label className="block text-sm">
-            A note for your team (optional)
-            <Input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Bride's side, November"
-              className="mt-1"
-            />
-          </label>
-          <Button type="button" disabled={create.isPending} onClick={() => create.mutate()}>
-            Create celebration
-          </Button>
-        </div>
-      </div>
+      <CelebrationWizard />
 
       <div className="panel h-fit p-4 sm:p-6">
         <h2 className="text-xl">Your celebrations ({invites.data?.length ?? 0})</h2>
