@@ -209,6 +209,34 @@ export function HostTeam() {
     await queryClient.invalidateQueries({ queryKey: ["host-roles"] });
   };
 
+  const setRole = async (roleId: string, name: string, owner: boolean) => {
+    if (!iAmOwner) return;
+    if (!owner && hosts.filter((h) => h.owner).length <= 1) {
+      toast.error("A celebration needs at least one owner.");
+      return;
+    }
+    const msg = owner
+      ? `Make ${name} an owner? Owners can add, remove and change other hosts.`
+      : `Make ${name} a co-host? They keep access but can't manage other hosts.`;
+    if (!window.confirm(msg)) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("celebration_hosts")
+      .update({ role: owner ? "owner" : "host" })
+      .eq("id", roleId);
+    setBusy(false);
+    if (error) {
+      toast.error(
+        error.message.includes("owner")
+          ? "A celebration needs at least one owner."
+          : "We couldn't change that. Please try again.",
+      );
+      return;
+    }
+    toast.success(`${name} is now ${owner ? "an owner" : "a co-host"}.`);
+    await queryClient.invalidateQueries({ queryKey: ["host-roles"] });
+  };
+
   const pendingInvites = (hostInvites.data ?? []).filter((i) => !i.claimed_by);
 
   return (
@@ -348,6 +376,19 @@ export function HostTeam() {
                     <p className="truncate text-xs text-muted-foreground">{h.email}</p>
                   ) : null}
                 </div>
+                <div className="flex shrink-0 items-center gap-1">
+                {iAmOwner ? (
+                  <select
+                    aria-label={`Rights for ${h.name}`}
+                    className="field-select h-8 py-0 text-xs"
+                    value={h.owner ? "owner" : "host"}
+                    disabled={busy || (h.owner && hosts.filter((x) => x.owner).length <= 1)}
+                    onChange={(e) => void setRole(h.roleId, h.name, e.target.value === "owner")}
+                  >
+                    <option value="owner">Owner</option>
+                    <option value="host">Co-host</option>
+                  </select>
+                ) : null}
                 {iAmOwner && !h.owner && h.userId !== me.data ? (
                 <Button
                   variant="ghost"
@@ -359,6 +400,7 @@ export function HostTeam() {
                   <UserMinus className="size-4" />
                 </Button>
                 ) : null}
+                </div>
               </li>
             ))}
           </ul>
