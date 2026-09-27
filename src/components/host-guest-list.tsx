@@ -358,7 +358,7 @@ export function HostGuestList() {
             The guest list is visible to the hosting family only.
           </p>
           <Button asChild className="mt-5">
-            <Link to="/outfits">Back to the lookbook</Link>
+            <Link to="/guest/outfits">Back to the lookbook</Link>
           </Button>
         </div>
       </div>

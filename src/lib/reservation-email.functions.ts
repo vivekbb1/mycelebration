@@ -106,7 +106,7 @@ export const sendReservationEmail = createServerFn({ method: "POST" })
         <p style="margin:0 0 6px;color:#caa04b">Next step</p>
         <p style="margin:0;color:#c9c3b5">
           ${escapeHtml(plan?.measurements_deadline ?? "Send your measurements so tailoring can begin.")}
-          <a href="${origin}/measurements" style="color:#f3ecdf">${origin}/measurements</a>
+          <a href="${origin}/guest/measurements" style="color:#f3ecdf">${origin}/guest/measurements</a>
         </p>
       </div>
     </div>`);

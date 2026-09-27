@@ -110,7 +110,7 @@ export function GuestSummarySnapshot({
             })}
           </ul>
         )}
-        <Link to="/schedule" className="mt-3 inline-block text-sm text-primary hover:underline">
+        <Link to="/guest/schedule" className="mt-3 inline-block text-sm text-primary hover:underline">
           Change replies
         </Link>
       </section>
@@ -124,7 +124,7 @@ export function GuestSummarySnapshot({
             ? "No looks chosen yet."
             : `${myLooks.length} chosen · ${confirmed} confirmed`}
         </p>
-        <Link to="/outfits" className="mt-2 inline-block text-sm text-primary hover:underline">
+        <Link to="/guest/outfits" className="mt-2 inline-block text-sm text-primary hover:underline">
           {myLooks.length === 0 ? "Choose a look" : "See the lookbook"}
         </Link>
       </section>
@@ -151,7 +151,7 @@ export function GuestSummarySnapshot({
             </div>
           </>
         )}
-        <Link to="/measurements" className="mt-2 inline-block text-sm text-primary hover:underline">
+        <Link to="/guest/measurements" className="mt-2 inline-block text-sm text-primary hover:underline">
           {measuredCount === names.length && names.length ? "Update measurements" : "Send measurements"}
         </Link>
       </section>

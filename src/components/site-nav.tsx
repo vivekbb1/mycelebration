@@ -12,7 +12,7 @@ import { HostProfileMenu, HostTabs } from "@/components/host-nav";
 const linkClass =
   "rounded-full px-3 py-1.5 text-xs tracking-wide uppercase text-muted-foreground transition-colors hover:text-primary [&.active]:text-primary";
 
-const GUEST_TAB_PATHS = ["/invite", "/schedule", "/outfits", "/summary", "/measurements", "/plan", "/pay"];
+const GUEST_TAB_PATHS = ["/guest/invite", "/guest/schedule", "/guest/outfits", "/guest/summary", "/guest/measurements", "/plan", "/pay"];
 
 /** Host-side pages belong back on the host page; everything else on the invitation. */
 const HOST_PATHS = ["/guests", "/guest", "/host", "/hosts", "/platform", "/upgrade"];
@@ -27,7 +27,7 @@ export function SiteNav() {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
   const isHostPage = HOST_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  const backTo = isHostPage && pathname !== "/host" ? "/host" : "/invite";
+  const backTo = isHostPage && pathname !== "/host" ? "/host" : "/guest/invite";
   const backLabel =
     backTo === "/host" ? "Back to host" : t("nav.back", "Back to your invitation");
 
@@ -69,7 +69,7 @@ export function SiteNav() {
 
 
         <Link
-          to="/invite"
+          to="/guest/invite"
           className="font-display flex shrink-0 items-center truncate text-base tracking-wide sm:text-lg"
         >
           {branding.logo_url ? (

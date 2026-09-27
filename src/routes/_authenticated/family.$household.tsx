@@ -251,7 +251,7 @@ function FamilyPage() {
           <h1 className="mt-4 text-2xl">Hosts only</h1>
           <p className="mt-2 text-sm text-muted-foreground">This page is part of the host area.</p>
           <Button asChild className="mt-5 w-full">
-            <Link to="/invite">Back to your invitation</Link>
+            <Link to="/guest/invite">Back to your invitation</Link>
           </Button>
         </div>
       </main>

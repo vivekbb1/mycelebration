@@ -91,7 +91,7 @@ function DeliveryPage() {
           The hosts haven't shared delivery details. They'll be in touch with you directly.
         </p>
         <Button asChild size="sm" className="mt-6">
-          <Link to="/invite">Back to your invitation</Link>
+          <Link to="/guest/invite">Back to your invitation</Link>
         </Button>
       </main>
     );
@@ -122,7 +122,7 @@ function DeliveryPage() {
               You haven't reserved a look yet, so there's nothing to tailor.
             </p>
             <Button asChild size="sm" className="mt-4">
-              <Link to="/outfits">Browse the lookbook</Link>
+              <Link to="/guest/outfits">Browse the lookbook</Link>
             </Button>
           </div>
         ) : (
@@ -157,7 +157,7 @@ function DeliveryPage() {
 
         {!mine.data?.measured && outfits.length > 0 ? (
           <Button asChild size="sm" className="mt-4">
-            <Link to="/measurements">Send your measurements</Link>
+            <Link to="/guest/measurements">Send your measurements</Link>
           </Button>
         ) : null}
       </section>
@@ -224,7 +224,7 @@ function DeliveryPage() {
             </p>
           ) : null}
           <Button asChild size="sm" variant="outline" className="mt-4">
-            <Link to="/measurements">Open the measurement form</Link>
+            <Link to="/guest/measurements">Open the measurement form</Link>
           </Button>
         </div>
 

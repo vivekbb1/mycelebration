@@ -3,6 +3,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // Old address — kept so existing links and emails still work.
 export const Route = createFileRoute("/_authenticated/event")({
   beforeLoad: () => {
-    throw redirect({ to: "/schedule" });
+    throw redirect({ to: "/guest/schedule" });
   },
 });
