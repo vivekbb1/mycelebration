@@ -634,6 +634,7 @@ export function HostImport() {
               {total.toLocaleString()} looks match · page {page} of {totalPages.toLocaleString()}
             </p>
           ) : null}
+          {jobsPanel ? <div className="w-full">{jobsPanel}</div> : null}
           {importedTotal ? (
             <Badge variant="secondary">{importedTotal} added to the wardrobe so far</Badge>
           ) : null}
