@@ -421,6 +421,13 @@
       "when": 1790523525814,
       "tag": "0059_outfit_favourites_pins",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1790524043717,
+      "tag": "0060_invite_link_opened",
+      "breakpoints": true
     }
   ]
 }
