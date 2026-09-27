@@ -99,7 +99,7 @@ function DeliveryPage() {
   const timeline: TimelineStep[] = parseTimeline(plan?.timeline);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <p className="text-eyebrow">Logistics</p>
       <h1 className="mt-3 text-4xl">Your delivery plan</h1>
       {plan?.intro ? (
