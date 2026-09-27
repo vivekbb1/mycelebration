@@ -57,12 +57,14 @@ export async function readEmailSettings(): Promise<Settings> {
   }
 }
 
+const LOVABLE_SENDER_DOMAIN = "notify.mycelebration.app";
+const LOVABLE_FROM_DOMAIN = "mycelebration.app";
+
 /** Which routes are ready to send right now, for the host's Email tab. */
 export function providerReadiness() {
-  const lovableDomain =
-    process.env["LOVABLE_EMAIL_SENDER_DOMAIN"] ?? process.env["EMAIL_SENDER_DOMAIN"] ?? null;
+  const lovableDomain = LOVABLE_SENDER_DOMAIN;
   return {
-    lovable: Boolean(lovableDomain && process.env["LOVABLE_API_KEY"]),
+    lovable: Boolean(process.env["LOVABLE_API_KEY"]),
     lovableDomain,
     resend: Boolean(process.env[PROVIDER_KEYS.resend]),
     sendgrid: Boolean(process.env[PROVIDER_KEYS.sendgrid]),
@@ -109,22 +111,35 @@ export async function sendGuestEmail(options: {
   if (settings.provider === "none") return { sent: false, reason: "email_turned_off" };
 
   if (settings.provider === "lovable") {
-    if (!ready.lovable) return { sent: false, reason: "lovable_domain_not_set_up" };
-    const from = settings.fromEmail ?? `invitations@${ready.lovableDomain}`;
-    return post(
-      "https://api.lovable.dev/v1/email/send",
-      { Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]}` },
-      {
-        from,
-        sender_domain: ready.lovableDomain,
-        to,
-        subject,
-        html,
-        text: textFrom(html),
-        purpose: "transactional",
-        label: "wedding-wardrobe",
-      },
-    );
+    const apiKey = process.env["LOVABLE_API_KEY"];
+    if (!apiKey) return { sent: false, reason: "lovable_domain_not_set_up" };
+    const { sendLovableEmail, EmailAPIError } = await import("@lovable.dev/email-js");
+    try {
+      await sendLovableEmail(
+        {
+          to,
+          from: `${settings.fromName} <${settings.fromEmail ?? `invitations@${LOVABLE_FROM_DOMAIN}`}>`,
+          sender_domain: LOVABLE_SENDER_DOMAIN,
+          subject,
+          html,
+          text: textFrom(html),
+          purpose: "transactional",
+          label: "guest-email",
+          idempotency_key: crypto.randomUUID(),
+        },
+        { apiKey, sendUrl: process.env["LOVABLE_SEND_URL"] },
+      );
+      return { sent: true };
+    } catch (err) {
+      if (err instanceof EmailAPIError) {
+        if (err.code === "recipient_suppressed") return { sent: false, reason: "recipient_suppressed" };
+        if (err.code === "domain_not_verified") return { sent: false, reason: "lovable_domain_not_set_up" };
+        console.error("Guest email failed", err.code, err.status);
+        return { sent: false, reason: `provider_error_${err.status ?? "unknown"}` };
+      }
+      console.error("Guest email threw", err);
+      return { sent: false, reason: "network_error" };
+    }
   }
 
   const fromEmail = settings.fromEmail;
