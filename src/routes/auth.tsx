@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+
+const PENDING_CODE = "mc-pending-invite-code";
 import { claimGuestInvite, type ClaimResult } from "@/lib/guest-access.functions";
 import { claimHostInvite } from "@/lib/host-invite.functions";
 import { Button } from "@/components/ui/button";
@@ -130,6 +133,40 @@ function AuthPage() {
     if (parsed.data.code) await claimInvite(parsed.data.code);
     setBusy(false);
     navigate({ to: isHostCode ? "/host" : "/guest/invite" });
+  };
+
+  const finishSocial = async () => {
+    const code = localStorage.getItem(PENDING_CODE) ?? "";
+    localStorage.removeItem(PENDING_CODE);
+    if (code) await claimInvite(code);
+    navigate({ to: code.trim().toUpperCase().startsWith("HOST-") ? "/host" : "/guest/invite" });
+  };
+
+  // Back from a Google / Microsoft / Apple redirect: use the saved code, then move on.
+  useEffect(() => {
+    if (localStorage.getItem(PENDING_CODE) === null) return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) void finishSocial();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const social = async (provider: "google" | "microsoft" | "apple") => {
+    const code = (tab === "signup" ? signUpForm.code : signInForm.code).trim();
+    localStorage.setItem(PENDING_CODE, code);
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: `${window.location.origin}/auth`,
+    });
+    if (result.error) {
+      localStorage.removeItem(PENDING_CODE);
+      setBusy(false);
+      toast.error(result.error.message ?? "Sign-in failed");
+      return;
+    }
+    if (result.redirected) return;
+    await finishSocial();
+    setBusy(false);
   };
 
   return (
@@ -267,6 +304,29 @@ function AuthPage() {
               </form>
             </TabsContent>
           </Tabs>
+
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              or continue with
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              First time? Enter your invitation or HOST- code above first.
+            </p>
+            {(["google", "microsoft", "apple"] as const).map((p) => (
+              <Button
+                key={p}
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={busy}
+                onClick={() => social(p)}
+              >
+                {p === "google" ? "Google" : p === "microsoft" ? "Microsoft" : "Apple"}
+              </Button>
+            ))}
+          </div>
         </div>
       </main>
     </div>
