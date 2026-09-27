@@ -246,9 +246,15 @@ export function HostFamilies() {
   /** Emergency contact details and the guest group, saved as the host types. */
   const updateMember = async (
     id: string,
-    patch: { email?: string; phone?: string; category?: string },
+    patch: { email?: string; phone?: string; category?: string; gender?: string },
   ) => {
-    const clean: { email?: string | null; phone?: string | null; category?: string } = {};
+    const clean: {
+      email?: string | null;
+      phone?: string | null;
+      category?: string;
+      gender?: string | null;
+    } = {};
+    if (patch.gender !== undefined) clean.gender = patch.gender || null;
     if (patch.email !== undefined) {
       if (!emailOk(patch.email.trim())) {
         toast.error("Check the email address.");
@@ -846,15 +852,19 @@ export function HostFamilies() {
                         <li key={m.id} className="rounded-lg border border-border/60 p-3">
                           <p className="text-sm">
                             {m.guest_name}
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              {m.gender === "men"
-                                ? "menswear"
-                                : m.gender === "women"
-                                  ? "womenswear"
-                                  : "outfit not set"}
-                            </span>
                           </p>
-                          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                          <div className="mt-2 grid gap-2 sm:grid-cols-4">
+                            <select
+                              className="field-select text-xs"
+                              value={m.gender ?? ""}
+                              aria-label={`Wardrobe for ${m.guest_name}`}
+                              onChange={(e) => void updateMember(m.id, { gender: e.target.value })}
+                            >
+                              <option value="">Wardrobe not set</option>
+                              <option value="women">Womenswear</option>
+                              <option value="men">Menswear</option>
+                              <option value="kids">Kids</option>
+                            </select>
                             <Input
                               defaultValue={m.email ?? ""}
                               maxLength={255}
