@@ -58,34 +58,19 @@ export const claimGuestInvite = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Lets the first signed-in user become the host. Locked once claimed. */
+/**
+ * Confirms host access for someone who already holds the host role. Host
+ * access is only ever granted through a host invitation or by the platform
+ * admin — never self-claimed.
+ */
 export const claimHostAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ClaimResult> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const userId = context.userId;
-
-    const { data: existing, error } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "admin")
-      .limit(1)
-      .maybeSingle();
-
-    if (error) return { ok: false, error: "We couldn't check host access. Please try again." };
-
-    if (existing) {
-      return existing.user_id === userId
-        ? { ok: true }
-        : { ok: false, error: "Host access has already been claimed" };
-    }
-
-    const { error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .insert({ user_id: userId, role: "admin" });
-    if (roleError) return { ok: false, error: "Host access has already been claimed" };
-
-    await supabaseAdmin.from("profiles").update({ invite_claimed: true }).eq("id", userId);
-
-    return { ok: true };
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    return isAdmin
+      ? { ok: true }
+      : { ok: false, error: "Host access needs a host invitation. Ask the celebration's host for one." };
   });
