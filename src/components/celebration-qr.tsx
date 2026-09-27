@@ -9,6 +9,7 @@ const LEVELS = ["L", "M", "Q", "H"] as const;
 export function CelebrationQr({ link, name }: { link: string; name: string }) {
   const [dark, setDark] = useState("#1f1a14");
   const [light, setLight] = useState("#ffffff");
+  const [clear, setClear] = useState(true);
   const [margin, setMargin] = useState(2);
   const [level, setLevel] = useState<(typeof LEVELS)[number]>("M");
   const [preview, setPreview] = useState("");
@@ -17,13 +18,13 @@ export function CelebrationQr({ link, name }: { link: string; name: string }) {
     width,
     margin,
     errorCorrectionLevel: level,
-    color: { dark, light },
+    color: { dark, light: clear ? "#00000000" : light },
   });
 
   useEffect(() => {
     QRCode.toDataURL(link, opts(240)).then(setPreview).catch(() => setPreview(""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [link, dark, light, margin, level]);
+  }, [link, dark, light, clear, margin, level]);
 
   const download = async (width: number, label: string) => {
     const url = await QRCode.toDataURL(link, opts(width));
@@ -38,7 +39,7 @@ export function CelebrationQr({ link, name }: { link: string; name: string }) {
       <p className="text-sm font-medium">QR code for this page</p>
       <div className="mt-3 flex flex-col gap-4 sm:flex-row">
         {preview ? (
-          <img src={preview} alt="QR code" className="size-40 shrink-0 rounded border border-border" />
+          <img src={preview} alt="QR code" className="size-40 shrink-0 rounded border border-border bg-[repeating-conic-gradient(var(--muted)_0_25%,transparent_0_50%)] bg-[length:16px_16px]" />
         ) : null}
         <div className="grid flex-1 grid-cols-2 gap-3 text-sm">
           <label className="flex flex-col gap-1">
@@ -47,7 +48,10 @@ export function CelebrationQr({ link, name }: { link: string; name: string }) {
           </label>
           <label className="flex flex-col gap-1">
             Background
-            <input type="color" value={light} onChange={(e) => setLight(e.target.value)} className="h-9 w-full" />
+            <input type="color" value={light} disabled={clear} onChange={(e) => setLight(e.target.value)} className="h-9 w-full disabled:opacity-40" />
+            <span className="flex items-center gap-1.5 text-xs">
+              <input type="checkbox" checked={clear} onChange={(e) => setClear(e.target.checked)} /> Transparent
+            </span>
           </label>
           <label className="flex flex-col gap-1">
             Border
