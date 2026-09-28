@@ -1507,6 +1507,8 @@ export type Database = {
       hotel_rooms: {
         Row: {
           beds: number
+          block_checkin_date: string | null
+          block_checkout_date: string | null
           category: string
           created_at: string
           extra_bed_allowed: boolean
@@ -1521,6 +1523,8 @@ export type Database = {
         }
         Insert: {
           beds?: number
+          block_checkin_date?: string | null
+          block_checkout_date?: string | null
           category?: string
           created_at?: string
           extra_bed_allowed?: boolean
@@ -1535,6 +1539,8 @@ export type Database = {
         }
         Update: {
           beds?: number
+          block_checkin_date?: string | null
+          block_checkout_date?: string | null
           category?: string
           created_at?: string
           extra_bed_allowed?: boolean

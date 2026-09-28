@@ -547,6 +547,13 @@
       "when": 1790601073373,
       "tag": "0077_restrict_celebration_creation",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1790601201893,
+      "tag": "0078_hotel_block_dates",
+      "breakpoints": true
     }
   ]
 }

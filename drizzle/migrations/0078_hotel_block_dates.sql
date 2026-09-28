@@ -1,0 +1,1 @@
+ALTER TABLE public.hotel_rooms ADD COLUMN IF NOT EXISTS block_checkin_date date, ADD COLUMN IF NOT EXISTS block_checkout_date date;

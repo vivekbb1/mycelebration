@@ -19,6 +19,8 @@ type Room = {
   beds: number;
   max_occupancy: number;
   extra_bed_allowed: boolean;
+  block_checkin_date: string | null;
+  block_checkout_date: string | null;
 };
 type Assign = { id: string; room_id: string; household: string; guest_name: string; extra_bed: boolean };
 type Person = { household: string; guest_name: string };
@@ -145,6 +147,25 @@ export function HostRooms() {
     refresh();
   }
 
+  async function setBlock(vendorId: string, field: "block_checkin_date" | "block_checkout_date", value: string) {
+    const { error } = await supabase.from("hotel_rooms").update(field === "block_checkin_date" ? { block_checkin_date: value || null } : { block_checkout_date: value || null }).eq("vendor_id", vendorId).eq("invite_id", inviteId!);
+    if (error) return void toast.error(error.message);
+    toast.success("Dates saved for every room at this hotel");
+    refresh();
+  }
+
+  async function move(a: Assign, roomId: string) {
+    const room = data!.rooms.find((r) => r.id === roomId);
+    if (!room) return;
+    const { error } = await supabase
+      .from("room_assignments")
+      .update({ room_id: roomId, extra_bed: inRoom(roomId).length >= room.max_occupancy })
+      .eq("id", a.id);
+    if (error) return void toast.error(error.message.includes("full") ? "That room is full" : error.message);
+    toast.success(`${a.guest_name} moved to room ${room.room_number}`);
+    refresh();
+  }
+
   async function unassign(id: string) {
     const { error } = await supabase.from("room_assignments").delete().eq("id", id);
     if (error) return void toast.error(error.message);
@@ -199,11 +220,13 @@ export function HostRooms() {
       if (!occ.length) lines.push([hotelName(r.vendor_id), r.floor, r.room_number, r.category, "", "", "", "", ""].map(esc).join(","));
       for (const a of occ) {
         const t = data!.travel.get(a.household);
+        const cin = t?.checkin_date ? [t.checkin_date, t.checkin_time].filter(Boolean).join(" ") : r.block_checkin_date ?? "";
+        const cout = t?.checkout_date ? [t.checkout_date, t.checkout_time].filter(Boolean).join(" ") : r.block_checkout_date ?? "";
         lines.push([
           hotelName(r.vendor_id), r.floor, r.room_number, r.category, a.guest_name, a.household,
           a.extra_bed ? "Yes" : "",
-          [t?.checkin_date, t?.checkin_time].filter(Boolean).join(" "),
-          [t?.checkout_date, t?.checkout_time].filter(Boolean).join(" "),
+          cin,
+          cout,
         ].map(esc).join(","));
       }
     }
@@ -235,6 +258,21 @@ export function HostRooms() {
           {data.hotels.map((h) => <Badge key={h.id} variant="outline">{h.name}{h.city ? ` · ${h.city}` : ""}</Badge>)}
           {!data.hotels.length && <p className="text-sm text-muted-foreground">No hotels yet. Add one below.</p>}
         </div>
+        {data.hotels.some((h) => data.rooms.some((r) => r.vendor_id === h.id)) && (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Block dates: check-in and check-out for every room at a hotel. A family's own travel dates take priority.</p>
+            {data.hotels.filter((h) => data.rooms.some((r) => r.vendor_id === h.id)).map((h) => {
+              const first = data.rooms.find((r) => r.vendor_id === h.id)!;
+              return (
+                <div key={h.id} className="flex flex-wrap items-end gap-2 text-sm">
+                  <span className="w-40 truncate pb-2">{h.name}</span>
+                  <div><Label>Check-in</Label><Input type="date" className="w-40" defaultValue={first.block_checkin_date ?? ""} onBlur={(e) => e.target.value !== (first.block_checkin_date ?? "") && setBlock(h.id, "block_checkin_date", e.target.value)} /></div>
+                  <div><Label>Check-out</Label><Input type="date" className="w-40" defaultValue={first.block_checkout_date ?? ""} onBlur={(e) => e.target.value !== (first.block_checkout_date ?? "") && setBlock(h.id, "block_checkout_date", e.target.value)} /></div>
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div className="flex flex-wrap items-end gap-2">
           <Input className="w-56" placeholder="Hotel name" value={newHotel.name} onChange={(e) => setNewHotel({ ...newHotel, name: e.target.value })} />
           <Input className="w-40" placeholder="City" value={newHotel.city} onChange={(e) => setNewHotel({ ...newHotel, city: e.target.value })} />
@@ -306,6 +344,9 @@ export function HostRooms() {
                     <p className="text-xs text-muted-foreground">
                       {hotelName(r.vendor_id)} · {r.category}{r.floor ? ` · Floor ${r.floor}` : ""} · {r.beds} bed{r.beds > 1 ? "s" : ""}
                     </p>
+                    {(r.block_checkin_date || r.block_checkout_date) && (
+                      <p className="text-xs text-muted-foreground">{r.block_checkin_date ?? "?"} → {r.block_checkout_date ?? "?"}</p>
+                    )}
                   </div>
                   <Badge variant={occ.length > r.max_occupancy ? "destructive" : full ? "default" : "outline"}>
                     {occ.length} / {r.max_occupancy}{r.extra_bed_allowed ? " + extra" : ""}
@@ -316,7 +357,20 @@ export function HostRooms() {
                   {occ.map((a) => (
                     <li key={a.id} className="flex items-center justify-between gap-2">
                       <span>{a.guest_name} <span className="text-muted-foreground">· {a.household}</span>{a.extra_bed && <Badge variant="outline" className="ml-1">Extra bed</Badge>}</span>
-                      <button className="text-xs text-muted-foreground underline" onClick={() => unassign(a.id)}>Remove</button>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <select
+                          aria-label={`Move ${a.guest_name}`}
+                          className="h-7 max-w-28 rounded border border-input bg-background px-1 text-xs"
+                          value=""
+                          onChange={(e) => e.target.value && move(a, e.target.value)}
+                        >
+                          <option value="">Move to…</option>
+                          {data.rooms.filter((x) => x.id !== r.id && inRoom(x.id).length < cap(x)).map((x) => (
+                            <option key={x.id} value={x.id}>{hotelName(x.vendor_id)} · {x.room_number}</option>
+                          ))}
+                        </select>
+                        <button className="text-xs text-muted-foreground underline" onClick={() => unassign(a.id)}>Remove</button>
+                      </span>
                     </li>
                   ))}
                 </ul>

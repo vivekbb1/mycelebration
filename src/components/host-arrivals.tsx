@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { TRAVEL_NEED_LABEL, useFamilyTravelNeeds } from "@/lib/family-travel-needs";
 
 const RIDE_STATUS = ["planned", "driver on the way", "guest met", "dropped off", "cancelled"];
 const STAY_STATUS = ["to assign", "room held", "checked in", "checked out"];
@@ -209,6 +210,11 @@ export function HostArrivals() {
     const all = [...set].sort((a, b) => a.localeCompare(b));
     return mineOnly ? all.filter((h) => myHouseholds.has(h)) : all;
   }, [guests.data, mineOnly, myHouseholds]);
+  const travelNeeds = useFamilyTravelNeeds(selectedEvent);
+  /** Cars go only to "Stay + pickup" families; rooms to anyone staying. */
+  const rideFamilies = travelNeeds.enabled ? households.filter((h) => travelNeeds.needOf(h) === "stay_transfer") : households;
+  const stayFamilies = travelNeeds.enabled ? households.filter((h) => travelNeeds.needOf(h) !== "none") : households;
+  const needLabel = (h: string) => (travelNeeds.enabled ? ` · ${TRAVEL_NEED_LABEL[travelNeeds.needOf(h)]}` : "");
 
 
   const refresh = async () => {
@@ -362,9 +368,9 @@ export function HostArrivals() {
               onChange={(e) => setRide({ ...ride, household: e.target.value })}
             >
               <option value="">Choose a family…</option>
-              {households.map((h) => (
+              {rideFamilies.map((h) => (
                 <option key={h} value={h}>
-                  {h} — {replyLabel(h)}
+                  {h} — {replyLabel(h)}{needLabel(h)}
                 </option>
               ))}
             </select>
@@ -561,9 +567,9 @@ export function HostArrivals() {
               onChange={(e) => setStay({ ...stay, household: e.target.value })}
             >
               <option value="">Choose a family…</option>
-              {households.map((h) => (
+              {stayFamilies.map((h) => (
                 <option key={h} value={h}>
-                  {h} — {replyLabel(h)}
+                  {h} — {replyLabel(h)}{needLabel(h)}
                 </option>
               ))}
             </select>

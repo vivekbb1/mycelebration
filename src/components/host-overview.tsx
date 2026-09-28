@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { HostDashboard } from "@/components/host-dashboard";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { MissingTravelDetails } from "@/lib/family-travel-needs";
 
 /**
  * At-a-glance numbers for the hosts: who has replied, who has confirmed a look,
@@ -154,6 +155,8 @@ export function HostOverview() {
           note={`${chosen.guests} guests · ${chosen.stillToChoose} still to choose`}
         />
       </div>
+
+      <MissingTravelDetails inviteId={inviteId} />
 
       <section className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">

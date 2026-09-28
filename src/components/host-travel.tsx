@@ -4,6 +4,7 @@ import { Users, AlertTriangle, CalendarClock } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { TravelNeedBadge, useFamilyTravelNeeds } from "@/lib/family-travel-needs";
 import { useSelectedEvent } from "@/lib/selected-event";
 
 const dateLabel = (value: string | null) =>
@@ -18,6 +19,7 @@ const dateLabel = (value: string | null) =>
 /** Flights in and out, head counts per event, and who lands too late for one. */
 export function HostTravel() {
   const { inviteId } = useSelectedEvent();
+  const travelNeeds = useFamilyTravelNeeds(inviteId);
   const scope = inviteId ? { invite_id: inviteId } : {};
   const events = useQuery({
     queryKey: ["travel-events", inviteId],
@@ -199,6 +201,7 @@ export function HostTravel() {
                     {t.people.map((p) => (
                       <li key={`${t.id}-${p.household}`} className="flex flex-wrap items-center gap-2">
                         <span>{p.household}</span>
+                        {travelNeeds.enabled ? <TravelNeedBadge need={travelNeeds.needOf(p.household)} /> : null}
                         <span className="text-xs text-muted-foreground">
                           {p.guests} {p.guests === 1 ? "guest" : "guests"}
                         </span>
