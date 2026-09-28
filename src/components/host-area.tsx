@@ -42,6 +42,7 @@ import { HostWorkload } from "@/components/host-workload";
 import { HostOverview } from "@/components/host-overview";
 import { HostGuestTracker } from "@/components/host-guest-tracker";
 import { HostLogistics } from "@/components/host-logistics";
+import { HostRooms } from "@/components/host-rooms";
 import { HostTeam } from "@/components/host-team";
 import { HostEmail } from "@/components/host-email";
 import { HostContent } from "@/components/host-content";
@@ -667,6 +668,9 @@ function HostDashboard() {
               {has("arrivals") ? (
                 <TabsTrigger value="arrivals">Logistics</TabsTrigger>
               ) : null}
+              {has("arrivals") ? (
+                <TabsTrigger value="rooms">Rooms</TabsTrigger>
+              ) : null}
 
               {has("guest_communication") ? (
                 <TabsTrigger value="hosts">Communication</TabsTrigger>
@@ -701,6 +705,11 @@ function HostDashboard() {
             {has("arrivals") ? (
               <TabsContent value="arrivals" className="mt-6">
                 <HostArrivals />
+              </TabsContent>
+            ) : null}
+            {has("arrivals") ? (
+              <TabsContent value="rooms" className="mt-6">
+                <HostRooms />
               </TabsContent>
             ) : null}
 
