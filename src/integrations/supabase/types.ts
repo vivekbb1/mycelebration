@@ -804,6 +804,7 @@ export type Database = {
           link_opened_at: string | null
           name: string
           needs_wardrobe: boolean
+          signup_link_id: string | null
           travel_need: string | null
         }
         Insert: {
@@ -816,6 +817,7 @@ export type Database = {
           link_opened_at?: string | null
           name: string
           needs_wardrobe?: boolean
+          signup_link_id?: string | null
           travel_need?: string | null
         }
         Update: {
@@ -828,6 +830,7 @@ export type Database = {
           link_opened_at?: string | null
           name?: string
           needs_wardrobe?: boolean
+          signup_link_id?: string | null
           travel_need?: string | null
         }
         Relationships: [
@@ -843,6 +846,13 @@ export type Database = {
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "families_signup_link_id_fkey"
+            columns: ["signup_link_id"]
+            isOneToOne: false
+            referencedRelation: "signup_links"
             referencedColumns: ["id"]
           },
         ]
@@ -2655,6 +2665,50 @@ export type Database = {
           },
         ]
       }
+      signup_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          event_ids: string[]
+          id: string
+          invite_id: string
+          label: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          event_ids?: string[]
+          id?: string
+          invite_id: string
+          label?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          event_ids?: string[]
+          id?: string
+          invite_id?: string
+          label?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signup_links_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_content: {
         Row: {
           default_value: string
@@ -2991,6 +3045,7 @@ export type Database = {
       my_pay_instructions: { Args: never; Returns: string }
       my_room: { Args: never; Returns: Json }
       my_travel_settings: { Args: never; Returns: Json }
+      signup_link_info: { Args: { _token: string }; Returns: Json }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
       sync_household_rsvp_in: {
         Args: { _household: string; _invite_id: string }
