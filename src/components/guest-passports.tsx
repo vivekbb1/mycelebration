@@ -21,10 +21,18 @@ type Row = {
 };
 
 /** Passport details + a copy of the passport page for each family member, for hotel check-in. */
-export function GuestPassports({ household, people }: { household: string; people: string[] }) {
+export function GuestPassports({
+  household,
+  people,
+  required = false,
+}: {
+  household: string;
+  people: string[];
+  required?: boolean;
+}) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(required);
   const key = ["guest-passports", household];
 
   const rows = useQuery({
@@ -129,7 +137,7 @@ export function GuestPassports({ household, people }: { household: string; peopl
       >
         <span>
           <span className="flex items-center gap-2 text-xl">
-            <FileText className="size-4 text-primary" /> Passports for check-in (optional)
+            <FileText className="size-4 text-primary" /> Passports for check-in {required ? "(needed)" : "(optional)"}
           </span>
           <span className="mt-1 block text-sm text-muted-foreground">
             Only if your hosts need it — names and details exactly as on the passport, so the hotel
