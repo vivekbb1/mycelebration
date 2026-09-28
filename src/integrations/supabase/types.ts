@@ -1046,11 +1046,14 @@ export type Database = {
       guest_passports: {
         Row: {
           created_at: string
+          date_of_birth: string | null
           doc_path: string | null
           expiry: string | null
+          first_name: string | null
           household: string
           id: string
           invite_id: string | null
+          last_name: string | null
           nationality: string | null
           passport_number: string | null
           person_name: string
@@ -1059,11 +1062,14 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          date_of_birth?: string | null
           doc_path?: string | null
           expiry?: string | null
+          first_name?: string | null
           household: string
           id?: string
           invite_id?: string | null
+          last_name?: string | null
           nationality?: string | null
           passport_number?: string | null
           person_name: string
@@ -1072,11 +1078,14 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          date_of_birth?: string | null
           doc_path?: string | null
           expiry?: string | null
+          first_name?: string | null
           household?: string
           id?: string
           invite_id?: string | null
+          last_name?: string | null
           nationality?: string | null
           passport_number?: string | null
           person_name?: string

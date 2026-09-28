@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { FileText, Upload } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText, Upload } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 type Row = {
   id: string;
   person_name: string;
+  first_name: string | null;
+  last_name: string | null;
+  date_of_birth: string | null;
   passport_number: string | null;
   nationality: string | null;
   expiry: string | null;
@@ -21,6 +24,7 @@ type Row = {
 export function GuestPassports({ household, people }: { household: string; people: string[] }) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const key = ["guest-passports", household];
 
   const rows = useQuery({
@@ -29,7 +33,7 @@ export function GuestPassports({ household, people }: { household: string; peopl
     queryFn: async () => {
       const { data, error } = await supabase
         .from("guest_passports")
-        .select("id, person_name, passport_number, nationality, expiry, doc_path")
+        .select("id, person_name, first_name, last_name, date_of_birth, passport_number, nationality, expiry, doc_path")
         .eq("household", household);
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -117,13 +121,28 @@ export function GuestPassports({ household, people }: { household: string; peopl
 
   return (
     <div>
-      <h3 className="flex items-center gap-2 text-lg">
-        <FileText className="size-4 text-primary" /> Passports for check-in
-      </h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        For each of you: passport details and a photo or scan of the photo page, so the hotel can
-        check you in quickly. Only your hosts can see these.
-      </p>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 text-left"
+      >
+        <span>
+          <span className="flex items-center gap-2 text-xl">
+            <FileText className="size-4 text-primary" /> Passports for check-in (optional)
+          </span>
+          <span className="mt-1 block text-sm text-muted-foreground">
+            Only if your hosts need it — names and details exactly as on the passport, so the hotel
+            can check you in quickly. Only your hosts can see these.
+          </span>
+        </span>
+        {open ? (
+          <ChevronUp className="size-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+        )}
+      </button>
+      {open ? (
       <div className="mt-4 space-y-4">
         {people.map((person) => {
           const r = byName.get(person);
@@ -131,6 +150,39 @@ export function GuestPassports({ household, people }: { household: string; peopl
             <div key={`${person}-${r?.id ?? "new"}`} className="rounded-lg border border-border p-3">
               <p className="text-sm font-medium">{person}</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <Label className="text-xs">First name (as on passport)</Label>
+                  <Input
+                    defaultValue={r?.first_name ?? ""}
+                    maxLength={80}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim() || null;
+                      if (v !== (r?.first_name ?? null)) save(person, { first_name: v });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Last name (as on passport)</Label>
+                  <Input
+                    defaultValue={r?.last_name ?? ""}
+                    maxLength={80}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim() || null;
+                      if (v !== (r?.last_name ?? null)) save(person, { last_name: v });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Date of birth</Label>
+                  <Input
+                    type="date"
+                    defaultValue={r?.date_of_birth ?? ""}
+                    onBlur={(e) => {
+                      const v = e.target.value || null;
+                      if (v !== (r?.date_of_birth ?? null)) save(person, { date_of_birth: v });
+                    }}
+                  />
+                </div>
                 <div>
                   <Label className="text-xs">Passport number</Label>
                   <Input
@@ -192,6 +244,7 @@ export function GuestPassports({ household, people }: { household: string; peopl
           );
         })}
       </div>
+      ) : null}
     </div>
   );
 }
