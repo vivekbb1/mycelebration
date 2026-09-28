@@ -148,7 +148,7 @@ export function HostRooms() {
   }
 
   async function setBlock(vendorId: string, field: "block_checkin_date" | "block_checkout_date", value: string) {
-    const { error } = await supabase.from("hotel_rooms").update({ [field]: value || null }).eq("vendor_id", vendorId).eq("invite_id", inviteId!);
+    const { error } = await supabase.from("hotel_rooms").update(field === "block_checkin_date" ? { block_checkin_date: value || null } : { block_checkout_date: value || null }).eq("vendor_id", vendorId).eq("invite_id", inviteId!);
     if (error) return void toast.error(error.message);
     toast.success("Dates saved for every room at this hotel");
     refresh();
