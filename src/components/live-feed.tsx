@@ -138,7 +138,7 @@ export function LiveFeed({
             >
               {l.images[0] ? (
                 <img
-                  src={l.images[0]}
+                  src={l.images[0].startsWith("https://") ? `/api/public/shop-image?w=400&u=${encodeURIComponent(l.images[0])}` : l.images[0]}
                   referrerPolicy="no-referrer"
                   alt={l.title}
                   loading="lazy"
