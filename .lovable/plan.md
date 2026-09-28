@@ -27,6 +27,10 @@ The same choice can be applied to many families at once from the existing multi-
 - The travel need, travel and stay details, and passport status, with the Travel details panel above
 - **Host notes**: private notes that only hosts of this celebration can see. Each note shows who wrote it and when. The writer can edit or delete it, and owners can delete any note.
 
+This extends the existing family file page instead of adding a new one. Guests never see the notes.
+
+Technical: a new `family_notes` table (`invite_id`, `household`, `body`, `author_id`, timestamps) with grants to `authenticated` and `service_role` and RLS allowing hosts only (`is_celebration_host(invite_id)`). The author edits their own notes, and deletion is allowed for the author or `is_celebration_owner`.
+
 **Setup → Celebration**: two new settings:
 - Travel details: **Required** or **Optional**
 - Passport details: **Required** or **Optional**
