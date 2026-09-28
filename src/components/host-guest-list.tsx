@@ -1,5 +1,5 @@
 import { wardrobeLabel } from "@/lib/wardrobe-options";
-import { PUBLIC_ORIGIN } from "@/lib/public-url";
+import { PUBLIC_ORIGIN, authLink } from "@/lib/public-url";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/components/host-families";
 import { useFeatures } from "@/lib/features";
 import { HostFamilies } from "@/components/host-families";
-import { matchesSelectedEvent, useSelectedEvent } from "@/lib/selected-event";
+import { matchesSelectedEvent, useCelebrationSlug, useSelectedEvent } from "@/lib/selected-event";
 
 
 export function HostGuestList() {
@@ -24,6 +24,7 @@ export function HostGuestList() {
   const emailInvite = useServerFn(sendInviteEmail);
   const [filter, setFilter] = useState("");
   const { inviteId: selectedEvent } = useSelectedEvent();
+  const slug = useCelebrationSlug();
 
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
@@ -250,7 +251,7 @@ export function HostGuestList() {
 
 
   const copyInvite = async (code: string, guestName: string) => {
-    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
+    const link = authLink(code, slug);
     const message = `Hi ${guestName}! As our gift, we've put together a wardrobe of festive Indian outfits for the wedding. Open your invitation, pick your look and send your measurements: ${link} (your code: ${code})`;
     try {
       await navigator.clipboard.writeText(message);
@@ -261,7 +262,7 @@ export function HostGuestList() {
   };
 
   const inviteText = (guestName: string, code: string) => {
-    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
+    const link = authLink(code, slug);
     return (
       `Hi ${guestName},\n\n` +
       `As our gift, we've put together a wardrobe of festive Indian outfits for the wedding.\n\n` +
