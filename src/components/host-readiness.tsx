@@ -52,7 +52,12 @@ export function ReadyToInvite({ inviteId }: { inviteId: string | null | undefine
   );
 }
 
-const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+// Prefix text starting with a formula character so spreadsheets treat it as plain text.
+const esc = (v: unknown) => {
+  let s = String(v ?? "");
+  if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return `"${s.replace(/"/g, '""')}"`;
+};
 const MEASURE = ["unit", "height", "bust", "waist", "hip", "shoulder", "sleeve_length", "top_length", "bottom_length", "inseam", "notes"] as const;
 
 /** Spreadsheet downloads for the planner and the tailor. */

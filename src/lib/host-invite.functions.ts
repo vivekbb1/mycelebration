@@ -118,7 +118,9 @@ export const claimHostInvite = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!invite) return { ok: false, error: "That host code was not recognised" };
-    if (invite.claimed_by && invite.claimed_by !== userId) {
+    // Host codes are single-use: once claimed they can never restore access,
+    // so a removed co-host can't rejoin with their old code.
+    if (invite.claimed_by) {
       return { ok: false, error: "That host invitation has already been used" };
     }
 

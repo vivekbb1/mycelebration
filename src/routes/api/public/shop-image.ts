@@ -4,7 +4,7 @@ const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
 /** Only photos from the shops we pull live feeds from. */
-const allowed = (host: string) => /(^|\.)perniaspopupshop\.com$/i.test(host) || /pernia/i.test(host);
+const allowed = (host: string) => /(^|\.)perniaspopupshop\.com$/i.test(host);
 
 /**
  * Keeps a copy of a live-feed shop photo on first view, then sends the
@@ -35,9 +35,9 @@ export const Route = createFileRoute("/api/public/shop-image")({
         if (!existing.data?.length) {
           const res = await fetch(target.href, { headers: { "user-agent": UA } });
           const type = res.headers.get("content-type") ?? "";
-          if (!res.ok || !type.startsWith("image/")) return Response.redirect(target.href, 302);
+          if (!res.ok || !type.startsWith("image/")) return new Response("Not an image", { status: 404 });
           const { error } = await bucket.upload(path, await res.arrayBuffer(), { contentType: type, upsert: true });
-          if (error) return Response.redirect(target.href, 302);
+          if (error) return new Response("Could not cache image", { status: 502 });
         }
         return new Response(null, {
           status: 302,
