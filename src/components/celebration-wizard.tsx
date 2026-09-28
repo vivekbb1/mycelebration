@@ -31,6 +31,14 @@ export function CelebrationWizard() {
   const [planId, setPlanId] = useState("free");
   const [addonIds, setAddonIds] = useState<string[]>([]);
 
+  const canCreate = useQuery({
+    queryKey: ["can-create-celebration"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("can_create_celebration");
+      return data === true;
+    },
+  });
+
   const catalogue = useQuery({
     queryKey: ["wizard-catalogue", inviteId],
     enabled: step === 3 && !!inviteId,
@@ -133,6 +141,20 @@ export function CelebrationWizard() {
       <Input value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder} className="mt-1" />
     </label>
   );
+
+  if (canCreate.isLoading) return null;
+  if (!canCreate.data && step === 0) {
+    return (
+      <div className="panel h-fit p-4 sm:p-6">
+        <h2 className="flex items-center gap-2 text-xl">
+          <Mail className="size-4 text-primary" /> Set up a celebration
+        </h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          New celebrations are set up by the platform team. Get in touch with us and we'll switch this on for you.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="panel h-fit p-4 sm:p-6">

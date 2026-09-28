@@ -644,6 +644,8 @@ function PlatformAdmin() {
         </ul>
       </section>
 
+      <CelebrationCreators />
+
       <PlanRequests />
 
       <h2 className="mt-12 text-2xl">Celebration fees</h2>
@@ -681,6 +683,68 @@ function PlatformAdmin() {
         <Badge variant="outline">You see everything as the platform owner</Badge>
       </div>
     </main>
+  );
+}
+
+/** People the operator has approved to create their own celebrations. */
+function CelebrationCreators() {
+  const qc = useQueryClient();
+  const [email, setEmail] = useState("");
+  const list = useQuery({
+    queryKey: ["celebration-creators"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("celebration_creators")
+        .select("user_id, email, created_at")
+        .order("created_at");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const approve = async () => {
+    const { data, error } = await supabase.rpc("approve_celebration_creator", { _email: email });
+    const res = data as { ok?: boolean; error?: string } | null;
+    if (error || !res?.ok) return toast.error(error?.message ?? res?.error ?? "Couldn't approve");
+    setEmail("");
+    toast.success("Approved — they can now create a celebration.");
+    qc.invalidateQueries({ queryKey: ["celebration-creators"] });
+  };
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("celebration_creators").delete().eq("user_id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["celebration-creators"] });
+  };
+  return (
+    <section className="panel mt-8 p-4 sm:p-6">
+      <h2 className="text-xl">Who can create celebrations</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Only you and the people listed here can set up a new celebration. They must have signed up first.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="their@email.com"
+          className="max-w-xs"
+        />
+        <Button type="button" onClick={approve} disabled={!email.trim()}>
+          <Plus className="size-4" /> Approve
+        </Button>
+      </div>
+      <ul className="mt-4 divide-y divide-border/60">
+        {(list.data ?? []).map((r) => (
+          <li key={r.user_id} className="flex items-center justify-between py-2 text-sm">
+            <span>{r.email ?? r.user_id}</span>
+            <Button variant="ghost" size="icon" aria-label="Remove approval" onClick={() => remove(r.user_id)}>
+              <Trash2 className="size-4" />
+            </Button>
+          </li>
+        ))}
+        {list.data?.length === 0 ? (
+          <li className="py-2 text-sm text-muted-foreground">Nobody else approved yet.</li>
+        ) : null}
+      </ul>
+    </section>
   );
 }
 
