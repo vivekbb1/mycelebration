@@ -915,9 +915,12 @@ function FilterChip({
   );
 }
 
-/** Smaller copy for our own stored photos; outside links are left as they are. */
+/** Smaller copy for our own stored photos; shop photos are copied in on first view. */
 function sized(src: string, w: number) {
-  return src.startsWith("/api/public/outfit-image/") ? `${src.split("?")[0]}?w=${w}` : src;
+  if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=${w}`;
+  const size = [120, 240, 400, 600, 800].includes(w) ? w : 400;
+  if (/^https:\/\/[^/]*pernia/i.test(src)) return `/api/public/shop-image?w=${size}&u=${encodeURIComponent(src)}`;
+  return src;
 }
 
 /** Main photo with a swipeable strip of the other angles underneath. */
