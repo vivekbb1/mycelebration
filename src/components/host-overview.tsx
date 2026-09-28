@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { HostDashboard } from "@/components/host-dashboard";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { MissingTravelDetails } from "@/lib/family-travel-needs";
+import { HostDownloads, ReadyToInvite } from "@/components/host-readiness";
 
 /**
  * At-a-glance numbers for the hosts: who has replied, who has confirmed a look,
@@ -137,6 +138,7 @@ export function HostOverview() {
 
   return (
     <div className="space-y-6">
+      <ReadyToInvite inviteId={inviteId} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile label="Guests invited" value={rsvp.invited} note={`${rsvp.households} families`} />
         <Tile
@@ -157,6 +159,7 @@ export function HostOverview() {
       </div>
 
       <MissingTravelDetails inviteId={inviteId} />
+      <HostDownloads inviteId={inviteId} />
 
       <section className="panel p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">

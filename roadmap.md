@@ -15,3 +15,7 @@
 - [ ] Card payments: hosts pay packages + guests pay event fees (waiting on user to switch on test mode)
 - [x] Travel needs per family (default, override, bulk, filter), required/optional flags, stay check-in/out date+time
 - [x] Family page: host travel/passport editing + remove, host notes, change log
+- [x] Missing required travel/passport counts; travel need on Travel/Flights; pickups only for Stay + pickup
+- [x] Rooms: hotel block dates, move guest between rooms
+- [x] Ready-to-invite checklist, planner/tailor downloads, per-event "choose looks by" lock
+- [ ] Weekly nudges to families with things left to do (waiting on user: email vs WhatsApp, frequency)
