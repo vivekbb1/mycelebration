@@ -231,7 +231,7 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, email, created_at, needs_wardrobe, invite_id, travel_need, signup_link_id")
+        .select("id, name, code, email, created_at, needs_wardrobe, invite_id, travel_need, signup_link_id, signup_links(label)")
         .order("name");
       if (error) throw error;
       return data;
@@ -945,7 +945,7 @@ export function HostFamilies() {
                     {f.name}
                     {f.signup_link_id ? (
                       <span className="ml-2 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
-                        Registered via link
+                        Via link: {(f as { signup_links?: { label: string } | null }).signup_links?.label ?? "deleted link"}
                       </span>
                     ) : null}
                     <Badge variant="outline">{f.code}</Badge>
