@@ -12,9 +12,13 @@ import { BRANDING_DEFAULTS, fontStack, type Branding } from "@/lib/branding";
 import { slugProblem, slugify } from "@/lib/celebration-slug";
 import { Link } from "@tanstack/react-router";
 import { useFeatures } from "@/lib/features";
-import { CelebrationQr } from "@/components/celebration-qr";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { CelebrationWizard } from "@/components/celebration-wizard";
+import { lazy, Suspense } from "react";
+import { ClientOnly } from "@tanstack/react-router";
+
+// QR library only works in the browser; never load it on the server.
+const CelebrationQr = lazy(() => import("@/components/celebration-qr").then((m) => ({ default: m.CelebrationQr })));
 
 type Draft = Omit<Branding, "id">;
 
@@ -221,7 +225,7 @@ function WebAddress({ invite }: { invite: Invite }) {
           ) : null}
         </div>
       ) : null}
-      {link && invite.slug ? <CelebrationQr link={link} name={invite.slug} /> : null}
+      {link && invite.slug ? <ClientOnly fallback={null}><Suspense fallback={null}><CelebrationQr link={link} name={invite.slug} /></Suspense></ClientOnly> : null}
       <OwnDomain invite={invite} />
       <PageLook inviteId={invite.id} />
       <label className="block text-sm">

@@ -35,6 +35,8 @@ function useGuestEvents() {
   return useQuery({
     queryKey: ["guest-events"],
     queryFn: async (): Promise<GuestEvent[]> => {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) return [];
       const { data: allowed, error: allowedError } = await supabase.rpc("my_event_ids");
       if (allowedError) throw allowedError;
       const allowedIds = new Set(((allowed ?? []) as { event_id: string }[]).map((r) => r.event_id));
