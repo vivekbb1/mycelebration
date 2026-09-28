@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { RESERVED_SLUGS } from "@/lib/celebration-slug";
+import { useSignupLink } from "@/lib/signup-link";
 
 import {
   celebrationStyle,
@@ -10,6 +12,7 @@ import {
 } from "@/lib/public-celebration";
 
 export const Route = createFileRoute("/$celebration")({
+  validateSearch: z.object({ t: z.string().max(80).optional().catch(undefined) }),
   loader: async ({ params }): Promise<PublicCelebration> => {
     const slug = params.celebration.toLowerCase();
     if (RESERVED_SLUGS.has(slug)) throw notFound();
@@ -53,6 +56,8 @@ export const Route = createFileRoute("/$celebration")({
 
 function CelebrationPage() {
   const celebration = Route.useLoaderData();
+  const { t: token } = Route.useSearch();
+  const signup = useSignupLink(token);
 
   return (
     <div
@@ -75,6 +80,13 @@ function CelebrationPage() {
           </p>
         ) : null}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
+          {token && signup.data ? (
+            <Button asChild size="lg">
+              <Link to="/$celebration/register" params={{ celebration: celebration.slug ?? "" }} search={{ t: token }}>
+                Register our family
+              </Link>
+            </Button>
+          ) : null}
           <Button asChild size="lg">
             <Link to="/auth" search={{ c: celebration.slug ?? undefined }}>
               I have an invitation code
