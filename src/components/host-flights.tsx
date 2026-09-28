@@ -4,6 +4,7 @@ import { Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { TravelNeedBadge, useFamilyTravelNeeds } from "@/lib/family-travel-needs";
 
 const dateLabel = (value: string | null) =>
   value
@@ -17,6 +18,7 @@ const dateLabel = (value: string | null) =>
 /** Arrival and departure details guests have given, shown on the RSVP board. */
 export function HostFlights() {
   const { inviteId } = useSelectedEvent();
+  const travelNeeds = useFamilyTravelNeeds(inviteId);
   const scope = inviteId ? { invite_id: inviteId } : {};
   const plans = useQuery({
     queryKey: ["all-travel-plans", inviteId],
@@ -48,6 +50,7 @@ export function HostFlights() {
             <thead className="text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="py-2 pr-4">Family / person</th>
+                <th className="py-2 pr-4">Travel need</th>
                 <th className="py-2 pr-4">Guests</th>
                 <th className="py-2 pr-4">Arrives</th>
                 <th className="py-2 pr-4">Leaves</th>
@@ -67,6 +70,7 @@ export function HostFlights() {
                       </Badge>
                     )}
                   </td>
+                  <td className="py-3 pr-4">{travelNeeds.enabled ? <TravelNeedBadge need={travelNeeds.needOf(p.household)} /> : "—"}</td>
                   <td className="py-3 pr-4">{p.party_size ?? "—"}</td>
                   <td className="py-3 pr-4">
                     {dateLabel(p.arrival_date)}
