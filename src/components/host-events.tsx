@@ -27,6 +27,7 @@ const eventSchema = z.object({
   rsvp_by: z.string().trim().max(20),
   background_image_url: z.string().trim().max(500),
   outfit_ready_by: z.string().trim().max(20),
+  outfit_choose_by: z.string().trim().max(20),
   outfit_slot_note: z.string().trim().max(400),
 });
 
@@ -47,6 +48,7 @@ const emptyEvent: EventForm = {
   rsvp_by: "",
   background_image_url: "",
   outfit_ready_by: "",
+  outfit_choose_by: "",
   outfit_slot_note: "",
   sort_order: "",
   outfit_selection: true,
@@ -207,6 +209,7 @@ export function HostEvents() {
       rsvp_by: parsed.data.rsvp_by || null,
       background_image_url: parsed.data.background_image_url || null,
       outfit_ready_by: parsed.data.outfit_ready_by || null,
+      outfit_choose_by: parsed.data.outfit_choose_by || null,
       outfit_slot_note: parsed.data.outfit_slot_note || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
@@ -262,6 +265,7 @@ export function HostEvents() {
       rsvp_by: ev.rsvp_by ?? "",
       background_image_url: ev.background_image_url ?? "",
       outfit_ready_by: ev.outfit_ready_by ?? "",
+      outfit_choose_by: ev.outfit_choose_by ?? "",
       outfit_slot_note: ev.outfit_slot_note ?? "",
       sort_order: String(ev.sort_order ?? ""),
       outfit_selection: ev.outfit_selection ?? true,
@@ -554,6 +558,16 @@ export function HostEvents() {
               this next to their arrival and departure.
             </p>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="e-choose-by">Choose looks by</Label>
+                <Input
+                  id="e-choose-by"
+                  type="date"
+                  value={form.outfit_choose_by}
+                  onChange={(e) => setForm((f) => ({ ...f, outfit_choose_by: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">After this date guests can't pick, change or drop looks for this event. Hosts still can.</p>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="e-outfit-by">Outfit ready by</Label>
                 <Input

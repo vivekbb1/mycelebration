@@ -141,7 +141,7 @@ function Lookbook() {
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id, name, event_date, start_time, venue, dress_code, sort_order, outfit_selection",
+          "id, name, event_date, start_time, venue, dress_code, sort_order, outfit_selection, outfit_choose_by",
         )
         .order("sort_order");
       if (error) throw error;
@@ -681,6 +681,13 @@ function Lookbook() {
                   {ev.start_time ? ` · ${ev.start_time}` : ""}
                   {ev.venue ? ` · ${ev.venue}` : ""}
                   {ev.dress_code ? ` — ${ev.dress_code}` : ""}
+                  {ev.outfit_choose_by ? (
+                    <span className="mt-1 block text-foreground">
+                      {new Date().toISOString().slice(0, 10) > ev.outfit_choose_by
+                        ? `Choices closed on ${new Date(`${ev.outfit_choose_by}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} — contact your hosts to change a look.`
+                        : `Choose your looks by ${new Date(`${ev.outfit_choose_by}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}.`}
+                    </span>
+                  ) : null}
                 </p>
               </div>
             );
