@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Eye, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAnyHost } from "@/lib/host-role";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -48,20 +49,7 @@ const RSVP_LABEL: Record<string, string> = {
 function GuestViewPage() {
   const { guestId } = Route.useParams();
 
-  const role = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return Boolean(data);
-    },
-  });
+  const role = useIsAnyHost();
 
   const isHost = role.data === true;
 

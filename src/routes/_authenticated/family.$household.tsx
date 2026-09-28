@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAnyHost } from "@/lib/host-role";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,20 +59,7 @@ function FamilyPage() {
   const { has } = useFeatures();
   const [draft, setDraft] = useState<Record<string, string>>({});
 
-  const role = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return Boolean(data);
-    },
-  });
+  const role = useIsAnyHost();
   const isHost = role.data === true;
 
   const people = useQuery({

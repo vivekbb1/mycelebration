@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, CalendarCheck, LogOut, Mail, Ruler, Shirt, User, Wallet } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAnyHost } from "@/lib/host-role";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -64,20 +65,7 @@ export function GuestTabs() {
 export function GuestProfileMenu() {
   const navigate = useNavigate();
 
-  const { data: isAdmin } = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return Boolean(data);
-    },
-  });
+  const { data: isAdmin } = useIsAnyHost();
 
   const signOut = async () => {
     await supabase.auth.signOut();

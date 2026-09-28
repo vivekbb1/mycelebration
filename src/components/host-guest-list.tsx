@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Copy, Trash2, Search, Mail, Eye } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAnyHost } from "@/lib/host-role";
 import { sendInviteEmail } from "@/lib/invite-email.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,20 +31,7 @@ export function HostGuestList() {
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
 
-  const role = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return Boolean(data);
-    },
-  });
+  const role = useIsAnyHost();
 
   const invites = useQuery({
     queryKey: ["invites"],
