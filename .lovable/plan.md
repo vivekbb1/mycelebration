@@ -7,7 +7,7 @@ Hosts make as many sign-up links as they like, and each link covers the events y
 - **Setup → Celebration → Family sign-up links:** a list of links. For each one:
   - A label (for example "Bride's side – all events" or "Reception only").
   - Tick boxes for the events it covers. You can change these at any time.
-  - An on/off switch, Copy link, and "Make a new link", which stops the old address working.
+  - A Copy link button. Links never expire: the same address keeps working and follows whatever events are ticked. An optional pause switch stops sign-ups for a while.
   - How many families have registered through it.
 - **Families:** self-registered families show a "Registered via link: <label>" tag. There's a **Delete registration** button with a confirm step. It removes the family, its members, codes and replies from this celebration.
 - After a family registers, you can still add or remove events for them, like any other family.
