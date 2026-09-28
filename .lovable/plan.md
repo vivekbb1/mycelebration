@@ -21,6 +21,16 @@ The same choice can be applied to many families at once from the existing multi-
 - See and edit what the family entered: flights, check-in and check-out dates and times, how many people, notes, and passport details.
 - Remove the family's travel details, their passport details, or both. A confirmation appears before anything is removed, and uploaded passport pages are deleted too.
 
+**Family profile with notes:** a "View profile" button on each family opens one page for that family, showing:
+- Members, their wardrobe (Men/Women/Boy/Girl), contact details and invitation code
+- RSVP for each event, chosen and confirmed looks, and measurements status
+- The travel need, travel and stay details, and passport status, with the Travel details panel above
+- **Host notes**: private notes that only hosts of this celebration can see. Each note shows who wrote it and when. The writer can edit or delete it, and owners can delete any note.
+
+This extends the existing family file page instead of adding a new one. Guests never see the notes.
+
+Technical: a new `family_notes` table (`invite_id`, `household`, `body`, `author_id`, timestamps) with grants to `authenticated` and `service_role` and RLS allowing hosts only (`is_celebration_host(invite_id)`). The author edits their own notes, and deletion is allowed for the author or `is_celebration_owner`.
+
 **Setup → Celebration**: two new settings:
 - Travel details: **Required** or **Optional**
 - Passport details: **Required** or **Optional**
