@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFeatures } from "@/lib/features";
 import { GuestPassports } from "@/components/guest-passports";
+import { FamilyTravelAdmin } from "@/components/family-travel-admin";
+import { FamilyNotes } from "@/components/family-notes";
 import { splitTags } from "@/components/host-function-access";
 
 export const Route = createFileRoute("/_authenticated/family/$household")({
@@ -95,6 +97,7 @@ function FamilyPage() {
 
   const rows = people.data ?? [];
   const inviteId = rows.find((r) => r.invite_id)?.invite_id ?? null;
+  const familyId = rows.find((r) => r.family_id)?.family_id ?? null;
   const guestIds = rows.map((r) => r.id);
   const userIds = rows.map((r) => r.claimed_by).filter(Boolean) as string[];
 
@@ -258,6 +261,18 @@ function FamilyPage() {
     );
   }
 
+
+  const owner = useQuery({
+    queryKey: ["is-celebration-owner", inviteId],
+    enabled: isHost && Boolean(inviteId),
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("is_celebration_owner", { _invite_id: inviteId as string });
+      if (error) throw error;
+      return Boolean(data);
+    },
+  });
+  const isOwner = owner.data === true;
+
   const eventList = (events.data ?? []).filter(
     (e) => (assigned.data ?? []).length === 0 || (assigned.data ?? []).includes(e.id),
   );
@@ -362,6 +377,10 @@ function FamilyPage() {
           <h2 className="text-xl">Passports sent by the family</h2>
           <GuestPassports household={name} people={rows.map((p) => p.guest_name)} />
         </section>
+
+        <FamilyTravelAdmin household={name} inviteId={inviteId} familyId={familyId} />
+
+        <FamilyNotes household={name} inviteId={inviteId} isOwner={isOwner} />
 
         <section className="panel p-4 sm:p-6">
           <h2 className="text-xl">Replies and head count by event</h2>
