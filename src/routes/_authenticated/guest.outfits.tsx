@@ -5,7 +5,7 @@ import { LiveFeed } from "@/components/live-feed";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search, LayoutGrid, LayoutList } from "lucide-react";
+import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
@@ -74,7 +74,7 @@ function Lookbook() {
   const [garment, setGarment] = useState("");
   const [freeOnly, setFreeOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"recommended" | "newest" | "az">("recommended");
-  const [compact, setCompact] = useState(false);
+  const [pageSize, setPageSize] = useState(24);
   const [limit, setLimit] = useState(24);
   const favourites = useQuery({
     queryKey: ["outfit-favourites"],
@@ -729,7 +729,7 @@ function Lookbook() {
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setLimit(24); }}
+              onChange={(e) => { setSearch(e.target.value); setLimit(pageSize); }}
               placeholder="Search looks, designers, colours…"
               className="pl-9"
               maxLength={80}
@@ -747,7 +747,7 @@ function Lookbook() {
                 className="field-select h-9 w-full text-sm"
                 value={f.value}
                 disabled={f.opts.length === 0}
-                onChange={(e) => { f.set(e.target.value); setLimit(24); }}
+                onChange={(e) => { f.set(e.target.value); setLimit(pageSize); }}
               >
                 <option value="">{f.label}</option>
                 {f.opts.map((o) => (
@@ -792,24 +792,17 @@ function Lookbook() {
             <Heart className={`mr-1 size-4 ${favOnly ? "fill-current" : ""}`} />
             Favourites{favourites.data?.size ? ` (${favourites.data.size})` : ""}
           </Button>
-            <div className="ml-auto flex items-center gap-1">
-              <Button
-                size="icon"
-                variant={compact ? "ghost" : "secondary"}
-                aria-label="Large photos"
-                onClick={() => setCompact(false)}
+            <label className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+              Per page
+              <select
+                aria-label="Looks per page"
+                className="field-select h-8 w-auto text-xs"
+                value={pageSize}
+                onChange={(e) => { const n = Number(e.target.value); setPageSize(n); setLimit(n); }}
               >
-                <LayoutList className="size-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant={compact ? "secondary" : "ghost"}
-                aria-label="Compact grid"
-                onClick={() => setCompact(true)}
-              >
-                <LayoutGrid className="size-4" />
-              </Button>
-            </div>
+                {[24, 48, 96].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
           </div>
           <p className="text-xs text-muted-foreground">
             Showing {Math.min(limit, filtered.length)} of {filtered.length} look
@@ -832,101 +825,59 @@ function Lookbook() {
             Tap the heart on any look to save it here.
           </p>
         ) : null}
-        <div
-          className={`mt-4 grid ${
-            compact ? "grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" : "gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          }`}
-        >
-          {visible.map((outfit) => {
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          {visible.map((outfit, idx) => {
             const heldBy = mineByOutfit.has(outfit.id)
               ? (mineByOutfit.get(outfit.id) ?? activeName)
               : null;
             const mine = heldBy === activeName;
             const taken = heldBy !== null || !outfit.is_available;
-            const eventName = eventList.find((e) => e.id === outfit.event_id)?.name;
+            const confirmed = mine && (reservations.data ?? []).some((r) => r.outfit_id === outfit.id && r.status === "confirmed");
+            const details = [outfit.color_family, outfit.garment_type, outfit.size_note].filter(Boolean).join(" · ");
             return (
-              <article key={outfit.id} className="panel flex flex-col overflow-hidden">
+              <article key={outfit.id} className="panel group flex flex-col overflow-hidden">
                 <div className="relative bg-secondary">
-                  <LookGallery outfit={outfit} dimmed={taken && !mine} />
+                  <LookGallery outfit={outfit} dimmed={taken && !mine} eager={idx < 8} />
                   {taken ? (
-                    <Badge
-                      variant={mine ? "default" : "secondary"}
-                      className="absolute top-3 left-3"
-                    >
+                    <Badge variant={mine ? "default" : "secondary"} className="absolute top-2 left-2 max-w-[70%] truncate">
                       {mine ? `For ${activeName}` : heldBy ? `For ${heldBy}` : "Reserved"}
                     </Badge>
-                  ) : null}
-                  {outfit.is_pinned ? (
-                    <Badge className="absolute top-14 right-3 gap-1">
-                      <Pin className="size-3" /> Recommended
-                    </Badge>
+                  ) : outfit.is_pinned ? (
+                    <Badge className="absolute top-2 left-2 gap-1"><Pin className="size-3" /> Recommended</Badge>
                   ) : null}
                   <button
                     type="button"
                     aria-label={favourites.data?.has(outfit.id) ? "Remove from favourites" : "Add to favourites"}
                     onClick={() => toggleFavourite(outfit.id)}
-                    className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-background/85 text-primary shadow"
+                    className="absolute top-2 right-2 z-10 grid size-8 place-items-center rounded-full bg-background/85 text-primary shadow"
                   >
                     <Heart className={`size-4 ${favourites.data?.has(outfit.id) ? "fill-current" : ""}`} />
                   </button>
+                  {details || outfit.notes ? (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-14 hidden bg-background/90 p-3 text-xs leading-relaxed text-foreground opacity-0 transition-opacity group-hover:opacity-100 md:block">
+                      {details ? <p className="font-medium">{details}</p> : null}
+                      {outfit.notes ? <p className="mt-1 line-clamp-4 text-muted-foreground">{outfit.notes}</p> : null}
+                    </div>
+                  ) : null}
                 </div>
 
-                <div className={`flex flex-1 flex-col ${compact ? "p-3" : "p-5"}`}>
-                  {eventName && !compact ? <p className="text-eyebrow">{eventName}</p> : null}
-                  <h2 className={compact ? "line-clamp-2 text-sm leading-snug" : "mt-2 text-xl leading-snug"}>
-                    {outfit.title}
-                  </h2>
-                  {outfit.designer ? (
-                    <p className="mt-1 text-sm text-muted-foreground">{outfit.designer}</p>
-                  ) : null}
-                  <div className={`mt-3 flex-wrap gap-2 text-xs text-muted-foreground ${compact ? "hidden" : "flex"}`}>
-                    {outfit.color_family ? (
-                      <span className="rounded-full border border-border px-2 py-0.5">
-                        {outfit.color_family}
-                      </span>
-                    ) : null}
-                    {outfit.garment_type ? (
-                      <span className="rounded-full border border-border px-2 py-0.5">
-                        {outfit.garment_type}
-                      </span>
-                    ) : null}
-                    {outfit.size_note ? (
-                      <span className="rounded-full border border-border px-2 py-0.5">
-                        {outfit.size_note}
-                      </span>
-                    ) : null}
-                  </div>
-                  {outfit.notes && !compact ? (
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                      {outfit.notes}
-                    </p>
-                  ) : null}
-
-                  <div className="mt-5 flex flex-wrap items-center gap-2 pt-1">
-                    {mine && (reservations.data ?? []).some((r) => r.outfit_id === outfit.id && r.status === "confirmed") ? (
-                      <Button variant="secondary" size="sm" disabled>
-                        <Check className="size-4" /> Confirmed — ask your hosts to change it
+                <div className="flex flex-1 flex-col p-3">
+                  <h2 className="line-clamp-2 min-h-[2.5rem] text-sm leading-snug" title={outfit.title}>{outfit.title}</h2>
+                  <p className="mt-0.5 h-4 truncate text-xs text-muted-foreground">{outfit.designer ?? ""}</p>
+                  <div className="mt-auto pt-3">
+                    {confirmed ? (
+                      <Button variant="secondary" size="sm" className="w-full" disabled>
+                        <Check className="size-4" /> Confirmed
                       </Button>
                     ) : mine ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={busyId === outfit.id}
-                        onClick={() => release(outfit)}
-                      >
+                      <Button variant="outline" size="sm" className="w-full" disabled={busyId === outfit.id} onClick={() => release(outfit)}>
                         <Check className="size-4" /> Release
                       </Button>
                     ) : taken ? (
-                      <Button variant="secondary" size="sm" disabled>
-                        Already claimed
-                      </Button>
+                      <Button variant="secondary" size="sm" className="w-full" disabled>Already claimed</Button>
                     ) : (
-                      <Button
-                        size="sm"
-                        disabled={busyId === outfit.id}
-                        onClick={() => reserve(outfit)}
-                      >
-                        {busyId === outfit.id ? "Reserving…" : "Reserve this look"}
+                      <Button size="sm" className="w-full" disabled={busyId === outfit.id} onClick={() => reserve(outfit)}>
+                        {busyId === outfit.id ? "Reserving…" : "Reserve"}
                       </Button>
                     )}
                   </div>
@@ -937,8 +888,8 @@ function Lookbook() {
         </div>
         {filtered.length > limit ? (
           <div className="mt-6 flex justify-center">
-            <Button variant="outline" onClick={() => setLimit((n) => n + 24)}>
-              Show more ({filtered.length - limit} left)
+            <Button variant="outline" onClick={() => setLimit((n) => n + pageSize)}>
+              Show {Math.min(pageSize, filtered.length - limit)} more ({filtered.length - limit} left)
             </Button>
           </div>
         ) : null}
@@ -983,8 +934,13 @@ function FilterChip({
   );
 }
 
-/** Main photo plus the other angles of the same look, when the boutique has them. */
-function LookGallery({ outfit, dimmed }: { outfit: Outfit; dimmed: boolean }) {
+/** Smaller copy for our own stored photos; outside links are left as they are. */
+function sized(src: string, w: number) {
+  return src.startsWith("/api/public/outfit-image/") ? `${src.split("?")[0]}?w=${w}` : src;
+}
+
+/** Main photo with a swipeable strip of the other angles underneath. */
+function LookGallery({ outfit, dimmed, eager }: { outfit: Outfit; dimmed: boolean; eager?: boolean }) {
   const photos = (
     Array.isArray(outfit.images) && outfit.images.length
       ? outfit.images
@@ -1001,30 +957,38 @@ function LookGallery({ outfit, dimmed }: { outfit: Outfit; dimmed: boolean }) {
       </div>
     );
   }
+  const main = photos[Math.min(active, photos.length - 1)]!;
 
   return (
-    <>
+    <div>
       <img
-        src={photos[Math.min(active, photos.length - 1)]}
+        src={sized(main, 400)}
+        srcSet={`${sized(main, 400)} 400w, ${sized(main, 600)} 600w`}
+        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
         alt={outfit.title}
-        loading="lazy"
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        fetchPriority={eager ? "high" : "low"}
+        width={400}
+        height={533}
         className={`aspect-[3/4] w-full object-cover ${dimmed ? "opacity-35 grayscale" : ""}`}
       />
-      {photos.length > 1 ? (
-        <div className="absolute bottom-2 left-2 flex gap-1.5">
-          {photos.slice(0, 5).map((src, i) => (
-            <button
-              key={src}
-              type="button"
-              aria-label={`Photo ${i + 1} of ${outfit.title}`}
-              onClick={() => setActive(i)}
-              className={`overflow-hidden rounded border ${i === active ? "border-primary" : "border-transparent opacity-70"}`}
-            >
-              <img src={src} alt="" loading="lazy" className="h-11 w-8 object-cover" />
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </>
+      <div className="flex h-14 snap-x gap-1 overflow-x-auto bg-background p-1.5 [scrollbar-width:none]">
+        {photos.length > 1
+          ? photos.slice(0, 6).map((src, i) => (
+              <button
+                key={src}
+                type="button"
+                aria-label={`Photo ${i + 1} of ${outfit.title}`}
+                onClick={() => setActive(i)}
+                onMouseEnter={() => setActive(i)}
+                className={`shrink-0 snap-start overflow-hidden rounded border ${i === active ? "border-primary" : "border-transparent opacity-70"}`}
+              >
+                <img src={sized(src, 120)} alt="" loading="lazy" decoding="async" width={33} height={44} className="h-11 w-[33px] object-cover" />
+              </button>
+            ))
+          : null}
+      </div>
+    </div>
   );
 }
