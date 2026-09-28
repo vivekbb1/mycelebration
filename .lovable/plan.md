@@ -29,6 +29,13 @@ The same choice can be applied to many families at once from the existing multi-
 
 This extends the existing family file page instead of adding a new one. Guests never see the notes.
 
+**Last-minute changes by hosts:** on the family page, hosts can change anything the guest entered: flights, pickup and drop-off times, check-in and check-out dates and times, how many people, passport details and the passport page. They can do this even if the guest hasn't filled it in yet.
+- A host change is marked "Updated by host" with the host's name and time, and the guest sees the new details straight away.
+- Each change is also added to the family's host notes as a record (for example "Check-out changed from 12 Dec 11:00 to 12 Dec 18:00").
+- The pickup lists on the Travel and Flights screens use the latest details.
+
+Technical: add `updated_by` and `updated_at` columns to `travel_plans` where they're missing, alongside the `guest_passports.updated_by` column that already exists. Host writes go through RLS for `is_celebration_host(invite_id)`, and a trigger adds the change to `family_notes` when the writer is a host.
+
 Technical: a new `family_notes` table (`invite_id`, `household`, `body`, `author_id`, timestamps) with grants to `authenticated` and `service_role` and RLS allowing hosts only (`is_celebration_host(invite_id)`). The author edits their own notes, and deletion is allowed for the author or `is_celebration_owner`.
 
 **Setup → Celebration**: two new settings:
