@@ -19,3 +19,4 @@
 - [x] Rooms: hotel block dates, move guest between rooms
 - [x] Ready-to-invite checklist, planner/tailor downloads, per-event "choose looks by" lock
 - [ ] Weekly nudges to families with things left to do (waiting on user: email vs WhatsApp, frequency)
+- [x] Family sign-up links: per-link events, families register themselves, hosts delete registrations

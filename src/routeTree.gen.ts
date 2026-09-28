@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CelebrationRouteImport } from './routes/$celebration'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CelebrationRegisterRouteImport } from './routes/$celebration_.register'
 import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
 import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticated/confirm'
 import { Route as AuthenticatedDeliveryRouteImport } from './routes/_authenticated/delivery'
@@ -66,6 +67,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CelebrationRegisterRoute = CelebrationRegisterRouteImport.update({
+  id: '/$celebration_/register',
+  path: '/$celebration/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAtelierRoute = AuthenticatedAtelierRouteImport.update({
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
+  '/$celebration/register': typeof CelebrationRegisterRoute
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
@@ -301,6 +308,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
+  '/$celebration/register': typeof CelebrationRegisterRoute
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
   '/delivery': typeof AuthenticatedDeliveryRoute
@@ -343,6 +351,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
+  '/$celebration_/register': typeof CelebrationRegisterRoute
   '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/confirm': typeof AuthenticatedConfirmRoute
   '/_authenticated/delivery': typeof AuthenticatedDeliveryRoute
@@ -385,6 +394,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$celebration'
     | '/auth'
+    | '/$celebration/register'
     | '/atelier'
     | '/confirm'
     | '/delivery'
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$celebration'
     | '/auth'
+    | '/$celebration/register'
     | '/atelier'
     | '/confirm'
     | '/delivery'
@@ -466,6 +477,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/$celebration'
     | '/auth'
+    | '/$celebration_/register'
     | '/_authenticated/atelier'
     | '/_authenticated/confirm'
     | '/_authenticated/delivery'
@@ -508,6 +520,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CelebrationRoute: typeof CelebrationRoute
   AuthRoute: typeof AuthRoute
+  CelebrationRegisterRoute: typeof CelebrationRegisterRoute
   ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
   ApiPublicOutfitImportWorkerRoute: typeof ApiPublicOutfitImportWorkerRoute
   ApiPublicShopImageRoute: typeof ApiPublicShopImageRoute
@@ -546,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$celebration_/register': {
+      id: '/$celebration_/register'
+      path: '/$celebration/register'
+      fullPath: '/$celebration/register'
+      preLoaderRoute: typeof CelebrationRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/atelier': {
@@ -864,6 +884,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CelebrationRoute: CelebrationRoute,
   AuthRoute: AuthRoute,
+  CelebrationRegisterRoute: CelebrationRegisterRoute,
   ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
   ApiPublicOutfitImportWorkerRoute: ApiPublicOutfitImportWorkerRoute,
   ApiPublicShopImageRoute: ApiPublicShopImageRoute,
