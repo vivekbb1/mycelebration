@@ -27,16 +27,25 @@ export const Route = createFileRoute("/$celebration")({
     const description =
       loaderData.intro?.slice(0, 180) ??
       `The private page for ${loaderData.name}. Guests sign in with the invitation code they were sent.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
+    const url = `https://mycelebration.app/${loaderData.slug}`;
+    const image = [loaderData.cover_logo_url, loaderData.bg_url].find(
+      (u) => u && /^https:\/\//i.test(u),
+    );
+    const meta = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: url },
+      { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image }, { name: "twitter:image", content: image });
+    }
+    return { meta, links: [{ rel: "canonical", href: url }] };
   },
   notFoundComponent: CelebrationMissing,
   component: CelebrationPage,
