@@ -692,7 +692,7 @@ export function HostFamilies() {
   return (
     <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
       <div className="lg:col-span-2">
-        <HostSignupLinks inviteId={chosenInvite} slug={slug.data ?? null} />
+        <HostSignupLinks inviteId={chosenInvite} slug={slug} />
       </div>
       <CollapsiblePanel
         title="Add a family"
