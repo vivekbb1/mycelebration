@@ -1,5 +1,7 @@
 import { useFeatures } from "@/lib/features";
 import { randomCode } from "@/lib/secure-code";
+import { deleteFamilyRegistration } from "@/lib/family-signup.functions";
+import { HostSignupLinks } from "@/components/host-signup-links";
 import { PUBLIC_ORIGIN, authLink } from "@/lib/public-url";
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -229,7 +231,7 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, email, created_at, needs_wardrobe, invite_id, travel_need")
+        .select("id, name, code, email, created_at, needs_wardrobe, invite_id, travel_need, signup_link_id")
         .order("name");
       if (error) throw error;
       return data;
@@ -677,9 +679,10 @@ export function HostFamilies() {
   };
 
   const removeFamily = async (id: string, name: string) => {
-    const { error } = await supabase.from("families").delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
+    if (!confirm(`Delete ${name}'s registration? Their members, codes and replies are removed from this celebration.`)) return;
+    const res = await deleteFamilyRegistration({ data: { familyId: id } }).catch(() => ({ ok: false, error: "Couldn't delete" }));
+    if (!res.ok) {
+      toast.error(res.error ?? "Couldn't delete");
       return;
     }
     toast.success(`${name} removed from the guest list.`);
@@ -688,6 +691,9 @@ export function HostFamilies() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
+      <div className="lg:col-span-2">
+        <HostSignupLinks inviteId={chosenInvite} slug={slug.data ?? null} />
+      </div>
       <CollapsiblePanel
         title="Add a family"
         subtitle="One code for the whole family. Inside, they choose the person first, then that person's look."
@@ -937,6 +943,11 @@ export function HostFamilies() {
                     />
                     <Users className="size-4 text-primary" />
                     {f.name}
+                    {f.signup_link_id ? (
+                      <span className="ml-2 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                        Registered via link
+                      </span>
+                    ) : null}
                     <Badge variant="outline">{f.code}</Badge>
                     <Link
                       to="/family/$household"
