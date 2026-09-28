@@ -44,13 +44,14 @@ type Row = {
 };
 
 function HostDashboard() {
-  const { isPlatformAdmin } = useFeatures();
+  const { isPlatformAdmin, ready } = useFeatures();
   const [search, setSearch] = useState("");
 
   const rows = useQuery({
-    queryKey: ["host-dashboard"],
+    queryKey: ["platform-host-board"],
+    enabled: isPlatformAdmin,
     queryFn: async (): Promise<Row[]> => {
-      const roles = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      const roles = await supabase.from("celebration_hosts").select("user_id");
       if (roles.error) throw roles.error;
       const ids = [...new Set((roles.data ?? []).map((r) => r.user_id))];
       if (ids.length === 0) return [];
@@ -147,6 +148,17 @@ function HostDashboard() {
     }),
     [shown],
   );
+
+  if (ready && !isPlatformAdmin) {
+    return (
+      <main className="mx-auto w-full max-w-md px-4 py-12">
+        <p className="text-sm text-muted-foreground">This page is only for the platform team.</p>
+        <Button asChild variant="outline" className="mt-4">
+          <Link to="/host">Back to your celebration</Link>
+        </Button>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">

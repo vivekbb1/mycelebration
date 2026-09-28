@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 export function useIsAnyHost() {
   return useQuery({
     queryKey: ["is-any-host"],
-    staleTime: 60_000,
     queryFn: async () => {
       const { data } = await supabase.rpc("is_any_host");
       return data === true;

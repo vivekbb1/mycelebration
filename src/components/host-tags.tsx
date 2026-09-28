@@ -141,11 +141,12 @@ export function HostTags() {
 
   /** The hosts helping with this celebration, for linking tags to people. */
   const hosts = useQuery({
-    queryKey: ["tag-hosts-list"],
+    queryKey: ["tag-hosts-list", inviteId],
+    enabled: Boolean(inviteId),
     queryFn: async () => {
-      const roles = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      const roles = await supabase.from("celebration_hosts").select("user_id").eq("invite_id", inviteId as string);
       if (roles.error) throw roles.error;
-      const ids = (roles.data ?? []).map((r) => r.user_id);
+      const ids = [...new Set((roles.data ?? []).map((r) => r.user_id))];
       if (ids.length === 0) return [] as { id: string; name: string }[];
       const people = await supabase.from("profiles").select("id, full_name, email").in("id", ids);
       if (people.error) throw people.error;

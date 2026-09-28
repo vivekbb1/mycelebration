@@ -127,11 +127,15 @@ export function HostRelations() {
   });
 
   const hosts = useQuery({
-    queryKey: ["relations-hosts"],
+    queryKey: ["relations-hosts", selectedInviteId],
+    enabled: Boolean(selectedInviteId),
     queryFn: async (): Promise<Host[]> => {
-      const roles = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      const roles = await supabase
+        .from("celebration_hosts")
+        .select("user_id")
+        .eq("invite_id", selectedInviteId as string);
       if (roles.error) throw roles.error;
-      const ids = (roles.data ?? []).map((r) => r.user_id);
+      const ids = [...new Set((roles.data ?? []).map((r) => r.user_id))];
       if (ids.length === 0) return [];
       const people = await supabase
         .from("profiles")
