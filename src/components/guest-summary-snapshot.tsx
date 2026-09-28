@@ -24,6 +24,8 @@ export function GuestSummarySnapshot({
   const events = useQuery({
     queryKey: ["summary-events", household],
     queryFn: async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return [];
       const { data: ids } = await supabase.rpc("my_event_ids");
       const list = (ids ?? []).map((r: { event_id: string }) => r.event_id);
       if (list.length === 0) return [];

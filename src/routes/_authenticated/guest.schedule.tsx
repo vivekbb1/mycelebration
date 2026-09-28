@@ -58,6 +58,8 @@ function EventPage() {
   const myEventIds = useQuery({
     queryKey: ["my-event-ids"],
     queryFn: async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return new Set<string>();
       const { data, error } = await supabase.rpc("my_event_ids");
       if (error) throw error;
       return new Set(((data ?? []) as { event_id: string }[]).map((r) => r.event_id));
