@@ -24,11 +24,20 @@ export function HostSignupLinks({ inviteId, slug }: { inviteId: string; slug: st
       const [links, events, fams] = await Promise.all([
         supabase.from("signup_links").select("*").eq("invite_id", inviteId).order("created_at"),
         supabase.from("events").select("id, name").eq("invite_id", inviteId).order("sort_order"),
-        supabase.from("families").select("signup_link_id").eq("invite_id", inviteId).not("signup_link_id", "is", null),
+        supabase
+          .from("families")
+          .select("id, name, created_at, signup_link_id")
+          .eq("invite_id", inviteId)
+          .not("signup_link_id", "is", null)
+          .order("created_at", { ascending: false }),
       ]);
-      const counts = new Map<string, number>();
-      for (const f of fams.data ?? []) counts.set(f.signup_link_id!, (counts.get(f.signup_link_id!) ?? 0) + 1);
-      return { links: links.data ?? [], events: events.data ?? [], counts };
+      const byLink = new Map<string, { id: string; name: string; created_at: string }[]>();
+      for (const f of fams.data ?? []) {
+        const list = byLink.get(f.signup_link_id!) ?? [];
+        list.push(f);
+        byLink.set(f.signup_link_id!, list);
+      }
+      return { links: links.data ?? [], events: events.data ?? [], byLink };
     },
   });
 
@@ -140,8 +149,23 @@ export function HostSignupLinks({ inviteId, slug }: { inviteId: string; slug: st
                     </Button>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {data.data?.counts.get(l.id) ?? 0} families registered. Changing events only affects families who register after the change.
+                    {data.data?.byLink.get(l.id)?.length ?? 0} families registered. Changing events only affects families who register after the change.
                   </p>
+                  {(data.data?.byLink.get(l.id)?.length ?? 0) > 0 && (
+                    <details className="mt-2 text-sm">
+                      <summary className="cursor-pointer text-xs font-medium">Families from this link</summary>
+                      <ul className="mt-2 space-y-1">
+                        {data.data!.byLink.get(l.id)!.map((f) => (
+                          <li key={f.id} className="flex justify-between gap-2">
+                            <span>{f.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(f.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                 </li>
               );
             })}
