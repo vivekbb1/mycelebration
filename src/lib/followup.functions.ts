@@ -84,10 +84,7 @@ export const suggestFollowUp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => schema.parse(data))
   .handler(async ({ data, context }): Promise<FollowUpResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: isAdmin } = await context.supabase.rpc("is_any_host");
     if (!isAdmin) return { ok: false, error: "Only a host can do this." };
 
     const key = process.env["LOVABLE_API_KEY"];
@@ -97,10 +94,16 @@ export const suggestFollowUp = createServerFn({ method: "POST" })
 
     const { data: guest } = await supabaseAdmin
       .from("invite_codes")
-      .select("id, guest_name, household, email, gender, personally_invited, claimed_by")
+      .select("id, guest_name, household, email, gender, personally_invited, claimed_by, invite_id")
       .eq("id", data.inviteId)
       .maybeSingle();
     if (!guest) return { ok: false, error: "That guest is no longer on the list." };
+    {
+      const { data: isHost } = guest.invite_id
+        ? await context.supabase.rpc("is_celebration_host", { _invite_id: guest.invite_id })
+        : { data: false };
+      if (isHost !== true) return { ok: false, error: "Only a host can do this." };
+    }
 
     const [{ data: history }, { data: hostProfile }, { data: family }] = await Promise.all([
       supabaseAdmin

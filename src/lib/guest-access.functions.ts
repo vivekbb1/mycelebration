@@ -66,11 +66,8 @@ export const claimGuestInvite = createServerFn({ method: "POST" })
 export const claimHostAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ClaimResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    return isAdmin
+    const { data: isHost } = await context.supabase.rpc("is_any_host");
+    return isHost === true
       ? { ok: true }
       : { ok: false, error: "Host access needs a host invitation. Ask the celebration's host for one." };
   });

@@ -170,10 +170,10 @@ export function FamilyTravelAdmin({
     }
     let cancelled = false;
     supabase
-      .from("user_roles")
-      .select("role")
+      .from("celebration_hosts")
+      .select("id")
       .eq("user_id", updatedBy)
-      .eq("role", "admin")
+      .eq("invite_id", inviteId ?? "")
       .maybeSingle()
       .then(({ data }) => {
         if (!cancelled) setUpdaterIsHost(Boolean(data));
@@ -181,7 +181,7 @@ export function FamilyTravelAdmin({
     return () => {
       cancelled = true;
     };
-  }, [plan.data?.updated_by]);
+  }, [plan.data?.updated_by, inviteId]);
 
   const effectiveNeed = family.data?.travel_need ?? invite.data?.default_travel_need ?? "none";
 

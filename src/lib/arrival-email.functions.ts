@@ -35,10 +35,7 @@ export const sendArrivalDetails = createServerFn({ method: "POST" })
     return { inviteId: data.inviteId };
   })
   .handler(async ({ data, context }): Promise<SendResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: isAdmin } = await context.supabase.rpc("is_any_host");
     if (!isAdmin) return { sent: false, reason: "forbidden" };
 
     const { data: guest } = await context.supabase
@@ -48,9 +45,11 @@ export const sendArrivalDetails = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!guest) return { sent: false, reason: "guest_not_found" };
-    if (guest.invite_id) {
-      const { data: isHost } = await context.supabase.rpc("is_celebration_host", { _invite_id: guest.invite_id });
-      if (!isHost) return { sent: false, reason: "forbidden" };
+    {
+      const { data: isHost } = guest.invite_id
+        ? await context.supabase.rpc("is_celebration_host", { _invite_id: guest.invite_id })
+        : { data: false };
+      if (isHost !== true) return { sent: false, reason: "forbidden" };
     }
     if (!guest.email) return { sent: false, reason: "no_email" };
     if (!guest.household) return { sent: false, reason: "nothing_to_send" };

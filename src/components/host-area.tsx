@@ -118,17 +118,15 @@ function HostPage() {
   const claimHost = useServerFn(claimHostAccess);
 
   const role = useQuery({
-    queryKey: ["is-admin"],
+    queryKey: ["host-area-access"],
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (data) return true;
+      const [host, admin] = await Promise.all([
+        supabase.rpc("is_any_host"),
+        supabase.rpc("is_platform_admin"),
+      ]);
+      if (host.data === true || admin.data === true) return true;
       // Approved to create a celebration: let them in to set up their first one.
       const { data: canCreate } = await supabase.rpc("can_create_celebration");
       return canCreate === true;
@@ -164,7 +162,10 @@ function HostPage() {
                 return;
               }
               toast.success("You're the host now.");
-              await queryClient.invalidateQueries({ queryKey: ["is-admin"] });
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["host-area-access"] }),
+                queryClient.invalidateQueries({ queryKey: ["is-any-host"] }),
+              ]);
             }}
           >
             Claim host access

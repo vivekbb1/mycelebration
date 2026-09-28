@@ -19,11 +19,10 @@ export const sendWhatsAppBroadcast = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
+    const { data: isHost } = await context.supabase.rpc("is_celebration_host", {
+      _invite_id: data.inviteId,
     });
-    if (!isAdmin) return { ok: false as const, reason: "forbidden" };
+    if (isHost !== true) return { ok: false as const, reason: "forbidden" };
 
     const token = process.env["WHATSAPP_ACCESS_TOKEN"];
     const phoneId = process.env["WHATSAPP_PHONE_NUMBER_ID"];

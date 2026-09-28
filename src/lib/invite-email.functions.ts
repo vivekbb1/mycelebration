@@ -26,10 +26,7 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
     return { inviteId: data.inviteId };
   })
   .handler(async ({ data, context }): Promise<SendResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: isAdmin } = await context.supabase.rpc("is_any_host");
     if (!isAdmin) return { sent: false, reason: "forbidden" };
 
     const { data: invite } = await context.supabase
@@ -39,6 +36,12 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!invite) return { sent: false, reason: "invite_not_found" };
+    {
+      const { data: isHost } = invite.invite_id
+        ? await context.supabase.rpc("is_celebration_host", { _invite_id: invite.invite_id })
+        : { data: false };
+      if (isHost !== true) return { sent: false, reason: "forbidden" };
+    }
     if (!invite.email) return { sent: false, reason: "no_email" };
 
     // Which events is this guest's household invited to?

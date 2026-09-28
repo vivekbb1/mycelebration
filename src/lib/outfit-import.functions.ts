@@ -5,6 +5,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Ctx = { supabase: any; userId: string };
 
+async function assertCelebrationHost(ctx: Ctx, inviteId: string | null) {
+  if (!inviteId) throw new Error("Choose a celebration first");
+  const { data } = await ctx.supabase.rpc("is_celebration_host", { _invite_id: inviteId });
+  if (data !== true) throw new Error("Forbidden");
+}
+
 async function assertHost(ctx: Ctx) {
   const { data } = await ctx.supabase.rpc("is_any_host");
   if (!data) throw new Error("Forbidden");
@@ -24,13 +30,13 @@ export const startOutfitImport = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as unknown as Ctx;
-    await assertHost(ctx);
+    await assertCelebrationHost(ctx, data.inviteId);
     if (!data.slugs.length) throw new Error("Nothing selected");
     const { data: job, error } = await ctx.supabase
       .from("outfit_import_jobs")
       .insert({
         created_by: ctx.userId,
-        ...(data.inviteId ? { invite_id: data.inviteId } : {}),
+        invite_id: data.inviteId,
         event_id: data.eventId,
         boutique_id: data.boutiqueId,
         gender: data.gender,
@@ -58,11 +64,11 @@ export const listOutfitImports = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data: input, context }) => {
     const ctx = context as unknown as Ctx;
-    await assertHost(ctx);
+    await assertCelebrationHost(ctx, input.inviteId);
     const { data } = await ctx.supabase
       .from("outfit_import_jobs")
       .select("id,total,imported,skipped,failed,status,created_at,finished_at")
-      .match(input.inviteId ? { invite_id: input.inviteId } : {})
+      .eq("invite_id", input.inviteId as string)
       .order("created_at", { ascending: false })
       .limit(5);
     return (data ?? []) as Array<{

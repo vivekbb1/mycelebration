@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, LogOut } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAnyHost } from "@/lib/host-role";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/lib/site-content";
 import { useBranding } from "@/lib/branding";
@@ -33,20 +34,7 @@ export function SiteNav() {
   const backLabel =
     backTo === "/host" ? "Back to host" : t("nav.back", "Back to your invitation");
 
-  const { data: isAdmin } = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return Boolean(data);
-    },
-  });
+  const { data: isAdmin } = useIsAnyHost();
 
   const { data: isStylist } = useQuery({
     queryKey: ["is-stylist"],
