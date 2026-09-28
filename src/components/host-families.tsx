@@ -1,3 +1,4 @@
+import { useFeatures } from "@/lib/features";
 import { randomCode } from "@/lib/secure-code";
 import { PUBLIC_ORIGIN, authLink } from "@/lib/public-url";
 import { useMemo, useRef, useState } from "react";
@@ -193,6 +194,7 @@ export function HostFamilies() {
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const [travelFilter, setTravelFilter] = useState("all");
+  const hasLogistics = useFeatures().has("arrivals");
   const [selectedFamilies, setSelectedFamilies] = useState<Set<string>>(new Set());
   const [bulkTravelValue, setBulkTravelValue] = useState("none");
   const [travelBulkBusy, setTravelBulkBusy] = useState(false);
@@ -875,7 +877,7 @@ export function HostFamilies() {
           Each family has one code. Share it once and everyone in the family uses it.
         </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        {hasLogistics ? (<div className="mt-4 flex flex-wrap items-center gap-2">
           <Label htmlFor="travel-filter" className="text-xs text-muted-foreground">
             Filter by travel need
           </Label>
@@ -892,9 +894,9 @@ export function HostFamilies() {
               </option>
             ))}
           </select>
-        </div>
+        </div>) : null}
 
-        {selectedFamilies.size > 0 ? (
+        {hasLogistics && selectedFamilies.size > 0 ? (
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 p-3">
             <span className="text-xs text-muted-foreground">
               {selectedFamilies.size} selected
@@ -1040,7 +1042,7 @@ export function HostFamilies() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  <select
+                  {hasLogistics ? (<select
                     aria-label={`Travel need for ${f.name}`}
                     value={f.travel_need ?? "default"}
                     onChange={(e) => void setFamilyTravelNeed(f.id, e.target.value)}
@@ -1056,7 +1058,7 @@ export function HostFamilies() {
                         {t.label}
                       </option>
                     ))}
-                  </select>
+                  </select>) : null}
                   <button
                     type="button"
                     onClick={() => toggleWardrobe(f.id, f.needs_wardrobe === false)}

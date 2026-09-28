@@ -662,7 +662,7 @@ function HostDashboard() {
               {has("messaging") ? (
                 <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
               ) : null}
-              {has("rsvp_extended") ? (
+              {has("rsvp_extended") && has("arrivals") ? (
                 <TabsTrigger value="travel">Count</TabsTrigger>
               ) : null}
               {has("arrivals") ? (
@@ -697,7 +697,7 @@ function HostDashboard() {
                 <HostBroadcast />
               </TabsContent>
             ) : null}
-            {has("rsvp_extended") ? (
+            {has("rsvp_extended") && has("arrivals") ? (
               <TabsContent value="travel" className="mt-6">
                 <HostTravel />
               </TabsContent>

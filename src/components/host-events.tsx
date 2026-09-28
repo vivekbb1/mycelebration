@@ -1,3 +1,4 @@
+import { useFeatures } from "@/lib/features";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -281,8 +282,10 @@ export function HostEvents() {
     await queryClient.invalidateQueries({ queryKey: ["events"] });
   };
 
+  const { has } = useFeatures();
   return (
     <div className="space-y-6">
+    {has("arrivals") ? (
     <CollapsiblePanel title="Guest travel" subtitle="Set what travel help you offer by default, and whether travel and passport details are required from guests.">
       <div className="mt-5 space-y-4">
         <div className="space-y-2">
@@ -350,6 +353,7 @@ export function HostEvents() {
         </div>
       </div>
     </CollapsiblePanel>
+    ) : null}
 
     <div className="grid min-w-0 gap-6 [&>*]:min-w-0 lg:grid-cols-[1fr_1.1fr]">
       <CollapsiblePanel

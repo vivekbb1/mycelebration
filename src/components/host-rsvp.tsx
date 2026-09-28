@@ -1,3 +1,4 @@
+import { useFeatures } from "@/lib/features";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -29,6 +30,7 @@ const normalise = (value: string | null | undefined): Answer => {
 
 /** RSVP tracking per celebration: who has confirmed, who declined, who is still quiet. */
 export function HostRsvp() {
+  const { has } = useFeatures();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -373,7 +375,7 @@ export function HostRsvp() {
         )}
       </div>
 
-      <HostFlights />
+      {has("arrivals") ? <HostFlights /> : null}
     </div>
   );
 }

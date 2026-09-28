@@ -48,7 +48,7 @@ export const FEATURES = [
   {
     key: "arrivals",
     label: "Logistics",
-    blurb: "Cars, drivers and transport vendors, plus hotel rooms and check-in",
+    blurb: "Travel, flights, passports, pickups and drop-offs, hotels, rooms and the rooming list",
   },
   {
     key: "custom_domain",
