@@ -711,6 +711,7 @@ export type Database = {
           invite_id: string | null
           name: string
           note: string | null
+          outfit_choose_by: string | null
           outfit_ready_by: string | null
           outfit_selection: boolean
           outfit_slot_note: string | null
@@ -730,6 +731,7 @@ export type Database = {
           invite_id?: string | null
           name: string
           note?: string | null
+          outfit_choose_by?: string | null
           outfit_ready_by?: string | null
           outfit_selection?: boolean
           outfit_slot_note?: string | null
@@ -749,6 +751,7 @@ export type Database = {
           invite_id?: string | null
           name?: string
           note?: string | null
+          outfit_choose_by?: string | null
           outfit_ready_by?: string | null
           outfit_selection?: boolean
           outfit_slot_note?: string | null
