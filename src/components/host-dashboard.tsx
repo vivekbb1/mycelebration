@@ -16,14 +16,20 @@ export function HostDashboard() {
   const [q, setQ] = useState("");
 
   const data = useQuery({
-    queryKey: ["host-dashboard"],
+    queryKey: ["host-dashboard", inviteId],
+    enabled: Boolean(inviteId),
     queryFn: async () => {
+      const id = inviteId as string;
       const [guests, res, meas] = await Promise.all([
         supabase
           .from("invite_codes")
-          .select("id, guest_name, household, claimed_by, rsvp_status, invite_id"),
-        supabase.from("reservations").select("guest_id, guest_name, outfits(title)"),
-        supabase.from("measurements").select("guest_id, guest_name"),
+          .select("id, guest_name, household, claimed_by, rsvp_status, invite_id")
+          .eq("invite_id", id),
+        supabase
+          .from("reservations")
+          .select("guest_id, guest_name, outfits(title)")
+          .eq("invite_id", id),
+        supabase.from("measurements").select("guest_id, guest_name").eq("invite_id", id),
       ]);
       if (guests.error) throw guests.error;
       if (res.error) throw res.error;
