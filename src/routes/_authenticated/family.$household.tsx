@@ -373,6 +373,7 @@ function FamilyPage() {
           )}
         </section>
 
+        {has("arrivals") ? (<>
         <section className="panel p-4 sm:p-6">
           <h2 className="text-xl">Passports sent by the family</h2>
           <GuestPassports household={name} people={rows.map((p) => p.guest_name)} />
@@ -380,6 +381,7 @@ function FamilyPage() {
 
         <FamilyTravelAdmin household={name} inviteId={inviteId} familyId={familyId} />
         {isHost && inviteId ? <FamilyRooms household={name} inviteId={inviteId} /> : null}
+        </>) : null}
 
         <FamilyNotes household={name} inviteId={inviteId} isOwner={isOwner} />
 
@@ -408,6 +410,7 @@ function FamilyPage() {
           )}
         </section>
 
+        {has("arrivals") ? (
         <section className="panel p-4 sm:p-6">
           <h2 className="text-xl">Flights and travel</h2>
           {(travel.data ?? []).length === 0 ? (
@@ -433,6 +436,7 @@ function FamilyPage() {
             </ul>
           )}
         </section>
+        ) : null}
 
         {has("wardrobe_picker") ? (
           <section className="panel p-4 sm:p-6">
