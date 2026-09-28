@@ -759,6 +759,7 @@ export type Database = {
           link_opened_at: string | null
           name: string
           needs_wardrobe: boolean
+          travel_need: string | null
         }
         Insert: {
           branding_preset_id?: string | null
@@ -770,6 +771,7 @@ export type Database = {
           link_opened_at?: string | null
           name: string
           needs_wardrobe?: boolean
+          travel_need?: string | null
         }
         Update: {
           branding_preset_id?: string | null
@@ -781,6 +783,7 @@ export type Database = {
           link_opened_at?: string | null
           name?: string
           needs_wardrobe?: boolean
+          travel_need?: string | null
         }
         Relationships: [
           {
@@ -792,6 +795,50 @@ export type Database = {
           },
           {
             foreignKeyName: "families_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_notes: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          body: string
+          created_at: string
+          household: string
+          id: string
+          invite_id: string
+          is_change_log: boolean
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          body: string
+          created_at?: string
+          household: string
+          id?: string
+          invite_id: string
+          is_change_log?: boolean
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          body?: string
+          created_at?: string
+          household?: string
+          id?: string
+          invite_id?: string
+          is_change_log?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_notes_invite_id_fkey"
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
@@ -1661,17 +1708,20 @@ export type Database = {
           created_at: string
           created_by: string | null
           custom_domain: string | null
+          default_travel_need: string
           fees_enabled: boolean
           id: string
           name: string
           note: string | null
           outfits_paid_by_host: boolean
+          passport_required: boolean
           pay_instructions: string | null
           public_accent: string | null
           public_bg_url: string | null
           public_intro: string | null
           public_logo_url: string | null
           slug: string | null
+          travel_required: boolean
           updated_at: string
         }
         Insert: {
@@ -1679,17 +1729,20 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
+          default_travel_need?: string
           fees_enabled?: boolean
           id?: string
           name: string
           note?: string | null
           outfits_paid_by_host?: boolean
+          passport_required?: boolean
           pay_instructions?: string | null
           public_accent?: string | null
           public_bg_url?: string | null
           public_intro?: string | null
           public_logo_url?: string | null
           slug?: string | null
+          travel_required?: boolean
           updated_at?: string
         }
         Update: {
@@ -1697,17 +1750,20 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
+          default_travel_need?: string
           fees_enabled?: boolean
           id?: string
           name?: string
           note?: string | null
           outfits_paid_by_host?: boolean
+          passport_required?: boolean
           pay_instructions?: string | null
           public_accent?: string | null
           public_bg_url?: string | null
           public_intro?: string | null
           public_logo_url?: string | null
           slug?: string | null
+          travel_required?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -2481,6 +2537,10 @@ export type Database = {
           arrival_date: string | null
           arrival_flight: string | null
           arrival_time: string | null
+          checkin_date: string | null
+          checkin_time: string | null
+          checkout_date: string | null
+          checkout_time: string | null
           created_at: string
           created_by: string | null
           departure_date: string | null
@@ -2493,11 +2553,16 @@ export type Database = {
           notes: string | null
           party_size: number | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           arrival_date?: string | null
           arrival_flight?: string | null
           arrival_time?: string | null
+          checkin_date?: string | null
+          checkin_time?: string | null
+          checkout_date?: string | null
+          checkout_time?: string | null
           created_at?: string
           created_by?: string | null
           departure_date?: string | null
@@ -2510,11 +2575,16 @@ export type Database = {
           notes?: string | null
           party_size?: number | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           arrival_date?: string | null
           arrival_flight?: string | null
           arrival_time?: string | null
+          checkin_date?: string | null
+          checkin_time?: string | null
+          checkout_date?: string | null
+          checkout_time?: string | null
           created_at?: string
           created_by?: string | null
           departure_date?: string | null
@@ -2527,6 +2597,7 @@ export type Database = {
           notes?: string | null
           party_size?: number | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -2757,6 +2828,7 @@ export type Database = {
       my_household: { Args: never; Returns: string }
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
+      my_travel_settings: { Args: never; Returns: Json }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
       sync_household_rsvp_in: {
         Args: { _household: string; _invite_id: string }

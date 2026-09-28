@@ -13,3 +13,5 @@
 - [x] Make 9 screens follow the chosen celebration: boutiques, order build, by-boutique, live feeds, flights, bulk upload, messages, travel counts, workload
 - [x] Wardrobe menu per family member (tested: men → women → men)
 - [ ] Card payments: hosts pay packages + guests pay event fees (waiting on user to switch on test mode)
+- [x] Travel needs per family (default, override, bulk, filter), required/optional flags, stay check-in/out date+time
+- [x] Family page: host travel/passport editing + remove, host notes, change log

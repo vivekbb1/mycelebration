@@ -14,10 +14,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useInvites } from "@/components/host-invites";
 import { useCelebrationSlug, useSelectedEvent } from "@/lib/selected-event";
+import { Link } from "@tanstack/react-router";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 import { WARDROBES, wardrobeLabel } from "@/lib/wardrobe-options";
 
 type Wardrobe = "" | "women" | "men" | "boy" | "girl";
+
+const TRAVEL_NEED_OPTIONS = [
+  { value: "none", label: "No travel help" },
+  { value: "stay", label: "Stay only" },
+  { value: "stay_transfer", label: "Stay + pickup" },
+] as const;
+
+const travelNeedLabel = (value: string | null | undefined) =>
+  TRAVEL_NEED_OPTIONS.find((t) => t.value === (value ?? "none"))?.label ?? "No travel help";
 
 type MemberDraft = {
   name: string;
@@ -182,6 +192,11 @@ export function HostFamilies() {
   const [bulkFamily, setBulkFamily] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
 
+  const [travelFilter, setTravelFilter] = useState("all");
+  const [selectedFamilies, setSelectedFamilies] = useState<Set<string>>(new Set());
+  const [bulkTravelValue, setBulkTravelValue] = useState("none");
+  const [travelBulkBusy, setTravelBulkBusy] = useState(false);
+
   const invites = useInvites();
   const inviteList = invites.data ?? [];
   const [inviteId, setInviteId] = useState("");
@@ -212,14 +227,25 @@ export function HostFamilies() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, name, code, email, created_at, needs_wardrobe, invite_id")
+        .select("id, name, code, email, created_at, needs_wardrobe, invite_id, travel_need")
         .order("name");
       if (error) throw error;
       return data;
     },
   });
 
-  const memberRows = useQuery({
+  const inviteTravelDefaults = useQuery({
+    queryKey: ["invite-travel-defaults"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invites").select("id, default_travel_need");
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const r of data ?? []) map[r.id] = r.default_travel_need ?? "none";
+      return map;
+    },
+  });
+
+    const memberRows = useQuery({
     queryKey: ["family-members"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -232,14 +258,18 @@ export function HostFamilies() {
     },
   });
 
+  const effectiveTravelNeed = (f: { travel_need?: string | null; invite_id: string | null }) =>
+    f.travel_need ?? (f.invite_id ? inviteTravelDefaults.data?.[f.invite_id] : undefined) ?? "none";
+
   const grouped = useMemo(() => {
     return (families.data ?? [])
       .filter((f) => !selectedEvent || !f.invite_id || f.invite_id === selectedEvent)
       .map((f) => ({
       ...f,
       members: (memberRows.data ?? []).filter((m) => m.family_id === f.id),
-    }));
-  }, [families.data, memberRows.data, selectedEvent]);
+    }))
+      .filter((f) => travelFilter === "all" || effectiveTravelNeed(f) === travelFilter);
+  }, [families.data, memberRows.data, selectedEvent, travelFilter, inviteTravelDefaults.data]);
 
   /** Local families only RSVP — the outfit and measurement steps vanish for them. */
   const toggleWardrobe = async (id: string, next: boolean) => {
@@ -248,6 +278,49 @@ export function HostFamilies() {
       toast.error(error.message);
       return;
     }
+    await queryClient.invalidateQueries({ queryKey: ["families"] });
+  };
+
+  /** null clears the family's override so it falls back to the celebration default. */
+  const setFamilyTravelNeed = async (id: string, value: string) => {
+    const { error } = await supabase
+      .from("families")
+      .update({ travel_need: value === "default" ? null : value })
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["families"] });
+  };
+
+  const toggleSelectFamily = (id: string, checked: boolean) => {
+    setSelectedFamilies((set) => {
+      const next = new Set(set);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const applyBulkTravelNeed = async () => {
+    if (selectedFamilies.size === 0) {
+      toast.error("Select at least one family first.");
+      return;
+    }
+    setTravelBulkBusy(true);
+    const value = bulkTravelValue === "default" ? null : bulkTravelValue;
+    const { error } = await supabase
+      .from("families")
+      .update({ travel_need: value })
+      .in("id", [...selectedFamilies]);
+    setTravelBulkBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Travel need updated for ${selectedFamilies.size} ${selectedFamilies.size === 1 ? "family" : "families"}.`);
+    setSelectedFamilies(new Set());
     await queryClient.invalidateQueries({ queryKey: ["families"] });
   };
 
@@ -802,15 +875,74 @@ export function HostFamilies() {
           Each family has one code. Share it once and everyone in the family uses it.
         </p>
 
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Label htmlFor="travel-filter" className="text-xs text-muted-foreground">
+            Filter by travel need
+          </Label>
+          <select
+            id="travel-filter"
+            className="field-select w-auto text-xs"
+            value={travelFilter}
+            onChange={(e) => setTravelFilter(e.target.value)}
+          >
+            <option value="all">All</option>
+            {TRAVEL_NEED_OPTIONS.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedFamilies.size > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 p-3">
+            <span className="text-xs text-muted-foreground">
+              {selectedFamilies.size} selected
+            </span>
+            <select
+              className="field-select w-auto text-xs"
+              value={bulkTravelValue}
+              onChange={(e) => setBulkTravelValue(e.target.value)}
+            >
+              <option value="default">Celebration default</option>
+              {TRAVEL_NEED_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+            <Button size="sm" disabled={travelBulkBusy} onClick={applyBulkTravelNeed}>
+              {travelBulkBusy ? "Applying…" : "Set travel need"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedFamilies(new Set())}>
+              Clear selection
+            </Button>
+          </div>
+        ) : null}
+
         <ul className="mt-4 divide-y divide-border">
           {grouped.map((f) => (
             <li key={f.id} className="py-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${f.name}`}
+                      checked={selectedFamilies.has(f.id)}
+                      onChange={(e) => toggleSelectFamily(f.id, e.target.checked)}
+                      className="size-4"
+                    />
                     <Users className="size-4 text-primary" />
                     {f.name}
                     <Badge variant="outline">{f.code}</Badge>
+                    <Link
+                      to="/family/$household"
+                      params={{ household: f.name }}
+                      className="text-xs text-primary underline underline-offset-2"
+                    >
+                      View profile
+                    </Link>
                     {(() => {
                       const em = ((f as { email?: string | null }).email ?? "").toLowerCase();
                       const issue = em ? deliveryIssues.data?.[em] : undefined;
@@ -908,6 +1040,23 @@ export function HostFamilies() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
+                  <select
+                    aria-label={`Travel need for ${f.name}`}
+                    value={f.travel_need ?? "default"}
+                    onChange={(e) => void setFamilyTravelNeed(f.id, e.target.value)}
+                    className="field-select w-auto text-xs"
+                  >
+                    <option value="default">
+                      Celebration default (
+                      {travelNeedLabel(f.invite_id ? inviteTravelDefaults.data?.[f.invite_id] : undefined)}
+                      )
+                    </option>
+                    {TRAVEL_NEED_OPTIONS.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={() => toggleWardrobe(f.id, f.needs_wardrobe === false)}
