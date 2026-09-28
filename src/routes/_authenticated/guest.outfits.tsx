@@ -515,50 +515,6 @@ function Lookbook() {
       </p>
 
       <section className="panel mt-6 p-4 sm:p-5">
-        <p className="text-eyebrow">Your family's profile</p>
-        <h2 className="mt-2 text-xl">
-          {me.data?.household ? `${me.data.household} family` : me.data?.full_name || "Your family"}
-        </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(people.length ? people : [{ name: me.data?.full_name || "You" }]).map((person) => {
-            const picks = (reservations.data ?? [])
-              .filter(
-                (r) =>
-                  (r.guest_name ?? me.data?.full_name ?? "") === person.name ||
-                  (people.length <= 1 && !r.guest_name),
-              )
-              .map((r) => ({ r, o: (outfits.data ?? []).find((o) => o.id === r.outfit_id) }))
-              .filter((x) => x.o);
-            return (
-              <li key={person.name} className="rounded-md border border-border p-3">
-                <p className="font-medium">{person.name}</p>
-                {picks.length ? (
-                  <ul className="mt-2 space-y-2">
-                    {picks.map(({ r, o }) => (
-                      <li key={r.id} className="flex items-center gap-3 text-sm">
-                        {o!.image_url ? (
-                          <img src={o!.image_url} alt="" className="size-10 rounded object-cover" />
-                        ) : null}
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate">{o!.title}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {eventList.find((e) => e.id === o!.event_id)?.name ?? "Any event"} ·{" "}
-                            {r.status === "confirmed" ? "Confirmed" : "Chosen"}
-                          </span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-1 text-sm text-muted-foreground">No look chosen yet.</p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section className="panel mt-6 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="size-4 shrink-0 text-primary" />
@@ -574,35 +530,53 @@ function Lookbook() {
           </Link>
         </div>
 
-        {people.length > 1 ? (
-          <>
-            <p className="text-eyebrow mt-4">Choosing for</p>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {people.map((person) => {
-                const active = person.name === activeName;
-                const count = outfitsFor(person.name).length;
-                return (
-                  <li key={person.name}>
-                    <button
-                      onClick={() => setActivePerson(person.name)}
-                      aria-pressed={active}
-                      className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                        active
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-                      }`}
-                    >
-                      {person.name}
-                      <span className="ml-2 text-xs opacity-75">
-                        {count > 0 ? `${count} chosen` : "none yet"}
+        <p className="text-eyebrow mt-4">{people.length > 1 ? "Choosing for" : "Your looks"}</p>
+        <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {(people.length ? people : [{ name: me.data?.full_name || "You" }]).map((person) => {
+            const active = person.name === activeName;
+            const picks = (reservations.data ?? [])
+              .filter(
+                (r) =>
+                  (r.guest_name ?? me.data?.full_name ?? "") === person.name ||
+                  (people.length <= 1 && !r.guest_name),
+              )
+              .map((r) => ({ r, o: (outfits.data ?? []).find((o) => o.id === r.outfit_id) }))
+              .filter((x) => x.o);
+            return (
+              <li key={person.name}>
+                <button
+                  type="button"
+                  onClick={() => setActivePerson(person.name)}
+                  aria-pressed={active}
+                  className={`w-full rounded-md border p-3 text-left transition-colors ${
+                    active ? "border-primary bg-primary/5" : "border-border hover:border-primary"
+                  }`}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="truncate font-medium">{person.name}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {picks.length ? `${picks.length} chosen` : "None yet"}
+                    </span>
+                  </span>
+                  {picks.map(({ r, o }) => (
+                    <span key={r.id} className="mt-2 flex items-center gap-2 text-xs">
+                      {o!.image_url ? (
+                        <img src={sized(o!.image_url, 120)} alt="" loading="lazy" className="h-10 w-8 shrink-0 rounded object-cover" />
+                      ) : null}
+                      <span className="min-w-0">
+                        <span className="block truncate">{o!.title}</span>
+                        <span className="block text-muted-foreground">
+                          {eventList.find((e) => e.id === o!.event_id)?.name ?? "Any event"} ·{" "}
+                          {r.status === "confirmed" ? "Confirmed" : "Chosen"}
+                        </span>
                       </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        ) : null}
+                    </span>
+                  ))}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
 
         <p className="mt-3 text-xs text-muted-foreground">
           Showing {activeName}&rsquo;s {wardrobeLabel(wardrobe).toLowerCase()} looks
