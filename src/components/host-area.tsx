@@ -128,7 +128,10 @@ function HostPage() {
         .eq("user_id", userData.user.id)
         .eq("role", "admin")
         .maybeSingle();
-      return Boolean(data);
+      if (data) return true;
+      // Approved to create a celebration: let them in to set up their first one.
+      const { data: canCreate } = await supabase.rpc("can_create_celebration");
+      return canCreate === true;
     },
   });
 

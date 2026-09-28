@@ -17,6 +17,8 @@ import { HostFees } from "@/components/host-fees";
 import { PlanRequests } from "@/components/plan-requests";
 import { SITE_CONTENT_KEY, useSiteContent } from "@/lib/site-content";
 import { guardedUpdate } from "@/lib/save-guard";
+import { useServerFn } from "@tanstack/react-start";
+import { approveCreator } from "@/lib/creator-approval.functions";
 
 export const Route = createFileRoute("/_authenticated/platform")({
   head: () => ({
@@ -689,60 +691,72 @@ function PlatformAdmin() {
 /** People the operator has approved to create their own celebrations. */
 function CelebrationCreators() {
   const qc = useQueryClient();
+  const approveFn = useServerFn(approveCreator);
   const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
   const list = useQuery({
     queryKey: ["celebration-creators"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("celebration_creators")
-        .select("user_id, email, created_at")
-        .order("created_at");
-      if (error) throw error;
-      return data ?? [];
+      const [emails, users] = await Promise.all([
+        supabase.from("celebration_creator_emails").select("email, notified_at, created_at").order("created_at"),
+        supabase.from("celebration_creators").select("user_id, email"),
+      ]);
+      if (emails.error) throw emails.error;
+      const byEmail = new Map((users.data ?? []).map((u) => [u.email ?? "", u.user_id]));
+      const rows = (emails.data ?? []).map((e) => ({ ...e, user_id: byEmail.get(e.email) ?? null }));
+      for (const u of users.data ?? []) if (!rows.some((r) => r.email === u.email)) rows.push({ email: u.email ?? u.user_id, notified_at: null, created_at: "", user_id: u.user_id });
+      return rows;
     },
   });
-  const approve = async () => {
-    const { data, error } = await supabase.rpc("approve_celebration_creator", { _email: email });
-    const res = data as { ok?: boolean; error?: string } | null;
-    if (error || !res?.ok) { toast.error(error?.message ?? res?.error ?? "Couldn't approve"); return; }
-    setEmail("");
-    toast.success("Approved — they can now create a celebration.");
-    qc.invalidateQueries({ queryKey: ["celebration-creators"] });
+  const approve = async (target = email) => {
+    setBusy(true);
+    try {
+      const r = await approveFn({ data: { email: target } });
+      if (!r.ok) { toast.error(r.error ?? "Couldn't approve"); return; }
+      setEmail("");
+      toast.success(r.emailed ? "Approved and emailed — they can now create a celebration." : `Approved, but the email didn't go out (${r.reason ?? "unknown"}).`);
+      qc.invalidateQueries({ queryKey: ["celebration-creators"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
-  const remove = async (id: string) => {
-    const { error } = await supabase.from("celebration_creators").delete().eq("user_id", id);
-    if (error) { toast.error(error.message); return; }
+  const remove = async (row: { email: string; user_id: string | null }) => {
+    await supabase.from("celebration_creator_emails").delete().eq("email", row.email);
+    if (row.user_id) await supabase.from("celebration_creators").delete().eq("user_id", row.user_id);
     qc.invalidateQueries({ queryKey: ["celebration-creators"] });
   };
   return (
     <section className="panel mt-8 p-4 sm:p-6">
       <h2 className="text-xl">Who can create celebrations</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Only you and the people listed here can set up a new celebration. They must have signed up first.
+        Approve a couple by email. They get an email with a link to set up their celebration, and can sign up with that address if they haven't yet.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="their@email.com"
-          className="max-w-xs"
-        />
-        <Button type="button" onClick={approve} disabled={!email.trim()}>
-          <Plus className="size-4" /> Approve
+        <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="their@email.com" className="max-w-xs" />
+        <Button type="button" onClick={() => approve()} disabled={!email.trim() || busy}>
+          <Plus className="size-4" /> Approve and email
         </Button>
       </div>
       <ul className="mt-4 divide-y divide-border/60">
         {(list.data ?? []).map((r) => (
-          <li key={r.user_id} className="flex items-center justify-between py-2 text-sm">
-            <span>{r.email ?? r.user_id}</span>
-            <Button variant="ghost" size="icon" aria-label="Remove approval" onClick={() => remove(r.user_id)}>
-              <Trash2 className="size-4" />
-            </Button>
+          <li key={r.email} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+            <span>
+              {r.email}
+              <span className="ml-2 text-xs text-muted-foreground">
+                {r.user_id ? "registered" : "not signed up yet"} · {r.notified_at ? "emailed" : "not emailed"}
+              </span>
+            </span>
+            <span className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" disabled={busy} onClick={() => approve(r.email)}>Resend email</Button>
+              <Button variant="ghost" size="icon" aria-label="Remove approval" onClick={() => remove(r)}>
+                <Trash2 className="size-4" />
+              </Button>
+            </span>
           </li>
         ))}
-        {list.data?.length === 0 ? (
-          <li className="py-2 text-sm text-muted-foreground">Nobody else approved yet.</li>
-        ) : null}
+        {list.data?.length === 0 ? <li className="py-2 text-sm text-muted-foreground">Nobody else approved yet.</li> : null}
       </ul>
     </section>
   );
