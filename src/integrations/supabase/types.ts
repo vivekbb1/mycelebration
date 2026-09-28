@@ -1483,6 +1483,66 @@ export type Database = {
           },
         ]
       }
+      hotel_rooms: {
+        Row: {
+          beds: number
+          category: string
+          created_at: string
+          extra_bed_allowed: boolean
+          floor: string | null
+          id: string
+          invite_id: string
+          max_occupancy: number
+          notes: string | null
+          room_number: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          beds?: number
+          category?: string
+          created_at?: string
+          extra_bed_allowed?: boolean
+          floor?: string | null
+          id?: string
+          invite_id: string
+          max_occupancy?: number
+          notes?: string | null
+          room_number: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          beds?: number
+          category?: string
+          created_at?: string
+          extra_bed_allowed?: boolean
+          floor?: string | null
+          id?: string
+          invite_id?: string
+          max_occupancy?: number
+          notes?: string | null
+          room_number?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotel_rooms_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hotel_rooms_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_event_invites: {
         Row: {
           created_at: string
@@ -2496,6 +2556,54 @@ export type Database = {
           },
         ]
       }
+      room_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          extra_bed: boolean
+          guest_name: string
+          household: string
+          id: string
+          invite_id: string
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          extra_bed?: boolean
+          guest_name: string
+          household: string
+          id?: string
+          invite_id: string
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          extra_bed?: boolean
+          guest_name?: string
+          household?: string
+          id?: string
+          invite_id?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_assignments_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_assignments_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "hotel_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_content: {
         Row: {
           default_value: string
@@ -2828,6 +2936,7 @@ export type Database = {
       my_household: { Args: never; Returns: string }
       my_outfits_paid_by_host: { Args: never; Returns: boolean }
       my_pay_instructions: { Args: never; Returns: string }
+      my_room: { Args: never; Returns: Json }
       my_travel_settings: { Args: never; Returns: Json }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
       sync_household_rsvp_in: {
