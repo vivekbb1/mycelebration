@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Globe, Mail, Palette, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,12 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { BRANDING_DEFAULTS, fontStack, type Branding } from "@/lib/branding";
 import { slugProblem, slugify } from "@/lib/celebration-slug";
-import { Link } from "@tanstack/react-router";
+import { ClientOnly, Link } from "@tanstack/react-router";
 import { useFeatures } from "@/lib/features";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { CelebrationWizard } from "@/components/celebration-wizard";
-import { lazy, Suspense } from "react";
-import { ClientOnly } from "@tanstack/react-router";
 
 // QR library only works in the browser; never load it on the server.
 const CelebrationQr = lazy(() => import("@/components/celebration-qr").then((m) => ({ default: m.CelebrationQr })));
