@@ -704,14 +704,14 @@ function CelebrationCreators() {
   const approve = async () => {
     const { data, error } = await supabase.rpc("approve_celebration_creator", { _email: email });
     const res = data as { ok?: boolean; error?: string } | null;
-    if (error || !res?.ok) return toast.error(error?.message ?? res?.error ?? "Couldn't approve");
+    if (error || !res?.ok) { toast.error(error?.message ?? res?.error ?? "Couldn't approve"); return; }
     setEmail("");
     toast.success("Approved — they can now create a celebration.");
     qc.invalidateQueries({ queryKey: ["celebration-creators"] });
   };
   const remove = async (id: string) => {
     const { error } = await supabase.from("celebration_creators").delete().eq("user_id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["celebration-creators"] });
   };
   return (
