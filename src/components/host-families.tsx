@@ -875,6 +875,51 @@ export function HostFamilies() {
           Each family has one code. Share it once and everyone in the family uses it.
         </p>
 
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Label htmlFor="travel-filter" className="text-xs text-muted-foreground">
+            Filter by travel need
+          </Label>
+          <select
+            id="travel-filter"
+            className="field-select w-auto text-xs"
+            value={travelFilter}
+            onChange={(e) => setTravelFilter(e.target.value)}
+          >
+            <option value="all">All</option>
+            {TRAVEL_NEED_OPTIONS.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedFamilies.size > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 p-3">
+            <span className="text-xs text-muted-foreground">
+              {selectedFamilies.size} selected
+            </span>
+            <select
+              className="field-select w-auto text-xs"
+              value={bulkTravelValue}
+              onChange={(e) => setBulkTravelValue(e.target.value)}
+            >
+              <option value="default">Celebration default</option>
+              {TRAVEL_NEED_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+            <Button size="sm" disabled={travelBulkBusy} onClick={applyBulkTravelNeed}>
+              {travelBulkBusy ? "Applying…" : "Set travel need"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedFamilies(new Set())}>
+              Clear selection
+            </Button>
+          </div>
+        ) : null}
+
         <ul className="mt-4 divide-y divide-border">
           {grouped.map((f) => (
             <li key={f.id} className="py-4">
