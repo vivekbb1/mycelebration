@@ -114,7 +114,7 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
   if (!travelMissing.length && !passportMissing.length && !outfits.data) return null;
 
   const send = async (households: string[]) => {
-    setBusy(households.length > 1 ? "__all" : households[0]);
+    setBusy(households.length > 1 ? "__all" : (households[0] ?? null));
     let sent = 0;
     let skipped = 0;
     try {
