@@ -57,6 +57,12 @@ const emptyEvent: EventForm = {
  * The event just saved goes to the number the host typed and the others shift
  * around it; left blank, it slots in by date and time.
  */
+const TRAVEL_NEEDS = [
+  { value: "none", label: "No travel help" },
+  { value: "stay", label: "Stay only" },
+  { value: "stay_transfer", label: "Stay + pickup & drop-off" },
+] as const;
+
 async function renumberEvents(inviteId: string, savedId: string, wanted: number | null) {
   const { data, error } = await supabase
     .from("events")
@@ -95,6 +101,41 @@ export function HostEvents() {
   const inviteList = invites.data ?? [];
   const { inviteId: selectedEvent } = useSelectedEvent();
   const chosenInvite = form.invite_id || selectedEvent || inviteList[0]?.id || "";
+
+  const [travelCelebration, setTravelCelebration] = useState("");
+  const travelInviteId = travelCelebration || selectedEvent || inviteList[0]?.id || "";
+  const [travelBusy, setTravelBusy] = useState(false);
+
+  const travelInvite = useQuery({
+    queryKey: ["invite-travel", travelInviteId],
+    enabled: !!travelInviteId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("id, default_travel_need, travel_required, passport_required")
+        .eq("id", travelInviteId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const saveTravel = async (patch: {
+    default_travel_need?: string;
+    travel_required?: boolean;
+    passport_required?: boolean;
+  }) => {
+    if (!travelInviteId) return;
+    setTravelBusy(true);
+    const { error } = await supabase.from("invites").update(patch).eq("id", travelInviteId);
+    setTravelBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Travel settings saved.");
+    await queryClient.invalidateQueries({ queryKey: ["invite-travel", travelInviteId] });
+  };
 
   async function uploadImage(file: File) {
     setUploading(true);
@@ -241,6 +282,75 @@ export function HostEvents() {
   };
 
   return (
+    <div className="space-y-6">
+    <CollapsiblePanel title="Guest travel" subtitle="Set what travel help you offer by default, and whether travel and passport details are required from guests.">
+      <div className="mt-5 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="t-invite">Which celebration</Label>
+          <select
+            id="t-invite"
+            value={travelInviteId}
+            onChange={(e) => setTravelCelebration(e.target.value)}
+            className="field-select"
+          >
+            {inviteList.length === 0 ? <option value="">No celebrations yet</option> : null}
+            {inviteList.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="t-default">Default travel need</Label>
+          <select
+            id="t-default"
+            className="field-select"
+            disabled={travelBusy || !travelInviteId}
+            value={travelInvite.data?.default_travel_need ?? "none"}
+            onChange={(e) => saveTravel({ default_travel_need: e.target.value })}
+          >
+            {TRAVEL_NEEDS.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Applies to every family unless a family is set differently under Families.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="t-travel-req">Travel details</Label>
+            <select
+              id="t-travel-req"
+              className="field-select"
+              disabled={travelBusy || !travelInviteId}
+              value={travelInvite.data?.travel_required ? "required" : "optional"}
+              onChange={(e) => saveTravel({ travel_required: e.target.value === "required" })}
+            >
+              <option value="optional">Optional</option>
+              <option value="required">Required</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="t-passport-req">Passport details</Label>
+            <select
+              id="t-passport-req"
+              className="field-select"
+              disabled={travelBusy || !travelInviteId}
+              value={travelInvite.data?.passport_required ? "required" : "optional"}
+              onChange={(e) => saveTravel({ passport_required: e.target.value === "required" })}
+            >
+              <option value="optional">Optional</option>
+              <option value="required">Required</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </CollapsiblePanel>
+
     <div className="grid min-w-0 gap-6 [&>*]:min-w-0 lg:grid-cols-[1fr_1.1fr]">
       <CollapsiblePanel
         title={editingId ? "Edit event" : "Add an event"}
@@ -533,6 +643,7 @@ export function HostEvents() {
           ) : null}
         </ul>
       </div>
+    </div>
     </div>
   );
 }

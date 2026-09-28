@@ -6,6 +6,7 @@ import { Plane, Users, CalendarClock, Check, X, ChevronDown, ChevronUp } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { GuestArrivals } from "@/components/guest-arrivals";
 import { GuestPassports } from "@/components/guest-passports";
+import { useTravelSettings } from "@/lib/travel-settings";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,12 @@ type Plan = {
   departure_date: string | null;
   departure_time: string | null;
   departure_flight: string | null;
+  checkin_date: string | null;
+  checkin_time: string | null;
+  checkout_date: string | null;
+  checkout_time: string | null;
   notes: string | null;
+  updated_by: string | null;
 };
 
 type EventRow = { id: string; name: string; event_date: string | null; start_time: string | null };
@@ -36,6 +42,10 @@ const blank = {
   departure_date: "",
   departure_time: "",
   departure_flight: "",
+  checkin_date: "",
+  checkin_time: "",
+  checkout_date: "",
+  checkout_time: "",
   notes: "",
 };
 
@@ -50,6 +60,9 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
   const [topCount, setTopCount] = useState("");
   const [travelOpen, setTravelOpen] = useState(false);
 
+  const travelSettings = useTravelSettings();
+  const settings = travelSettings.data ?? { need: "none" as const, travel_required: false, passport_required: false };
+
   const me = useQuery({
     queryKey: ["travel-me"],
     queryFn: async () => {
@@ -63,6 +76,8 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
       return data;
     },
   });
+
+  const myId = me.data?.id ?? null;
 
   const household = (me.data?.household ?? "").trim();
   const myName = (me.data?.full_name ?? "").trim();
@@ -125,16 +140,20 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             departure_date: current.departure_date ?? "",
             departure_time: current.departure_time ?? "",
             departure_flight: current.departure_flight ?? "",
+            checkin_date: current.checkin_date ?? "",
+            checkin_time: current.checkin_time ?? "",
+            checkout_date: current.checkout_date ?? "",
+            checkout_time: current.checkout_time ?? "",
             notes: current.notes ?? "",
           }
         : { ...blank },
     );
   }, [key, loaded, current]);
 
-  // Travel is optional — only unfold it on its own if they've already given details.
+  // Travel is optional — only unfold it on its own if they've already given details, or if the hosts need it.
   useEffect(() => {
-    if (current) setTravelOpen(true);
-  }, [current]);
+    if (current || settings.travel_required) setTravelOpen(true);
+  }, [current, settings.travel_required]);
 
   const familySize = (people.data ?? []).length || 1;
   const defaultCount = topCount.trim() !== "" ? topCount : String(familySize);
@@ -165,7 +184,12 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
       departure_date: form.departure_date || null,
       departure_time: form.departure_time || null,
       departure_flight: form.departure_flight.trim() || null,
+      checkin_date: form.checkin_date || null,
+      checkin_time: form.checkin_time || null,
+      checkout_date: form.checkout_date || null,
+      checkout_time: form.checkout_time || null,
       notes: form.notes.trim() || null,
+      updated_by: myId,
     };
     const { error } = current
       ? await supabase.from("travel_plans").update(payload).eq("id", current.id)
@@ -321,161 +345,225 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
         </div>
       </section>
 
-      <section className="panel mt-6 p-4 sm:p-6">
-        <button
-          type="button"
-          onClick={() => setTravelOpen((v) => !v)}
-          className="flex w-full flex-wrap items-center justify-between gap-3 text-left"
-          aria-expanded={travelOpen}
-        >
-          <span>
-            <span className="flex items-center gap-2 text-xl">
-              <Plane className="size-4 text-primary" /> Your travel (optional)
+      {settings.need !== "none" ? (
+        <section className="panel mt-6 p-4 sm:p-6">
+          <button
+            type="button"
+            onClick={() => setTravelOpen((v) => !v)}
+            className="flex w-full flex-wrap items-center justify-between gap-3 text-left"
+            aria-expanded={travelOpen}
+          >
+            <span>
+              <span className="flex items-center gap-2 text-xl">
+                <Plane className="size-4 text-primary" />{" "}
+                {settings.need === "stay"
+                  ? "Your stay"
+                  : `Your travel ${settings.travel_required ? "(needed)" : "(optional)"}`}
+              </span>
+              <span className="mt-1 block text-sm text-muted-foreground">
+                {settings.need === "stay"
+                  ? "Let us know your check-in and check-out so we can plan your room."
+                  : "Only if you're travelling in — flights in and out help us plan pickups and rooms."}
+              </span>
+              {current?.updated_by && current.updated_by !== myId ? (
+                <span className="mt-1 block text-xs text-muted-foreground">Updated by your hosts</span>
+              ) : null}
             </span>
-            <span className="mt-1 block text-sm text-muted-foreground">
-              Only if you're travelling in — flights in and out help us plan pickups and rooms.
-            </span>
-          </span>
+            {travelOpen ? (
+              <ChevronUp className="size-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="size-4 text-muted-foreground" />
+            )}
+          </button>
+
           {travelOpen ? (
-            <ChevronUp className="size-4 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="size-4 text-muted-foreground" />
-          )}
-        </button>
+            <>
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setScope("family")}
+                  className={`rounded-full border px-3 py-1.5 text-xs ${
+                    scope === "family"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  For the whole family
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScope("me")}
+                  className={`rounded-full border px-3 py-1.5 text-xs ${
+                    scope === "me"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  Just for me
+                </button>
+              </div>
 
-        {travelOpen ? (
-          <>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setScope("family")}
-                className={`rounded-full border px-3 py-1.5 text-xs ${
-                  scope === "family"
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                For the whole family
-              </button>
-              <button
-                type="button"
-                onClick={() => setScope("me")}
-                className={`rounded-full border px-3 py-1.5 text-xs ${
-                  scope === "me"
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                Just for me
-              </button>
-            </div>
+              {settings.need === "stay_transfer" ? (
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-4">
+                    <p className="text-eyebrow">Arriving</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="arr-date">Arrival date</Label>
+                      <Input
+                        id="arr-date"
+                        type="date"
+                        value={form.arrival_date}
+                        onChange={(e) => setForm({ ...form, arrival_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="arr-time">Landing time</Label>
+                      <Input
+                        id="arr-time"
+                        type="time"
+                        value={form.arrival_time}
+                        onChange={(e) => setForm({ ...form, arrival_time: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="arr-flight">Flight number</Label>
+                      <Input
+                        id="arr-flight"
+                        maxLength={20}
+                        placeholder="e.g. EK 512"
+                        value={form.arrival_flight}
+                        onChange={(e) => setForm({ ...form, arrival_flight: e.target.value })}
+                      />
+                    </div>
+                  </div>
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
-              <div className="space-y-4">
-                <p className="text-eyebrow">Arriving</p>
-                <div className="space-y-2">
-                  <Label htmlFor="arr-date">Arrival date</Label>
-                  <Input
-                    id="arr-date"
-                    type="date"
-                    value={form.arrival_date}
-                    onChange={(e) => setForm({ ...form, arrival_date: e.target.value })}
-                  />
+                  <div className="space-y-4">
+                    <p className="text-eyebrow">Leaving</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="dep-date">Departure date</Label>
+                      <Input
+                        id="dep-date"
+                        type="date"
+                        value={form.departure_date}
+                        onChange={(e) => setForm({ ...form, departure_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dep-time">Departure time</Label>
+                      <Input
+                        id="dep-time"
+                        type="time"
+                        value={form.departure_time}
+                        onChange={(e) => setForm({ ...form, departure_time: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dep-flight">Flight number</Label>
+                      <Input
+                        id="dep-flight"
+                        maxLength={20}
+                        placeholder="e.g. EK 511"
+                        value={form.departure_flight}
+                        onChange={(e) => setForm({ ...form, departure_flight: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="arr-time">Landing time</Label>
-                  <Input
-                    id="arr-time"
-                    type="time"
-                    value={form.arrival_time}
-                    onChange={(e) => setForm({ ...form, arrival_time: e.target.value })}
-                  />
+              ) : null}
+
+              {settings.need === "stay" || settings.need === "stay_transfer" ? (
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-4">
+                    <p className="text-eyebrow">Check-in</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="checkin-date">Check-in date</Label>
+                      <Input
+                        id="checkin-date"
+                        type="date"
+                        value={form.checkin_date}
+                        onChange={(e) => setForm({ ...form, checkin_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="checkin-time">Check-in time</Label>
+                      <Input
+                        id="checkin-time"
+                        type="time"
+                        value={form.checkin_time}
+                        onChange={(e) => setForm({ ...form, checkin_time: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-eyebrow">Check-out</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="checkout-date">Check-out date</Label>
+                      <Input
+                        id="checkout-date"
+                        type="date"
+                        value={form.checkout_date}
+                        onChange={(e) => setForm({ ...form, checkout_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="checkout-time">Check-out time</Label>
+                      <Input
+                        id="checkout-time"
+                        type="time"
+                        value={form.checkout_time}
+                        onChange={(e) => setForm({ ...form, checkout_time: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
+              ) : null}
+
+              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                {settings.need === "stay_transfer" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="party">
+                      How many of you are travelling{scope === "family" ? "" : " with you"}?
+                    </Label>
+                    <Input
+                      id="party"
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={form.party_size}
+                      onChange={(e) => setForm({ ...form, party_size: e.target.value })}
+                    />
+                  </div>
+                ) : null}
                 <div className="space-y-2">
-                  <Label htmlFor="arr-flight">Flight number</Label>
-                  <Input
-                    id="arr-flight"
-                    maxLength={20}
-                    placeholder="e.g. EK 512"
-                    value={form.arrival_flight}
-                    onChange={(e) => setForm({ ...form, arrival_flight: e.target.value })}
+                  <Label htmlFor="travel-notes">Anything else? (optional)</Label>
+                  <Textarea
+                    id="travel-notes"
+                    rows={3}
+                    maxLength={600}
+                    placeholder="Connecting flight, early check-in, someone joining later…"
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <p className="text-eyebrow">Leaving</p>
-                <div className="space-y-2">
-                  <Label htmlFor="dep-date">Departure date</Label>
-                  <Input
-                    id="dep-date"
-                    type="date"
-                    value={form.departure_date}
-                    onChange={(e) => setForm({ ...form, departure_date: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dep-time">Departure time</Label>
-                  <Input
-                    id="dep-time"
-                    type="time"
-                    value={form.departure_time}
-                    onChange={(e) => setForm({ ...form, departure_time: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dep-flight">Flight number</Label>
-                  <Input
-                    id="dep-flight"
-                    maxLength={20}
-                    placeholder="e.g. EK 511"
-                    value={form.departure_flight}
-                    onChange={(e) => setForm({ ...form, departure_flight: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
+              <Button className="mt-5" disabled={busy} onClick={saveTravel}>
+                {current ? "Update travel details" : "Save travel details"}
+              </Button>
+            </>
+          ) : null}
+        </section>
+      ) : null}
 
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="party">
-                  How many of you are travelling{scope === "family" ? "" : " with you"}?
-                </Label>
-                <Input
-                  id="party"
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={form.party_size}
-                  onChange={(e) => setForm({ ...form, party_size: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="travel-notes">Anything else? (optional)</Label>
-                <Textarea
-                  id="travel-notes"
-                  rows={3}
-                  maxLength={600}
-                  placeholder="Connecting flight, early check-in, someone joining later…"
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <Button className="mt-5" disabled={busy} onClick={saveTravel}>
-              {current ? "Update travel details" : "Save travel details"}
-            </Button>
-          </>
-        ) : null}
-      </section>
-
-      <section className="panel mt-6 p-4 sm:p-6">
-        <GuestPassports
-          household={household}
-          people={[...new Set([myName, ...(people.data ?? []).map((p) => p.name)].filter(Boolean))]}
-        />
-      </section>
+      {settings.need !== "none" ? (
+        <section className="panel mt-6 p-4 sm:p-6">
+          <GuestPassports
+            household={household}
+            people={[...new Set([myName, ...(people.data ?? []).map((p) => p.name)].filter(Boolean))]}
+            required={settings.passport_required}
+          />
+        </section>
+      ) : null}
     </>
   );
 }

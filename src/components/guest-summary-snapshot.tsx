@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CalendarCheck, Ruler, Shirt } from "lucide-react";
+import { CalendarCheck, ListChecks, Ruler, Shirt } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
+import { useTravelSettings } from "@/lib/travel-settings";
 import { Badge } from "@/components/ui/badge";
 
 const day = (d: string | null) =>
@@ -20,6 +21,7 @@ export function GuestSummarySnapshot({
   looks: { event_id: string | null; guest_name: string | null; confirmed: boolean }[];
 }) {
   const guestEvent = useGuestEvent();
+  const travelSettings = useTravelSettings();
 
   const events = useQuery({
     queryKey: ["summary-events", household],
@@ -58,6 +60,32 @@ export function GuestSummarySnapshot({
     },
   });
 
+  const travelPlans = useQuery({
+    queryKey: ["summary-travel-plans", household],
+    enabled: Boolean(household),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("travel_plans")
+        .select("id")
+        .eq("household", household)
+        .limit(1);
+      return data ?? [];
+    },
+  });
+
+  const passports = useQuery({
+    queryKey: ["summary-passports", household],
+    enabled: Boolean(household),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guest_passports")
+        .select("id")
+        .eq("household", household)
+        .limit(1);
+      return data ?? [];
+    },
+  });
+
   const measured = useQuery({
     queryKey: ["summary-measurements"],
     queryFn: async () => {
@@ -78,8 +106,27 @@ export function GuestSummarySnapshot({
   const sent = new Set(measured.data ?? []);
   const measuredCount = names.filter((n) => sent.has(n)).length;
 
+  const settings = travelSettings.data;
+  const needsTravel =
+    Boolean(settings?.travel_required) &&
+    settings?.need !== "none" &&
+    (travelPlans.data ?? []).length === 0;
+  const needsPassport = Boolean(settings?.passport_required) && (passports.data ?? []).length === 0;
+
   return (
     <div className="mt-8 grid gap-4 md:grid-cols-3">
+      {needsTravel || needsPassport ? (
+        <section className="panel p-4 sm:p-5 md:col-span-3">
+          <h2 className="flex items-center gap-2 text-lg">
+            <ListChecks className="size-4 text-primary" /> Still to do
+          </h2>
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+            {needsTravel ? <li>Travel details still needed</li> : null}
+            {needsPassport ? <li>Passport details still needed</li> : null}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="panel p-4 sm:p-5 md:col-span-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-xl">
