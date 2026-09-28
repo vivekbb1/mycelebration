@@ -1,4 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Mail } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { sendMissingDetailsReminder } from "@/lib/missing-details.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -73,30 +80,102 @@ export function TravelNeedBadge({ need }: { need: TravelNeed }) {
   );
 }
 
-/** Families that still owe required travel or passport details. */
+/** Families that still owe travel, passport or look choices, with email nudges. */
 export function MissingTravelDetails({ inviteId }: { inviteId: string | null | undefined }) {
   const { enabled, data } = useFamilyTravelNeeds(inviteId);
-  if (!enabled || !data || (!data.travelRequired && !data.passportRequired)) return null;
-  const owing = new Set([...data.travelMissing, ...data.passportMissing]);
+  const nudge = useServerFn(sendMissingDetailsReminder);
+  const [busy, setBusy] = useState<string | null>(null);
+  const outfits = useQuery({
+    queryKey: ["outfit-missing", inviteId],
+    enabled: !!inviteId,
+    queryFn: async () => {
+      const [ev, codes, res] = await Promise.all([
+        supabase.from("events").select("id").eq("invite_id", inviteId!).eq("outfit_selection", true),
+        supabase.from("invite_codes").select("household, claimed_by").eq("invite_id", inviteId!),
+        supabase.from("reservations").select("guest_id").eq("invite_id", inviteId!),
+      ]);
+      if (!ev.data?.length) return [] as string[];
+      const picked = new Set((res.data ?? []).map((r) => r.guest_id));
+      const done = new Set<string>();
+      const all = new Set<string>();
+      for (const c of codes.data ?? []) {
+        if (!c.household) continue;
+        all.add(c.household);
+        if (c.claimed_by && picked.has(c.claimed_by)) done.add(c.household);
+      }
+      return [...all].filter((h) => !done.has(h));
+    },
+  });
+  const travelMissing = enabled && data?.travelRequired ? data.travelMissing : [];
+  const passportMissing = enabled && data?.passportRequired ? data.passportMissing : [];
+  const outfitMissing = outfits.data ?? [];
+  if (!inviteId) return null;
+  const owing = [...new Set([...travelMissing, ...passportMissing, ...outfitMissing])].sort();
+  if (!travelMissing.length && !passportMissing.length && !outfits.data) return null;
+
+  const send = async (households: string[]) => {
+    setBusy(households.length > 1 ? "__all" : (households[0] ?? null));
+    let sent = 0;
+    let skipped = 0;
+    try {
+      for (const h of households) {
+        const r = await nudge({
+          data: {
+            inviteId,
+            household: h,
+            travel: travelMissing.includes(h),
+            passport: passportMissing.includes(h),
+            outfits: outfitMissing.includes(h),
+          },
+        });
+        if (r.sent) sent += 1;
+        else skipped += 1;
+      }
+      toast.success(`Emailed ${sent} ${sent === 1 ? "family" : "families"}${skipped ? ` · ${skipped} had no email` : ""}.`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <section className="panel p-4 sm:p-6">
-      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Required details still owed</p>
-      <p className="mt-2 text-3xl text-primary">{owing.size}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        families
-        {data.travelRequired ? ` · ${data.travelMissing.length} missing travel` : ""}
-        {data.passportRequired ? ` · ${data.passportMissing.length} missing passports` : ""}
-      </p>
-      {owing.size > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {[...owing].sort().map((h) => (
-            <Badge key={h} variant="outline">
-              {h}
-              {data.travelMissing.includes(h) ? " · travel" : ""}
-              {data.passportMissing.includes(h) ? " · passport" : ""}
-            </Badge>
-          ))}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Details still owed</p>
+          <p className="mt-2 text-3xl text-primary">{owing.length}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            families
+            {data?.travelRequired && enabled ? ` · ${travelMissing.length} travel` : ""}
+            {data?.passportRequired && enabled ? ` · ${passportMissing.length} passports` : ""}
+            {` · ${outfitMissing.length} looks`}
+          </p>
         </div>
+        {owing.length > 0 && (
+          <Button size="sm" variant="outline" disabled={!!busy} onClick={() => send(owing)}>
+            <Mail className="size-4" /> {busy === "__all" ? "Sending…" : "Email them all"}
+          </Button>
+        )}
+      </div>
+      {owing.length > 0 && (
+        <ul className="mt-3 divide-y divide-border/60">
+          {owing.map((h) => (
+            <li key={h} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-sm">
+              <span>
+                {h}
+                <span className="ml-2 inline-flex gap-1">
+                  {travelMissing.includes(h) && <Badge variant="outline">travel</Badge>}
+                  {passportMissing.includes(h) && <Badge variant="outline">passport</Badge>}
+                  {outfitMissing.includes(h) && <Badge variant="outline">looks</Badge>}
+                </span>
+              </span>
+              <Button size="sm" variant="ghost" disabled={!!busy} onClick={() => send([h])}>
+                {busy === h ? "Sending…" : "Email"}
+              </Button>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );

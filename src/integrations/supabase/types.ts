@@ -412,6 +412,27 @@ export type Database = {
           },
         ]
       }
+      celebration_creator_emails: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          email: string
+          notified_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          email: string
+          notified_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          email?: string
+          notified_at?: string | null
+        }
+        Relationships: []
+      }
       celebration_creators: {
         Row: {
           approved_by: string | null
