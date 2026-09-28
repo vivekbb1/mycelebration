@@ -1,4 +1,4 @@
-import { PUBLIC_ORIGIN } from "@/lib/public-url";
+import { PUBLIC_ORIGIN, authLink } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -82,7 +82,12 @@ export const sendInviteEmail = createServerFn({ method: "POST" })
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
     const origin = PUBLIC_ORIGIN;
-    const link = `${origin}/auth?code=${encodeURIComponent(invite.code)}`;
+    let slug: string | null = null;
+    if (invite.invite_id) {
+      const { data: cel } = await context.supabase.from("invites").select("slug").eq("id", invite.invite_id).maybeSingle();
+      slug = cel?.slug ?? null;
+    }
+    const link = authLink(invite.code, slug);
     const planLink = `${origin}/guest/summary`;
 
     const scheduleHtml =

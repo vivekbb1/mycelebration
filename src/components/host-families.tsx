@@ -1,5 +1,5 @@
 import { randomCode } from "@/lib/secure-code";
-import { PUBLIC_ORIGIN } from "@/lib/public-url";
+import { PUBLIC_ORIGIN, authLink } from "@/lib/public-url";
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useInvites } from "@/components/host-invites";
-import { useSelectedEvent } from "@/lib/selected-event";
+import { useCelebrationSlug, useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
 import { WARDROBES, wardrobeLabel } from "@/lib/wardrobe-options";
 
@@ -187,6 +187,7 @@ export function HostFamilies() {
   const [inviteId, setInviteId] = useState("");
   const { inviteId: selectedEvent } = useSelectedEvent();
   const chosenInvite = inviteId || selectedEvent || inviteList[0]?.id || "";
+  const slug = useCelebrationSlug(chosenInvite);
 
   const deliveryIssues = useQuery({
     queryKey: ["email-delivery-events"],
@@ -557,7 +558,7 @@ export function HostFamilies() {
   };
 
   const inviteMessage = (name: string, code: string) => {
-    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
+    const link = authLink(code, slug);
     return {
       link,
       message:

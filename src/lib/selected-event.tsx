@@ -73,6 +73,16 @@ export function useSelectedEvent() {
   return useContext(SelectedEvent);
 }
 
+/** Web address (slug) of a celebration, defaulting to the one being worked on. */
+export function useCelebrationSlug(id?: string): string | null {
+  const { inviteId } = useSelectedEvent();
+  const invites = useInvites();
+  const target = id || inviteId;
+  const list = invites.data ?? [];
+  const found = list.find((i) => i.id === target) ?? (list.length === 1 ? list[0] : undefined);
+  return (found as { slug?: string | null } | undefined)?.slug ?? null;
+}
+
 /** Keeps rows whose celebration matches the chosen one; rows with no celebration stay. */
 export function matchesSelectedEvent(rowInviteId: string | null, selected: string) {
   if (!selected) return true;

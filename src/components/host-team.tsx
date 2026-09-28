@@ -1,4 +1,4 @@
-import { PUBLIC_ORIGIN } from "@/lib/public-url";
+import { PUBLIC_ORIGIN, authLink } from "@/lib/public-url";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -6,7 +6,7 @@ import { Copy, Mail, Pencil, ShieldCheck, Trash2, UserMinus } from "lucide-react
 
 import { supabase } from "@/integrations/supabase/client";
 import { inviteHostByEmail } from "@/lib/host-invite.functions";
-import { useSelectedEvent } from "@/lib/selected-event";
+import { useCelebrationSlug, useSelectedEvent } from "@/lib/selected-event";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
 export function HostTeam() {
   const queryClient = useQueryClient();
   const { inviteId } = useSelectedEvent();
+  const slug = useCelebrationSlug();
   const [pick, setPick] = useState("");
   const [busy, setBusy] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -84,7 +85,7 @@ export function HostTeam() {
   };
 
   const copyHostLink = async (code: string) => {
-    const link = `${PUBLIC_ORIGIN}/auth?code=${encodeURIComponent(code)}`;
+    const link = authLink(code, slug);
     try {
       await navigator.clipboard.writeText(link);
       toast.success("Registration link copied.");

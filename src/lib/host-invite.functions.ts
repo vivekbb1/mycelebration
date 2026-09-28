@@ -1,5 +1,5 @@
 import { randomCode } from "@/lib/secure-code";
-import { PUBLIC_ORIGIN } from "@/lib/public-url";
+import { authLink } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -70,8 +70,8 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
       }
     }
 
-    const origin = PUBLIC_ORIGIN;
-    const link = `${origin}/auth?code=${encodeURIComponent(code)}`;
+    const { data: cel } = await supabaseAdmin.from("invites").select("slug").eq("id", data.inviteId).maybeSingle();
+    const link = authLink(code, cel?.slug);
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
     const greeting = fullName ? `${escapeHtml(fullName)},` : "Hello,";
