@@ -30,6 +30,7 @@ const normalise = (value: string | null | undefined): Answer => {
 
 /** RSVP tracking per celebration: who has confirmed, who declined, who is still quiet. */
 export function HostRsvp() {
+  const { has } = useFeatures();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
