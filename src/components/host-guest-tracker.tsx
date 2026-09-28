@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { MissingTravelDetails } from "@/lib/family-travel-needs";
 
 type Stage = "not_sent" | "sent" | "opened" | "joined" | "chosen" | "confirmed";
 
@@ -123,6 +124,8 @@ export function HostGuestTracker() {
   );
 
   return (
+    <div className="space-y-4">
+    <MissingTravelDetails inviteId={inviteId} />
     <section className="panel p-4 sm:p-6">
       <h2 className="text-xl">Guest tracker</h2>
       <p className="mt-1 text-xs text-muted-foreground">
@@ -194,5 +197,6 @@ export function HostGuestTracker() {
         ) : null}
       </ul>
     </section>
+    </div>
   );
 }
