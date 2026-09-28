@@ -100,6 +100,8 @@ export function useBranding() {
     queryKey: ["branding-mine"],
     staleTime: 60_000,
     queryFn: async (): Promise<Partial<Branding> | null> => {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) return null;
       const { data, error } = await supabase.rpc("my_branding");
       if (error) return null;
       return (data ?? null) as Partial<Branding> | null;
