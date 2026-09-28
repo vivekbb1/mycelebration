@@ -54,6 +54,16 @@ export const inviteHostByEmail = createServerFn({ method: "POST" })
         await supabaseAdmin.from("host_invites").update({ full_name: fullName }).eq("id", existing.id);
       }
     } else {
+      // Cap new host invitations so a celebration can't be used to email strangers in bulk.
+      const since = new Date(Date.now() - 86_400_000).toISOString();
+      const { count } = await supabaseAdmin
+        .from("host_invites")
+        .select("id", { count: "exact", head: true })
+        .eq("invite_id", data.inviteId)
+        .gte("created_at", since);
+      if ((count ?? 0) >= 10) {
+        return { ok: false, error: "You've sent the most host invitations allowed today. Please try again tomorrow." };
+      }
       const { error } = await supabaseAdmin
         .from("host_invites")
         .insert({ email, full_name: fullName, code, invited_by: context.userId, invite_id: data.inviteId });
