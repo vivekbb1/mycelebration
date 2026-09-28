@@ -15,6 +15,7 @@ import { CollapsiblePanel } from "@/components/collapsible-panel";
 
 export const VENDOR_CATEGORIES = [
   { key: "venue", label: "Venue" },
+  { key: "hotel", label: "Hotel" },
   { key: "catering", label: "Catering" },
   { key: "decor", label: "Décor & flowers" },
   { key: "photo", label: "Photo & film" },
