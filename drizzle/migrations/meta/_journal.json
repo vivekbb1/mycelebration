@@ -540,6 +540,13 @@
       "when": 1790587709641,
       "tag": "0076_travel_behind_logistics",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1790601073373,
+      "tag": "0077_restrict_celebration_creation",
+      "breakpoints": true
     }
   ]
 }

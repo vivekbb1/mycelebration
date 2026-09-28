@@ -412,6 +412,27 @@ export type Database = {
           },
         ]
       }
+      celebration_creators: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          email: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          email?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       celebration_email_settings: {
         Row: {
           from_email: string | null
@@ -2842,6 +2863,7 @@ export type Database = {
     }
     Functions: {
       apply_due_guest_transfers: { Args: never; Returns: number }
+      approve_celebration_creator: { Args: { _email: string }; Returns: Json }
       boutique_host_can_manage: {
         Args: { _boutique_id: string }
         Returns: boolean
@@ -2855,6 +2877,7 @@ export type Database = {
         Args: { _outfit_id: string }
         Returns: boolean
       }
+      can_create_celebration: { Args: never; Returns: boolean }
       celebration_by_slug: { Args: { _slug: string }; Returns: Json }
       celebration_features: { Args: { _invite_id: string }; Returns: Json }
       celebration_has_feature: {
