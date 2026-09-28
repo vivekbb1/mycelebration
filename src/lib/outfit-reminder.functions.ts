@@ -26,10 +26,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
     return { inviteId: data.inviteId };
   })
   .handler(async ({ data, context }): Promise<SendResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
+    const { data: isAdmin } = await context.supabase.rpc("is_any_host");
     if (!isAdmin) return { sent: false, reason: "forbidden" };
 
     const { data: guest } = await context.supabase
@@ -39,6 +36,12 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!guest) return { sent: false, reason: "guest_not_found" };
+    {
+      const { data: isHost } = guest.invite_id
+        ? await context.supabase.rpc("is_celebration_host", { _invite_id: guest.invite_id })
+        : { data: false };
+      if (isHost !== true) return { sent: false, reason: "forbidden" };
+    }
     if (!guest.email) return { sent: false, reason: "no_email" };
 
     // Which events is this household invited to?

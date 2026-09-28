@@ -15,11 +15,8 @@ export type ReminderResult = {
 export const sendFollowUpReminders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ReminderResult> => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!isAdmin) return { ok: false, error: "Only a host can do this." };
+    const { data: isAdmin } = await context.supabase.rpc("is_platform_admin");
+    if (isAdmin !== true) return { ok: false, error: "Only the platform team can send every reminder at once." };
 
     const { runFollowUpReminders } = await import("./followup-reminders.server");
     try {

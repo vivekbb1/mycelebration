@@ -324,18 +324,24 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       slugs: string[];
+      inviteId?: string | null;
       eventId?: string | null;
       boutiqueId?: string | null;
       gender?: string | null;
     }) => ({
       slugs: (Array.isArray(data?.slugs) ? data.slugs : []).slice(0, 60).map((s) => String(s)),
+      inviteId: data?.inviteId ? String(data.inviteId) : null,
       eventId: data?.eventId ? String(data.eventId) : null,
       boutiqueId: data?.boutiqueId ? String(data.boutiqueId) : null,
       gender: ["men", "women", "unisex", "boy", "girl"].includes(String(data?.gender)) ? String(data?.gender) : null,
     }),
   )
   .handler(async ({ data, context }) => {
-    await assertHost(context as unknown as Ctx);
+    if (!data.inviteId) throw new Error("Choose a celebration first");
+    const { data: isHost } = await (context as unknown as Ctx).supabase.rpc("is_celebration_host", {
+      _invite_id: data.inviteId,
+    });
+    if (isHost !== true) throw new Error("Forbidden");
     if (!data.slugs.length) return { imported: 0, skipped: 0, failed: 0 };
 
     let imported = 0;
@@ -349,6 +355,7 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
         .from("outfits")
         .select("id")
         .eq("boutique_url", `${HOST}/${slug}`)
+        .eq("invite_id", data.inviteId)
         .limit(1);
       if (dup && dup.length) {
         skipped += 1;
@@ -378,6 +385,7 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
         source_sku: look.sku || null,
         gender: data.gender ?? look.gender,
         notes: look.description || null,
+        invite_id: data.inviteId,
         event_id: data.eventId,
         boutique_id: data.boutiqueId,
       });

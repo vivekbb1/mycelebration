@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useSelectedEvent } from "@/lib/selected-event";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,8 @@ export function HostRelations() {
 
   const askAi = useServerFn(suggestFollowUp);
   const runReminders = useServerFn(sendFollowUpReminders);
+
+  const selectedInviteId = useSelectedEvent().inviteId;
 
   const me = useQuery({
     queryKey: ["relations-me"],
