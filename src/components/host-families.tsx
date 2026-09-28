@@ -926,9 +926,23 @@ export function HostFamilies() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${f.name}`}
+                      checked={selectedFamilies.has(f.id)}
+                      onChange={(e) => toggleSelectFamily(f.id, e.target.checked)}
+                      className="size-4"
+                    />
                     <Users className="size-4 text-primary" />
                     {f.name}
                     <Badge variant="outline">{f.code}</Badge>
+                    <Link
+                      to="/family/$household"
+                      params={{ household: f.name }}
+                      className="text-xs text-primary underline underline-offset-2"
+                    >
+                      View profile
+                    </Link>
                     {(() => {
                       const em = ((f as { email?: string | null }).email ?? "").toLowerCase();
                       const issue = em ? deliveryIssues.data?.[em] : undefined;
@@ -1026,6 +1040,23 @@ export function HostFamilies() {
                   )}
                 </div>
                 <div className="flex items-center gap-1">
+                  <select
+                    aria-label={`Travel need for ${f.name}`}
+                    value={f.travel_need ?? "default"}
+                    onChange={(e) => void setFamilyTravelNeed(f.id, e.target.value)}
+                    className="field-select w-auto text-xs"
+                  >
+                    <option value="default">
+                      Celebration default (
+                      {travelNeedLabel(f.invite_id ? inviteTravelDefaults.data?.[f.invite_id] : undefined)}
+                      )
+                    </option>
+                    {TRAVEL_NEED_OPTIONS.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={() => toggleWardrobe(f.id, f.needs_wardrobe === false)}
