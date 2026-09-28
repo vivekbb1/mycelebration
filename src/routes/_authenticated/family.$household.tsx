@@ -379,6 +379,7 @@ function FamilyPage() {
         </section>
 
         <FamilyTravelAdmin household={name} inviteId={inviteId} familyId={familyId} />
+        {isHost && inviteId ? <FamilyRooms household={name} inviteId={inviteId} /> : null}
 
         <FamilyNotes household={name} inviteId={inviteId} isOwner={isOwner} />
 
