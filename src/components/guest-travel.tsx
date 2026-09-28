@@ -52,6 +52,16 @@ const blank = {
 /** Yes/no per event with a head count up top, plus optional travel details. */
 export function GuestTravel({ events }: { events: EventRow[] }) {
   const queryClient = useQueryClient();
+  const myRoom = useQuery({
+    queryKey: ["my-room"],
+    queryFn: async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) return [];
+      const { data, error } = await supabase.rpc("my_room");
+      if (error) return [];
+      return (data ?? []) as { hotel: string; room_number: string; floor: string | null; category: string }[];
+    },
+  });
   const [scope, setScope] = useState<"family" | "me">("family");
   const [form, setForm] = useState({ ...blank });
   const [loaded, setLoaded] = useState<string | null>(null);
@@ -368,6 +378,12 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
               {current?.updated_by && current.updated_by !== myId ? (
                 <span className="mt-1 block text-xs text-muted-foreground">Updated by your hosts</span>
               ) : null}
+              {(myRoom.data ?? []).map((r) => (
+                <span key={`${r.hotel}-${r.room_number}`} className="mt-2 block text-sm">
+                  Your room: <strong>{r.hotel}</strong>, room {r.room_number}
+                  {r.floor ? ` (floor ${r.floor})` : ""} · {r.category}
+                </span>
+              ))}
             </span>
             {travelOpen ? (
               <ChevronUp className="size-4 text-muted-foreground" />
