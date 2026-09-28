@@ -560,3 +560,37 @@ function FamilyPage() {
     </main>
   );
 }
+
+function FamilyRooms({ household, inviteId }: { household: string; inviteId: string }) {
+  const q = useQuery({
+    queryKey: ["family-rooms", inviteId, household],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("room_assignments")
+        .select("id, guest_name, extra_bed, hotel_rooms(room_number, floor, category, vendors(name))")
+        .eq("invite_id", inviteId)
+        .eq("household", household);
+      if (error) return [];
+      return data ?? [];
+    },
+  });
+  if (!q.data?.length) return null;
+  return (
+    <section className="panel p-4 sm:p-6">
+      <h2 className="text-xl">Rooms</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Change rooms under Guests → Rooms.</p>
+      <ul className="mt-3 space-y-1 text-sm">
+        {q.data.map((a) => {
+          const r = a.hotel_rooms as unknown as { room_number: string; floor: string | null; category: string; vendors: { name: string } | null } | null;
+          return (
+            <li key={a.id}>
+              {a.guest_name}: {r?.vendors?.name} room {r?.room_number}
+              {r?.floor ? ` (floor ${r.floor})` : ""} · {r?.category}
+              {a.extra_bed ? " · extra bed" : ""}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
