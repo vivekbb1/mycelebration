@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Copy, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { celebrationStyle, useCelebrationBySlug } from "@/lib/public-celebration";
+import { useSignupLink } from "@/lib/signup-link";
 
 type G = "men" | "women" | "boy" | "girl";
 const GENDERS: { v: G; label: string }[] = [
@@ -36,17 +36,6 @@ export const Route = createFileRoute("/$celebration_/register")({
   }),
   component: RegisterPage,
 });
-
-export function useSignupLink(token: string | undefined) {
-  return useQuery({
-    queryKey: ["signup-link", token],
-    enabled: Boolean(token),
-    queryFn: async () => {
-      const { data } = await supabase.rpc("signup_link_info", { _token: token! });
-      return (data ?? null) as { label: string; name: string; slug: string | null } | null;
-    },
-  });
-}
 
 function GenderPick({ value, onChange }: { value: G; onChange: (g: G) => void }) {
   return (
