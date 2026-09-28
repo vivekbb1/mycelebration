@@ -4,11 +4,15 @@ Hosts choose what each family needs, and whether the questions are required or o
 
 ## What hosts see
 
-**Guests → Families**: each family gets a new **Travel** choice, next to the existing "Outfit from us / RSVP only" choice:
+**Setup → Celebration** sets the **default travel need** for the whole celebration. Every family starts with it.
+
+**Guests → Families**: each family can use the default or override it with a new **Travel** choice, next to the existing "Outfit from us / RSVP only" choice:
 
 - **No travel help**: the family doesn't see the Travel or Passport sections.
-- **Stay only**: for local guests who need a hotel room but no airport pickup. They're asked for check-in and check-out dates, plus passport details.
-- **Stay + pickup & drop-off**: for guests flying in. They're asked for flights in and out, check-in and check-out dates, and passport details.
+- **Stay only**: for local guests who need a hotel room but no airport pickup. They're asked for check-in and check-out **dates and times**, plus passport details.
+- **Stay + pickup & drop-off**: for guests flying in. They're asked for flights in and out, check-in and check-out dates and times, and passport details.
+
+**How the setting passes down:** celebration default → family → each person in that family. Every family member's access to the Travel and Passport sections, and which questions they see, follows their family's setting. Moving a person to another family gives them that family's setting. Owners and co-hosts can change the default and any family's setting. Guests can't change their own.
 
 The same choice can be applied to many families at once from the existing multi-select, and there's a filter so hosts can list, say, all "Stay + pickup" families.
 
