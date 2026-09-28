@@ -96,7 +96,7 @@ export function HostRooms() {
     const { error } = await supabase.from("vendors").insert({
       name: newHotel.name.trim(), city: newHotel.city || null, category: "hotel", invite_id: inviteId,
     });
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     setNewHotel({ name: "", city: "" });
     toast.success("Hotel added");
     refresh();
@@ -104,7 +104,7 @@ export function HostRooms() {
 
   async function addRooms() {
     const n = Math.max(1, Math.min(200, Number(bulk.count) || 1));
-    if (!bulk.vendor_id || !bulk.from.trim()) return toast.error("Pick a hotel and a first room number");
+    if (!bulk.vendor_id || !bulk.from.trim()) return void toast.error("Pick a hotel and a first room number");
     const start = Number(bulk.from);
     const rows = Array.from({ length: n }, (_, i) => ({
       invite_id: inviteId,
@@ -117,7 +117,7 @@ export function HostRooms() {
       extra_bed_allowed: bulk.extra,
     }));
     const { error } = await supabase.from("hotel_rooms").insert(rows);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     toast.success(`${n} room${n > 1 ? "s" : ""} added`);
     refresh();
   }
@@ -125,13 +125,13 @@ export function HostRooms() {
   async function removeRoom(id: string) {
     if (!confirm("Remove this room and its guest assignments?")) return;
     const { error } = await supabase.from("hotel_rooms").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     refresh();
   }
 
   async function toggleExtra(r: Room) {
     const { error } = await supabase.from("hotel_rooms").update({ extra_bed_allowed: !r.extra_bed_allowed }).eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     refresh();
   }
 
@@ -141,13 +141,13 @@ export function HostRooms() {
       invite_id: inviteId, room_id: room.id, household: p.household, guest_name: p.guest_name,
       extra_bed: used >= room.max_occupancy,
     });
-    if (error) return toast.error(error.message.includes("full") ? "That room is full" : error.message);
+    if (error) return void toast.error(error.message.includes("full") ? "That room is full" : error.message);
     refresh();
   }
 
   async function unassign(id: string) {
     const { error } = await supabase.from("room_assignments").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     refresh();
   }
 
@@ -181,11 +181,11 @@ export function HostRooms() {
   }
 
   async function saveSuggestion() {
-    if (!suggest?.length) return setSuggest(null);
+    if (!suggest?.length) return void setSuggest(null);
     const { error } = await supabase
       .from("room_assignments")
       .insert(suggest.map((s) => ({ ...s, invite_id: inviteId })));
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     toast.success(`${suggest.length} guests placed`);
     setSuggest(null);
     refresh();
