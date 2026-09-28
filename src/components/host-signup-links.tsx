@@ -42,7 +42,7 @@ export function HostSignupLinks({ inviteId, slug }: { inviteId: string; slug: st
       token: randomCode(24),
       event_ids: events,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setLabel("");
     toast.success("Link made — it covers every event until you untick some.");
     await refresh();
@@ -113,7 +113,7 @@ export function HostSignupLinks({ inviteId, slug }: { inviteId: string; slug: st
                           const next = new Set(chosen);
                           if (next.has(e.id)) next.delete(e.id);
                           else next.add(e.id);
-                          if (next.size === 0) return toast.error("A link needs at least one event.");
+                          if (next.size === 0) { toast.error("A link needs at least one event."); return; }
                           void update(l.id, { event_ids: [...next] });
                         }}
                       >

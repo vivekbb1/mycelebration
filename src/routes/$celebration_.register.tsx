@@ -90,7 +90,7 @@ function RegisterPage() {
           })
         : await supabase.auth.signInWithPassword({ email: account.email.trim(), password: account.password });
     setBusy(false);
-    if (res.error) return toast.error(res.error.message);
+    if (res.error) { toast.error(res.error.message); return; }
     if (!res.data.session) {
       toast.success("Confirm your email, then come back to this link to finish.");
       return;
@@ -108,7 +108,7 @@ function RegisterPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
-    if (members.some((m) => m.name.trim().length < 2)) return toast.error("Please give every member a name.");
+    if (members.some((m) => m.name.trim().length < 2)) { toast.error("Please give every member a name."); return; }
     setBusy(true);
     try {
       const res = await registerFamily({
@@ -127,7 +127,7 @@ function RegisterPage() {
     setBusy(true);
     const res = await addFamilyMember({ data: { name: extra.name.trim(), gender: extra.gender } });
     setBusy(false);
-    if (!res.ok) return toast.error(res.error ?? "Couldn't add that person");
+    if (!res.ok) { toast.error(res.error ?? "Couldn't add that person"); return; }
     toast.success(`${extra.name.trim()} added.`);
     setExtra({ name: "", gender: "women" });
   };
