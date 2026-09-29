@@ -1038,7 +1038,7 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Everyone</SelectItem>
-                  {[["women", "Women"], ["men", "Men"], ["boy", "Boy"], ["girl", "Girl"], ["unisex", "Unisex"]]
+                  {([["women", "Women"], ["men", "Men"], ["boy", "Boy"], ["girl", "Girl"], ["unisex", "Unisex"]] as const)
                     .filter(([v]) => facets.gen.has(v) || fGender === v)
                     .map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
                 </SelectContent>
