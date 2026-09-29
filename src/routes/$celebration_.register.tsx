@@ -126,13 +126,19 @@ function RegisterPage() {
   };
 
   const addLater = async () => {
-    if (extra.name.trim().length < 2) return;
+    if (extra.name.trim().length < 2) { toast.error("Please add their full name."); return; }
+    const em = extra.email.trim();
+    const ph = extra.phone.trim();
+    if ((em && !/^\S+@\S+\.\S+$/.test(em)) || (ph && ph.replace(/\D/g, "").length < 7)) {
+      toast.error("Please check their email or mobile — or leave them blank.");
+      return;
+    }
     setBusy(true);
-    const res = await addFamilyMember({ data: { name: extra.name.trim(), gender: extra.gender } });
+    const res = await addFamilyMember({ data: { name: extra.name.trim(), gender: extra.gender, email: em, phone: ph } });
     setBusy(false);
     if (!res.ok) { toast.error(res.error ?? "Couldn't add that person"); return; }
     toast.success(`${extra.name.trim()} added.`);
-    setExtra({ name: "", gender: "women" });
+    setExtra({ name: "", gender: "women", email: "", phone: "" });
   };
 
   const title = link.data?.name ?? celebration?.name ?? "Register your family";
@@ -151,42 +157,6 @@ function RegisterPage() {
       </>
     );
   } else if (done !== null) {
-    body = (
-      <>
-        <p className="text-eyebrow">You're registered</p>
-        <h1 className="mt-3 text-3xl">Welcome to {title}</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Share your family code with the people you added — they sign in with it to fill in their own details.
-        </p>
-        <div className="mt-4 flex items-center gap-2">
-          <code className="rounded-md border border-border bg-muted px-3 py-2 font-mono text-lg">{done}</code>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label="Copy family code"
-            onClick={() => {
-              void navigator.clipboard.writeText(done);
-              toast.success("Copied");
-            }}
-          >
-            <Copy className="size-4" />
-          </Button>
-        </div>
-        <div className="mt-6 space-y-2">
-          <Label>Add another family member</Label>
-          <Input value={extra.name} maxLength={100} placeholder="Full name" onChange={(e) => setExtra((x) => ({ ...x, name: e.target.value }))} />
-          <GenderPick value={extra.gender} onChange={(g) => setExtra((x) => ({ ...x, gender: g }))} />
-          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={addLater}>
-            <Plus className="size-4" /> Add
-          </Button>
-        </div>
-        <Button className="mt-8 w-full" onClick={() => navigate({ to: "/guest/invite" })}>
-          See my invitation
-        </Button>
-      </>
-    );
-  } else if (session === false) {
     body = (
       <>
         <p className="text-eyebrow">Step 1 of 2</p>
