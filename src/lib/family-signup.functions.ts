@@ -242,3 +242,74 @@ export const removeRegisteredGuest = createServerFn({ method: "POST" })
     const del = await supabaseAdmin.auth.admin.deleteUser(user);
     return { ok: true, accountDeleted: !del.error };
   });
+
+const HOUSEHOLD_TABLES = [
+  "invite_codes", "event_attendance", "household_event_invites", "travel_plans", "guest_passports",
+  "guest_stays", "guest_transport", "room_assignments", "family_notes", "guest_messages", "inbound_unmatched",
+] as const;
+
+/** Host corrects a signed-up guest's details and, optionally, renames their whole family. */
+export const updateRegisteredGuest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      codeId: z.string().uuid(),
+      name: z.string().trim().min(2).max(100),
+      email: z.string().trim().max(255).email().or(z.literal("")),
+      phone: z.string().trim().max(40),
+      gender: z.enum(["men", "women", "boy", "girl"]).or(z.literal("")),
+      familyName: z.string().trim().min(2).max(80).or(z.literal("")),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: boolean; error?: string }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: code } = await supabaseAdmin
+      .from("invite_codes")
+      .select("id, invite_id, claimed_by, household, family_id")
+      .eq("id", data.codeId)
+      .maybeSingle();
+    if (!code?.invite_id) return { ok: false, error: "Guest not found." };
+    const { data: isHost } = await context.supabase.rpc("is_celebration_host", { _invite_id: code.invite_id });
+    if (!isHost) return { ok: false, error: "Only this celebration's hosts can do that." };
+
+    const upd = await supabaseAdmin.from("invite_codes").update({
+      guest_name: data.name,
+      email: data.email || null,
+      phone: data.phone || null,
+      gender: data.gender || null,
+    }).eq("id", code.id);
+    if (upd.error) return { ok: false, error: "We couldn't save those details." };
+
+    if (code.claimed_by) {
+      // Only touch the account itself when it belongs to this celebration alone.
+      const { count } = await supabaseAdmin
+        .from("invite_codes").select("id", { count: "exact", head: true })
+        .eq("claimed_by", code.claimed_by).neq("invite_id", code.invite_id);
+      if ((count ?? 0) === 0) {
+        await supabaseAdmin.from("profiles").update({
+          full_name: data.name, phone: data.phone || null, ...(data.gender ? { gender: data.gender } : {}),
+        }).eq("id", code.claimed_by);
+      }
+    }
+
+    const oldName = code.household;
+    const newName = data.familyName;
+    if (oldName && newName && newName !== oldName) {
+      const { count: clash } = await supabaseAdmin
+        .from("families").select("id", { count: "exact", head: true })
+        .eq("invite_id", code.invite_id).ilike("name", newName);
+      if ((clash ?? 0) > 0) return { ok: false, error: "Another family already has that name." };
+      const scope = { invite_id: code.invite_id, household: oldName };
+      for (const t of HOUSEHOLD_TABLES) {
+        await supabaseAdmin.from(t).update({ household: newName }).match(scope);
+      }
+      await supabaseAdmin.from("families").update({ name: newName }).eq("invite_id", code.invite_id).eq("name", oldName);
+      const { data: members } = await supabaseAdmin
+        .from("invite_codes").select("claimed_by").eq("invite_id", code.invite_id).eq("household", newName);
+      const users = (members ?? []).map((m) => m.claimed_by).filter((u): u is string => Boolean(u));
+      if (users.length) {
+        await supabaseAdmin.from("profiles").update({ household: newName }).in("id", users).eq("household", oldName);
+      }
+    }
+    return { ok: true };
+  });
