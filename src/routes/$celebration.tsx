@@ -58,6 +58,10 @@ function CelebrationPage() {
   const celebration = Route.useLoaderData();
   const { t: token } = Route.useSearch();
   const signup = useSignupLink(token);
+  const tx = (key: string, fallback: string) => {
+    const v = celebration.texts?.[`celebration_page.${key}`]?.trim();
+    return (v || fallback).replace(/\{name\}/g, celebration.name);
+  };
 
   return (
     <div
@@ -72,8 +76,8 @@ function CelebrationPage() {
             className="mx-auto mb-8 max-h-24 w-auto object-contain"
           />
         ) : null}
-        <p className="text-eyebrow">You're invited</p>
-        <h1 className="mt-4 text-4xl leading-tight sm:text-5xl">{celebration.name}</h1>
+        <p className="text-eyebrow">{tx("eyebrow", "You're invited")}</p>
+        <h1 className="mt-4 text-4xl leading-tight sm:text-5xl">{tx("title", "{name}")}</h1>
         {celebration.intro ? (
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed whitespace-pre-line text-muted-foreground">
             {celebration.intro}
@@ -83,18 +87,18 @@ function CelebrationPage() {
           {token && signup.data ? (
             <Button asChild size="lg">
               <Link to="/$celebration/register" params={{ celebration: celebration.slug ?? "" }} search={{ t: token }}>
-                Register our family
+                {tx("register", "Register our family")}
               </Link>
             </Button>
           ) : null}
           <Button asChild size="lg">
             <Link to="/auth" search={{ mode: "signin", c: celebration.slug ?? undefined }}>
-              Sign in
+              {tx("signin", "Sign in")}
             </Link>
           </Button>
         </div>
         <p className="mt-6 text-xs text-muted-foreground">
-          Your own events, replies and details appear once you sign in.
+          {tx("footnote", "Your own events, replies and details appear once you sign in.")}
         </p>
       </main>
     </div>
