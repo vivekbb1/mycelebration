@@ -108,16 +108,21 @@ function RegisterPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+    if (form.fullName.trim().length < 2 || form.familyName.trim().length < 2) { toast.error("Please add your family name and your full name."); return; }
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) { toast.error("Please enter a valid email."); return; }
+    if (form.phone.replace(/\D/g, "").length < 7) { toast.error("Please enter your full mobile number, with country code (for example +971 50 123 4567)."); return; }
     if (members.some((m) => m.name.trim().length < 2)) { toast.error("Please give every member a name."); return; }
+    const badMember = members.find((m) => (m.email.trim() && !/^\S+@\S+\.\S+$/.test(m.email.trim())) || (m.phone.trim() && m.phone.replace(/\D/g, "").length < 7));
+    if (badMember) { toast.error(`Please check the email or mobile for ${badMember.name.trim()} — or leave them blank.`); return; }
     setBusy(true);
     try {
       const res = await registerFamily({
-        data: { token, ...form, members: members.map((m) => ({ ...m, name: m.name.trim() })) },
+        data: { token, ...form, members: members.map((m) => ({ ...m, name: m.name.trim(), email: m.email.trim(), phone: m.phone.trim() })) },
       });
       if (!res.ok) toast.error(res.error ?? "We couldn't register your family.");
       else setDone(res.code ?? "");
     } catch {
-      toast.error("Please check the form — name, email and mobile are needed.");
+      toast.error("Something in the form isn't right — please check the names, email and mobile number.");
     }
     setBusy(false);
   };
@@ -264,6 +269,22 @@ function RegisterPage() {
                   </Button>
                 </div>
                 <GenderPick value={m.gender} onChange={(g) => setMembers((ms) => ms.map((x, j) => (j === i ? { ...x, gender: g } : x)))} />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    type="email"
+                    maxLength={255}
+                    placeholder="Email (optional)"
+                    value={m.email}
+                    onChange={(e) => setMembers((ms) => ms.map((x, j) => (j === i ? { ...x, email: e.target.value } : x)))}
+                  />
+                  <Input
+                    type="tel"
+                    maxLength={40}
+                    placeholder="Mobile (optional)"
+                    value={m.phone}
+                    onChange={(e) => setMembers((ms) => ms.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)))}
+                  />
+                </div>
               </div>
             ))}
             <Button

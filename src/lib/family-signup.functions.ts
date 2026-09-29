@@ -61,12 +61,15 @@ export const registerFamily = createServerFn({ method: "POST" })
 
     const { data: already } = await supabaseAdmin
       .from("invite_codes")
-      .select("id")
+      .select("id, household")
       .eq("claimed_by", userId)
       .eq("invite_id", link.invite_id)
       .limit(1);
     if (already && already.length > 0)
-      return { ok: false, error: "You're already registered for this celebration." };
+      return {
+        ok: false,
+        error: `This account is already part of ${already[0].household ? `the family "${already[0].household}"` : "a family"} in this celebration. To register a different family, sign out and use a different email.`,
+      };
 
     // Family names are how events are matched, so keep them unique per celebration.
     let name = data.familyName;
