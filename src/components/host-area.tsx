@@ -323,7 +323,12 @@ function HostDashboard() {
     const q = fq.trim().toLowerCase();
     const reserved = new Set((reservations.data ?? []).map((r) => r.outfit_id));
     const filtered = outfitList.filter((o) => {
-      if (q && !`${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""}`.toLowerCase().includes(q)) return false;
+      if (q) {
+        const hay = `${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""} ${o.boutique_url ?? ""}`.toLowerCase();
+        // A pasted shop link matches on its path, ignoring tracking bits after "?" or "#".
+        const link = q.startsWith("http") ? q.split(/[?#]/)[0].replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
+        if (!hay.includes(link)) return false;
+      }
       if (fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
       if (fGender !== "all" && o.gender !== fGender) return false;
       if (fType !== "all" && (o.garment_type ?? "") !== fType) return false;
@@ -778,11 +783,10 @@ function HostDashboard() {
 
         {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
-          <Tabs value={sub ?? "outfits"} onValueChange={(v) => go("wardrobe", v)}>
+          <Tabs value={!sub || sub === "import" ? "outfits" : sub} onValueChange={(v) => go("wardrobe", v)}>
             <TabsList className="max-w-full justify-start overflow-x-auto">  
               <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="manage">Manage</TabsTrigger>
-              <TabsTrigger value="import">Bulk Upload</TabsTrigger>
               <TabsTrigger value="feeds">Live feeds</TabsTrigger>
               <TabsTrigger value="picks">Selection</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
@@ -802,7 +806,7 @@ function HostDashboard() {
             </TabsContent>
 
 
-        <TabsContent value="outfits" className="mt-6 mx-auto max-w-2xl">
+        <TabsContent value="outfits" className="mt-6 space-y-8">
 
           <div className="panel h-fit min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
@@ -979,6 +983,10 @@ function HostDashboard() {
               </div>
             </div>
           </div>
+          <div>
+            <h2 className="mb-3 text-xl">Add many at once</h2>
+            <HostImport />
+          </div>
         </TabsContent>
 
         <TabsContent value="manage" className="mt-6">
@@ -990,7 +998,7 @@ function HostDashboard() {
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Input
                 className="col-span-2 sm:col-span-3"
-                placeholder="Search name, designer or code"
+                placeholder="Search name, designer, code or paste a shop link"
                 value={fq}
                 onChange={(e) => setFq(e.target.value)}
               />
@@ -1236,9 +1244,6 @@ function HostDashboard() {
           </div>
         </TabsContent>
 
-            <TabsContent value="import" className="mt-6">
-              <HostImport />
-            </TabsContent>
             {has("delivery") ? (
               <TabsContent value="logistics" className="mt-6">
                 <HostLogistics />
