@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.apply_due_guest_transfers() TO authenticated;

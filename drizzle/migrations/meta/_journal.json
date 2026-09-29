@@ -596,6 +596,13 @@
       "when": 1790657586196,
       "tag": "0084_one_look_per_event",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1790660160833,
+      "tag": "0085_grant_apply_due_guest_transfers",
+      "breakpoints": true
     }
   ]
 }
