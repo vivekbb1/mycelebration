@@ -395,9 +395,7 @@ function Lookbook() {
         ? `${outfit.title} is yours — a confirmation with pickup details is on its way to your inbox.`
         : `${outfit.title} is yours. Pickup details are on the delivery page.`,
     );
-    await queryClient.invalidateQueries({ queryKey: ["reservations"] });
-    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
-    await queryClient.invalidateQueries({ queryKey: ["my-wardrobe"] });
+    await queryClient.invalidateQueries();
   };
 
   const release = async (outfit: Outfit) => {
