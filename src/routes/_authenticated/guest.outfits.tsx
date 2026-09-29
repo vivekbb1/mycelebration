@@ -1,3 +1,4 @@
+import { useSwapLookConfirm } from "@/components/swap-look-confirm";
 import { WARDROBES, WARDROBE_VALUES, isWardrobe, wardrobeLabel } from "@/lib/wardrobe-options";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -319,20 +320,54 @@ function Lookbook() {
     setFreeOnly(false); setFavOnly(false); setPicksOnly(false);
   };
 
+  const swap = useSwapLookConfirm();
+
   const reserve = async (outfit: Outfit) => {
-    setBusyId(outfit.id);
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
-    if (!user) {
-      setBusyId(null);
-      return;
+    if (!user) return;
+    const forName = activeName || me.data?.full_name || null;
+    const key = (forName ?? "").toLowerCase();
+    const eventOf = new Map((outfits.data ?? []).map((o) => [o.id, o.event_id]));
+    const current = outfit.event_id
+      ? (reservations.data ?? []).find(
+          (r) =>
+            r.guest_id === user.id &&
+            (r.guest_name ?? "").toLowerCase() === key &&
+            r.outfit_id !== outfit.id &&
+            eventOf.get(r.outfit_id) === outfit.event_id,
+        )
+      : undefined;
+    if (current) {
+      const oldTitle = (outfits.data ?? []).find((o) => o.id === current.outfit_id)?.title ?? "the current look";
+      const ok = await swap.ask(
+        `${forName ?? "You"} already ${forName ? "has" : "have"} "${oldTitle}" for this event. Release it and reserve "${outfit.title}" instead?`,
+      );
+      if (!ok) return;
+    }
+    setBusyId(outfit.id);
+    if (current) {
+      const { error: relErr } = await supabase.from("reservations").delete().eq("id", current.id);
+      if (relErr) {
+        setBusyId(null);
+        toast.error(relErr.message);
+        return;
+      }
     }
     const { error } = await supabase.from("reservations").insert({
       outfit_id: outfit.id,
       guest_id: user.id,
-      guest_name: activeName || me.data?.full_name || null,
+      guest_name: forName,
     });
     if (error) {
+      if (current) {
+        // Put the previous look back so the guest isn't left with nothing.
+        await supabase.from("reservations").insert({
+          outfit_id: current.outfit_id,
+          guest_id: user.id,
+          guest_name: current.guest_name,
+        });
+      }
       setBusyId(null);
       toast.error(
         error.code === "23505"
