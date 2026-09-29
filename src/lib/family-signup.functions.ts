@@ -68,7 +68,7 @@ export const registerFamily = createServerFn({ method: "POST" })
     if (already && already.length > 0)
       return {
         ok: false,
-        error: `This account is already part of ${already[0].household ? `the family "${already[0].household}"` : "a family"} in this celebration. To register a different family, sign out and use a different email.`,
+        error: `This account is already part of ${already[0]?.household ? `the family "${already[0]?.household}"` : "a family"} in this celebration. To register a different family, sign out and use a different email.`,
       };
 
     // Family names are how events are matched, so keep them unique per celebration.
