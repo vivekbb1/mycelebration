@@ -1152,98 +1152,91 @@ function HostDashboard() {
               </div>
             ) : null}
 
-            <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <ul className="mt-4 divide-y divide-border">
               {shownList.map((o) => {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
-                const isSel = selected.includes(o.id);
                 return (
-                  <li
-                    key={o.id}
-                    className={`group relative flex flex-col overflow-hidden rounded-lg border bg-card ${isSel ? "border-primary ring-2 ring-primary" : "border-border"}`}
-                  >
-                    <div className="relative aspect-[3/4] w-full bg-muted">
-                      {o.image_url ? (
-                        <img
-                          src={o.image_url}
-                          referrerPolicy="no-referrer"
-                          alt={o.title}
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : null}
-                      <div className="absolute left-2 top-2 rounded bg-background/90 p-1">
-                        <Checkbox
-                          checked={isSel}
-                          aria-label={`Select ${o.title}`}
-                          onCheckedChange={() => toggleSelected(o.id)}
-                        />
-                      </div>
-                      <div className="absolute right-2 top-2">
-                        {res ? (
-                          <Badge variant="secondary" className="max-w-32 truncate">
-                            {guestName(res.guest_id, res.guest_name)}
-                          </Badge>
-                        ) : (
-                          <Badge>Available</Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-1 flex-col gap-1 p-3">
-                      <p className="line-clamp-2 text-sm font-medium">{o.title}</p>
-                      <p className="line-clamp-2 text-xs text-muted-foreground">
+                  <li key={o.id} className="flex items-center gap-2 py-3 sm:gap-3">
+                    <Checkbox
+                      checked={selected.includes(o.id)}
+                      aria-label={`Select ${o.title}`}
+                      onCheckedChange={() => toggleSelected(o.id)}
+                    />
+                    {o.image_url ? (
+                      <img
+                        src={o.image_url}
+                        referrerPolicy="no-referrer"
+                        alt={o.title}
+                        loading="lazy"
+                        width={40}
+                        height={54}
+                        className="h-[54px] w-10 rounded object-cover"
+                      />
+                    ) : null}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm">{o.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">
                         {eventName(o.event_id)}
                         {o.designer ? ` · ${o.designer}` : ""}
                         {o.garment_type ? ` · ${o.garment_type}` : ""}
                       </p>
-                      <p className="text-xs">
+                      <p className="flex flex-wrap items-center gap-x-3 text-xs">
                         {o.price_inr != null ? (
-                          <span className="font-medium">₹{Number(o.price_inr).toLocaleString("en-IN")}{o.price_note ? ` · ${o.price_note}` : ""}</span>
+                          <span className="font-medium">Price ₹{Number(o.price_inr).toLocaleString("en-IN")}{o.price_note ? ` · ${o.price_note}` : ""}</span>
                         ) : o.price_note ? (
-                          <span className="font-medium">{o.price_note}</span>
+                          <span className="font-medium">Price {o.price_note}</span>
                         ) : (
                           <span className="text-muted-foreground">No price</span>
                         )}
-                      </p>
-                      <div className="mt-auto flex items-center justify-between pt-1">
                         {o.boutique_url ? (
-                          <a href={o.boutique_url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
+                          <a
+                            href={o.boutique_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary underline"
+                          >
                             Shop link
                           </a>
-                        ) : <span />}
-                        <div className="flex">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={bulkBusy}
-                            aria-label={o.is_pinned ? `Unpin ${o.title}` : `Pin ${o.title}`}
-                            onClick={() => setPinned([o.id], !o.is_pinned)}
-                          >
-                            <Pin className={`size-4 ${o.is_pinned ? "fill-current text-primary" : "text-muted-foreground"}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Edit ${o.title}`}
-                            onClick={() => { startEdit(o.id); go("wardrobe", "outfits"); }}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Remove ${o.title}`}
-                            onClick={() => removeOutfit(o.id, o.title)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      </div>
+                        ) : null}
+                      </p>
                     </div>
+                    {res ? (
+                      <Badge variant="secondary" className="hidden max-w-28 truncate sm:inline-flex">
+                        {guestName(res.guest_id, res.guest_name)}
+                      </Badge>
+                    ) : (
+                      <Badge className="hidden sm:inline-flex">Available</Badge>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={bulkBusy}
+                      aria-label={o.is_pinned ? `Unpin ${o.title}` : `Pin ${o.title}`}
+                      onClick={() => setPinned([o.id], !o.is_pinned)}
+                    >
+                      <Pin className={`size-4 ${o.is_pinned ? "fill-current text-primary" : "text-muted-foreground"}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Edit ${o.title}`}
+                      onClick={() => { startEdit(o.id); go("wardrobe", "outfits"); }}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Remove ${o.title}`}
+                      onClick={() => removeOutfit(o.id, o.title)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </li>
                 );
               })}
               {shownList.length === 0 ? (
-                <li className="col-span-full py-4 text-sm text-muted-foreground">
+                <li className="py-4 text-sm text-muted-foreground">
                   {outfitList.length === 0 ? "No outfits added yet." : "No looks match these filters."}
                 </li>
               ) : null}
