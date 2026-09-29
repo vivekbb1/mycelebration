@@ -314,29 +314,50 @@ function HostDashboard() {
   const [fStatus, setFStatus] = useState("all");
   const [fSort, setFSort] = useState("pinned");
   const [bulkType, setBulkType] = useState("");
+  const reservedIds = useMemo(
+    () => new Set((reservations.data ?? []).map((r) => r.outfit_id)),
+    [reservations.data],
+  );
+  // One check per filter; `skip` leaves one out so each dropdown only offers choices that still match the rest.
+  const matchesFilters = (o: (typeof outfitList)[number], skip?: "event" | "gender" | "type" | "status") => {
+    const q = fq.trim().toLowerCase();
+    if (q) {
+      const hay = `${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""} ${o.boutique_url ?? ""}`.toLowerCase();
+      const link = q.startsWith("http") ? (q.split(/[?#]/)[0] ?? q).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
+      if (!hay.includes(link)) return false;
+    }
+    if (skip !== "event" && fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
+    if (skip !== "gender" && fGender !== "all" && o.gender !== fGender) return false;
+    if (skip !== "type" && fType !== "all" && (o.garment_type ?? "") !== fType) return false;
+    if (skip !== "status") {
+      if (fStatus === "reserved" && !reservedIds.has(o.id)) return false;
+      if (fStatus === "pinned" && !o.is_pinned) return false;
+      if (fStatus === "available" && reservedIds.has(o.id)) return false;
+    }
+    return true;
+  };
   const typeOptions = useMemo(
     () =>
       Array.from(new Set(outfitList.map((o) => o.garment_type).filter(Boolean) as string[])).sort(),
     [outfitList],
   );
-  const shownList = useMemo(() => {
-    const q = fq.trim().toLowerCase();
-    const reserved = new Set((reservations.data ?? []).map((r) => r.outfit_id));
-    const filtered = outfitList.filter((o) => {
-      if (q) {
-        const hay = `${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""} ${o.boutique_url ?? ""}`.toLowerCase();
-        // A pasted shop link matches on its path, ignoring tracking bits after "?" or "#".
-        const link = q.startsWith("http") ? (q.split(/[?#]/)[0] ?? q).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
-        if (!hay.includes(link)) return false;
+  const facets = useMemo(() => {
+    const ev = new Set<string>(), gen = new Set<string>(), typ = new Set<string>();
+    let avail = 0, res = 0, pin = 0;
+    for (const o of outfitList) {
+      if (matchesFilters(o, "event")) ev.add(o.event_id ?? "none");
+      if (matchesFilters(o, "gender") && o.gender) gen.add(o.gender);
+      if (matchesFilters(o, "type") && o.garment_type) typ.add(o.garment_type);
+      if (matchesFilters(o, "status")) {
+        if (reservedIds.has(o.id)) res++; else avail++;
+        if (o.is_pinned) pin++;
       }
-      if (fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
-      if (fGender !== "all" && o.gender !== fGender) return false;
-      if (fType !== "all" && (o.garment_type ?? "") !== fType) return false;
-      if (fStatus === "reserved" && !reserved.has(o.id)) return false;
-      if (fStatus === "pinned" && !o.is_pinned) return false;
-      if (fStatus === "available" && reserved.has(o.id)) return false;
-      return true;
-    });
+    }
+    return { ev, gen, typ: Array.from(typ).sort(), avail, res, pin };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, reservedIds]);
+  const shownList = useMemo(() => {
+    const filtered = outfitList.filter((o) => matchesFilters(o));
     const price = (o: (typeof outfitList)[number]) => (o.price_inr != null ? Number(o.price_inr) : null);
     const byPrice = (dir: 1 | -1) => (a: (typeof outfitList)[number], b: (typeof outfitList)[number]) => {
       const pa = price(a), pb = price(b);
@@ -352,7 +373,8 @@ function HostDashboard() {
     else if (fSort === "price_high") sorted.sort(byPrice(-1));
     else sorted.sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned));
     return sorted;
-  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fSort, reservations.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fSort, reservedIds]);
 
   const eventName = (id: string | null) =>
     eventList.find((e) => e.id === id)?.name ?? "No event";
@@ -1006,8 +1028,8 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All events</SelectItem>
-                  <SelectItem value="none">No event</SelectItem>
-                  {eventList.map((e) => (
+                  {facets.ev.has("none") || fEvent === "none" ? <SelectItem value="none">No event</SelectItem> : null}
+                  {eventList.filter((e) => facets.ev.has(e.id) || fEvent === e.id).map((e) => (
                     <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1016,18 +1038,16 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Everyone</SelectItem>
-                  <SelectItem value="women">Women</SelectItem>
-                  <SelectItem value="men">Men</SelectItem>
-                  <SelectItem value="boy">Boy</SelectItem>
-                  <SelectItem value="girl">Girl</SelectItem>
-                  <SelectItem value="unisex">Unisex</SelectItem>
+                  {([["women", "Women"], ["men", "Men"], ["boy", "Boy"], ["girl", "Girl"], ["unisex", "Unisex"]] as const)
+                    .filter(([v]) => facets.gen.has(v) || fGender === v)
+                    .map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={fType} onValueChange={setFType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All categories</SelectItem>
-                  {typeOptions.map((t) => (
+                  {(fType !== "all" && !facets.typ.includes(fType) ? [fType, ...facets.typ] : facets.typ).map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1047,9 +1067,9 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any status</SelectItem>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="reserved">Chosen by a guest</SelectItem>
-                  <SelectItem value="pinned">Pinned</SelectItem>
+                  <SelectItem value="available">Available ({facets.avail})</SelectItem>
+                  <SelectItem value="reserved">Chosen by a guest ({facets.res})</SelectItem>
+                  <SelectItem value="pinned">Pinned ({facets.pin})</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1152,91 +1172,99 @@ function HostDashboard() {
               </div>
             ) : null}
 
-            <ul className="mt-4 divide-y divide-border">
+            <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {shownList.map((o) => {
                 const res = reservations.data?.find((r) => r.outfit_id === o.id);
+                const isSel = selected.includes(o.id);
                 return (
-                  <li key={o.id} className="flex items-center gap-2 py-3 sm:gap-3">
-                    <Checkbox
-                      checked={selected.includes(o.id)}
-                      aria-label={`Select ${o.title}`}
-                      onCheckedChange={() => toggleSelected(o.id)}
-                    />
-                    {o.image_url ? (
-                      <img
-                        src={o.image_url}
-                        referrerPolicy="no-referrer"
-                        alt={o.title}
-                        loading="lazy"
-                        width={40}
-                        height={54}
-                        className="h-[54px] w-10 rounded object-cover"
-                      />
-                    ) : null}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm">{o.title}</p>
+                  <li
+                    key={o.id}
+                    className={`flex min-w-0 flex-col overflow-hidden rounded-lg border bg-card ${isSel ? "border-primary ring-1 ring-primary" : "border-border"}`}
+                  >
+                    <div className="relative aspect-[3/4] bg-muted">
+                      {o.image_url ? (
+                        <img
+                          src={o.image_url}
+                          referrerPolicy="no-referrer"
+                          alt={o.title}
+                          loading="lazy"
+                          className="size-full object-cover"
+                        />
+                      ) : null}
+                      <div className="absolute left-2 top-2 rounded bg-background/90 p-1">
+                        <Checkbox
+                          checked={isSel}
+                          aria-label={`Select ${o.title}`}
+                          onCheckedChange={() => toggleSelected(o.id)}
+                        />
+                      </div>
+                      <div className="absolute right-2 top-2">
+                        {res ? (
+                          <Badge variant="secondary" className="max-w-28 truncate">
+                            {guestName(res.guest_id, res.guest_name)}
+                          </Badge>
+                        ) : (
+                          <Badge>Available</Badge>
+                        )}
+                      </div>
+                      {o.is_pinned ? (
+                        <Pin className="absolute bottom-2 left-2 size-4 fill-current text-primary" />
+                      ) : null}
+                    </div>
+                    <div className="flex flex-1 flex-col gap-1 p-2">
+                      <p className="line-clamp-2 text-sm">{o.title}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {eventName(o.event_id)}
                         {o.designer ? ` · ${o.designer}` : ""}
                         {o.garment_type ? ` · ${o.garment_type}` : ""}
                       </p>
-                      <p className="flex flex-wrap items-center gap-x-3 text-xs">
+                      <p className="text-xs">
                         {o.price_inr != null ? (
-                          <span className="font-medium">Price ₹{Number(o.price_inr).toLocaleString("en-IN")}{o.price_note ? ` · ${o.price_note}` : ""}</span>
+                          <span className="font-medium">₹{Number(o.price_inr).toLocaleString("en-IN")}{o.price_note ? ` · ${o.price_note}` : ""}</span>
                         ) : o.price_note ? (
-                          <span className="font-medium">Price {o.price_note}</span>
+                          <span className="font-medium">{o.price_note}</span>
                         ) : (
                           <span className="text-muted-foreground">No price</span>
                         )}
                         {o.boutique_url ? (
-                          <a
-                            href={o.boutique_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-primary underline"
-                          >
+                          <a href={o.boutique_url} target="_blank" rel="noreferrer" className="ml-2 text-primary underline">
                             Shop link
                           </a>
                         ) : null}
                       </p>
+                      <div className="mt-auto flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={bulkBusy}
+                          aria-label={o.is_pinned ? `Unpin ${o.title}` : `Pin ${o.title}`}
+                          onClick={() => setPinned([o.id], !o.is_pinned)}
+                        >
+                          <Pin className={`size-4 ${o.is_pinned ? "fill-current text-primary" : "text-muted-foreground"}`} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Edit ${o.title}`}
+                          onClick={() => { startEdit(o.id); go("wardrobe", "outfits"); }}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Remove ${o.title}`}
+                          onClick={() => removeOutfit(o.id, o.title)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
                     </div>
-                    {res ? (
-                      <Badge variant="secondary" className="hidden max-w-28 truncate sm:inline-flex">
-                        {guestName(res.guest_id, res.guest_name)}
-                      </Badge>
-                    ) : (
-                      <Badge className="hidden sm:inline-flex">Available</Badge>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={bulkBusy}
-                      aria-label={o.is_pinned ? `Unpin ${o.title}` : `Pin ${o.title}`}
-                      onClick={() => setPinned([o.id], !o.is_pinned)}
-                    >
-                      <Pin className={`size-4 ${o.is_pinned ? "fill-current text-primary" : "text-muted-foreground"}`} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Edit ${o.title}`}
-                      onClick={() => { startEdit(o.id); go("wardrobe", "outfits"); }}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Remove ${o.title}`}
-                      onClick={() => removeOutfit(o.id, o.title)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
                   </li>
                 );
               })}
               {shownList.length === 0 ? (
-                <li className="py-4 text-sm text-muted-foreground">
+                <li className="col-span-full py-4 text-sm text-muted-foreground">
                   {outfitList.length === 0 ? "No outfits added yet." : "No looks match these filters."}
                 </li>
               ) : null}
