@@ -67,7 +67,8 @@ function RegisterPage() {
   const [account, setAccount] = useState({ email: "", password: "", mode: "signup" as "signup" | "signin" });
   const [form, setForm] = useState({ familyName: "", fullName: "", email: "", phone: "", gender: "women" as G });
   const [members, setMembers] = useState<{ name: string; gender: G; email: string; phone: string }[]>([]);
-  const [extra, setExtra] = useState({ name: "", gender: "women" as G });
+  const [extra, setExtra] = useState({ name: "", gender: "women" as G, email: "", phone: "" });
+  const [pending, setPending] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -76,6 +77,21 @@ function RegisterPage() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(Boolean(s)));
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // While waiting for email confirmation, keep checking so the page moves on by itself
+  // (e.g. when the link was opened in another tab, or after signing in with the password).
+  useEffect(() => {
+    if (!pending || session) return;
+    const check = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) { setSession(true); return; }
+      const r = await supabase.auth.signInWithPassword({ email: pending, password: account.password });
+      if (r.data.session) setSession(true);
+    };
+    const id = window.setInterval(check, 4000);
+    window.addEventListener("focus", check);
+    return () => { window.clearInterval(id); window.removeEventListener("focus", check); };
+  }, [pending, session, account.password]);
 
   const createAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,11 +105,21 @@ function RegisterPage() {
           })
         : await supabase.auth.signInWithPassword({ email: account.email.trim(), password: account.password });
     setBusy(false);
-    if (res.error) { toast.error(res.error.message); return; }
-    if (!res.data.session) {
-      toast.success("Confirm your email, then come back to this link to finish.");
+    if (res.error) {
+      if (/not confirmed/i.test(res.error.message)) { setPending(account.email.trim()); return; }
+      toast.error(res.error.message);
       return;
     }
+    if (!res.data.session) setPending(account.email.trim());
+  };
+
+  const resend = async () => {
+    if (!pending) return;
+    setBusy(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email: pending, options: { emailRedirectTo: window.location.href } });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else toast.success("Sent again — check your inbox.");
   };
 
   const social = async (provider: "google" | "microsoft" | "apple") => {
@@ -157,6 +183,64 @@ function RegisterPage() {
       </>
     );
   } else if (done !== null) {
+    body = (
+      <>
+        <p className="text-eyebrow">You're registered</p>
+        <h1 className="mt-3 text-3xl">Welcome to {title}</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Share your family code with the people you added — they sign in with it to fill in their own details.
+        </p>
+        <div className="mt-4 flex items-center gap-2">
+          <code className="rounded-md border border-border bg-muted px-3 py-2 font-mono text-lg">{done}</code>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label="Copy family code"
+            onClick={() => {
+              void navigator.clipboard.writeText(done);
+              toast.success("Copied");
+            }}
+          >
+            <Copy className="size-4" />
+          </Button>
+        </div>
+        <div className="mt-6 space-y-2">
+          <Label>Add another family member</Label>
+          <Input value={extra.name} maxLength={100} placeholder="Full name" onChange={(e) => setExtra((x) => ({ ...x, name: e.target.value }))} />
+          <GenderPick value={extra.gender} onChange={(g) => setExtra((x) => ({ ...x, gender: g }))} />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Input type="email" maxLength={255} placeholder="Email (optional)" value={extra.email} onChange={(e) => setExtra((x) => ({ ...x, email: e.target.value }))} />
+            <Input type="tel" maxLength={40} placeholder="Mobile (optional)" value={extra.phone} onChange={(e) => setExtra((x) => ({ ...x, phone: e.target.value }))} />
+          </div>
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={addLater}>
+            <Plus className="size-4" /> Add
+          </Button>
+        </div>
+        <Button className="mt-8 w-full" onClick={() => navigate({ to: "/guest/invite" })}>
+          See my invitation
+        </Button>
+      </>
+    );
+  } else if (session === false && pending) {
+    body = (
+      <>
+        <p className="text-eyebrow">Step 1 of 2</p>
+        <h1 className="mt-3 text-3xl">Check your email</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          We've sent a link to <strong>{pending}</strong>. Open it and tap the button inside — this page moves to the next step on its own once you have.
+        </p>
+        <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="inline-block size-2 animate-pulse rounded-full bg-primary" /> Waiting for you to confirm…
+        </p>
+        <p className="mt-3 text-xs text-muted-foreground">Can't find it? Look in your junk or spam folder.</p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={resend}>Send the email again</Button>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setPending(null)}>Use a different email</Button>
+        </div>
+      </>
+    );
+  } else if (session === false) {
     body = (
       <>
         <p className="text-eyebrow">Step 1 of 2</p>
