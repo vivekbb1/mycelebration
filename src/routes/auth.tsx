@@ -66,7 +66,7 @@ function AuthPage() {
   const celebration = useCelebrationBySlug(search.c).data ?? null;
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"signin" | "signup">(
-    search.mode === "signin" ? "signin" : "signup",
+    search.mode === "signup" ? "signup" : "signin",
   );
 
   const [signUpForm, setSignUpForm] = useState({
