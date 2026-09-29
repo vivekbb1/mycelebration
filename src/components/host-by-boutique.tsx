@@ -147,7 +147,10 @@ export function HostByBoutique() {
               functionName:
                 (events.data ?? []).find((e) => e.id === o.event_id)?.name ?? null,
               guestId: res?.guest_id ?? null,
-              guest: profile?.full_name || res?.guest_name || null,
+              guest:
+                res?.guest_name && profile?.full_name && res.guest_name.trim().toLowerCase() !== profile.full_name.trim().toLowerCase()
+                  ? `${res.guest_name} (by ${profile.full_name})`
+                  : res?.guest_name || profile?.full_name || null,
               reservationId: res?.id ?? null,
               orderStatus: (res?.order_status as string | null) ?? "pending",
               measured,
