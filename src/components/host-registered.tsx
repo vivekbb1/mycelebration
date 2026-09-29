@@ -2,11 +2,14 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,9 +21,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useSelectedEvent } from "@/lib/selected-event";
-import { removeRegisteredGuest } from "@/lib/family-signup.functions";
+import { removeRegisteredGuest, updateRegisteredGuest } from "@/lib/family-signup.functions";
 
-type Row = { id: string; name: string; email: string; household: string; claimedAt: string | null };
+type Row = { id: string; name: string; email: string; phone: string; gender: string; household: string; claimedAt: string | null };
 
 /** Every guest who has signed in to this celebration, so hosts can clear out test accounts. */
 export function HostRegistered() {
@@ -30,6 +33,28 @@ export function HostRegistered() {
   const [q, setQ] = useState("");
   const [target, setTarget] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
+  const update = useServerFn(updateRegisteredGuest);
+  const [edit, setEdit] = useState<Row | null>(null);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", gender: "", familyName: "" });
+  const openEdit = (r: Row) => {
+    setEdit(r);
+    setForm({ name: r.name, email: r.email, phone: r.phone, gender: r.gender, familyName: r.household });
+  };
+  const save = async () => {
+    if (!edit) return;
+    setBusy(true);
+    try {
+      const r = await update({ data: { codeId: edit.id, ...form, gender: form.gender as "men" } });
+      if (!r.ok) throw new Error(r.error);
+      toast.success("Details saved.");
+      setEdit(null);
+      void qc.invalidateQueries();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't save those details.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const list = useQuery({
     queryKey: ["registered-guests", inviteId],
@@ -37,7 +62,7 @@ export function HostRegistered() {
     queryFn: async (): Promise<Row[]> => {
       const codes = await supabase
         .from("invite_codes")
-        .select("id, guest_name, email, household, claimed_by, claimed_at")
+        .select("id, guest_name, email, phone, gender, household, claimed_by, claimed_at")
         .eq("invite_id", inviteId as string)
         .not("claimed_by", "is", null)
         .order("claimed_at", { ascending: false });
@@ -52,6 +77,8 @@ export function HostRegistered() {
           id: c.id,
           name: c.guest_name || p?.full_name || "Guest",
           email: p?.email || c.email || "",
+          phone: c.phone ?? "",
+          gender: c.gender ?? "",
           household: c.household ?? "",
           claimedAt: c.claimed_at,
         };
@@ -103,6 +130,9 @@ export function HostRegistered() {
                   .join(" · ")}
               </p>
             </div>
+            <Button variant="ghost" size="icon" aria-label={`Edit ${r.name}`} onClick={() => openEdit(r)}>
+              <Pencil className="size-4" />
+            </Button>
             <Button variant="ghost" size="icon" aria-label={`Remove ${r.name}`} onClick={() => setTarget(r)}>
               <Trash2 className="size-4" />
             </Button>
@@ -112,6 +142,53 @@ export function HostRegistered() {
           <li className="py-4 text-sm text-muted-foreground">No registered guests yet.</li>
         ) : null}
       </ul>
+
+      <Dialog open={Boolean(edit)} onOpenChange={(o) => !o && setEdit(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit guest details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="rg-name">Full name</Label>
+              <Input id="rg-name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="rg-email">Email</Label>
+                <Input id="rg-email" type="email" placeholder="you@example.com" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="rg-phone">Mobile</Label>
+                <Input id="rg-phone" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Wardrobe</Label>
+              <Select value={form.gender} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
+                <SelectTrigger><SelectValue placeholder="Choose" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="men">Man</SelectItem>
+                  <SelectItem value="women">Woman</SelectItem>
+                  <SelectItem value="boy">Boy</SelectItem>
+                  <SelectItem value="girl">Girl</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="rg-family">Family name</Label>
+              <Input id="rg-family" value={form.familyName} onChange={(e) => setForm((f) => ({ ...f, familyName: e.target.value }))} />
+              <p className="text-xs text-muted-foreground">Changing this renames the whole family, for every member.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEdit(null)} disabled={busy}>Cancel</Button>
+            <Button onClick={() => void save()} disabled={busy || form.name.trim().length < 2}>
+              {busy ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={Boolean(target)} onOpenChange={(o) => !o && setTarget(null)}>
         <AlertDialogContent>
