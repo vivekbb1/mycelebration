@@ -206,3 +206,39 @@ export const deleteFamilyRegistration = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/** Host removes one signed-up guest (e.g. a test account) from their celebration. */
+export const removeRegisteredGuest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ codeId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }): Promise<{ ok: boolean; error?: string; accountDeleted?: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: code } = await supabaseAdmin
+      .from("invite_codes")
+      .select("id, invite_id, claimed_by, guest_name")
+      .eq("id", data.codeId)
+      .maybeSingle();
+    if (!code?.invite_id) return { ok: false, error: "Guest not found." };
+    const { data: isHost } = await context.supabase.rpc("is_celebration_host", { _invite_id: code.invite_id });
+    if (!isHost) return { ok: false, error: "Only this celebration's hosts can do that." };
+    const user = code.claimed_by;
+    if (user === context.userId) return { ok: false, error: "You can't remove your own account." };
+
+    if (user) {
+      await supabaseAdmin.from("reservations").delete().eq("guest_id", user).eq("invite_id", code.invite_id);
+      await supabaseAdmin.from("measurements").delete().eq("guest_id", user).eq("invite_id", code.invite_id);
+    }
+    const { error } = await supabaseAdmin.from("invite_codes").delete().eq("id", code.id);
+    if (error) return { ok: false, error: "We couldn't remove that guest." };
+
+    if (!user) return { ok: true };
+    // Delete the whole account only when it belongs to nothing else.
+    const [others, hosts, admins] = await Promise.all([
+      supabaseAdmin.from("invite_codes").select("id", { count: "exact", head: true }).eq("claimed_by", user),
+      supabaseAdmin.from("celebration_hosts").select("id", { count: "exact", head: true }).eq("user_id", user),
+      supabaseAdmin.from("platform_admins").select("user_id", { count: "exact", head: true }).eq("user_id", user),
+    ]);
+    if ((others.count ?? 0) + (hosts.count ?? 0) + (admins.count ?? 0) > 0) return { ok: true };
+    const del = await supabaseAdmin.auth.admin.deleteUser(user);
+    return { ok: true, accountDeleted: !del.error };
+  });
