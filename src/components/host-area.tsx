@@ -30,6 +30,7 @@ import { HostEvents } from "@/components/host-events";
 import { HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostGuestList } from "@/components/host-guest-list";
+import { HostRegistered } from "@/components/host-registered";
 import { HostTags } from "@/components/host-tags";
 import { HostPicks } from "@/components/host-picks";
 import { HostFeeds } from "@/components/host-feeds";
@@ -311,6 +312,7 @@ function HostDashboard() {
   const [fGender, setFGender] = useState("all");
   const [fType, setFType] = useState("all");
   const [fStatus, setFStatus] = useState("all");
+  const [fSort, setFSort] = useState("pinned");
   const [bulkType, setBulkType] = useState("");
   const typeOptions = useMemo(
     () =>
@@ -320,7 +322,7 @@ function HostDashboard() {
   const shownList = useMemo(() => {
     const q = fq.trim().toLowerCase();
     const reserved = new Set((reservations.data ?? []).map((r) => r.outfit_id));
-    return outfitList.filter((o) => {
+    const filtered = outfitList.filter((o) => {
       if (q && !`${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""}`.toLowerCase().includes(q)) return false;
       if (fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
       if (fGender !== "all" && o.gender !== fGender) return false;
@@ -330,7 +332,22 @@ function HostDashboard() {
       if (fStatus === "available" && reserved.has(o.id)) return false;
       return true;
     });
-  }, [outfitList, fq, fEvent, fGender, fType, fStatus, reservations.data]);
+    const price = (o: (typeof outfitList)[number]) => (o.price_inr != null ? Number(o.price_inr) : null);
+    const byPrice = (dir: 1 | -1) => (a: (typeof outfitList)[number], b: (typeof outfitList)[number]) => {
+      const pa = price(a), pb = price(b);
+      if (pa == null) return pb == null ? 0 : 1;
+      if (pb == null) return -1;
+      return (pa - pb) * dir;
+    };
+    const sorted = [...filtered];
+    if (fSort === "name") sorted.sort((a, b) => a.title.localeCompare(b.title));
+    else if (fSort === "newest") sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    else if (fSort === "oldest") sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
+    else if (fSort === "price_low") sorted.sort(byPrice(1));
+    else if (fSort === "price_high") sorted.sort(byPrice(-1));
+    else sorted.sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned));
+    return sorted;
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fSort, reservations.data]);
 
   const eventName = (id: string | null) =>
     eventList.find((e) => e.id === id)?.name ?? "No event";
@@ -663,6 +680,7 @@ function HostDashboard() {
           <Tabs value={sub ?? "list"} onValueChange={(v) => go("guests", v)}>
             <TabsList>
               <TabsTrigger value="list">List</TabsTrigger>
+              <TabsTrigger value="registered">Registered</TabsTrigger>
               <TabsTrigger value="tags">Tags</TabsTrigger>
               <TabsTrigger value="invited">Assign</TabsTrigger>
 
@@ -689,6 +707,9 @@ function HostDashboard() {
             </TabsList>
             <TabsContent value="list" className="mt-6">
               <HostGuestList />
+            </TabsContent>
+            <TabsContent value="registered" className="mt-6">
+              <HostRegistered />
             </TabsContent>
             <TabsContent value="invited" className="mt-6">
               <HostFunctionAccess />
@@ -760,6 +781,7 @@ function HostDashboard() {
           <Tabs value={sub ?? "outfits"} onValueChange={(v) => go("wardrobe", v)}>
             <TabsList className="max-w-full justify-start overflow-x-auto">  
               <TabsTrigger value="outfits">Upload</TabsTrigger>
+              <TabsTrigger value="manage">Manage</TabsTrigger>
               <TabsTrigger value="import">Bulk Upload</TabsTrigger>
               <TabsTrigger value="feeds">Live feeds</TabsTrigger>
               <TabsTrigger value="picks">Selection</TabsTrigger>
@@ -780,7 +802,7 @@ function HostDashboard() {
             </TabsContent>
 
 
-        <TabsContent value="outfits" className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <TabsContent value="outfits" className="mt-6 mx-auto max-w-2xl">
 
           <div className="panel h-fit min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
@@ -957,7 +979,9 @@ function HostDashboard() {
               </div>
             </div>
           </div>
+        </TabsContent>
 
+        <TabsContent value="manage" className="mt-6">
           <div className="panel h-fit min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">
               In the lookbook ({shownList.length}
@@ -998,6 +1022,17 @@ function HostDashboard() {
                   {typeOptions.map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={fSort} onValueChange={setFSort}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pinned">Pinned first</SelectItem>
+                  <SelectItem value="newest">Newest first</SelectItem>
+                  <SelectItem value="oldest">Oldest first</SelectItem>
+                  <SelectItem value="name">Name A–Z</SelectItem>
+                  <SelectItem value="price_low">Price: low to high</SelectItem>
+                  <SelectItem value="price_high">Price: high to low</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={fStatus} onValueChange={setFStatus}>
@@ -1139,9 +1174,9 @@ function HostDashboard() {
                       </p>
                       <p className="flex flex-wrap items-center gap-x-3 text-xs">
                         {o.price_inr != null ? (
-                          <span>₹{Number(o.price_inr).toLocaleString("en-IN")}</span>
+                          <span className="font-medium">Price ₹{Number(o.price_inr).toLocaleString("en-IN")}{o.price_note ? ` · ${o.price_note}` : ""}</span>
                         ) : o.price_note ? (
-                          <span>{o.price_note}</span>
+                          <span className="font-medium">Price {o.price_note}</span>
                         ) : (
                           <span className="text-muted-foreground">No price</span>
                         )}
@@ -1177,7 +1212,7 @@ function HostDashboard() {
                       variant="ghost"
                       size="icon"
                       aria-label={`Edit ${o.title}`}
-                      onClick={() => startEdit(o.id)}
+                      onClick={() => { startEdit(o.id); go("wardrobe", "outfits"); }}
                     >
                       <Pencil className="size-4" />
                     </Button>
