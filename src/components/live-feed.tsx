@@ -1,3 +1,4 @@
+import { useSwapLookConfirm } from "@/components/swap-look-confirm";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ export function LiveFeed({
   const queryClient = useQueryClient();
   const browse = useServerFn(browseEventFeed);
   const claim = useServerFn(claimFeedLook);
+  const swap = useSwapLookConfirm();
   const [audience, setAudience] = useState(defaultAudience ?? "women");
   const [page, setPage] = useState(1);
   const [looks, setLooks] = useState<FeedLook[]>([]);
@@ -73,7 +75,14 @@ export function LiveFeed({
   const reserve = async (look: FeedLook) => {
     setBusy(look.slug);
     try {
-      await claim({ data: { eventId, audience, slug: look.slug, guestName: guestName ?? null } });
+      let res = await claim({ data: { eventId, audience, slug: look.slug, guestName: guestName ?? null } });
+      if (res.needsSwap) {
+        const ok = await swap.ask(
+          `${guestName ?? "You"} already ${guestName ? "has" : "have"} "${res.currentTitle}" for this event. Release it and reserve "${look.title}" instead?`,
+        );
+        if (!ok) return;
+        res = await claim({ data: { eventId, audience, slug: look.slug, guestName: guestName ?? null, replace: true } });
+      }
       toast.success(`${look.title} is yours.`);
       setLooks((prev) => prev.filter((l) => l.slug !== look.slug));
       await Promise.all([
@@ -101,6 +110,7 @@ export function LiveFeed({
 
   return (
     <section className="mt-8">
+      {swap.dialog}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl">{mode === "host" ? "Live preview" : "More looks to choose from"}</h2>
         <div className="flex flex-wrap gap-2">

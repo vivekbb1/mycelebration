@@ -125,8 +125,9 @@ export const browseEventFeed = createServerFn({ method: "POST" })
 export const claimFeedLook = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { eventId: string; audience: string; slug: string; guestName?: string | null }) => ({
+    (d: { eventId: string; audience: string; slug: string; guestName?: string | null; replace?: boolean }) => ({
       ...inputOf(d),
+      replace: d?.replace === true,
       slug: String(d?.slug ?? "").slice(0, 300),
       guestName: d?.guestName ? String(d.guestName).slice(0, 120) : null,
     }),
@@ -155,6 +156,19 @@ export const claimFeedLook = createServerFn({ method: "POST" })
     ]);
     if (!feed || hidden || ev?.outfit_selection === false) {
       throw new Error("That look isn't offered for this event.");
+    }
+
+    // Is this person already holding a look for this event?
+    const { data: mineRows } = await ctx.supabase
+      .from("reservations")
+      .select("id, outfit_id, guest_name, outfits!inner(event_id, title)")
+      .eq("guest_id", ctx.userId)
+      .eq("outfits.event_id", data.eventId);
+    const key = (data.guestName ?? "").toLowerCase();
+    const current = (mineRows ?? []).find((r: { guest_name: string | null }) => (r.guest_name ?? "").toLowerCase() === key);
+    if (current && !data.replace) {
+      const t = (current as unknown as { outfits: { title: string } | null }).outfits?.title ?? "a look";
+      return { needsSwap: true as const, currentTitle: t, outfitId: null, title: "" };
     }
 
     const look = await detail(slug);
@@ -197,12 +211,23 @@ export const claimFeedLook = createServerFn({ method: "POST" })
       outfitId = row.id;
     }
 
+    if (current) {
+      const { error: relErr } = await ctx.supabase.from("reservations").delete().eq("id", current.id);
+      if (relErr) throw new Error(relErr.message);
+    }
     const { error } = await ctx.supabase.from("reservations").insert({
       outfit_id: outfitId,
       guest_id: ctx.userId,
       guest_name: data.guestName,
     });
     if (error) {
+      if (current) {
+        await ctx.supabase.from("reservations").insert({
+          outfit_id: current.outfit_id,
+          guest_id: ctx.userId,
+          guest_name: current.guest_name,
+        });
+      }
       throw new Error(
         error.code === "23505"
           ? "Another guest just claimed this look — please pick another."
@@ -211,7 +236,7 @@ export const claimFeedLook = createServerFn({ method: "POST" })
             : error.message,
       );
     }
-    return { outfitId, title: look.title };
+    return { needsSwap: false as const, currentTitle: null, outfitId, title: look.title };
   });
 
 /** Imports one shop page (up to 24 looks) of a saved feed into the wardrobe,
