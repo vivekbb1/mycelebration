@@ -638,3 +638,53 @@ function PageLook({ inviteId }: { inviteId: string }) {
     </div>
   );
 }
+
+/** Logo, background and welcome text for the celebration page, editable from the Wording tab. */
+export function CelebrationPageEditor({ inviteId }: { inviteId: string }) {
+  const qc = useQueryClient();
+  const row = useQuery({
+    queryKey: ["page-intro", inviteId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("public_intro")
+        .eq("id", inviteId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const [intro, setIntro] = useState("");
+  useEffect(() => setIntro(row.data?.public_intro ?? ""), [row.data?.public_intro]);
+  const saveIntro = async () => {
+    const clean = intro.trim();
+    if (clean === (row.data?.public_intro ?? "")) return;
+    const { error } = await supabase
+      .from("invites")
+      .update({ public_intro: clean || null })
+      .eq("id", inviteId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Saved.");
+    qc.invalidateQueries({ queryKey: ["page-intro", inviteId] });
+    qc.invalidateQueries({ queryKey: ["invites"] });
+    qc.invalidateQueries({ queryKey: ["public-celebration"] });
+  };
+  return (
+    <section className="space-y-3">
+      <h3 className="text-lg">Celebration page</h3>
+      <label className="block text-sm">
+        Text under the celebration name (optional)
+        <Textarea
+          value={intro}
+          onChange={(e) => setIntro(e.target.value)}
+          onBlur={() => void saveIntro()}
+          rows={3}
+          maxLength={600}
+          placeholder="We can't wait to celebrate with you."
+          className="mt-1"
+        />
+      </label>
+      <PageLook inviteId={inviteId} />
+    </section>
+  );
+}
