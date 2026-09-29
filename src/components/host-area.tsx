@@ -326,7 +326,7 @@ function HostDashboard() {
       if (q) {
         const hay = `${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""} ${o.boutique_url ?? ""}`.toLowerCase();
         // A pasted shop link matches on its path, ignoring tracking bits after "?" or "#".
-        const link = q.startsWith("http") ? q.split(/[?#]/)[0].replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
+        const link = q.startsWith("http") ? (q.split(/[?#]/)[0] ?? q).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
         if (!hay.includes(link)) return false;
       }
       if (fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
