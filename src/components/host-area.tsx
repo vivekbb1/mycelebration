@@ -27,7 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostImport } from "@/components/host-import";
 import { HostEvents } from "@/components/host-events";
-import { HostInvites, useInvites } from "@/components/host-invites";
+import { CelebrationPageEditor, HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
 import { HostGuestList } from "@/components/host-guest-list";
 import { HostRegistered } from "@/components/host-registered";
@@ -1342,6 +1342,7 @@ function HostDashboard() {
             ) : null}
             {has("branding") ? (
               <TabsContent value="look" className="mt-6 space-y-8">
+                {selectedEvent ? <CelebrationPageEditor inviteId={selectedEvent} /> : null}
                 <HostContent
                   inviteId={selectedEvent || null}
                   exclude={["Welcome page", "Site-wide"]}
