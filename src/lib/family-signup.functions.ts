@@ -188,6 +188,10 @@ export const deleteFamilyRegistration = createServerFn({ method: "POST" })
     const users = (codes ?? []).map((c) => c.claimed_by).filter((u): u is string => Boolean(u));
 
     const scope = { household: fam.name, invite_id: fam.invite_id };
+    if (users.length > 0) {
+      // Release every look the family had chosen in this celebration.
+      await supabaseAdmin.from("reservations").delete().in("guest_id", users).eq("invite_id", fam.invite_id);
+    }
     await supabaseAdmin.from("household_event_invites").delete().match(scope);
     await supabaseAdmin.from("event_attendance").delete().match(scope);
     await supabaseAdmin.from("invite_codes").delete().eq("family_id", fam.id);
