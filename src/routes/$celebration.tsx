@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -88,16 +89,27 @@ function CelebrationPage() {
             </Button>
           ) : null}
           <Button asChild size="lg">
-            <Link to="/auth" search={{ c: celebration.slug ?? undefined }}>
-              I have an invitation code
+            <Link to="/auth" search={{ mode: "signin", c: celebration.slug ?? undefined }}>
+              Sign in
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link to="/auth" search={{ mode: "signin", c: celebration.slug ?? undefined }}>
-              I already registered
+            <Link to="/auth" search={{ c: celebration.slug ?? undefined }}>
+              I have an invite code
             </Link>
           </Button>
+          {!(token && signup.data) ? (
+            <Button size="lg" variant="outline" onClick={() => setAskLink((v) => !v)}>
+              Request a registration link
+            </Button>
+          ) : null}
         </div>
+        {askLink ? (
+          <p className="mx-auto mt-4 max-w-md rounded-md border border-border bg-card p-3 text-sm text-muted-foreground">
+            Registration links come from the hosts. Ask the family who invited you to send you their
+            registration link, then open it to register your family.
+          </p>
+        ) : null}
         <p className="mt-6 text-xs text-muted-foreground">
           Your own events, replies and details appear once you sign in.
         </p>

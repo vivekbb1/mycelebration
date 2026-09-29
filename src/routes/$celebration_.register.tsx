@@ -64,7 +64,7 @@ function RegisterPage() {
   const [session, setSession] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null);
-  const [account, setAccount] = useState({ email: "", password: "", mode: "signup" as "signup" | "signin" });
+  const [account, setAccount] = useState({ email: "", password: "", mode: "signin" as "signup" | "signin" });
   const [form, setForm] = useState({ familyName: "", fullName: "", email: "", phone: "", gender: "women" as G });
   const [members, setMembers] = useState<{ name: string; gender: G; email: string; phone: string }[]>([]);
   const [extra, setExtra] = useState({ name: "", gender: "women" as G, email: "", phone: "" });
