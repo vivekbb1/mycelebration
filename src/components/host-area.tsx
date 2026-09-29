@@ -373,7 +373,8 @@ function HostDashboard() {
     else if (fSort === "price_high") sorted.sort(byPrice(-1));
     else sorted.sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned));
     return sorted;
-  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fSort, reservations.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fSort, reservedIds]);
 
   const eventName = (id: string | null) =>
     eventList.find((e) => e.id === id)?.name ?? "No event";
@@ -1027,8 +1028,8 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All events</SelectItem>
-                  <SelectItem value="none">No event</SelectItem>
-                  {eventList.map((e) => (
+                  {facets.ev.has("none") || fEvent === "none" ? <SelectItem value="none">No event</SelectItem> : null}
+                  {eventList.filter((e) => facets.ev.has(e.id) || fEvent === e.id).map((e) => (
                     <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1037,18 +1038,16 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Everyone</SelectItem>
-                  <SelectItem value="women">Women</SelectItem>
-                  <SelectItem value="men">Men</SelectItem>
-                  <SelectItem value="boy">Boy</SelectItem>
-                  <SelectItem value="girl">Girl</SelectItem>
-                  <SelectItem value="unisex">Unisex</SelectItem>
+                  {[["women", "Women"], ["men", "Men"], ["boy", "Boy"], ["girl", "Girl"], ["unisex", "Unisex"]]
+                    .filter(([v]) => facets.gen.has(v) || fGender === v)
+                    .map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={fType} onValueChange={setFType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All categories</SelectItem>
-                  {typeOptions.map((t) => (
+                  {(fType !== "all" && !facets.typ.includes(fType) ? [fType, ...facets.typ] : facets.typ).map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1068,9 +1067,9 @@ function HostDashboard() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any status</SelectItem>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="reserved">Chosen by a guest</SelectItem>
-                  <SelectItem value="pinned">Pinned</SelectItem>
+                  <SelectItem value="available">Available ({facets.avail})</SelectItem>
+                  <SelectItem value="reserved">Chosen by a guest ({facets.res})</SelectItem>
+                  <SelectItem value="pinned">Pinned ({facets.pin})</SelectItem>
                 </SelectContent>
               </Select>
             </div>
