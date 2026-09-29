@@ -59,6 +59,7 @@ function CelebrationPage() {
   const celebration = Route.useLoaderData();
   const { t: token } = Route.useSearch();
   const signup = useSignupLink(token);
+  const [askLink, setAskLink] = useState(false);
 
   return (
     <div
