@@ -589,6 +589,13 @@
       "when": 1790607619413,
       "tag": "0083_hotel_rooms_unique_per_celebration",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1790657586196,
+      "tag": "0084_one_look_per_event",
+      "breakpoints": true
     }
   ]
 }
