@@ -206,7 +206,9 @@ export const claimFeedLook = createServerFn({ method: "POST" })
       throw new Error(
         error.code === "23505"
           ? "Another guest just claimed this look — please pick another."
-          : error.message,
+          : error.message.includes("ONE_LOOK_PER_EVENT")
+            ? "You already have a look for this event — release it first to choose another."
+            : error.message,
       );
     }
     return { outfitId, title: look.title };

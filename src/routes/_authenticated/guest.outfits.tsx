@@ -187,9 +187,12 @@ function Lookbook() {
   // an outfit taken by someone else simply shows as unavailable.
   const mineByOutfit = useMemo(() => {
     const map = new Map<string, string | null>();
-    for (const r of reservations.data ?? []) map.set(r.outfit_id, r.guest_name ?? null);
+    for (const r of reservations.data ?? []) {
+      if (me.data?.id && r.guest_id !== me.data.id) continue;
+      map.set(r.outfit_id, r.guest_name ?? null);
+    }
     return map;
-  }, [reservations.data]);
+  }, [reservations.data, me.data?.id]);
 
   // Per-family choices: for some events a family chooses a look from us, for
   // others they wear their own — set by the hosts, family by family.
@@ -334,7 +337,9 @@ function Lookbook() {
       toast.error(
         error.code === "23505"
           ? "Another guest just claimed this look — please pick a different one."
-          : error.message,
+          : error.message.includes("ONE_LOOK_PER_EVENT")
+            ? `${activeName} already has a look for this event — release it first to choose another.`
+            : error.message,
       );
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
       await queryClient.invalidateQueries({ queryKey: ["outfits"] });
@@ -822,6 +827,7 @@ function Lookbook() {
                   {taken ? (
                     <Badge variant={mine ? "default" : "secondary"} className="absolute top-2 left-2 max-w-[70%] truncate">
                       {mine ? `For ${activeName}` : heldBy ? `For ${heldBy}` : "Reserved"}
+                      {/* heldBy is only ever a member of your own family */}
                     </Badge>
                   ) : outfit.is_pinned ? (
                     <Badge className="absolute top-2 left-2 gap-1"><Pin className="size-3" /> Recommended</Badge>
