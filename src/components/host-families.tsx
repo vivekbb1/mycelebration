@@ -687,6 +687,7 @@ export function HostFamilies() {
     }
     toast.success(`${name} removed from the guest list.`);
     await refresh();
+    await qc.invalidateQueries();
   };
 
   return (

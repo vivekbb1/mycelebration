@@ -409,9 +409,8 @@ function Lookbook() {
       return;
     }
     toast.success("Reservation released.");
-    await queryClient.invalidateQueries({ queryKey: ["reservations"] });
-    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
-    await queryClient.invalidateQueries({ queryKey: ["my-wardrobe"] });
+    // Refresh every screen that shows chosen looks (family profile, summary, invitation).
+    await queryClient.invalidateQueries();
   };
 
   if (!needsWardrobe) {
