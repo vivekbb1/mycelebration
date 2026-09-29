@@ -165,7 +165,7 @@ export function HostRegistered() {
             </div>
             <div className="space-y-1">
               <Label>Wardrobe</Label>
-              <Select value={form.gender || undefined} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
+              <Select value={form.gender} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
                 <SelectTrigger><SelectValue placeholder="Choose" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="men">Man</SelectItem>
