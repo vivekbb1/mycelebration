@@ -12,6 +12,7 @@ const SECTIONS: Record<string, string> = {
 const SUBS: Record<string, Record<string, string>> = {
   guests: {
     list: "list",
+    registered: "registered",
     tags: "tags",
     invited: "assign",
     replies: "rsvp",
@@ -23,6 +24,7 @@ const SUBS: Record<string, Record<string, string>> = {
   },
   wardrobe: {
     outfits: "upload",
+    manage: "manage",
     import: "bulk-upload",
     feeds: "live-feeds",
     picks: "selection",
@@ -62,7 +64,7 @@ export function hostSplat(section: string, sub?: string | null): string {
 export const HOST_SUB_LABELS: Record<string, string> = {
   list: "List", tags: "Tags", invited: "Assign", replies: "RSVP", broadcast: "Broadcast",
   travel: "Count", arrivals: "Logistics", hosts: "Communication", tracker: "Tracker",
-  outfits: "Upload", import: "Bulk Upload", feeds: "Live feeds", picks: "Selection", orders: "Orders",
+  outfits: "Upload", manage: "Manage", registered: "Registered", import: "Bulk Upload", feeds: "Live feeds", picks: "Selection", orders: "Orders",
   logistics: "Delivery", boutiques: "Boutiques", vendors: "Vendors", budget: "Budget",
   fees: "Celebration fees", email: "Email", look: "Wording",
 };
