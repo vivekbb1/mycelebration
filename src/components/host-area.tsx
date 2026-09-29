@@ -282,11 +282,15 @@ function HostDashboard() {
     },
   });
 
-  const guestName = (guestId: string, fallback: string | null) =>
-    profiles.data?.find((p) => p.id === guestId)?.full_name ||
-    invites.data?.find((i) => i.claimed_by === guestId)?.guest_name ||
-    fallback ||
-    "Guest";
+  const guestName = (guestId: string, forName: string | null) => {
+    const by =
+      profiles.data?.find((p) => p.id === guestId)?.full_name ||
+      invites.data?.find((i) => i.claimed_by === guestId)?.guest_name ||
+      null;
+    const who = (forName ?? "").trim();
+    if (who && by && who.toLowerCase() !== by.trim().toLowerCase()) return `${who} (by ${by})`;
+    return who || by || "Guest";
+  };
 
   /** Only the events and looks that belong to the celebration being worked on. */
   const eventList = useMemo(

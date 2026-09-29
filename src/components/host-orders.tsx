@@ -226,7 +226,9 @@ export function HostOrders() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{o?.title ?? "Look"}</p>
                     <p className="text-sm text-muted-foreground">
-                      {r.guest.guest_name}
+                      {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest.guest_name ?? "").trim().toLowerCase()
+                        ? `${r.guest_name} (by ${r.guest.guest_name})`
+                        : r.guest_name || r.guest.guest_name}
                       {r.guest.household ? ` · ${r.guest.household}` : ""}
                       {o?.events?.name ? ` · ${o.events.name}` : ""}
                     </p>
