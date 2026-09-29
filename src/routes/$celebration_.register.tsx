@@ -245,7 +245,11 @@ function RegisterPage() {
       <>
         <p className="text-eyebrow">Step 1 of 2</p>
         <h1 className="mt-3 text-3xl">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">First, create your account.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {account.mode === "signin"
+            ? "First, sign in. New here? Tap \"I need a new account\" below."
+            : "First, create your account."}
+        </p>
         <form onSubmit={createAccount} className="mt-5 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="r-email">Email</Label>
