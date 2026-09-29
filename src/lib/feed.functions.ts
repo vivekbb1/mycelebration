@@ -165,7 +165,7 @@ export const claimFeedLook = createServerFn({ method: "POST" })
       .eq("guest_id", ctx.userId)
       .eq("outfits.event_id", data.eventId);
     const key = (data.guestName ?? "").toLowerCase();
-    const current = (mineRows ?? []).find((r) => (r.guest_name ?? "").toLowerCase() === key);
+    const current = (mineRows ?? []).find((r: { guest_name: string | null }) => (r.guest_name ?? "").toLowerCase() === key);
     if (current && !data.replace) {
       const t = (current as unknown as { outfits: { title: string } | null }).outfits?.title ?? "a look";
       return { needsSwap: true as const, currentTitle: t, outfitId: null, title: "" };
