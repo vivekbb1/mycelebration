@@ -314,29 +314,50 @@ function HostDashboard() {
   const [fStatus, setFStatus] = useState("all");
   const [fSort, setFSort] = useState("pinned");
   const [bulkType, setBulkType] = useState("");
+  const reservedIds = useMemo(
+    () => new Set((reservations.data ?? []).map((r) => r.outfit_id)),
+    [reservations.data],
+  );
+  // One check per filter; `skip` leaves one out so each dropdown only offers choices that still match the rest.
+  const matchesFilters = (o: (typeof outfitList)[number], skip?: "event" | "gender" | "type" | "status") => {
+    const q = fq.trim().toLowerCase();
+    if (q) {
+      const hay = `${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""} ${o.boutique_url ?? ""}`.toLowerCase();
+      const link = q.startsWith("http") ? (q.split(/[?#]/)[0] ?? q).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
+      if (!hay.includes(link)) return false;
+    }
+    if (skip !== "event" && fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
+    if (skip !== "gender" && fGender !== "all" && o.gender !== fGender) return false;
+    if (skip !== "type" && fType !== "all" && (o.garment_type ?? "") !== fType) return false;
+    if (skip !== "status") {
+      if (fStatus === "reserved" && !reservedIds.has(o.id)) return false;
+      if (fStatus === "pinned" && !o.is_pinned) return false;
+      if (fStatus === "available" && reservedIds.has(o.id)) return false;
+    }
+    return true;
+  };
   const typeOptions = useMemo(
     () =>
       Array.from(new Set(outfitList.map((o) => o.garment_type).filter(Boolean) as string[])).sort(),
     [outfitList],
   );
-  const shownList = useMemo(() => {
-    const q = fq.trim().toLowerCase();
-    const reserved = new Set((reservations.data ?? []).map((r) => r.outfit_id));
-    const filtered = outfitList.filter((o) => {
-      if (q) {
-        const hay = `${o.title} ${o.designer ?? ""} ${o.source_sku ?? ""} ${o.boutique_url ?? ""}`.toLowerCase();
-        // A pasted shop link matches on its path, ignoring tracking bits after "?" or "#".
-        const link = q.startsWith("http") ? (q.split(/[?#]/)[0] ?? q).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : q;
-        if (!hay.includes(link)) return false;
+  const facets = useMemo(() => {
+    const ev = new Set<string>(), gen = new Set<string>(), typ = new Set<string>();
+    let avail = 0, res = 0, pin = 0;
+    for (const o of outfitList) {
+      if (matchesFilters(o, "event")) ev.add(o.event_id ?? "none");
+      if (matchesFilters(o, "gender") && o.gender) gen.add(o.gender);
+      if (matchesFilters(o, "type") && o.garment_type) typ.add(o.garment_type);
+      if (matchesFilters(o, "status")) {
+        if (reservedIds.has(o.id)) res++; else avail++;
+        if (o.is_pinned) pin++;
       }
-      if (fEvent !== "all" && (o.event_id ?? "none") !== fEvent) return false;
-      if (fGender !== "all" && o.gender !== fGender) return false;
-      if (fType !== "all" && (o.garment_type ?? "") !== fType) return false;
-      if (fStatus === "reserved" && !reserved.has(o.id)) return false;
-      if (fStatus === "pinned" && !o.is_pinned) return false;
-      if (fStatus === "available" && reserved.has(o.id)) return false;
-      return true;
-    });
+    }
+    return { ev, gen, typ: Array.from(typ).sort(), avail, res, pin };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, reservedIds]);
+  const shownList = useMemo(() => {
+    const filtered = outfitList.filter((o) => matchesFilters(o));
     const price = (o: (typeof outfitList)[number]) => (o.price_inr != null ? Number(o.price_inr) : null);
     const byPrice = (dir: 1 | -1) => (a: (typeof outfitList)[number], b: (typeof outfitList)[number]) => {
       const pa = price(a), pb = price(b);
