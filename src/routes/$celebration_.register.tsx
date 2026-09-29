@@ -72,7 +72,6 @@ function RegisterPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(Boolean(data.session));
-      if (data.session?.user.email) setForm((f) => ({ ...f, email: f.email || data.session!.user.email! }));
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(Boolean(s)));
     return () => sub.subscription.unsubscribe();
@@ -95,7 +94,6 @@ function RegisterPage() {
       toast.success("Confirm your email, then come back to this link to finish.");
       return;
     }
-    setForm((f) => ({ ...f, email: account.email.trim() }));
   };
 
   const social = async (provider: "google" | "microsoft" | "apple") => {
@@ -197,7 +195,7 @@ function RegisterPage() {
         <form onSubmit={createAccount} className="mt-5 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="r-email">Email</Label>
-            <Input id="r-email" type="email" maxLength={255} value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} />
+            <Input id="r-email" type="email" maxLength={255} placeholder="you@example.com" value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="r-pw">Password</Label>
@@ -241,7 +239,7 @@ function RegisterPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="f-email">Email</Label>
-              <Input id="f-email" type="email" maxLength={255} value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              <Input id="f-email" type="email" autoComplete="off" maxLength={255} placeholder="you@example.com" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="f-phone">Mobile</Label>
