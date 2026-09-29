@@ -398,6 +398,10 @@ export function HostTeam() {
           Hosts of this celebration share its outfits, events, delivery plan, guest list and
           measurements. They can't see any other celebration.
         </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          To fix or remove someone in this list (for example a test account), go to Guests →
+          Registered and use the pencil or bin button.
+        </p>
 
 
         <div className="mt-5 space-y-3">
