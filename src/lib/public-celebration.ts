@@ -9,6 +9,8 @@ export type PublicCelebration = {
   cover_logo_url: string | null;
   bg_url: string | null;
   accent: string | null;
+  /** The celebration page's own wording (celebration_page.* keys). */
+  texts?: Record<string, string> | null;
 };
 
 export async function fetchCelebrationBySlug(slug: string): Promise<PublicCelebration | null> {
