@@ -86,13 +86,27 @@ function ConfirmPage() {
 
 
   const looks = useQuery({
-    queryKey: ["confirm-looks"],
+    queryKey: ["confirm-looks", household],
+    enabled: me.isFetched,
     queryFn: async () => {
+      // Only this family's looks — hosts can read every reservation, so filter explicitly.
+      const { data: auth } = await supabase.auth.getUser();
+      const ids = new Set<string>(auth.user ? [auth.user.id] : []);
+      if (household) {
+        const { data: fam } = await supabase
+          .from("invite_codes")
+          .select("claimed_by")
+          .eq("household", household)
+          .not("claimed_by", "is", null);
+        for (const f of fam ?? []) if (f.claimed_by) ids.add(f.claimed_by);
+      }
+      if (ids.size === 0) return [] as Row[];
       const { data, error } = await supabase
         .from("reservations")
         .select(
           "id, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
         )
+        .in("guest_id", [...ids])
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
