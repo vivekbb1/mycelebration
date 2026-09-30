@@ -108,9 +108,12 @@ function InvitationPage() {
   const myLooks = useQuery({
     queryKey: ["my-reservations", "invitation"],
     queryFn: async () => {
+      const ids = await myFamilyUserIds();
+      if (!ids.length) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select("outfit_id, outfits(title, event_id)");
+        .select("outfit_id, outfits(title, event_id)")
+        .in("guest_id", ids);
       if (error) throw error;
       return data;
     },
@@ -119,7 +122,9 @@ function InvitationPage() {
   const myMeasurements = useQuery({
     queryKey: ["my-measurements", "invitation"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("measurements").select("id").limit(1);
+      const ids = await myFamilyUserIds();
+      if (!ids.length) return [];
+      const { data, error } = await supabase.from("measurements").select("id").in("guest_id", ids).limit(1);
       if (error) throw error;
       return data ?? [];
     },
