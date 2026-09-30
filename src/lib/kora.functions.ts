@@ -54,7 +54,7 @@ function mapProduct(p: any): KoraLook {
 
 function handleFrom(input: string) {
   const m = input.match(/\/products\/([a-z0-9\-]+)/i);
-  const h = (m ? m[1] : input).trim().toLowerCase();
+  const h = ((m && m[1]) || input).trim().toLowerCase();
   if (!/^[a-z0-9\-]{1,200}$/.test(h)) throw new Error("That doesn't look like a Kora product link");
   return h;
 }
