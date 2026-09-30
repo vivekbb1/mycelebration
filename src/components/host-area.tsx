@@ -1008,9 +1008,19 @@ function HostDashboard() {
           </div>
           <div>
             <h2 className="mb-3 text-xl">Add many at once</h2>
-            <HostImport />
+            <Tabs defaultValue="pernia">
+              <TabsList>
+                <TabsTrigger value="pernia">Pernia's Pop Up Shop</TabsTrigger>
+                <TabsTrigger value="kora">Kora</TabsTrigger>
+              </TabsList>
+              <TabsContent value="pernia" className="mt-4">
+                <HostImport />
+              </TabsContent>
+              <TabsContent value="kora" className="mt-4">
+                <HostKoraImport />
+              </TabsContent>
+            </Tabs>
           </div>
-          <HostKoraImport />
         </TabsContent>
 
         <TabsContent value="manage" className="mt-6">
