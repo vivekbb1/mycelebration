@@ -47,7 +47,7 @@ function mapProduct(p: any): KoraLook {
     garmentType: p.product_type ? String(p.product_type) : null,
     colours: colourOpt?.values ?? [],
     description: strip(String(p.body_html ?? "")),
-    sku: String(variants[0]?.sku ?? "").split(/\s/)[0] ?? "",
+    sku: String(variants[0]?.sku ?? "").split(/\s/)[0] || "",
     soldOut: !variants.some((v) => v.available),
   };
 }
