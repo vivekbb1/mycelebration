@@ -442,3 +442,21 @@ function InvitationPage() {
     </main>
   );
 }
+
+/** Signed-in user plus every account in their family — hosts can read all rows, so guest views filter explicitly. */
+async function myFamilyUserIds(): Promise<string[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return [];
+  const ids = new Set<string>([auth.user.id]);
+  const { data: me } = await supabase.from("profiles").select("household").eq("id", auth.user.id).maybeSingle();
+  const household = me?.household?.trim();
+  if (household) {
+    const { data } = await supabase
+      .from("invite_codes")
+      .select("claimed_by")
+      .eq("household", household)
+      .not("claimed_by", "is", null);
+    for (const r of data ?? []) if (r.claimed_by) ids.add(r.claimed_by);
+  }
+  return [...ids];
+}
