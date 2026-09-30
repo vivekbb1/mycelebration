@@ -108,9 +108,12 @@ function InvitationPage() {
   const myLooks = useQuery({
     queryKey: ["my-reservations", "invitation"],
     queryFn: async () => {
+      const ids = await myFamilyUserIds();
+      if (!ids.length) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select("outfit_id, outfits(title, event_id)");
+        .select("outfit_id, outfits(title, event_id)")
+        .in("guest_id", ids);
       if (error) throw error;
       return data;
     },
@@ -119,7 +122,9 @@ function InvitationPage() {
   const myMeasurements = useQuery({
     queryKey: ["my-measurements", "invitation"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("measurements").select("id").limit(1);
+      const ids = await myFamilyUserIds();
+      if (!ids.length) return [];
+      const { data, error } = await supabase.from("measurements").select("id").in("guest_id", ids).limit(1);
       if (error) throw error;
       return data ?? [];
     },
@@ -436,4 +441,22 @@ function InvitationPage() {
       </div>
     </main>
   );
+}
+
+/** Signed-in user plus every account in their family — hosts can read all rows, so guest views filter explicitly. */
+async function myFamilyUserIds(): Promise<string[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return [];
+  const ids = new Set<string>([auth.user.id]);
+  const { data: me } = await supabase.from("profiles").select("household").eq("id", auth.user.id).maybeSingle();
+  const household = me?.household?.trim();
+  if (household) {
+    const { data } = await supabase
+      .from("invite_codes")
+      .select("claimed_by")
+      .eq("household", household)
+      .not("claimed_by", "is", null);
+    for (const r of data ?? []) if (r.claimed_by) ids.add(r.claimed_by);
+  }
+  return [...ids];
 }
