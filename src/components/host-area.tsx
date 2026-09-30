@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HostByBoutique } from "@/components/host-by-boutique";
 import { HostImport } from "@/components/host-import";
+import { HostKoraImport } from "@/components/host-kora-import";
 import { HostEvents } from "@/components/host-events";
 import { CelebrationPageEditor, HostInvites, useInvites } from "@/components/host-invites";
 import { HostFunctionAccess } from "@/components/host-function-access";
@@ -1009,6 +1010,7 @@ function HostDashboard() {
             <h2 className="mb-3 text-xl">Add many at once</h2>
             <HostImport />
           </div>
+          <HostKoraImport />
         </TabsContent>
 
         <TabsContent value="manage" className="mt-6">
