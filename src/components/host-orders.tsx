@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { formFor, hasChart, MADE_TO_MEASURE, suggestSize, type ShopSize } from "@/lib/size-charts";
 
 const PAYMENT = ["unpaid", "part paid", "paid", "refunded"] as const;
 const SHIPPING = ["not shipped", "shipped", "in transit", "delivered", "returned"] as const;
@@ -33,7 +34,7 @@ export function HostOrders() {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [filter, setFilter] = useState<"ready" | "placed" | "all">("ready");
+  const [filter, setFilter] = useState<"ready" | "placed" | "all" | "fit" | "nomeas">("ready");
 
   const data = useQuery({
     queryKey: ["host-orders", inviteId],
@@ -42,9 +43,9 @@ export function HostOrders() {
         supabase
           .from("reservations")
           .select(
-            "*, outfits(title, designer, boutique_url, image_url, event_id, events(name, invite_id))",
+            "*, outfits(title, designer, boutique_url, image_url, event_id, gender, sizes, events(name, invite_id))",
           ),
-        supabase.from("measurements").select("guest_id"),
+        supabase.from("measurements").select("guest_id, guest_name, unit, bust, chest, waist, hip, neck, usual_size, height"),
         supabase.from("invite_codes").select("claimed_by, household, guest_name, invite_id"),
       ]);
       if (res.error) throw res.error;
@@ -58,12 +59,24 @@ export function HostOrders() {
       );
       return (res.data ?? [])
         .filter((r) => guests.has(r.guest_id))
-        .map((r) => ({
-          ...r,
-          guest: guests.get(r.guest_id)!,
-          measured: measured.has(r.guest_id),
-          confirmed: r.status === "confirmed",
-        }));
+        .map((r) => {
+          const mine = (meas.data ?? []).filter((m) => m.guest_id === r.guest_id);
+          const key = (r.guest_name ?? "").trim().toLowerCase();
+          const m = mine.find((x) => (x.guest_name ?? "").trim().toLowerCase() === key) ?? (mine.length === 1 ? mine[0] : undefined);
+          const gender = (r.outfits as { gender?: string } | null)?.gender ?? null;
+          const suggested = m && hasChart(gender) ? (suggestSize(m, formFor(gender))?.size ?? m.usual_size ?? null) : null;
+          const size = r.size_choice ?? null;
+          const shopSizes = ((r.outfits as { sizes?: unknown } | null)?.sizes as ShopSize[] | null) ?? [];
+          return {
+            ...r,
+            guest: guests.get(r.guest_id)!,
+            measured: Boolean(m),
+            confirmed: r.status === "confirmed",
+            suggested,
+            misfit: Boolean(size && suggested && size !== MADE_TO_MEASURE && size !== suggested),
+            soldOut: Boolean(size && shopSizes.find((x) => x.label === size && !x.available)),
+          };
+        });
     },
   });
 
@@ -72,6 +85,8 @@ export function HostOrders() {
   const rows = useMemo(() => {
     const all = data.data ?? [];
     if (filter === "placed") return all.filter((r) => r.order_placed_at);
+    if (filter === "fit") return all.filter((r) => r.misfit || r.soldOut);
+    if (filter === "nomeas") return all.filter((r) => !r.measured);
     if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.confirmed && r.measured);
     return all;
   }, [data.data, filter]);
@@ -144,6 +159,8 @@ export function HostOrders() {
     ready: (data.data ?? []).filter((r) => !r.order_placed_at && r.confirmed && r.measured).length,
     placed: (data.data ?? []).filter((r) => r.order_placed_at).length,
     all: (data.data ?? []).length,
+    fit: (data.data ?? []).filter((r) => r.misfit || r.soldOut).length,
+    nomeas: (data.data ?? []).filter((r) => !r.measured).length,
   };
 
   const field = (r: Row, k: keyof Draft, v: string) =>
@@ -180,6 +197,8 @@ export function HostOrders() {
               ["ready", "Ready to order"],
               ["placed", "Ordered"],
               ["all", "All looks"],
+              ["fit", "Size may not fit"],
+              ["nomeas", "No measurements yet"],
             ] as const
           ).map(([k, label]) => (
             <Button
@@ -237,6 +256,14 @@ export function HostOrders() {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
+                    {r.size_choice || r.suggested ? (
+                      <p className="text-sm">
+                        Size chosen: <span className="font-medium">{r.size_choice ?? "—"}</span>
+                        {r.suggested ? <> · suggested <span className="font-medium">{r.suggested}</span></> : null}
+                        {r.misfit ? <span className="text-destructive"> · may not fit</span> : null}
+                        {r.soldOut ? <span className="text-destructive"> · chosen size sold out</span> : null}
+                      </p>
+                    ) : null}
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       <Badge variant={r.confirmed ? "default" : "outline"}>
                         {r.confirmed ? "Look confirmed" : "Look not confirmed"}
