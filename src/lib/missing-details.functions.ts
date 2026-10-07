@@ -7,10 +7,10 @@ import { authLink } from "@/lib/public-url";
 export const sendMissingDetailsReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (d: { inviteId: string; household: string; travel: boolean; passport: boolean; outfits: boolean }) => {
+    (d: { inviteId: string; household: string; travel: boolean; passport: boolean; outfits: boolean; measurements?: boolean }) => {
       if (typeof d?.inviteId !== "string" || d.inviteId.length > 64) throw new Error("Invalid celebration");
       if (typeof d?.household !== "string" || !d.household || d.household.length > 200) throw new Error("Invalid family");
-      return { inviteId: d.inviteId, household: d.household, travel: !!d.travel, passport: !!d.passport, outfits: !!d.outfits };
+      return { inviteId: d.inviteId, household: d.household, travel: !!d.travel, passport: !!d.passport, outfits: !!d.outfits, measurements: !!d.measurements };
     },
   )
   .handler(async ({ data, context }) => {
@@ -20,6 +20,7 @@ export const sendMissingDetailsReminder = createServerFn({ method: "POST" })
       data.travel && "your travel dates and flights",
       data.passport && "passport details",
       data.outfits && "your outfit choices",
+      data.measurements && "measurements for everyone with a chosen look",
     ].filter(Boolean) as string[];
     if (!items.length) return { sent: false, reason: "nothing_owed" };
 
