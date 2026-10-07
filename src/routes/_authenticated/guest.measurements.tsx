@@ -2,28 +2,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
+import { Check, CircleDashed } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MeasureDiagram } from "@/components/measure-diagram";
+import { MEASURE_LABEL, SizeGuideDialog } from "@/components/size-guide-dialog";
+import { formFor, hasChart, HOW_TO, STANDARD_SIZES, suggestSize, type ChartForm } from "@/lib/size-charts";
 
 export const Route = createFileRoute("/_authenticated/guest/measurements")({
   head: () => ({
     meta: [
       { title: "Your measurements | Wedding wardrobe" },
-      {
-        name: "description",
-        content:
-          "Send us your measurements so each outfit is tailored to fit before the celebrations begin.",
-      },
+      { name: "description", content: "Send us your measurements so each outfit is tailored to fit before the celebrations begin." },
       { property: "og:title", content: "Your measurements" },
-      {
-        property: "og:description",
-        content: "Share your measurements so your outfit is tailored to fit.",
-      },
+      { property: "og:description", content: "Share your measurements so your outfit is tailored to fit." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -31,73 +28,45 @@ export const Route = createFileRoute("/_authenticated/guest/measurements")({
   component: Measurements,
 });
 
-const FIELDS = [
-  { key: "height", label: "Height", tip: "Standing straight, without shoes." },
-  {
-    key: "bust",
-    label: "Bust / chest",
-    tip: "Around the fullest part, tape level and snug — not tight.",
-  },
-  { key: "waist", label: "Waist", tip: "Around the narrowest part of the natural waist." },
-  { key: "hip", label: "Hip", tip: "Around the fullest part of the hips, about 20cm below waist." },
-  { key: "shoulder", label: "Shoulder width", tip: "Straight across the back, shoulder to shoulder." },
-  { key: "sleeve_length", label: "Sleeve length", tip: "From shoulder seam to where you want the sleeve to end." },
-  {
-    key: "top_length",
-    label: "Blouse / kurta length",
-    tip: "From the shoulder down to the desired hem.",
-  },
-  {
-    key: "bottom_length",
-    label: "Skirt / trouser length",
-    tip: "From natural waist to the floor (in the heels you'll wear).",
-  },
-  { key: "inseam", label: "Inseam", tip: "Inner leg, from crotch to ankle. For churidars and trousers." },
+const KEYS = [
+  "height", "bust", "under_bust", "chest", "neck", "waist", "hip", "shoulder",
+  "sleeve_length", "armhole", "top_length", "bottom_length", "inseam",
 ] as const;
+type Key = (typeof KEYS)[number];
 
-type FieldKey = (typeof FIELDS)[number]["key"];
-type FormState = Record<FieldKey, string> & { unit: "cm" | "in"; notes: string };
-
-const emptyForm: FormState = {
-  unit: "cm",
-  height: "",
-  bust: "",
-  waist: "",
-  hip: "",
-  shoulder: "",
-  sleeve_length: "",
-  top_length: "",
-  bottom_length: "",
-  inseam: "",
-  notes: "",
+const FORM_FIELDS: Record<ChartForm, Key[]> = {
+  women: ["height", "bust", "under_bust", "waist", "hip", "shoulder", "sleeve_length", "armhole", "top_length", "bottom_length"],
+  men: ["height", "chest", "neck", "waist", "hip", "shoulder", "sleeve_length", "top_length", "bottom_length", "inseam"],
 };
+const LABEL_FOR: Record<ChartForm, Partial<Record<Key, string>>> = {
+  women: { top_length: "Blouse length", bottom_length: "Skirt / lehenga length" },
+  men: { top_length: "Kurta / sherwani length", bottom_length: "Trouser length" },
+};
+const CORE: Key[] = ["waist", "hip"];
 
-const numberSchema = z
-  .string()
-  .trim()
-  .refine((v) => v === "" || (Number(v) > 0 && Number(v) < 500), "Enter a realistic measurement");
+type Values = Record<Key, string>;
+const blank = () => Object.fromEntries(KEYS.map((k) => [k, ""])) as Values;
 
 function Measurements() {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [busy, setBusy] = useState(false);
   const [activePerson, setActivePerson] = useState<string | null>(null);
+  const [unit, setUnit] = useState<"cm" | "in">("in");
+  const [values, setValues] = useState<Values>(blank);
+  const [usual, setUsual] = useState("");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [how, setHow] = useState<Key | null>(null);
 
   const me = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, household")
-        .eq("id", userData.user.id)
-        .maybeSingle();
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+      const { data } = await supabase.from("profiles").select("id, full_name, household, gender").eq("id", u.user.id).maybeSingle();
       return data;
     },
   });
 
-  // Everyone invited under this invitation code, by name.
   const household = useQuery({
     queryKey: ["household-members"],
     queryFn: async () => {
@@ -110,12 +79,9 @@ function Measurements() {
   const rows = useQuery({
     queryKey: ["measurements"],
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return [];
-      const { data, error } = await supabase
-        .from("measurements")
-        .select("*")
-        .eq("guest_id", userData.user.id);
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return [];
+      const { data, error } = await supabase.from("measurements").select("*").eq("guest_id", u.user.id);
       if (error) throw error;
       return data ?? [];
     },
@@ -123,104 +89,110 @@ function Measurements() {
 
   const people = useMemo(() => {
     const named = (household.data ?? []).filter((p) => p.name && p.name !== "Guest");
-    if (named.length > 0) return named.map((p) => p.name);
-    return [(me.data?.full_name ?? "").trim() || "You"];
-  }, [household.data, me.data?.full_name]);
+    if (named.length) return named;
+    return [{ name: (me.data?.full_name ?? "").trim() || "You", gender: (me.data?.gender as string | null) ?? null }];
+  }, [household.data, me.data]);
+  const names = people.map((p) => p.name);
 
   const activeName =
-    (activePerson && people.includes(activePerson) ? activePerson : null) ??
-    people.find((n) => n === (me.data?.full_name ?? "").trim()) ??
-    people[0] ??
-    "You";
+    (activePerson && names.includes(activePerson) ? activePerson : null) ??
+    names.find((n) => n === (me.data?.full_name ?? "").trim()) ?? names[0] ?? "You";
+  const person = people.find((p) => p.name === activeName);
+  const gender = person?.gender ?? null;
+  const form = formFor(gender);
+  const child = gender === "boy" || gender === "girl";
+  const fields = FORM_FIELDS[form];
 
-  // A single guest keeps their existing row (no name against it); families get one per person.
-  const storedName = people.length > 1 ? activeName : "";
   const rowFor = (name: string) => {
     const list = rows.data ?? [];
-    const key = people.length > 1 ? name : "";
-    return (
-      list.find((r) => (r.guest_name ?? "") === key) ??
-      (people.length <= 1 ? list[0] : undefined)
-    );
+    const key = names.length > 1 ? name : "";
+    return list.find((r) => (r.guest_name ?? "") === key) ?? (names.length <= 1 ? list[0] : undefined);
   };
   const existing = rowFor(activeName);
 
   useEffect(() => {
-    if (!existing) {
-      setForm(emptyForm);
-      return;
+    const v = blank();
+    if (existing) {
+      for (const k of KEYS) {
+        const raw = (existing as Record<string, unknown>)[k];
+        v[k] = raw == null ? "" : String(raw);
+      }
+      // Older rows only had one "Bust / chest" box.
+      if (form === "men" && !v.chest && v.bust) v.chest = v.bust;
     }
-    setForm({
-      unit: (existing.unit as "cm" | "in") ?? "cm",
-      height: existing.height?.toString() ?? "",
-      bust: existing.bust?.toString() ?? "",
-      waist: existing.waist?.toString() ?? "",
-      hip: existing.hip?.toString() ?? "",
-      shoulder: existing.shoulder?.toString() ?? "",
-      sleeve_length: existing.sleeve_length?.toString() ?? "",
-      top_length: existing.top_length?.toString() ?? "",
-      bottom_length: existing.bottom_length?.toString() ?? "",
-      inseam: existing.inseam?.toString() ?? "",
-      notes: existing.notes ?? "",
+    setValues(v);
+    setUnit(existing?.unit === "cm" ? "cm" : "in");
+    setUsual(existing?.usual_size ?? "");
+    setNotes(existing?.notes ?? "");
+  }, [existing?.id, activeName, form]);
+
+  const switchUnit = (u: "cm" | "in") => {
+    if (u === unit) return;
+    const f = u === "cm" ? 2.54 : 1 / 2.54;
+    setValues((prev) => {
+      const next = { ...prev };
+      for (const k of KEYS) {
+        const n = Number(prev[k]);
+        if (prev[k].trim() && Number.isFinite(n)) next[k] = String(Math.round(n * f * 10) / 10);
+      }
+      return next;
     });
-    // Switching person loads that person's numbers.
-  }, [existing?.id, activeName]);
+    setUnit(u);
+  };
+
+  const isDone = (name: string) => {
+    const r = rowFor(name) as Record<string, unknown> | undefined;
+    if (!r) return false;
+    return Boolean(r["usual_size"]) || CORE.every((k) => r[k] != null);
+  };
+  const doneCount = names.filter(isDone).length;
+
+  const num = (k: Key) => {
+    const raw = values[k].trim();
+    return raw === "" ? null : Number(raw);
+  };
+  const preview = suggestSize(
+    { unit, bust: num("bust"), chest: num("chest"), waist: num("waist"), hip: num("hip"), neck: num("neck") },
+    form,
+  );
 
   const save = async () => {
-    for (const field of FIELDS) {
-      const parsed = numberSchema.safeParse(form[field.key]);
-      if (!parsed.success) {
-        toast.error(`${field.label}: ${parsed.error.issues[0]?.message}`);
+    for (const k of fields) {
+      const raw = values[k].trim();
+      if (raw === "") continue;
+      const n = Number(raw);
+      const max = unit === "cm" ? 260 : 100;
+      if (!Number.isFinite(n) || n <= 0 || n > max) {
+        toast.error(`${LABEL_FOR[form][k] ?? MEASURE_LABEL[k]}: enter a realistic measurement`);
         return;
       }
     }
-    if (form.notes.length > 1000) {
+    if (notes.length > 1000) {
       toast.error("Please keep notes under 1000 characters");
       return;
     }
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
-
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
     setBusy(true);
-    const num = (key: FieldKey) => {
-      const raw = form[key].trim();
-      return raw === "" ? null : Number(raw);
+    const payload: Record<string, unknown> = {
+      guest_id: u.user.id,
+      guest_name: names.length > 1 ? activeName : "",
+      unit,
+      form,
+      usual_size: usual || null,
+      notes: notes.trim() || null,
     };
-    const { error } = await supabase.from("measurements").upsert(
-      {
-        guest_id: userData.user.id,
-        guest_name: storedName,
-        unit: form.unit,
-        notes: form.notes.trim() || null,
-        height: num("height"),
-        bust: num("bust"),
-        waist: num("waist"),
-        hip: num("hip"),
-        shoulder: num("shoulder"),
-        sleeve_length: num("sleeve_length"),
-        top_length: num("top_length"),
-        bottom_length: num("bottom_length"),
-        inseam: num("inseam"),
-      },
-      { onConflict: "guest_id,guest_name" },
-    );
+    for (const k of KEYS) payload[k] = fields.includes(k) ? num(k) : null;
+    // Keep the older single "bust" column filled for men so existing screens still read it.
+    if (form === "men") payload["bust"] = num("chest");
+    const { error } = await supabase.from("measurements").upsert(payload as never, { onConflict: "guest_id,guest_name" });
     setBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success(
-      people.length > 1
-        ? `${activeName}'s measurements saved — thank you!`
-        : "Measurements saved — thank you!",
-    );
+    toast.success(names.length > 1 ? `${activeName}'s measurements saved — thank you!` : "Measurements saved — thank you!");
     await queryClient.invalidateQueries({ queryKey: ["measurements"] });
-  };
-
-  const filledCount = (name: string) => {
-    const row = rowFor(name);
-    if (!row) return 0;
-    return FIELDS.filter((f) => row[f.key] !== null && row[f.key] !== undefined).length;
   };
 
   return (
@@ -228,116 +200,114 @@ function Measurements() {
       <p className="text-eyebrow">For the tailor</p>
       <h1 className="mt-3 text-3xl sm:text-4xl">Measurements</h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Have someone help you and measure over light clothing. Leave anything blank if you're not
-        sure — we'll follow up. Only you and the hosts can see these.
+        We ask everyone, even if you pick a ready size — it helps us suggest the best fit. Leave anything blank
+        if you're not sure. Only your family and the hosts can see these.
       </p>
 
-      <section className="panel mt-6 p-4">
-        <p className="text-eyebrow">Whose measurements are these?</p>
-        {people.length > 1 ? (
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {people.map((name) => {
-              const active = name === activeName;
-              const done = filledCount(name);
-              return (
-                <li key={name}>
-                  <button
-                    onClick={() => setActivePerson(name)}
-                    aria-pressed={active}
-                    className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-                      active
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border text-muted-foreground hover:text-primary"
-                    }`}
-                  >
-                    {name}
-                    <span className="ml-2 text-xs opacity-80">
-                      {done > 0 ? `${done} filled in` : "not yet"}
+      <section className="mt-6">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-eyebrow">Your family</p>
+          <p className="text-sm text-muted-foreground">{doneCount} of {names.length} done</p>
+        </div>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {people.map((p) => {
+            const active = p.name === activeName;
+            const done = isDone(p.name);
+            return (
+              <li key={p.name}>
+                <button
+                  onClick={() => setActivePerson(p.name)}
+                  aria-pressed={active}
+                  className={`panel flex w-full items-center justify-between gap-3 p-3 text-left transition-colors ${active ? "ring-2 ring-primary" : "hover:border-primary"}`}
+                >
+                  <span>
+                    <span className="block font-medium">{p.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {p.gender === "men" ? "Men's form" : p.gender === "boy" ? "Boy · men's form" : p.gender === "girl" ? "Girl · women's form" : "Women's form"}
                     </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="mt-2 text-lg">
-            {activeName}
-            <span className="ml-2 text-xs text-muted-foreground">
-              {filledCount(activeName) > 0 ? `${filledCount(activeName)} filled in` : "not yet"}
-            </span>
-          </p>
-        )}
-        <p className="mt-3 text-xs text-muted-foreground">
-          {people.length > 1
-            ? "Each person is saved separately — fill one in, save, then choose the next name."
-            : "Only one name is on your invitation, so these are saved against you."}
-        </p>
+                  </span>
+                  <span className={`flex items-center gap-1 text-xs ${done ? "text-primary" : "text-muted-foreground"}`}>
+                    {done ? <Check className="size-4" /> : <CircleDashed className="size-4" />}
+                    {done ? "Done" : "Still to fill"}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <div className="panel mt-6 p-4 sm:p-6">
-        <h2 className="mb-4 text-xl">{activeName}</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl">{activeName}</h2>
+          {hasChart(gender) ? <SizeGuideDialog form={form} suggested={preview?.size ?? usual} /> : null}
+        </div>
+        {child ? (
+          <p className="mt-2 text-sm text-muted-foreground">Please have a parent take these measurements.</p>
+        ) : null}
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <Label className="text-sm">Units</Label>
-          <div className="flex gap-2">
-            {(["cm", "in"] as const).map((u) => (
-              <button
-                key={u}
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, unit: u }))}
-                className={`rounded-full border px-4 py-1 text-sm transition-colors ${
-                  form.unit === u
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground hover:text-primary"
-                }`}
-              >
-                {u === "cm" ? "Centimetres" : "Inches"}
-              </button>
-            ))}
-          </div>
+          {(["in", "cm"] as const).map((u) => (
+            <Button key={u} size="sm" variant={unit === u ? "default" : "outline"} onClick={() => switchUnit(u)}>
+              {u === "cm" ? "Centimetres" : "Inches"}
+            </Button>
+          ))}
         </div>
 
+        {hasChart(gender) ? (
+          <div className="mt-5 rounded-md bg-secondary p-3">
+            <Label htmlFor="usual">I know my usual size</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["", ...STANDARD_SIZES].map((s) => (
+                <Button key={s || "none"} size="sm" variant={usual === s ? "default" : "outline"} onClick={() => setUsual(s)}>
+                  {s || "Not sure"}
+                </Button>
+              ))}
+            </div>
+            {preview ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                From the numbers below we'd suggest <span className="font-medium text-foreground">{preview.size}</span>
+                {preview.between ? " (between sizes — we picked the larger)" : ""}.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          {FIELDS.map((field) => (
-            <div key={field.key} className="space-y-2">
-              <Label htmlFor={field.key}>
-                {field.label} <span className="text-muted-foreground">({form.unit})</span>
-              </Label>
-              <Input
-                id={field.key}
-                inputMode="decimal"
-                value={form[field.key]}
-                maxLength={6}
-                onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
-              />
-              <p className="text-xs leading-relaxed text-muted-foreground">{field.tip}</p>
+          {fields.map((k) => (
+            <div key={k} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor={k}>
+                  {LABEL_FOR[form][k] ?? MEASURE_LABEL[k]} <span className="text-muted-foreground">({unit})</span>
+                </Label>
+                <button type="button" className="text-xs text-primary underline" onClick={() => setHow(k)}>How?</button>
+              </div>
+              <Input id={k} inputMode="decimal" maxLength={6} value={values[k]}
+                onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value }))} />
             </div>
           ))}
         </div>
 
         <div className="mt-6 space-y-2">
           <Label htmlFor="notes">Anything else we should tell the tailor?</Label>
-          <Textarea
-            id="notes"
-            rows={4}
-            maxLength={1000}
-            value={form.notes}
-            placeholder="Sleeve preference, blouse neckline, heel height, allergies to certain fabrics…"
-            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-          />
+          <Textarea id="notes" rows={4} maxLength={1000} value={notes}
+            placeholder="Sleeve preference, neckline, heel height, fabric allergies…"
+            onChange={(e) => setNotes(e.target.value)} />
         </div>
 
-        <Button className="mt-6" onClick={save} disabled={busy}>
-          {busy
-            ? "Saving…"
-            : existing
-              ? people.length > 1
-                ? `Update ${activeName}'s measurements`
-                : "Update measurements"
-              : people.length > 1
-                ? `Save ${activeName}'s measurements`
-                : "Save measurements"}
+        <Button className="mt-6 w-full sm:w-auto" onClick={save} disabled={busy}>
+          {busy ? "Saving…" : `${existing ? "Update" : "Save"} ${names.length > 1 ? `${activeName}'s ` : ""}measurements`}
         </Button>
       </div>
+
+      <Dialog open={how !== null} onOpenChange={(o) => !o && setHow(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>How to measure: {how ? (LABEL_FOR[form][how] ?? MEASURE_LABEL[how]) : ""}</DialogTitle></DialogHeader>
+          <MeasureDiagram form={form} highlight={how} />
+          <p className="text-sm text-muted-foreground">{how ? HOW_TO[how] : ""}</p>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

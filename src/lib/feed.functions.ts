@@ -203,6 +203,7 @@ export const claimFeedLook = createServerFn({ method: "POST" })
           source_sku: look.sku || null,
           gender: data.audience,
           notes: look.description || null,
+          sizes: look.sizes,
           event_id: data.eventId,
         })
         .select("id")

@@ -89,12 +89,23 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
     queryKey: ["outfit-missing", inviteId],
     enabled: !!inviteId,
     queryFn: async () => {
-      const [ev, codes, res] = await Promise.all([
+      const [ev, codes, res, meas] = await Promise.all([
         supabase.from("events").select("id").eq("invite_id", inviteId!).eq("outfit_selection", true),
         supabase.from("invite_codes").select("household, claimed_by").eq("invite_id", inviteId!),
-        supabase.from("reservations").select("guest_id").eq("invite_id", inviteId!),
+        supabase.from("reservations").select("guest_id, guest_name").eq("invite_id", inviteId!),
+        supabase.from("measurements").select("guest_id, guest_name").eq("invite_id", inviteId!),
       ]);
-      if (!ev.data?.length) return [] as string[];
+      if (!ev.data?.length) return { looks: [] as string[], measurements: [] as string[] };
+      const measured = new Set((meas.data ?? []).map((m) => `${m.guest_id}|${(m.guest_name ?? "").toLowerCase()}`));
+      const measuredAny = new Set((meas.data ?? []).map((m) => m.guest_id));
+      const householdOf = new Map((codes.data ?? []).filter((c) => c.claimed_by).map((c) => [c.claimed_by as string, c.household]));
+      const needMeas = new Set<string>();
+      for (const r of res.data ?? []) {
+        const h = householdOf.get(r.guest_id);
+        if (!h) continue;
+        const k = `${r.guest_id}|${(r.guest_name ?? "").toLowerCase()}`;
+        if (!measured.has(k) && !(measuredAny.has(r.guest_id) && !(meas.data ?? []).some((m) => m.guest_id === r.guest_id && m.guest_name))) needMeas.add(h);
+      }
       const picked = new Set((res.data ?? []).map((r) => r.guest_id));
       const done = new Set<string>();
       const all = new Set<string>();
@@ -103,14 +114,15 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
         all.add(c.household);
         if (c.claimed_by && picked.has(c.claimed_by)) done.add(c.household);
       }
-      return [...all].filter((h) => !done.has(h));
+      return { looks: [...all].filter((h) => !done.has(h)), measurements: [...needMeas] };
     },
   });
   const travelMissing = enabled && data?.travelRequired ? data.travelMissing : [];
   const passportMissing = enabled && data?.passportRequired ? data.passportMissing : [];
-  const outfitMissing = outfits.data ?? [];
+  const outfitMissing = outfits.data?.looks ?? [];
+  const measMissing = outfits.data?.measurements ?? [];
   if (!inviteId) return null;
-  const owing = [...new Set([...travelMissing, ...passportMissing, ...outfitMissing])].sort();
+  const owing = [...new Set([...travelMissing, ...passportMissing, ...outfitMissing, ...measMissing])].sort();
   if (!travelMissing.length && !passportMissing.length && !outfits.data) return null;
 
   const send = async (households: string[]) => {
@@ -126,6 +138,7 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
             travel: travelMissing.includes(h),
             passport: passportMissing.includes(h),
             outfits: outfitMissing.includes(h),
+            measurements: measMissing.includes(h),
           },
         });
         if (r.sent) sent += 1;
@@ -149,7 +162,7 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
             families
             {data?.travelRequired && enabled ? ` · ${travelMissing.length} travel` : ""}
             {data?.passportRequired && enabled ? ` · ${passportMissing.length} passports` : ""}
-            {` · ${outfitMissing.length} looks`}
+            {` · ${outfitMissing.length} looks · ${measMissing.length} measurements`}
           </p>
         </div>
         {owing.length > 0 && (
@@ -168,6 +181,7 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
                   {travelMissing.includes(h) && <Badge variant="outline">travel</Badge>}
                   {passportMissing.includes(h) && <Badge variant="outline">passport</Badge>}
                   {outfitMissing.includes(h) && <Badge variant="outline">looks</Badge>}
+                  {measMissing.includes(h) && <Badge variant="outline">measurements</Badge>}
                 </span>
               </span>
               <Button size="sm" variant="ghost" disabled={!!busy} onClick={() => send([h])}>

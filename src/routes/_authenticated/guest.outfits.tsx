@@ -1,4 +1,5 @@
 import { useSwapLookConfirm } from "@/components/swap-look-confirm";
+import { SizePickDialog } from "@/components/size-pick-dialog";
 import { WARDROBES, WARDROBE_VALUES, isWardrobe, wardrobeLabel } from "@/lib/wardrobe-options";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +57,7 @@ type Outfit = {
   price_note: string | null;
   notes: string | null;
   images: string[] | null;
+  sizes?: unknown;
   is_available: boolean;
   created_at?: string | null;
 };
@@ -168,7 +170,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, status");
+        .select("id, outfit_id, guest_id, guest_name, status, size_choice");
       if (error) throw error;
       return data;
     },
@@ -321,8 +323,27 @@ function Lookbook() {
   };
 
   const swap = useSwapLookConfirm();
+  const [sizing, setSizing] = useState<Outfit | null>(null);
 
-  const reserve = async (outfit: Outfit) => {
+  const myMeasurements = useQuery({
+    queryKey: ["measurements"],
+    queryFn: async () => {
+      if (!me.data?.id) return [];
+      const { data } = await supabase.from("measurements").select("*").eq("guest_id", me.data.id);
+      return (data ?? []) as Record<string, unknown>[];
+    },
+    enabled: Boolean(me.data?.id),
+  });
+  const measureFor = (name: string) => {
+    const list = myMeasurements.data ?? [];
+    const key = (name ?? "").toLowerCase();
+    return (
+      list.find((r) => String(r["guest_name"] ?? "").toLowerCase() === key) ??
+      (people.length <= 1 ? list[0] : undefined)
+    );
+  };
+
+  const reserve = async (outfit: Outfit, size: string | null = null) => {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
     if (!user) return;
@@ -358,6 +379,7 @@ function Lookbook() {
       outfit_id: outfit.id,
       guest_id: user.id,
       guest_name: forName,
+      size_choice: size,
     });
     if (error) {
       if (current) {
@@ -541,6 +563,18 @@ function Lookbook() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       {swap.dialog}
+      <SizePickDialog
+        outfit={sizing}
+        gender={(activeRecord?.gender as string | null) ?? wardrobe ?? null}
+        person={activeName || "you"}
+        measure={measureFor(activeName)}
+        onCancel={() => setSizing(null)}
+        onConfirm={async (size) => {
+          const o = sizing;
+          setSizing(null);
+          if (o) await reserve(o, size);
+        }}
+      />
       <p className="text-eyebrow">The lookbook</p>
       <h1 className="mt-3 text-3xl sm:text-4xl">Choose your looks</h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
@@ -884,6 +918,16 @@ function Lookbook() {
                 <div className="flex flex-1 flex-col p-3">
                   <h2 className="line-clamp-2 min-h-[2.5rem] text-sm leading-snug" title={outfit.title}>{outfit.title}</h2>
                   <p className="mt-0.5 h-4 truncate text-xs text-muted-foreground">{outfit.designer ?? ""}</p>
+                  {mine ? (() => {
+                    const sz = (reservations.data ?? []).find((r) => r.outfit_id === outfit.id)?.size_choice;
+                    const info = sz ? ((outfit.sizes as Array<{ label: string; available: boolean }> | null) ?? []).find((x) => x.label === sz) : null;
+                    return sz ? (
+                      <p className={`mt-1 text-xs ${info && !info.available && !confirmed ? "text-destructive" : "text-muted-foreground"}`}>
+                        Size: {sz}
+                        {info && !info.available && !confirmed ? " — no longer available. Release and choose another size or Made to measure." : ""}
+                      </p>
+                    ) : null;
+                  })() : null}
                   <div className="mt-auto pt-3">
                     {confirmed ? (
                       <Button variant="secondary" size="sm" className="w-full" disabled>
@@ -896,7 +940,7 @@ function Lookbook() {
                     ) : taken ? (
                       <Button variant="secondary" size="sm" className="w-full" disabled>Already claimed</Button>
                     ) : (
-                      <Button size="sm" className="w-full" disabled={busyId === outfit.id} onClick={() => reserve(outfit)}>
+                      <Button size="sm" className="w-full" disabled={busyId === outfit.id} onClick={() => setSizing(outfit)}>
                         {busyId === outfit.id ? "Reserving…" : "Reserve"}
                       </Button>
                     )}
