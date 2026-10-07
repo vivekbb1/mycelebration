@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Pencil, Pin, Trash2, ShieldCheck } from "lucide-react";
+import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 
 import { supabase } from "@/integrations/supabase/client";
 import { claimHostAccess } from "@/lib/guest-access.functions";
