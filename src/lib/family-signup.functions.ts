@@ -202,7 +202,8 @@ export const addFamilyMember = createServerFn({ method: "POST" })
       family_id: mine.family_id,
       invite_id: mine.invite_id,
     });
-    return error ? { ok: false, error: "We couldn't add that person." } : { ok: true };
+    if (error) return { ok: false, error: error.code === "23505" ? error.message : "We couldn't add that person." };
+    return { ok: true };
   });
 
 /** A host removes a family's registration (members, codes, event invites, replies). */
