@@ -143,7 +143,7 @@ function Measurements() {
   const isDone = (name: string) => {
     const r = rowFor(name) as Record<string, unknown> | undefined;
     if (!r) return false;
-    return Boolean(r.usual_size) || CORE.every((k) => r[k] != null);
+    return Boolean(r["usual_size"]) || CORE.every((k) => r[k] != null);
   };
   const doneCount = names.filter(isDone).length;
 
@@ -167,7 +167,10 @@ function Measurements() {
         return;
       }
     }
-    if (notes.length > 1000) return toast.error("Please keep notes under 1000 characters");
+    if (notes.length > 1000) {
+      toast.error("Please keep notes under 1000 characters");
+      return;
+    }
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     setBusy(true);
@@ -181,10 +184,13 @@ function Measurements() {
     };
     for (const k of KEYS) payload[k] = fields.includes(k) ? num(k) : null;
     // Keep the older single "bust" column filled for men so existing screens still read it.
-    if (form === "men") payload.bust = num("chest");
+    if (form === "men") payload["bust"] = num("chest");
     const { error } = await supabase.from("measurements").upsert(payload as never, { onConflict: "guest_id,guest_name" });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(names.length > 1 ? `${activeName}'s measurements saved — thank you!` : "Measurements saved — thank you!");
     await queryClient.invalidateQueries({ queryKey: ["measurements"] });
   };

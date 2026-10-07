@@ -37,7 +37,7 @@ export function SizePickDialog({
   const form = formFor(gender);
   const chart = hasChart(gender);
   const suggestion = chart ? suggestSize(measure as never, form) : null;
-  const usual = (measure?.usual_size as string | null) ?? null;
+  const usual = (measure?.["usual_size"] as string | null) ?? null;
   const hasMeasurements = Boolean(
     measure && ["bust", "chest", "waist", "hip", "height"].some((k) => measure[k] != null),
   );

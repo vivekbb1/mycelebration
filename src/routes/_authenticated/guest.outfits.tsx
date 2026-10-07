@@ -338,7 +338,7 @@ function Lookbook() {
     const list = myMeasurements.data ?? [];
     const key = (name ?? "").toLowerCase();
     return (
-      list.find((r) => String(r.guest_name ?? "").toLowerCase() === key) ??
+      list.find((r) => String(r["guest_name"] ?? "").toLowerCase() === key) ??
       (people.length <= 1 ? list[0] : undefined)
     );
   };

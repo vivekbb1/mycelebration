@@ -13,7 +13,7 @@ export const MEASURE_LABEL: Record<string, string> = {
   top_length: "Blouse / kurta length", bottom_length: "Skirt / trouser length", inseam: "Inseam",
 };
 
-export function SizeChartTable({ form, unit, highlight }: { form: ChartForm; unit: "cm" | "in"; highlight?: string | null }) {
+export function SizeChartTable({ form, unit, highlight }: { form: ChartForm; unit: "cm" | "in"; highlight?: string | null | undefined }) {
   const rows = chartFor(form);
   const cols = form === "men" ? (["chest", "waist", "neck", "hip"] as const) : (["bust", "waist", "hip"] as const);
   return (
@@ -40,7 +40,7 @@ export function SizeChartTable({ form, unit, highlight }: { form: ChartForm; uni
   );
 }
 
-export function SizeGuideBody({ form, suggested, initialTab = "chart" }: { form: ChartForm; suggested?: string | null; initialTab?: string }) {
+export function SizeGuideBody({ form, suggested, initialTab = "chart" }: { form: ChartForm; suggested?: string | null | undefined; initialTab?: string }) {
   const [unit, setUnit] = useState<"cm" | "in">("in");
   const pts = measurePoints(form);
   return (
@@ -76,7 +76,7 @@ export function SizeGuideBody({ form, suggested, initialTab = "chart" }: { form:
   );
 }
 
-export function SizeGuideDialog({ form, suggested, label = "Size guide" }: { form: ChartForm; suggested?: string | null; label?: string }) {
+export function SizeGuideDialog({ form, suggested, label = "Size guide" }: { form: ChartForm; suggested?: string | null | undefined; label?: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
