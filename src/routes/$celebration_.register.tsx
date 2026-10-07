@@ -78,6 +78,27 @@ function RegisterPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Already invited (e.g. a relative added this email)? Link them to that family and skip the form.
+  useEffect(() => {
+    if (!session || !slug || done !== null) return;
+    let cancelled = false;
+    (async () => {
+      await supabase.rpc("claim_invites_by_email");
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user || cancelled) return;
+      const { data: mine } = await supabase
+        .from("invite_codes")
+        .select("household, invites!inner(slug)")
+        .eq("claimed_by", u.user.id)
+        .eq("invites.slug", slug)
+        .limit(1);
+      if (cancelled || !mine || mine.length === 0) return;
+      toast.success(`You're already on the guest list with the "${mine[0]?.household ?? "your"}" family — taking you to your invitation.`, { duration: 8000 });
+      await navigate({ to: "/guest/invite" });
+    })();
+    return () => { cancelled = true; };
+  }, [session, slug, done, navigate]);
+
   // While waiting for email confirmation, keep checking so the page moves on by itself
   // (e.g. when the link was opened in another tab, or after signing in with the password).
   useEffect(() => {
