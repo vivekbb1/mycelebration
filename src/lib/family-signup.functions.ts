@@ -33,7 +33,7 @@ function memberCode(name: string) {
   return `${base}-${randomCode(8)}`;
 }
 
-export type RegisterResult = { ok: boolean; error?: string; code?: string };
+export type RegisterResult = { ok: boolean; error?: string; code?: string; joined?: string };
 
 /** A family signs itself up through a host's sign-up link and joins that link's events. */
 export const registerFamily = createServerFn({ method: "POST" })
@@ -70,6 +70,47 @@ export const registerFamily = createServerFn({ method: "POST" })
         ok: false,
         error: `This account is already part of ${already[0]?.household ? `the family "${already[0]?.household}"` : "a family"} in this celebration. To register a different family, sign out and use a different email.`,
       };
+
+    // Someone already on the guest list (e.g. added by a relative) joins that family instead of starting a new one.
+    const accountEmail = String((context.claims as { email?: string } | undefined)?.email ?? "").trim().toLowerCase();
+    const ownEmails = [...new Set([accountEmail, data.email.trim().toLowerCase()].filter(Boolean))];
+    const { data: listed } = await supabaseAdmin
+      .from("invite_codes")
+      .select("id, email, guest_name, household, claimed_by")
+      .eq("invite_id", link.invite_id)
+      .not("email", "is", null);
+    const byEmail = (e: string) => (listed ?? []).filter((r) => (r.email ?? "").trim().toLowerCase() === e);
+    const mineListed = ownEmails.flatMap(byEmail);
+    if (mineListed.length > 0) {
+      const open = mineListed.find((r) => !r.claimed_by);
+      if (!open) {
+        return {
+          ok: false,
+          error: `This email is already on the guest list in the "${mineListed[0]?.household ?? "another"}" family. Please sign in with that account, or ask your host for help.`,
+        };
+      }
+      await supabaseAdmin
+        .from("invite_codes")
+        .update({ claimed_by: userId, claimed_at: new Date().toISOString() })
+        .eq("id", open.id)
+        .is("claimed_by", null);
+      await supabaseAdmin
+        .from("profiles")
+        .update({ invite_claimed: true, household: open.household, phone: data.phone })
+        .eq("id", userId);
+      return { ok: true, joined: open.household ?? "your family" };
+    }
+    const memberClash = data.members
+      .map((m) => (m.email ?? "").trim().toLowerCase())
+      .filter(Boolean)
+      .map((e) => byEmail(e)[0])
+      .find(Boolean);
+    if (memberClash) {
+      return {
+        ok: false,
+        error: `${memberClash.guest_name} (${memberClash.email}) is already on the guest list in the "${memberClash.household ?? "another"}" family. Remove them from your list, or leave their email blank.`,
+      };
+    }
 
     // Family names are how events are matched, so keep them unique per celebration.
     let name = data.familyName;
@@ -161,7 +202,8 @@ export const addFamilyMember = createServerFn({ method: "POST" })
       family_id: mine.family_id,
       invite_id: mine.invite_id,
     });
-    return error ? { ok: false, error: "We couldn't add that person." } : { ok: true };
+    if (error) return { ok: false, error: error.code === "23505" ? error.message : "We couldn't add that person." };
+    return { ok: true };
   });
 
 /** A host removes a family's registration (members, codes, event invites, replies). */

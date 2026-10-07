@@ -19,3 +19,4 @@
 - Packages live on the celebration: `celebration_subscriptions`, `celebration_addons`, `plan_requests.invite_id`; features via `celebration_features(invite_id)`. Why: one upgrade applies to one celebration only.
 
 - Host checks use celebration membership: UI via `useIsAnyHost`/`useIsPlatformAdmin` (src/lib/host-role.ts); server fns via `is_celebration_host(invite_id)`, platform-wide actions via `is_platform_admin`. Never `user_roles`/`has_role(admin)`. Why: co-hosts exist only in celebration_hosts and hosts must not cross celebrations.
+- An email belongs to one family per celebration, enforced by the `guard_email_one_family` trigger on invite_codes; self-registration joins an existing unclaimed listing instead of creating a family. Why: stops relatives' duplicate families/accounts.

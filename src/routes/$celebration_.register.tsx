@@ -143,8 +143,11 @@ function RegisterPage() {
       const res = await registerFamily({
         data: { token, ...form, members: members.map((m) => ({ ...m, name: m.name.trim(), email: m.email.trim(), phone: m.phone.trim() })) },
       });
-      if (!res.ok) toast.error(res.error ?? "We couldn't register your family.");
-      else setDone(res.code ?? "");
+      if (!res.ok) toast.error(res.error ?? "We couldn't register your family.", { duration: 10000 });
+      else if (res.joined) {
+        toast.success(`You were already on the guest list — we've added you to the "${res.joined}" family.`, { duration: 8000 });
+        await navigate({ to: "/guest/invite" });
+      } else setDone(res.code ?? "");
     } catch {
       toast.error("Something in the form isn't right — please check the names, email and mobile number.");
     }

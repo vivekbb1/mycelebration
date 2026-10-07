@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAnyHost } from "@/lib/host-role";
@@ -488,10 +489,13 @@ function FamilyPage() {
                 const given = fields.filter(([, v]) => v !== null && v !== undefined);
                 return (
                   <div key={m.id as string} className="rounded-xl border border-border p-4">
-                    <p className="text-sm">
-                      {(m.guest_name as string) || "Guest"}{" "}
-                      <span className="text-xs text-muted-foreground">in {unit}</span>
-                    </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="min-w-0 text-sm">
+                        {(m.guest_name as string) || "Guest"}{" "}
+                        <span className="text-xs text-muted-foreground">in {unit}</span>
+                      </p>
+                      <ClearMeasurementsButton id={m.id as string} name={(m.guest_name as string) || "this guest"} />
+                    </div>
                     {given.length === 0 ? (
                       <p className="mt-2 text-xs text-muted-foreground">Nothing filled in yet.</p>
                     ) : (
