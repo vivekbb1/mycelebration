@@ -8,6 +8,8 @@
   - **How to measure**: a simple drawing of a body with numbered points and one line of instructions for each (bust/chest, waist, hip, shoulder, sleeve, length, inseam, neck).
   - **Tips**: measure over light clothing, keep the tape snug but not tight, ask someone to help.
 - A **size choice** that lists only the sizes the look comes in (sold-out sizes are greyed out), plus **Made to measure**.
+- **Suggested size**: once a person's measurements are saved, the size that fits best is marked "Suggested for you", based on the chart (e.g. bust 36 in → M). If they fall between two sizes, the larger one is suggested, with a note.
+- **Measurements are asked of everyone**, not only for Made to measure. If someone picks a ready size without measurements, they see a gentle "Add your measurements so we can check the fit" prompt. They can still go ahead.
 - Choosing **Made to measure** sends the guest to the Measurements tab for that person.
 
 ### 2. Measurements tab (guest page), reworked
@@ -32,6 +34,8 @@
 
 ### 4. Host side
 - Host measurement screens, the tailor download and the family page show the new fields, the chosen size and "Made to measure".
+- **Fit check for hosts**: each chosen look shows the guest's chosen size next to the suggested size. Mismatches (e.g. chose S, measurements suggest L) are flagged, plus a filter for "Size may not fit" and "No measurements yet".
+- The "Required details still owed" card counts missing measurements for every guest with a chosen look.
 - The **Clear** button keeps working.
 
 ## Charts used
