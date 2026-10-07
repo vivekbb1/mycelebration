@@ -22,7 +22,15 @@
 - A clear summary at the top, e.g. "2 of 4 family members done".
 - Existing saved measurements stay as they are. Women's "Bust / chest" fills "Bust", and men's fills "Chest".
 
-### 3. Host side
+### 3. Stock for each size (matching Pernia)
+- Each size on a look shows whether it's in stock, using Pernia's own size list: **In stock**, **Made to order** (with the shipping time, e.g. "ships in 3–4 weeks") or **Sold out** (greyed out, can't be picked).
+- Stock is checked again when the guest opens the size choice, and again when they confirm, so a size that sold out since the import can't be chosen.
+- If the guest's saved size has since sold out, they and the host see **"Size no longer available — choose another or Made to measure"**.
+- Hosts see each look's stock in Wardrobe → Manage, plus a filter for "Chosen size sold out".
+- Uploaded looks (not from a shop) have no stock information. All their sizes show as available unless the host marks one sold out.
+- Kora uses the same checks once its size list is confirmed.
+
+### 4. Host side
 - Host measurement screens, the tailor download and the family page show the new fields, the chosen size and "Made to measure".
 - The **Clear** button keeps working.
 
