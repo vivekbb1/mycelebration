@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { HostEventsBulk } from "@/components/host-events-bulk";
 import { useInvites } from "@/components/host-invites";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { CollapsiblePanel } from "@/components/collapsible-panel";
@@ -19,7 +21,7 @@ import { CollapsiblePanel } from "@/components/collapsible-panel";
 const eventSchema = z.object({
   name: z.string().trim().min(2, "Name the event (e.g. Mehndi)").max(80),
   event_date: z.string().trim().max(20),
-  start_time: z.string().trim().max(40),
+  start_time: z.string().trim().max(120, "Start time can be up to 120 characters"),
   venue: z.string().trim().max(160),
   venue_address: z.string().trim().max(300),
   dress_code: z.string().trim().max(200),
@@ -98,6 +100,7 @@ export function HostEvents() {
   const [form, setForm] = useState<EventForm>({ ...emptyEvent });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const invites = useInvites();
@@ -410,7 +413,7 @@ export function HostEvents() {
               <Label htmlFor="e-time">Start time</Label>
               <Input
                 id="e-time"
-                maxLength={40}
+                maxLength={120}
                 value={form.start_time}
                 placeholder="4:00 pm onwards"
                 onChange={(e) => setForm((f) => ({ ...f, start_time: e.target.value }))}
@@ -603,10 +606,36 @@ export function HostEvents() {
       </CollapsiblePanel>
 
       <div className="panel h-fit p-4 sm:p-6">
-        <h2 className="text-xl">The schedule ({scheduleList.length})</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xl">The schedule ({scheduleList.length})</h2>
+          {scheduleList.length > 1 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setPicked((p) =>
+                  p.length === scheduleList.length ? [] : scheduleList.map((e) => e.id),
+                )
+              }
+            >
+              {picked.length === scheduleList.length ? "Clear selection" : "Select all"}
+            </Button>
+          ) : null}
+        </div>
+        {picked.length > 0 ? (
+          <HostEventsBulk ids={picked} onDone={() => setPicked([])} />
+        ) : null}
         <ul className="mt-4 divide-y divide-border">
           {scheduleList.map((ev) => (
             <li key={ev.id} className="flex items-start gap-3 py-4">
+              <Checkbox
+                className="mt-1"
+                aria-label={`Select ${ev.name}`}
+                checked={picked.includes(ev.id)}
+                onCheckedChange={(v) =>
+                  setPicked((p) => (v ? [...p, ev.id] : p.filter((x) => x !== ev.id)))
+                }
+              />
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-2 truncate">
                   {ev.name}
@@ -628,6 +657,14 @@ export function HostEvents() {
                 </p>
                 {ev.dress_code ? (
                   <p className="mt-1 truncate text-xs text-primary">{ev.dress_code}</p>
+                ) : null}
+                {ev.rsvp_by || (ev.outfit_selection && ev.outfit_choose_by) ? (
+                  <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    {ev.rsvp_by ? <span>RSVP by {ev.rsvp_by}</span> : null}
+                    {ev.outfit_selection && ev.outfit_choose_by ? (
+                      <span>Choose looks by {ev.outfit_choose_by}</span>
+                    ) : null}
+                  </p>
                 ) : null}
                 {ev.outfit_ready_by || ev.outfit_slot_note ? (
                   <p className="mt-1 truncate text-xs text-muted-foreground">
