@@ -27,13 +27,14 @@ export type KoraLook = {
   description: string;
   sku: string;
   soldOut: boolean;
+  sizes: Array<{ label: string; available: boolean }> | null;
 };
 
 function strip(html: string) {
   return html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim().slice(0, 2000);
 }
 
-function mapProduct(p: any): KoraLook {
+export function mapProduct(p: any): KoraLook {
   const variants: any[] = Array.isArray(p.variants) ? p.variants : [];
   const prices = variants.map((v) => Number(v.price)).filter((n) => n > 0);
   const colourOpt = (p.options ?? []).find((o: any) => /colou?r/i.test(o?.name ?? ""));
@@ -49,6 +50,18 @@ function mapProduct(p: any): KoraLook {
     description: strip(String(p.body_html ?? "")),
     sku: String(variants[0]?.sku ?? "").split(/\s/)[0] || "",
     soldOut: !variants.some((v) => v.available),
+    sizes: (() => {
+      const idx = (p.options ?? []).findIndex((o: any) => /size/i.test(o?.name ?? ""));
+      if (idx < 0) return null;
+      const key = `option${idx + 1}`;
+      const map = new Map<string, boolean>();
+      for (const v of variants) {
+        const label = String(v?.[key] ?? "").trim();
+        if (!label || /custom/i.test(label)) continue;
+        map.set(label, Boolean(map.get(label)) || v.available !== false);
+      }
+      return map.size ? [...map].map(([label, available]) => ({ label, available })) : null;
+    })(),
   };
 }
 
@@ -158,6 +171,7 @@ export const importKoraLooks = createServerFn({ method: "POST" })
           source_sku: look.sku || null,
           gender: data.gender,
           notes: look.description || null,
+          sizes: look.sizes,
           event_id: data.eventId,
           boutique_id: shop.id,
           invite_id: data.inviteId,

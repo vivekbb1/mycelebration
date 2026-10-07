@@ -27,6 +27,7 @@ export type PerniaLook = {
   description: string;
   gender: string;
   soldOut: boolean;
+  sizes: Array<{ label: string; available: boolean; ready_to_ship: boolean; ships_by: string | null }> | null;
 };
 
 type Ctx = { supabase: { from: (t: string) => any; rpc: (f: string, a?: any) => any }; userId: string };
@@ -121,6 +122,16 @@ export async function detail(slug: string): Promise<PerniaLook> {
     description: String(r.description ?? ""),
     gender: r.gender === "male" ? "men" : "women",
     soldOut: Boolean(r.soldOut),
+    sizes: Array.isArray(r.attributeOptions?.["Shop by Size"])
+      ? (r.attributeOptions["Shop by Size"] as any[])
+          .filter((o) => !/custom/i.test(String(o?.label ?? "")))
+          .map((o) => ({
+            label: String(o.label),
+            available: !r.soldOut && o.isAvailable !== false,
+            ready_to_ship: Boolean(o.readyToShip),
+            ships_by: o.estimated_shipping_date ? String(o.estimated_shipping_date) : null,
+          }))
+      : null,
   };
 }
 
@@ -385,6 +396,7 @@ export const importPerniaLooks = createServerFn({ method: "POST" })
         source_sku: look.sku || null,
         gender: data.gender ?? look.gender,
         notes: look.description || null,
+        sizes: look.sizes,
         invite_id: data.inviteId,
         event_id: data.eventId,
         boutique_id: data.boutiqueId,

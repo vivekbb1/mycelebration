@@ -1961,9 +1961,12 @@ export type Database = {
       }
       measurements: {
         Row: {
+          armhole: number | null
           bottom_length: number | null
           bust: number | null
+          chest: number | null
           created_at: string
+          form: string | null
           guest_id: string
           guest_name: string
           height: number | null
@@ -1971,18 +1974,24 @@ export type Database = {
           id: string
           inseam: number | null
           invite_id: string | null
+          neck: number | null
           notes: string | null
           shoulder: number | null
           sleeve_length: number | null
           top_length: number | null
+          under_bust: number | null
           unit: string
           updated_at: string
+          usual_size: string | null
           waist: number | null
         }
         Insert: {
+          armhole?: number | null
           bottom_length?: number | null
           bust?: number | null
+          chest?: number | null
           created_at?: string
+          form?: string | null
           guest_id: string
           guest_name?: string
           height?: number | null
@@ -1990,18 +1999,24 @@ export type Database = {
           id?: string
           inseam?: number | null
           invite_id?: string | null
+          neck?: number | null
           notes?: string | null
           shoulder?: number | null
           sleeve_length?: number | null
           top_length?: number | null
+          under_bust?: number | null
           unit?: string
           updated_at?: string
+          usual_size?: string | null
           waist?: number | null
         }
         Update: {
+          armhole?: number | null
           bottom_length?: number | null
           bust?: number | null
+          chest?: number | null
           created_at?: string
+          form?: string | null
           guest_id?: string
           guest_name?: string
           height?: number | null
@@ -2009,12 +2024,15 @@ export type Database = {
           id?: string
           inseam?: number | null
           invite_id?: string | null
+          neck?: number | null
           notes?: string | null
           shoulder?: number | null
           sleeve_length?: number | null
           top_length?: number | null
+          under_bust?: number | null
           unit?: string
           updated_at?: string
+          usual_size?: string | null
           waist?: number | null
         }
         Relationships: [
@@ -2283,6 +2301,7 @@ export type Database = {
           price_note: string | null
           silhouette: string | null
           size_note: string | null
+          sizes: Json | null
           source_sku: string | null
           title: string
           updated_at: string
@@ -2307,6 +2326,7 @@ export type Database = {
           price_note?: string | null
           silhouette?: string | null
           size_note?: string | null
+          sizes?: Json | null
           source_sku?: string | null
           title: string
           updated_at?: string
@@ -2331,6 +2351,7 @@ export type Database = {
           price_note?: string | null
           silhouette?: string | null
           size_note?: string | null
+          sizes?: Json | null
           source_sku?: string | null
           title?: string
           updated_at?: string
@@ -2546,6 +2567,7 @@ export type Database = {
           payment_status: string
           shipping_carrier: string | null
           shipping_status: string
+          size_choice: string | null
           status: string
           tracking_number: string | null
           tracking_url: string | null
@@ -2571,6 +2593,7 @@ export type Database = {
           payment_status?: string
           shipping_carrier?: string | null
           shipping_status?: string
+          size_choice?: string | null
           status?: string
           tracking_number?: string | null
           tracking_url?: string | null
@@ -2596,6 +2619,7 @@ export type Database = {
           payment_status?: string
           shipping_carrier?: string | null
           shipping_status?: string
+          size_choice?: string | null
           status?: string
           tracking_number?: string | null
           tracking_url?: string | null
