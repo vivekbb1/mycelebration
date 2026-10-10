@@ -647,23 +647,9 @@ function Lookbook() {
                   <span className="flex items-center justify-between gap-2">
                     <span className="truncate font-medium">{person.name}</span>
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      {picks.length ? `${picks.length} chosen` : "None yet"}
+                      {picks.length ? `${picks.length} of ${pickableEvents.length} chosen` : "None yet"}
                     </span>
                   </span>
-                  {picks.map(({ r, o }) => (
-                    <span key={r.id} className="mt-2 flex items-center gap-2 text-xs">
-                      {o!.image_url ? (
-                        <img src={sized(o!.image_url, 120)} alt="" loading="lazy" className="h-10 w-8 shrink-0 rounded object-cover" />
-                      ) : null}
-                      <span className="min-w-0">
-                        <span className="block truncate">{o!.title}</span>
-                        <span className="block text-muted-foreground">
-                          {eventList.find((e) => e.id === o!.event_id)?.name ?? "Any event"} ·{" "}
-                          {r.status === "confirmed" ? "Confirmed" : "Chosen"}
-                        </span>
-                      </span>
-                    </span>
-                  ))}
                 </button>
               </li>
             );
@@ -693,17 +679,6 @@ function Lookbook() {
 
 
 
-      {myOutfits.length > 0 ? (
-        <section className="panel mt-6 p-4 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl">
-              Reserved for {activeName} ({myOutfits.length})
-            </h2>
-            {deliveryPlan.data?.enabled !== false ? (
-              <Button asChild size="sm" variant="outline">
-                <Link to="/delivery">Pickup &amp; delivery plan</Link>
-              </Button>
-            ) : null}
           </div>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2">
             {myOutfits.map((o) => (
@@ -806,6 +781,11 @@ function Lookbook() {
                   <Button variant="outline" size="sm" className="mt-3" disabled={busyId === held.id} onClick={() => release(held)}>
                     Release and choose again
                   </Button>
+                ) : null}
+                {deliveryPlan.data?.enabled !== false ? (
+                  <Link to="/delivery" className="mt-3 block text-sm text-primary underline-offset-4 hover:underline">
+                    Pickup &amp; delivery plan
+                  </Link>
                 ) : null}
               </div>
             </div>
