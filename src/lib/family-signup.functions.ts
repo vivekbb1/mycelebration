@@ -329,12 +329,13 @@ export const updateRegisteredGuest = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z.object({
       codeId: z.string().uuid(),
-      name: z.string().trim().min(2).max(100),
+      name: z.string().trim().max(100),
       email: z.string().trim().max(255).email().or(z.literal("")),
       phone: z.string().trim().max(40),
       gender: z.enum(["men", "women", "boy", "girl"]).or(z.literal("")),
       familyName: z.string().trim().min(2).max(80).or(z.literal("")),
-    }).parse(d),
+      renameOnly: z.boolean().optional(),
+    }).refine((v) => v.renameOnly || v.name.length >= 2).parse(d),
   )
   .handler(async ({ data, context }): Promise<{ ok: boolean; error?: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -347,6 +348,7 @@ export const updateRegisteredGuest = createServerFn({ method: "POST" })
     const { data: isHost } = await context.supabase.rpc("is_celebration_host", { _invite_id: code.invite_id });
     if (!isHost) return { ok: false, error: "Only this celebration's hosts can do that." };
 
+    if (!data.renameOnly) {
     const upd = await supabaseAdmin.from("invite_codes").update({
       guest_name: data.name,
       email: data.email || null,
@@ -366,6 +368,8 @@ export const updateRegisteredGuest = createServerFn({ method: "POST" })
         }).eq("id", code.claimed_by);
       }
     }
+    }
+
 
     const oldName = code.household;
     const newName = data.familyName;

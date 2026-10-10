@@ -143,3 +143,48 @@ export function FamilyMemberActions({ person }: { person: Person }) {
     </>
   );
 }
+
+/** Host renames the whole family (every member and their records). */
+export function RenameFamilyButton({ codeId, household, onRenamed }: { codeId: string; household: string; onRenamed: (n: string) => void }) {
+  const update = useServerFn(updateRegisteredGuest);
+  const refresh = useRefresh();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(household);
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    const next = name.trim();
+    if (next === household) return setOpen(false);
+    setBusy(true);
+    try {
+      const r = await update({ data: { codeId, name: "", email: "", phone: "", gender: "", familyName: next, renameOnly: true } });
+      if (!r.ok) throw new Error(r.error);
+      toast.success("Family renamed.");
+      setOpen(false);
+      refresh();
+      onRenamed(next);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't rename the family.");
+    } finally { setBusy(false); }
+  };
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={() => { setName(household); setOpen(true); }}>
+        <Pencil className="mr-2 size-4" /> Edit family
+      </Button>
+      <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit family</DialogTitle></DialogHeader>
+          <div className="space-y-1">
+            <Label htmlFor="fam-name">Family name</Label>
+            <Input id="fam-name" value={name} onChange={(e) => setName(e.target.value)} />
+            <p className="text-xs text-muted-foreground">Renames the family for every member, their travel, rooms and notes.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>Cancel</Button>
+            <Button onClick={() => void save()} disabled={busy || name.trim().length < 2}>{busy ? "Saving…" : "Save"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
