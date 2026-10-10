@@ -76,7 +76,8 @@ export function HostOrders() {
             misfit: Boolean(size && suggested && size !== MADE_TO_MEASURE && size !== suggested),
             soldOut: Boolean(size && shopSizes.find((x) => x.label === size && !x.available)),
           };
-        });
+        })
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     },
   });
 
@@ -251,6 +252,18 @@ export function HostOrders() {
                       {r.guest.household ? ` · ${r.guest.household}` : ""}
                       {o?.events?.name ? ` · ${o.events.name}` : ""}
                     </p>
+                    {r.created_at ? (
+                      <p className="text-xs text-muted-foreground">
+                        Reserved{" "}
+                        {new Date(r.created_at).toLocaleString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    ) : null}
                     <p className="text-sm text-muted-foreground">
                       {[o?.designer, r.build_garment, r.build_size && `size ${r.build_size}`, r.build_fabric]
                         .filter(Boolean)
