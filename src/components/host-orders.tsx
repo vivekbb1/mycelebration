@@ -76,7 +76,8 @@ export function HostOrders() {
             misfit: Boolean(size && suggested && size !== MADE_TO_MEASURE && size !== suggested),
             soldOut: Boolean(size && shopSizes.find((x) => x.label === size && !x.available)),
           };
-        });
+        })
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     },
   });
 
