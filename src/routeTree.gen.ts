@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CelebrationRouteImport } from './routes/$celebration'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as CelebrationRegisterRouteImport } from './routes/$celebration_.register'
 import { Route as AuthenticatedAtelierRouteImport } from './routes/_authenticated/atelier'
 import { Route as AuthenticatedConfirmRouteImport } from './routes/_authenticated/confirm'
@@ -67,6 +68,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CelebrationRegisterRoute = CelebrationRegisterRouteImport.update({
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/$celebration/register': typeof CelebrationRegisterRoute
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/$celebration/register': typeof CelebrationRegisterRoute
   '/atelier': typeof AuthenticatedAtelierRoute
   '/confirm': typeof AuthenticatedConfirmRoute
@@ -351,6 +359,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/$celebration': typeof CelebrationRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/$celebration_/register': typeof CelebrationRegisterRoute
   '/_authenticated/atelier': typeof AuthenticatedAtelierRoute
   '/_authenticated/confirm': typeof AuthenticatedConfirmRoute
@@ -394,6 +403,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$celebration'
     | '/auth'
+    | '/reset-password'
     | '/$celebration/register'
     | '/atelier'
     | '/confirm'
@@ -435,6 +445,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$celebration'
     | '/auth'
+    | '/reset-password'
     | '/$celebration/register'
     | '/atelier'
     | '/confirm'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/$celebration'
     | '/auth'
+    | '/reset-password'
     | '/$celebration_/register'
     | '/_authenticated/atelier'
     | '/_authenticated/confirm'
@@ -520,6 +532,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CelebrationRoute: typeof CelebrationRoute
   AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   CelebrationRegisterRoute: typeof CelebrationRegisterRoute
   ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
   ApiPublicOutfitImportWorkerRoute: typeof ApiPublicOutfitImportWorkerRoute
@@ -559,6 +572,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$celebration_/register': {
@@ -884,6 +904,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CelebrationRoute: CelebrationRoute,
   AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   CelebrationRegisterRoute: CelebrationRegisterRoute,
   ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
   ApiPublicOutfitImportWorkerRoute: ApiPublicOutfitImportWorkerRoute,
