@@ -30,6 +30,8 @@ type Plan = {
   checkout_time: string | null;
   notes: string | null;
   updated_by: string | null;
+  travellers: string[] | null;
+  created_at: string;
 };
 
 type EventRow = { id: string; name: string; event_date: string | null; start_time: string | null };
@@ -62,7 +64,6 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
       return (data ?? []) as { hotel: string; room_number: string; floor: string | null; category: string }[];
     },
   });
-  const [scope, setScope] = useState<"family" | "me">("family");
   const [form, setForm] = useState({ ...blank });
   const [loaded, setLoaded] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -127,19 +128,36 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
     },
   });
 
-  const current = useMemo(
-    () =>
-      (plans.data ?? []).find((p) =>
-        scope === "family" ? p.guest_name === null : p.guest_name === myName,
-      ) ?? null,
-    [plans.data, scope, myName],
+  const names = useMemo(
+    () => (people.data ?? []).map((p) => p.name.trim()).filter(Boolean),
+    [people.data],
   );
+  const membersOf = (p: Plan): string[] =>
+    p.travellers && p.travellers.length
+      ? p.travellers
+      : p.guest_name === null
+        ? names
+        : p.guest_name.split(",").map((s) => s.trim()).filter(Boolean);
+  const batches = useMemo(
+    () => (plans.data ?? []).slice().sort((a, b) => (a.created_at < b.created_at ? -1 : 1)),
+    [plans.data],
+  );
+  const [sel, setSel] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
+  const effSel = sel ?? batches[0]?.id ?? "new";
+  const current = batches.find((p) => p.id === effSel) ?? null;
+  const takenElsewhere = new Set(
+    batches.filter((p) => p.id !== current?.id).flatMap((p) => membersOf(p)),
+  );
+  const selectable = names.filter((n) => !takenElsewhere.has(n));
+  const remaining = names.filter((n) => !new Set(batches.flatMap((p) => membersOf(p))).has(n));
 
-  // Load whichever plan the guest is looking at into the form.
-  const key = `${scope}:${current?.id ?? "new"}`;
+  // Load whichever batch the guest is looking at into the form.
+  const key = `${current?.id ?? "new"}:${names.length}`;
   useEffect(() => {
     if (loaded === key) return;
     setLoaded(key);
+    setPicked(current ? membersOf(current) : selectable);
     setForm(
       current
         ? {
@@ -158,6 +176,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
           }
         : { ...blank },
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, loaded, current]);
 
   // Travel is optional — only unfold it on its own if they've already given details, or if the hosts need it.
@@ -183,11 +202,17 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
       toast.error("We couldn't find your family name — please tell the hosts.");
       return;
     }
+    if (names.length > 0 && picked.length === 0) {
+      toast.error("Tick at least one person travelling in this batch.");
+      return;
+    }
     setBusy(true);
+    const everyone = names.length > 0 && picked.length === names.length;
     const payload = {
       household,
-      guest_name: scope === "family" ? null : myName || "Guest",
-      party_size: form.party_size ? Number(form.party_size) : null,
+      travellers: picked,
+      guest_name: everyone || picked.length === 0 ? null : picked.join(", "),
+      party_size: picked.length || null,
       arrival_date: form.arrival_date || null,
       arrival_time: form.arrival_time || null,
       arrival_flight: form.arrival_flight.trim() || null,
@@ -201,19 +226,21 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
       notes: form.notes.trim() || null,
       updated_by: myId,
     };
-    const { error } = current
-      ? await supabase.from("travel_plans").update(payload).eq("id", current.id)
-      : await supabase.from("travel_plans").insert(payload);
+    const res = current
+      ? await supabase.from("travel_plans").update(payload).eq("id", current.id).select("id").single()
+      : await supabase.from("travel_plans").insert(payload).select("id").single();
     setBusy(false);
-    if (error) {
-      toast.error(error.message);
+    if (res.error) {
+      toast.error(res.error.message);
       return;
     }
+    const left = remaining.filter((n) => !picked.includes(n));
     toast.success(
-      scope === "family"
-        ? "Saved — these travel details cover everyone in your family."
-        : "Saved — your own travel details are with the hosts.",
+      left.length
+        ? `Saved. Still to add: ${left.join(", ")} — use "+ Batch" for them.`
+        : "Saved — travel details are with the hosts.",
     );
+    setSel(res.data.id);
     setLoaded(null);
     await queryClient.invalidateQueries({ queryKey: ["travel-plans", household] });
   };
@@ -394,29 +421,70 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
           {travelOpen ? (
             <>
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setScope("family")}
-                  className={`rounded-full border px-3 py-1.5 text-xs ${
-                    scope === "family"
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  For the whole family
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setScope("me")}
-                  className={`rounded-full border px-3 py-1.5 text-xs ${
-                    scope === "me"
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
-                  Just for me
-                </button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {batches.map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSel(p.id)}
+                    className={`rounded-full border px-3 py-1.5 text-xs ${
+                      effSel === p.id
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    Batch {i + 1} · {membersOf(p).length} {membersOf(p).length === 1 ? "person" : "people"}
+                  </button>
+                ))}
+                {effSel === "new" || remaining.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setSel("new")}
+                    className={`rounded-full border border-dashed px-3 py-1.5 text-xs ${
+                      effSel === "new"
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {batches.length ? `+ Batch ${batches.length + 1}` : "Batch 1"}
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="mt-5 space-y-2">
+                <Label>Who's travelling together in this batch?</Label>
+                {selectable.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Everyone in your family is already in a batch.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {selectable.map((n) => {
+                      const on = picked.includes(n);
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          aria-pressed={on}
+                          onClick={() =>
+                            setPicked(on ? picked.filter((x) => x !== n) : [...picked, n])
+                          }
+                          className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm ${
+                            on ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          {on ? <Check className="size-3.5 text-primary" /> : null}
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {remaining.length > 0 && effSel !== "new" ? (
+                  <p className="text-xs text-muted-foreground">
+                    Not in a batch yet: {remaining.join(", ")} — add them as another batch if they travel separately.
+                  </p>
+                ) : null}
               </div>
 
               {settings.need === "stay_transfer" ? (
@@ -535,21 +603,6 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
               ) : null}
 
               <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                {settings.need === "stay_transfer" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="party">
-                      How many of you are travelling{scope === "family" ? "" : " with you"}?
-                    </Label>
-                    <Input
-                      id="party"
-                      type="number"
-                      min={1}
-                      max={50}
-                      value={form.party_size}
-                      onChange={(e) => setForm({ ...form, party_size: e.target.value })}
-                    />
-                  </div>
-                ) : null}
                 <div className="space-y-2">
                   <Label htmlFor="travel-notes">Anything else? (optional)</Label>
                   <Textarea

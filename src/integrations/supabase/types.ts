@@ -2789,6 +2789,7 @@ export type Database = {
           invite_id: string | null
           notes: string | null
           party_size: number | null
+          travellers: string[] | null
           updated_at: string
           updated_by: string | null
         }
@@ -2811,6 +2812,7 @@ export type Database = {
           invite_id?: string | null
           notes?: string | null
           party_size?: number | null
+          travellers?: string[] | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2833,6 +2835,7 @@ export type Database = {
           invite_id?: string | null
           notes?: string | null
           party_size?: number | null
+          travellers?: string[] | null
           updated_at?: string
           updated_by?: string | null
         }

@@ -1,0 +1,1 @@
+ALTER TABLE public.travel_plans ADD COLUMN IF NOT EXISTS travellers text[];
