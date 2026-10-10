@@ -130,8 +130,8 @@ export function HostRooms() {
     const XLSX = await import("xlsx");
     const sample = [
       TEMPLATE_COLS,
-      [data.hotels[0]?.name ?? "Grand Hotel", data.hotels[0]?.city ?? "Dubai", "Deluxe", "3", "301", 2, 2, "yes", "", "", ""],
-      [data.hotels[0]?.name ?? "Grand Hotel", data.hotels[0]?.city ?? "Dubai", "Suite", "5", "501", 1, 3, "no", "", "", "Sea view"],
+      [data?.hotels[0]?.name ?? "Grand Hotel", data?.hotels[0]?.city ?? "Dubai", "Deluxe", "3", "301", 2, 2, "yes", "", "", ""],
+      [data?.hotels[0]?.name ?? "Grand Hotel", data?.hotels[0]?.city ?? "Dubai", "Suite", "5", "501", 1, 3, "no", "", "", "Sea view"],
     ];
     const ws = XLSX.utils.aoa_to_sheet(sample);
     ws["!cols"] = TEMPLATE_COLS.map((c) => ({ wch: Math.max(12, c.length + 2) }));
@@ -153,8 +153,8 @@ export function HostRooms() {
         return String(v ?? "").trim();
       };
       const date = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
-      const hotels = new Map(data.hotels.map((h) => [h.name.trim().toLowerCase(), h.id]));
-      const existing = new Set(data.rooms.map((r) => `${r.vendor_id}|${r.room_number.trim().toLowerCase()}`));
+      const hotels = new Map((data?.hotels ?? []).map((h) => [h.name.trim().toLowerCase(), h.id]));
+      const existing = new Set((data?.rooms ?? []).map((r) => `${r.vendor_id}|${r.room_number.trim().toLowerCase()}`));
       const toInsert: Record<string, unknown>[] = [];
       let skipped = 0;
       for (const r of rows) {
