@@ -21,7 +21,7 @@ export function ClearMeasurementsButton({ id, name }: { id: string; name: string
       return;
     }
     toast.success(`Measurements cleared for ${name}.`);
-    for (const key of ["all-measurements", "family-measurements", "guest-measurements"]) {
+    for (const key of ["all-measurements", "family-measurements", "guest-measurements", "my-measurements", "measurements"]) {
       void queryClient.invalidateQueries({ queryKey: [key] });
     }
   };
