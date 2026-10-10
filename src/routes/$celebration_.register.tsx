@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { celebrationStyle, useCelebrationBySlug } from "@/lib/public-celebration";
-import { useSignupLink } from "@/lib/signup-link";
+import { LAST_REGISTER, PENDING_REGISTER, useSignupLink } from "@/lib/signup-link";
 
 type G = "men" | "women" | "boy" | "girl";
 const GENDERS: { v: G; label: string }[] = [
@@ -143,11 +143,26 @@ function RegisterPage() {
     else toast.success("Sent again — check your inbox.");
   };
 
+  // Remember this sign-up link so a guest who wanders off (or comes back from
+  // Apple / Google / Microsoft on another page) can be brought back to finish.
+  useEffect(() => {
+    if (!token || !link.data) return;
+    localStorage.setItem(LAST_REGISTER, `/${slug}/register?t=${encodeURIComponent(token)}`);
+  }, [token, slug, link.data]);
+
   const social = async (provider: "google" | "microsoft" | "apple") => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.href });
+    const back = `${window.location.pathname}${window.location.search}`;
+    localStorage.setItem(PENDING_REGISTER, JSON.stringify({ path: back, at: Date.now() }));
+    // The sign-in service returns to the site's home address; the app then brings the guest back here.
+    const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
     setBusy(false);
-    if (result.error) toast.error(result.error.message ?? "Sign-in failed");
+    if (result.error) {
+      localStorage.removeItem(PENDING_REGISTER);
+      toast.error(result.error.message ?? "Sign-in failed");
+      return;
+    }
+    if (!result.redirected) localStorage.removeItem(PENDING_REGISTER);
   };
 
   const submit = async (e: React.FormEvent) => {
