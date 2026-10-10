@@ -224,10 +224,6 @@ function Lookbook() {
   const pickableEvents = eventList.filter(
     (e) => familyPicks(e.id),
   );
-  // Always work on one day at a time, so guests know which event they are choosing for.
-  const activeEvent = pickableEvents.some((e) => e.id === pickedEvent)
-    ? pickedEvent
-    : (pickableEvents[0]?.id ?? "all");
   const ownOutfitEvents = eventList.filter(
     (e) => !familyPicks(e.id),
   );
@@ -265,6 +261,17 @@ function Lookbook() {
     "You";
 
   const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
+
+  // One day at a time: open on the first event this person still needs a look for.
+  const doneForPerson = new Set(
+    (outfits.data ?? [])
+      .filter((o) => mineByOutfit.has(o.id) && (mineByOutfit.get(o.id) ?? activeName) === activeName)
+      .map((o) => o.event_id),
+  );
+  const nextOpenEvent = pickableEvents.find((e) => !doneForPerson.has(e.id));
+  const activeEvent = pickableEvents.some((e) => e.id === pickedEvent)
+    ? pickedEvent
+    : (nextOpenEvent?.id ?? pickableEvents[0]?.id ?? "all");
 
   // The wardrobes this family actually needs: a family of only men never sees womenswear.
   const familyWardrobes = new Set(
@@ -415,6 +422,8 @@ function Lookbook() {
       emailed = false;
     }
     setBusyId(null);
+    // Move on to the next event this person still needs a look for.
+    setActiveEvent("all");
 
     toast.success(
       emailed
@@ -518,7 +527,7 @@ function Lookbook() {
                   <Button
                     key={p.name}
                     variant={p.gender ? "default" : "outline"}
-                    onClick={() => setActivePerson(p.name)}
+                    onClick={() => { setActiveEvent("all"); setActivePerson(p.name); }}
                   >
                     {p.name}
                   </Button>
@@ -545,7 +554,7 @@ function Lookbook() {
                   </Button>
                 ))}
                 {chosen ? (
-                  <Button variant="ghost" onClick={() => setActivePerson(null)}>
+                  <Button variant="ghost" onClick={() => { setActiveEvent("all"); setActivePerson(null); }}>
                     Choose someone else
                   </Button>
                 ) : null}
@@ -629,7 +638,7 @@ function Lookbook() {
               <li key={person.name}>
                 <button
                   type="button"
-                  onClick={() => setActivePerson(person.name)}
+                  onClick={() => { setActiveEvent("all"); setActivePerson(person.name); }}
                   aria-pressed={active}
                   className={`w-full rounded-md border p-3 text-left transition-colors ${
                     active ? "border-primary bg-primary/5" : "border-border hover:border-primary"
