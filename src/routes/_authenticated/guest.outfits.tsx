@@ -78,8 +78,8 @@ function Lookbook() {
   const [garment, setGarment] = useState("");
   const [freeOnly, setFreeOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"recommended" | "newest" | "az">("recommended");
-  const [pageSize, setPageSize] = useState(24);
-  const [limit, setLimit] = useState(24);
+  const [pageSize, setPageSize] = useState(96);
+  const [limit, setLimit] = useState(96);
   const favourites = useQuery({
     queryKey: ["outfit-favourites"],
     queryFn: async () => {
