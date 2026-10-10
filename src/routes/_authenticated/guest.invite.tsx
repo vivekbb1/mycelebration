@@ -122,6 +122,21 @@ function InvitationPage() {
     },
   });
 
+  // Which events have looks for boys / girls (uploaded looks or live feeds).
+  const kidGalleries = useQuery({
+    queryKey: ["kid-galleries", "invitation"],
+    queryFn: async () => {
+      const set = new Set<string>();
+      const [o, f] = await Promise.all([
+        supabase.from("outfits").select("event_id, gender").in("gender", ["boy", "girl"]),
+        supabase.from("outfit_feeds").select("event_id, audience").in("audience", ["boy", "girl"]),
+      ]);
+      for (const r of o.data ?? []) if (r.event_id) set.add(`${r.event_id}|${r.gender}`);
+      for (const r of f.data ?? []) if (r.event_id) set.add(`${r.event_id}|${r.audience}`);
+      return set;
+    },
+  });
+
   const members = useQuery({
     queryKey: ["household-members", "invitation"],
     queryFn: async () => {
@@ -186,11 +201,16 @@ function InvitationPage() {
   const outfitFunctions = list.filter((ev) => picksOutfit(ev));
   const needsOutfits = outfitFunctions.length > 0;
   // Count looks for every family member × every outfit event.
-  const memberNames = (() => {
-    const names = (members.data ?? []).map((m) => (m.name ?? "").trim().toLowerCase()).filter(Boolean);
-    const mine = (profile.data?.full_name ?? "").trim().toLowerCase();
-    return names.length ? [...new Set(names)] : mine ? [mine] : [""];
+  const memberList = (() => {
+    const seen = new Map<string, string | null>();
+    for (const m of members.data ?? []) {
+      const n = (m.name ?? "").trim().toLowerCase();
+      if (n && !seen.has(n)) seen.set(n, m.gender ?? null);
+    }
+    if (!seen.size) seen.set((profile.data?.full_name ?? "").trim().toLowerCase(), null);
+    return [...seen.entries()].map(([name, gender]) => ({ name, gender }));
   })();
+  const memberNames = memberList.map((m) => m.name);
   const outfitEventIds = new Set(outfitFunctions.map((e) => e.id));
   const chosenPairs = new Set<string>();
   for (const row of myLooks.data ?? []) {
@@ -200,8 +220,18 @@ function InvitationPage() {
     if (!who && memberNames.length === 1) who = memberNames[0]!;
     if (memberNames.includes(who)) chosenPairs.add(`${who}|${ev}`);
   }
-  const chosenCount = chosenPairs.size;
-  const totalLooks = outfitFunctions.length * memberNames.length;
+  // Boys and girls only count for an event when it has looks for them.
+  const kidGallery = kidGalleries.data ?? new Set<string>();
+  const expectedPairs = new Set<string>();
+  for (const ev of outfitFunctions) {
+    for (const m of memberList) {
+      const kid = m.gender === "boy" || m.gender === "girl";
+      const key = `${m.name}|${ev.id}`;
+      if (!kid || kidGallery.has(`${ev.id}|${m.gender}`) || chosenPairs.has(key)) expectedPairs.add(key);
+    }
+  }
+  const chosenCount = [...chosenPairs].filter((k) => expectedPairs.has(k)).length;
+  const totalLooks = expectedPairs.size;
 
   const rsvpDone = rsvp === "yes" || rsvp === "no";
   const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount >= totalLooks);
