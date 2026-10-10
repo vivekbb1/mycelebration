@@ -252,10 +252,10 @@ function InvitationPage() {
       status: !needsOutfits
         ? "Not needed"
         : chosenCount === 0
-          ? `Nothing chosen yet · ${outfitFunctions.length} to choose`
-          : chosenCount === outfitFunctions.length
+          ? `Nothing chosen yet · ${totalLooks} to choose`
+          : chosenCount >= totalLooks
             ? "All chosen"
-            : `${chosenCount} of ${outfitFunctions.length} chosen`,
+            : `${chosenCount} of ${totalLooks} chosen`,
       cta:
         chosenCount > 0
           ? t("step.outfit_cta_done", "See or change your looks")
