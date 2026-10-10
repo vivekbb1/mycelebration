@@ -193,7 +193,7 @@ function ConfirmPage() {
 
         <h2 className="mt-12 text-center text-2xl">Confirm what you'll wear</h2>
         <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
-          Tell us the garment, size and any fabric preference, then confirm.
+          Tell us the garment, size and any comments, then confirm.
         </p>
 
         {outfitsCovered.data !== false ? (
@@ -305,7 +305,7 @@ function ConfirmPage() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`f-${row.id}`}>Fabric (optional)</Label>
+                      <Label htmlFor={`f-${row.id}`}>Comments (optional)</Label>
                       <Input
                         id={`f-${row.id}`}
                         value={d.fabric}

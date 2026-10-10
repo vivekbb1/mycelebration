@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/guest/invite")({
   component: InvitationPage,
 });
 
-type StepTarget = "/guest/schedule" | "/guest/outfits" | "/guest/measurements";
+type StepTarget = "/guest/schedule" | "/guest/outfits" | "/guest/measurements" | "/guest/summary";
 
 function InvitationPage() {
   const deliveryPlan = useDeliveryPlan();
@@ -115,7 +115,7 @@ function InvitationPage() {
       if (!ids.length) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select("outfit_id, guest_name, outfits(title, event_id)")
+        .select("outfit_id, guest_name, status, outfits(title, event_id)")
         .in("guest_id", ids);
       if (error) throw error;
       return data;
@@ -230,11 +230,21 @@ function InvitationPage() {
       if (!kid || kidGallery.has(`${ev.id}|${m.gender}`) || chosenPairs.has(key)) expectedPairs.add(key);
     }
   }
+  const confirmedPairs = new Set<string>();
+  for (const row of myLooks.data ?? []) {
+    if ((row as { status?: string }).status !== "confirmed") continue;
+    const ev = (row.outfits as { event_id: string | null } | null)?.event_id;
+    let who = (row.guest_name ?? "").trim().toLowerCase();
+    if (!who && memberNames.length === 1) who = memberNames[0]!;
+    if (ev) confirmedPairs.add(`${who}|${ev}`);
+  }
+  const confirmedCount = [...chosenPairs].filter((k) => confirmedPairs.has(k)).length;
   const chosenCount = [...chosenPairs].filter((k) => expectedPairs.has(k)).length;
   const totalLooks = expectedPairs.size;
 
   const rsvpDone = rsvp === "yes" || rsvp === "no";
   const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount >= totalLooks);
+  const confirmDone = !needsOutfits || (chosenCount > 0 && confirmedCount >= chosenCount && outfitsDone);
   const measurementsDone = (myMeasurements.data ?? []).length > 0;
 
   const allSteps: {
@@ -291,6 +301,24 @@ function InvitationPage() {
           ? t("step.outfit_cta_done", "See or change your looks")
           : t("step.outfit_cta", "Choose a look"),
     },
+    ...(needsOutfits
+      ? [{
+          to: "/guest/summary" as const,
+          icon: Check,
+          title: t("step.confirm_title", "Confirm your outfits"),
+          body: t(
+            "step.confirm_body",
+            "Check each chosen look, add the garment and size, and confirm so the atelier can start.",
+          ),
+          done: confirmDone,
+          status: chosenCount === 0
+            ? "Choose outfits first"
+            : `${confirmedCount} of ${chosenCount} confirmed`,
+          cta: confirmDone
+            ? t("step.confirm_cta_done", "See confirmed outfits")
+            : t("step.confirm_cta", "Confirm outfits"),
+        }]
+      : []),
     {
       to: "/guest/measurements",
       icon: Ruler,
@@ -380,7 +408,7 @@ function InvitationPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-eyebrow">
-                {t("invitation.steps_eyebrow", "Three simple steps")}
+                {t("invitation.steps_eyebrow", "Simple steps")}
               </p>
               <h2 className="mt-3 text-2xl">
                 {doneCount === steps.length
