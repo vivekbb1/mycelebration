@@ -126,6 +126,52 @@ export function HostRsvp() {
     await queryClient.invalidateQueries({ queryKey: ["invites"] });
   };
 
+  const saveNote = async (g: { id: string; guest_name: string; rsvp_note?: string | null }) => {
+    const note = window.prompt(`Note for ${g.guest_name || "this guest"} (e.g. "Phoned on 10 Oct — coming with 2")`, g.rsvp_note ?? "");
+    if (note === null) return;
+    setBusy(g.id);
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("invite_codes")
+      .update({ rsvp_note: note.trim() || null, rsvp_recorded_at: new Date().toISOString(), rsvp_recorded_by: userData.user?.id ?? null })
+      .eq("id", g.id);
+    setBusy(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Note saved.");
+    await queryClient.invalidateQueries({ queryKey: ["rsvp-guests"] });
+  };
+
+  const clearReply = async (g: { id: string; claimed_by: string | null; guest_name: string }) => {
+    if (!window.confirm(`Clear ${g.guest_name || "this guest"}'s reply? They'll show as waiting again.`)) return;
+    setBusy(g.id);
+    const { error } = await supabase
+      .from("invite_codes")
+      .update({ rsvp_status: "pending", rsvp_note: null, rsvp_recorded_at: null, rsvp_recorded_by: null })
+      .eq("id", g.id);
+    if (!error && g.claimed_by) {
+      await supabase
+        .from("profiles")
+        .update({ rsvp_status: "pending", rsvp_note: null, rsvp_updated_at: new Date().toISOString() })
+        .eq("id", g.claimed_by);
+    }
+    setBusy(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${g.guest_name}: reply cleared`);
+    await queryClient.invalidateQueries({ queryKey: ["rsvp-guests"] });
+    await queryClient.invalidateQueries({ queryKey: ["rsvp-profiles"] });
+    await queryClient.invalidateQueries({ queryKey: ["overview-profiles"] });
+  };
+
+  const clearEventReplies = async (household: string, inviteId: string | null) => {
+    if (!window.confirm(`Clear ${household}'s replies for every event (coming / numbers)?`)) return;
+    let q = supabase.from("event_attendance").delete().eq("household", household);
+    if (inviteId) q = q.eq("invite_id", inviteId);
+    const { error } = await q;
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${household}: event replies cleared`);
+    await queryClient.invalidateQueries();
+  };
+
   /** Every hashtag in use, so hosts can narrow the board to one group. */
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -316,6 +362,13 @@ export function HostRsvp() {
                               : `${h.waiting} to reply`}
                         </Badge>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => clearEventReplies(h.name, group.id ?? null)}
+                        className="mt-1 text-xs text-muted-foreground underline-offset-4 hover:text-destructive hover:underline"
+                      >
+                        Clear event replies
+                      </button>
 
                       <ul className="mt-3 space-y-2">
                         {h.people.map((p) => {
@@ -337,8 +390,13 @@ export function HostRsvp() {
                                       .join(" ")}
                                   </p>
                                 ) : null}
+                                {(p as { rsvp_note?: string | null }).rsvp_note ? (
+                                  <p className="mt-0.5 text-xs italic text-muted-foreground">
+                                    “{(p as { rsvp_note?: string | null }).rsvp_note}”
+                                  </p>
+                                ) : null}
                               </div>
-                              <div className="flex shrink-0 gap-1">
+                              <div className="flex shrink-0 flex-wrap gap-1">
                                 {(["yes", "no", "pending"] as Answer[]).map((option) => (
                                   <button
                                     key={option}
@@ -361,6 +419,22 @@ export function HostRsvp() {
                                     {LABEL[option]}
                                   </button>
                                 ))}
+                                <button
+                                  type="button"
+                                  disabled={busy === p.id}
+                                  onClick={() => saveNote(p)}
+                                  className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:text-primary"
+                                >
+                                  Note
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={busy === p.id || answer === "pending"}
+                                  onClick={() => clearReply(p)}
+                                  className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:text-destructive disabled:opacity-40"
+                                >
+                                  Clear
+                                </button>
                               </div>
                             </li>
                           );
