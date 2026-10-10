@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CalendarCheck, ListChecks, Ruler, Shirt } from "lucide-react";
+import { BedDouble, CalendarCheck, ListChecks, Plane, Ruler, Shirt } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
@@ -18,7 +18,7 @@ export function GuestSummarySnapshot({
   looks,
 }: {
   household: string;
-  looks: { event_id: string | null; guest_name: string | null; confirmed: boolean }[];
+  looks: { event_id: string | null; guest_name: string | null; confirmed: boolean; title?: string | null }[];
 }) {
   const guestEvent = useGuestEvent();
   const travelSettings = useTravelSettings();
@@ -66,9 +66,9 @@ export function GuestSummarySnapshot({
     queryFn: async () => {
       const { data } = await supabase
         .from("travel_plans")
-        .select("id")
+        .select("id, guest_name, travellers, arrival_date, arrival_time, arrival_flight, departure_date, departure_time, departure_flight, checkin_date, checkin_time, checkout_date, checkout_time")
         .eq("household", household)
-        .limit(1);
+        .order("created_at");
       return data ?? [];
     },
   });
@@ -107,6 +107,16 @@ export function GuestSummarySnapshot({
   const measuredCount = names.filter((n) => sent.has(n)).length;
 
   const settings = travelSettings.data;
+  const plans = travelPlans.data ?? [];
+  const evName = new Map(evs.map((e) => [e.id, e.name]));
+  const batchMembers = (p: (typeof plans)[number]) =>
+    p.travellers && p.travellers.length
+      ? p.travellers.join(", ")
+      : p.guest_name ?? "Whole family";
+  const leg = (d: string | null, t: string | null, f: string | null) =>
+    d || t || f ? [d ? day(d) : null, t, f].filter(Boolean).join(" · ") : "To follow";
+  const stay = plans.find((p) => p.checkin_date || p.checkout_date);
+  const showTravel = plans.length > 0 || (settings && settings.need !== "none");
   const needsTravel =
     Boolean(settings?.travel_required) &&
     settings?.need !== "none" &&
@@ -173,6 +183,20 @@ export function GuestSummarySnapshot({
             ? "No looks chosen yet."
             : `${myLooks.length} chosen · ${confirmed} confirmed`}
         </p>
+        {myLooks.length ? (
+          <ul className="mt-2 space-y-1.5 text-sm">
+            {myLooks.map((l, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-2">
+                <span className="min-w-0 flex-1 truncate">
+                  <span className="capitalize">{l.guest_name || "You"}</span>
+                  <span className="text-muted-foreground"> · {(l.event_id && evName.get(l.event_id)) || "Look"}</span>
+                  {l.title ? <span className="block truncate text-xs text-muted-foreground">{l.title}</span> : null}
+                </span>
+                <Badge variant={l.confirmed ? "default" : "outline"}>{l.confirmed ? "Confirmed" : "Reserved"}</Badge>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <Link to="/guest/outfits" className="mt-2 inline-block text-sm text-primary hover:underline">
           {myLooks.length === 0 ? "Choose a look" : "See the lookbook"}
         </Link>
@@ -204,6 +228,37 @@ export function GuestSummarySnapshot({
           {measuredCount === names.length && names.length ? "Update measurements" : "Send measurements"}
         </Link>
       </section>
+      {showTravel ? (
+        <section className="panel p-4 sm:p-5 md:col-span-3">
+          <h2 className="flex items-center gap-2 text-lg">
+            <Plane className="size-4 text-primary" /> Travel
+          </h2>
+          {plans.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">No travel details yet.</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-border text-sm">
+              {plans.map((p, i) => (
+                <li key={p.id} className="py-2">
+                  <p className="font-medium">Batch {i + 1} · <span className="capitalize">{batchMembers(p)}</span></p>
+                  <p className="text-muted-foreground">Arriving: {leg(p.arrival_date, p.arrival_time, p.arrival_flight)}</p>
+                  <p className="text-muted-foreground">Leaving: {leg(p.departure_date, p.departure_time, p.departure_flight)}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <h3 className="mt-4 flex items-center gap-2 text-base">
+            <BedDouble className="size-4 text-primary" /> Check-in &amp; check-out
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {stay
+              ? `In: ${leg(stay.checkin_date, stay.checkin_time, null)} · Out: ${leg(stay.checkout_date, stay.checkout_time, null)}`
+              : "Not added yet."}
+          </p>
+          <Link to="/guest/schedule" className="mt-2 inline-block text-sm text-primary hover:underline">
+            Change travel details
+          </Link>
+        </section>
+      ) : null}
     </div>
   );
 }
