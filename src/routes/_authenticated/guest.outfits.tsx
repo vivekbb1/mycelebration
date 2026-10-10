@@ -677,37 +677,6 @@ function Lookbook() {
         </p>
       </section>
 
-
-
-          </div>
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-            {myOutfits.map((o) => (
-              <li key={o.id} className="flex items-center gap-4">
-                {o.image_url ? (
-                  <img
-                    src={o.image_url}
-                    referrerPolicy="no-referrer"
-                    alt={o.title}
-                    loading="lazy"
-                    width={56}
-                    height={75}
-                    className="h-[75px] w-14 rounded-md object-cover"
-                  />
-                ) : null}
-                <div className="min-w-0">
-                  <p className="truncate text-sm">{o.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {eventList.find((e) => e.id === o.event_id)?.name ?? "Any event"} ·{" "}
-                    {o.size_note ?? "Made to measure"}
-                  </p>
-                  <p className="mt-1 text-xs text-primary">Locked to you</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       <div className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
         {pickableEvents.map((ev) => {
           const chosen = myOutfits.some((o) => o.event_id === ev.id);
