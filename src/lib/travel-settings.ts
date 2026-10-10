@@ -6,6 +6,9 @@ export type TravelSettings = {
   need: "none" | "stay" | "stay_transfer";
   travel_required: boolean;
   passport_required: boolean;
+  prepaid_checkin?: string | null;
+  prepaid_checkout?: string | null;
+  extra_paid_by?: "guest" | "host" | null;
 };
 
 const DEFAULT_SETTINGS: TravelSettings = {
@@ -28,6 +31,9 @@ export function useTravelSettings() {
         need: row.need ?? DEFAULT_SETTINGS.need,
         travel_required: row.travel_required ?? DEFAULT_SETTINGS.travel_required,
         passport_required: row.passport_required ?? DEFAULT_SETTINGS.passport_required,
+        prepaid_checkin: row.prepaid_checkin ?? null,
+        prepaid_checkout: row.prepaid_checkout ?? null,
+        extra_paid_by: row.extra_paid_by ?? null,
       };
     },
   });
