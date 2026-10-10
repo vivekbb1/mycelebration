@@ -97,9 +97,12 @@ function InvitationPage() {
   const myAccess = useQuery({
     queryKey: ["my-household-event-invites"],
     queryFn: async () => {
+      const { data: mine } = await supabase.rpc("my_household");
+      if (!mine) return [];
       const { data, error } = await supabase
         .from("household_event_invites")
-        .select("event_id, outfit_selection");
+        .select("event_id, outfit_selection")
+        .eq("household", mine);
       if (error) throw error;
       return data;
     },
