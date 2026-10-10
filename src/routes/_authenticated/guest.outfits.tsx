@@ -802,7 +802,7 @@ function Lookbook() {
             </div>
           </div>
         );
-      })()      ) : outfits.isLoading ? (
+      })() : outfits.isLoading ? (
         <p className="mt-10 text-sm text-muted-foreground">Loading the wardrobe…</p>
       ) : inEvent.length === 0 ? (
         <div className="panel mt-8 p-8 text-center">
