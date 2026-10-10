@@ -95,7 +95,6 @@ function Lookbook() {
     await favourites.refetch();
   };
   const [activePerson, setActivePerson] = useState<string | null>(null);
-  const [browseAgain, setBrowseAgain] = useState<Record<string, boolean>>({});
   const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
   const { needsWardrobe } = useNeedsWardrobe();
 
@@ -570,7 +569,7 @@ function Lookbook() {
     activeEvent === "all"
       ? pickableEvents.length > 0 && doneEvents.length === pickableEvents.length
       : doneEvents.some((ev) => ev.id === activeEvent);
-  const hideGallery = allChosen && !browseAgain[`${activeName}|${activeEvent}`];
+  const hideGallery = allChosen;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -775,27 +774,35 @@ function Lookbook() {
           })()
         : null}
 
-      {hideGallery ? (
-        <div className="panel mt-6 p-6 text-center">
-          <Check className="mx-auto size-6 text-primary" />
-          <h2 className="mt-2 text-xl">
-            {activeEvent === "all"
-              ? `${activeName} has a look reserved for every event`
-              : `Reserved for ${activeName}`}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            See the reserved looks above. Choose another family member to keep going.
-          </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-3"
-            onClick={() => setBrowseAgain((b) => ({ ...b, [`${activeName}|${activeEvent}`]: true }))}
-          >
-            Browse looks anyway
-          </Button>
-        </div>
-      ) : outfits.isLoading ? (
+      {hideGallery ? (() => {
+        const held = myOutfits.find((o) => o.event_id === activeEvent);
+        const res = held ? (reservations.data ?? []).find((r) => r.outfit_id === held.id) : null;
+        const locked = res?.status === "confirmed";
+        return (
+          <div className="panel mt-6 p-4 sm:p-6">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+              {held?.image_url ? (
+                <img src={held.image_url} referrerPolicy="no-referrer" alt={held.title} className="h-40 w-28 rounded-md object-cover" />
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <p className="text-eyebrow">Reserved for {activeName}</p>
+                <h2 className="mt-1 text-xl">{held?.title}</h2>
+                {res?.size_choice ? <p className="mt-1 text-sm text-muted-foreground">Size: {res.size_choice}</p> : null}
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {locked
+                    ? "Your hosts have confirmed this look, so it can't be changed here. Contact them to change it."
+                    : "To choose a different look, release this one first."}
+                </p>
+                {held && !locked ? (
+                  <Button variant="outline" size="sm" className="mt-3" disabled={busyId === held.id} onClick={() => release(held)}>
+                    Release and choose again
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        );
+      })()      ) : outfits.isLoading ? (
         <p className="mt-10 text-sm text-muted-foreground">Loading the wardrobe…</p>
       ) : inEvent.length === 0 ? (
         <div className="panel mt-8 p-8 text-center">
