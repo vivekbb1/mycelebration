@@ -659,6 +659,13 @@
       "when": 1791625011900,
       "tag": "0093_drop_blank_measurements",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1791627815755,
+      "tag": "0094_outfit_sizes_checked_at",
+      "breakpoints": true
     }
   ]
 }

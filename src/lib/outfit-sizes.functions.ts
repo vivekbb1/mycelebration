@@ -67,6 +67,50 @@ export const checkOutfitSizes = createServerFn({ method: "POST" })
     }
     if (!fresh) return { sizes: saved, live: false };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("outfits").update({ sizes: fresh as any }).eq("id", outfit.id);
+    await supabaseAdmin.from("outfits").update({ sizes: fresh as any, sizes_checked_at: new Date().toISOString() }).eq("id", outfit.id);
     return { sizes: fresh, live: true };
+  });
+
+const STALE_MS = 30 * 60 * 1000;
+
+/**
+ * Refreshes stock for the shop looks a guest is about to browse.
+ * Only looks the caller can read (RLS) and not checked in the last 30 minutes.
+ */
+export const refreshGallerySizes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { outfitIds: string[] }) => ({
+    outfitIds: (Array.isArray(d?.outfitIds) ? d.outfitIds : []).map((x) => String(x).slice(0, 64)).slice(0, 120),
+  }))
+  .handler(async ({ data, context }) => {
+    if (!data.outfitIds.length) return { updated: 0 };
+    const { data: rows } = await context.supabase
+      .from("outfits")
+      .select("id, boutique_url, sizes_checked_at")
+      .in("id", data.outfitIds);
+    const cutoff = Date.now() - STALE_MS;
+    const due = (rows ?? []).filter(
+      (r) => r.boutique_url && (!r.sizes_checked_at || new Date(r.sizes_checked_at).getTime() < cutoff),
+    );
+    if (!due.length) return { updated: 0 };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let updated = 0;
+    const queue = [...due];
+    const worker = async () => {
+      while (queue.length) {
+        const r = queue.shift()!;
+        let fresh: ShopSize[] | null = null;
+        try {
+          fresh = (await perniaSizes(r.boutique_url!)) ?? (await koraSizes(r.boutique_url!));
+        } catch {
+          fresh = null;
+        }
+        const patch: Record<string, unknown> = { sizes_checked_at: new Date().toISOString() };
+        if (fresh) patch["sizes"] = fresh;
+        await supabaseAdmin.from("outfits").update(patch as any).eq("id", r.id);
+        if (fresh) updated++;
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, worker));
+    return { updated };
   });

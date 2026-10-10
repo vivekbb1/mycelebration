@@ -14,6 +14,7 @@ import { useGuestEvent } from "@/lib/guest-event";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
 import { scheduleHeadline, scheduleSummary } from "@/lib/schedule";
 import { sendReservationEmail } from "@/lib/reservation-email.functions";
+import { refreshGallerySizes } from "@/lib/outfit-sizes.functions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -66,6 +67,7 @@ function Lookbook() {
   const deliveryPlan = useDeliveryPlan();
   const queryClient = useQueryClient();
   const emailConfirmation = useServerFn(sendReservationEmail);
+  const refreshStock = useServerFn(refreshGallerySizes);
   const [pickedEvent, setActiveEvent] = useState<string>("all");
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -302,6 +304,18 @@ function Lookbook() {
   );
 
   const inEvent = selectable.filter((o) => activeEvent === "all" || o.event_id === activeEvent);
+  const shopIds = inEvent.filter((o) => o.boutique_url).map((o) => o.id).sort();
+  const stockKey = shopIds.join(",");
+  useQuery({
+    queryKey: ["gallery-stock", activeEvent, stockKey],
+    enabled: shopIds.length > 0,
+    staleTime: 30 * 60 * 1000,
+    queryFn: async () => {
+      const r = await refreshStock({ data: { outfitIds: shopIds.slice(0, 120) } });
+      if (r.updated) await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+      return r.updated;
+    },
+  });
   const optionsOf = (pick: (o: Outfit) => string | null | undefined) =>
     [...new Set(inEvent.map((o) => pick(o)?.trim()).filter((v): v is string => Boolean(v)))].sort(
       (a, b) => a.localeCompare(b),
