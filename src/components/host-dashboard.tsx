@@ -38,6 +38,32 @@ export function HostDashboard() {
     },
   });
 
+  const stock = useQuery({
+    queryKey: ["host-stock", inviteId],
+    enabled: Boolean(inviteId),
+    queryFn: async () => {
+      const id = inviteId as string;
+      const [o, r] = await Promise.all([
+        supabase.from("outfits").select("id, sizes, is_available, sizes_checked_at").eq("invite_id", id),
+        supabase.from("reservations").select("outfit_id").eq("invite_id", id),
+      ]);
+      if (o.error) throw o.error;
+      if (r.error) throw r.error;
+      const reserved = new Set((r.data ?? []).map((x) => x.outfit_id));
+      let inStock = 0;
+      let soldOut = 0;
+      let last: string | null = null;
+      for (const x of o.data ?? []) {
+        if (x.sizes_checked_at && (!last || x.sizes_checked_at > last)) last = x.sizes_checked_at;
+        const sz = Array.isArray(x.sizes) ? (x.sizes as { available?: boolean }[]) : [];
+        const gone = sz.length ? sz.every((s) => s.available === false) : false;
+        if (gone) soldOut++;
+        else if (!reserved.has(x.id)) inStock++;
+      }
+      return { total: (o.data ?? []).length, reserved: reserved.size, inStock, soldOut, last };
+    },
+  });
+
   const rows = useMemo(() => {
     const d = data.data;
     if (!d) return [];
@@ -78,6 +104,27 @@ export function HostDashboard() {
   ];
 
   return (
+    <>
+    <section className="panel mb-4 p-4 sm:p-6">
+      <h2 className="text-xl">Looks at a glance</h2>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ["Total looks", stock.data?.total],
+          ["Reserved", stock.data?.reserved],
+          ["In stock", stock.data?.inStock],
+          ["Sold out", stock.data?.soldOut],
+        ].map(([label, n]) => (
+          <div key={label as string} className="rounded-md border border-border p-3">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="font-display text-2xl">{stock.isLoading ? "…" : (n ?? 0)}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        In stock = not yet reserved, with at least one size available. Shop stock is refreshed every night
+        {stock.data?.last ? ` · last checked ${new Date(stock.data.last).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : ""}.
+      </p>
+    </section>
     <section className="panel p-4 sm:p-6">
       <h2 className="text-xl">Every guest at a glance</h2>
       <p className="mt-1 text-sm text-muted-foreground">
@@ -162,5 +209,6 @@ export function HostDashboard() {
         </table>
       </div>
     </section>
+    </>
   );
 }
