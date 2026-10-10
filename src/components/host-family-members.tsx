@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Pencil, Trash2, UserPlus } from "lucide-react";
 
@@ -140,6 +141,52 @@ export function FamilyMemberActions({ person }: { person: Person }) {
         onClose={() => setOpen(false)}
         onSave={(f) => void save(f)}
       />
+    </>
+  );
+}
+
+/** Host renames the whole family (every member and record), then opens the renamed page. */
+export function RenameFamilyButton({ codeId, current, person }: { codeId: string; current: string; person: Person }) {
+  const update = useServerFn(updateRegisteredGuest);
+  const refresh = useRefresh();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [value, setValue] = useState(current);
+  const save = async () => {
+    const next = value.trim();
+    if (next === current) return setOpen(false);
+    setBusy(true);
+    try {
+      const r = await update({ data: { codeId, name: person.guest_name, email: person.email ?? "", phone: person.phone ?? "", gender: (person.gender ?? "") as "men", familyName: next } });
+      if (!r.ok) throw new Error(r.error);
+      toast.success("Family renamed.");
+      setOpen(false);
+      refresh();
+      void navigate({ to: "/family/$household", params: { household: next } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't rename the family.");
+    } finally { setBusy(false); }
+  };
+  return (
+    <>
+      <Button variant="ghost" size="icon" aria-label="Rename family" onClick={() => { setValue(current); setOpen(true); }}>
+        <Pencil className="size-4" />
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Rename family</DialogTitle></DialogHeader>
+          <div className="space-y-1">
+            <Label htmlFor="fam-name">Family name</Label>
+            <Input id="fam-name" value={value} maxLength={80} onChange={(e) => setValue(e.target.value)} />
+            <p className="text-xs text-muted-foreground">Changes the name for every member and their travel, rooms and notes.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>Cancel</Button>
+            <Button onClick={() => void save()} disabled={busy || value.trim().length < 2}>{busy ? "Saving…" : "Save"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
