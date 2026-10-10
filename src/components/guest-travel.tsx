@@ -428,7 +428,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                     type="button"
                     onClick={() => setSel(p.id)}
                     className={`rounded-full border px-3 py-1.5 text-xs ${
-                      sel === p.id
+                      effSel === p.id
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border text-muted-foreground"
                     }`}
@@ -436,12 +436,12 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                     Batch {i + 1} · {membersOf(p).length} {membersOf(p).length === 1 ? "person" : "people"}
                   </button>
                 ))}
-                {sel === "new" || remaining.length > 0 ? (
+                {effSel === "new" || remaining.length > 0 ? (
                   <button
                     type="button"
                     onClick={() => setSel("new")}
                     className={`rounded-full border border-dashed px-3 py-1.5 text-xs ${
-                      sel === "new"
+                      effSel === "new"
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border text-muted-foreground"
                     }`}
@@ -480,7 +480,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                     })}
                   </div>
                 )}
-                {remaining.length > 0 && sel !== "new" ? (
+                {remaining.length > 0 && effSel !== "new" ? (
                   <p className="text-xs text-muted-foreground">
                     Not in a batch yet: {remaining.join(", ")} — add them as another batch if they travel separately.
                   </p>
