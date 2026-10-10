@@ -74,6 +74,7 @@ function Lookbook() {
   const [search, setSearch] = useState("");
   const [colour, setColour] = useState("");
   const [designer, setDesigner] = useState("");
+  const [sizeF, setSizeF] = useState("");
   const [garment, setGarment] = useState("");
   const [freeOnly, setFreeOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"recommended" | "newest" | "az">("recommended");
@@ -308,6 +309,10 @@ function Lookbook() {
   const colourOptions = optionsOf((o) => o.color_family);
   const designerOptions = optionsOf((o) => o.designer);
   const garmentOptions = optionsOf((o) => o.garment_type);
+  const sizesOf = (o: Outfit) =>
+    Array.isArray(o.sizes) ? (o.sizes as Array<{ label?: string; available?: boolean }>) : [];
+  const sizeOptions = [...new Set(inEvent.flatMap((o) => sizesOf(o).map((x) => x.label?.trim()).filter((v): v is string => Boolean(v))))];
+  const isTakenByOther = (o: Outfit) => !o.is_available && !mineByOutfit.has(o.id);
   const q = search.trim().toLowerCase();
 
   const filtered = inEvent
@@ -316,6 +321,8 @@ function Lookbook() {
     .filter((o) => !colour || o.color_family?.trim() === colour)
     .filter((o) => !designer || o.designer?.trim() === designer)
     .filter((o) => !garment || o.garment_type?.trim() === garment)
+    // Looks with no size list (uploaded by hosts) come in every size.
+    .filter((o) => !sizeF || sizesOf(o).length === 0 || sizesOf(o).some((x) => x.label?.trim() === sizeF && x.available !== false))
     .filter((o) => !freeOnly || (o.is_available && !mineByOutfit.has(o.id)))
     .filter(
       (o) =>
@@ -324,16 +331,18 @@ function Lookbook() {
           .some((v) => v?.toLowerCase().includes(q)),
     )
     .sort((a, b) =>
-      sortBy === "az"
+      // Looks already reserved by others sink to the bottom.
+      Number(isTakenByOther(a)) - Number(isTakenByOther(b)) ||
+      (sortBy === "az"
         ? a.title.localeCompare(b.title)
         : sortBy === "newest"
           ? String(b.created_at ?? "").localeCompare(String(a.created_at ?? ""))
-          : Number(!!b.is_pinned) - Number(!!a.is_pinned),
+          : Number(!!b.is_pinned) - Number(!!a.is_pinned)),
     );
   const visible = filtered.slice(0, limit);
-  const filtersOn = Boolean(q || colour || designer || garment || freeOnly || favOnly || picksOnly);
+  const filtersOn = Boolean(q || colour || designer || garment || sizeF || freeOnly || favOnly || picksOnly);
   const clearFilters = () => {
-    setSearch(""); setColour(""); setDesigner(""); setGarment("");
+    setSearch(""); setColour(""); setDesigner(""); setGarment(""); setSizeF("");
     setFreeOnly(false); setFavOnly(false); setPicksOnly(false);
   };
 
@@ -786,11 +795,12 @@ function Lookbook() {
               maxLength={80}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
             {[
               { label: "Any colour", value: colour, set: setColour, opts: colourOptions },
               { label: "Any designer", value: designer, set: setDesigner, opts: designerOptions },
               { label: "Any type", value: garment, set: setGarment, opts: garmentOptions },
+              { label: "Any size", value: sizeF, set: setSizeF, opts: sizeOptions },
             ].map((f) => (
               <select
                 key={f.label}
