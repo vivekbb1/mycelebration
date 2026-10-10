@@ -422,6 +422,8 @@ function Lookbook() {
       emailed = false;
     }
     setBusyId(null);
+    // Move on to the next event this person still needs a look for.
+    setActiveEvent("all");
 
     toast.success(
       emailed
@@ -525,7 +527,7 @@ function Lookbook() {
                   <Button
                     key={p.name}
                     variant={p.gender ? "default" : "outline"}
-                    onClick={() => setActiveEvent("all") || setActivePerson(p.name)}
+                    onClick={() => { setActiveEvent("all"); setActivePerson(p.name); }}
                   >
                     {p.name}
                   </Button>
@@ -552,7 +554,7 @@ function Lookbook() {
                   </Button>
                 ))}
                 {chosen ? (
-                  <Button variant="ghost" onClick={() => setActiveEvent("all") || setActivePerson(null)}>
+                  <Button variant="ghost" onClick={() => { setActiveEvent("all"); setActivePerson(null); }}>
                     Choose someone else
                   </Button>
                 ) : null}
@@ -636,7 +638,7 @@ function Lookbook() {
               <li key={person.name}>
                 <button
                   type="button"
-                  onClick={() => setActiveEvent("all") || setActivePerson(person.name)}
+                  onClick={() => { setActiveEvent("all"); setActivePerson(person.name); }}
                   aria-pressed={active}
                   className={`w-full rounded-md border p-3 text-left transition-colors ${
                     active ? "border-primary bg-primary/5" : "border-border hover:border-primary"
