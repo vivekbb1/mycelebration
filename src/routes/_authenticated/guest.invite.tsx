@@ -127,9 +127,15 @@ function InvitationPage() {
     queryFn: async () => {
       const ids = await myFamilyUserIds();
       if (!ids.length) return [];
-      const { data, error } = await supabase.from("measurements").select("id").in("guest_id", ids).limit(1);
+      // Only count measurements that actually hold numbers — a cleared or blank form isn't "sent".
+      const { data, error } = await supabase
+        .from("measurements")
+        .select("id, bust, chest, waist, hip, height, usual_size")
+        .in("guest_id", ids);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).filter(
+        (m) => [m.bust, m.chest, m.waist, m.hip, m.height].some((v) => v != null) || Boolean(m.usual_size),
+      );
     },
   });
 
