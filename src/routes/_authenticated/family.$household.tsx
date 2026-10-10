@@ -56,7 +56,6 @@ const rsvpLabel = (value: string | null | undefined) => {
 
 function FamilyPage() {
   const { household } = Route.useParams();
-  const navigate = useNavigate();
   const name = decodeURIComponent(household);
   const queryClient = useQueryClient();
   const { has } = useFeatures();
@@ -291,18 +290,7 @@ function FamilyPage() {
         <section className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl">Family members</h2>
-            {isHost && inviteId ? (
-              <div className="flex flex-wrap gap-2">
-                {rows[0] ? (
-                  <RenameFamilyButton
-                    codeId={rows[0].id}
-                    household={name}
-                    onRenamed={(n) => void navigate({ to: "/family/$household", params: { household: n } })}
-                  />
-                ) : null}
-                <AddFamilyMemberButton inviteId={inviteId} household={name} />
-              </div>
-            ) : null}
+            {isHost && inviteId ? <AddFamilyMemberButton inviteId={inviteId} household={name} /> : null}
           </div>
           {rows.length === 1 && rows[0]?.claimed_by ? (
             <p className="mt-2 text-xs text-muted-foreground">
