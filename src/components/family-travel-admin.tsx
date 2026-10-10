@@ -422,3 +422,70 @@ export function FamilyTravelAdmin({
     </section>
   );
 }
+
+/** Nights the hosts cover; anything outside is arranged by the events team. */
+function PrepaidStay(props: {
+  familyId: string;
+  checkin: string;
+  checkout: string;
+  paidBy: string;
+  onSaved: () => void;
+}) {
+  const [checkin, setCheckin] = useState(props.checkin);
+  const [checkout, setCheckout] = useState(props.checkout);
+  const [paidBy, setPaidBy] = useState(props.paidBy || "undecided");
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    if (checkin && checkout && checkout < checkin) {
+      toast.error("Check-out must be after check-in.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase
+      .from("families")
+      .update({
+        prepaid_checkin_date: checkin || null,
+        prepaid_checkout_date: checkout || null,
+        extra_nights_paid_by: paidBy === "undecided" ? null : paidBy,
+      })
+      .eq("id", props.familyId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Prepaid stay saved");
+    props.onSaved();
+  };
+  return (
+    <div className="mt-5 rounded-md border border-border p-3">
+      <p className="text-sm font-medium">Prepaid stay</p>
+      <p className="text-xs text-muted-foreground">
+        Nights covered by the hosts. Extra nights are arranged by the events team.
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div>
+          <Label className="text-xs">Prepaid from</Label>
+          <Input type="date" value={checkin} onChange={(e) => setCheckin(e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Prepaid until</Label>
+          <Input type="date" value={checkout} onChange={(e) => setCheckout(e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Extra nights paid by</Label>
+          <Select value={paidBy} onValueChange={setPaidBy}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="undecided">To be decided</SelectItem>
+              <SelectItem value="guest">Guest's account</SelectItem>
+              <SelectItem value="host">Host's account</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <Button size="sm" className="mt-3" disabled={busy} onClick={save}>
+        Save prepaid stay
+      </Button>
+    </div>
+  );
+}

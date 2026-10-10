@@ -185,6 +185,9 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
   // Travel is optional — only unfold it on its own if they've already given details, or if the hosts need it.
   useEffect(() => {
+    if (current?.checkin_date || current?.checkout_date) setStayOpen(true);
+  }, [current]);
+  useEffect(() => {
     if (current || settings.travel_required) setTravelOpen(true);
   }, [current, settings.travel_required]);
 
@@ -397,14 +400,10 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
             <span>
               <span className="flex items-center gap-2 text-xl">
                 <Plane className="size-4 text-primary" />{" "}
-                {settings.need === "stay"
-                  ? "Your stay"
-                  : `Your travel ${settings.travel_required ? "(needed)" : "(optional)"}`}
+                {`Your travel ${settings.travel_required ? "(needed)" : "(optional)"}`}
               </span>
               <span className="mt-1 block text-sm text-muted-foreground">
-                {settings.need === "stay"
-                  ? "Let us know your check-in and check-out so we can plan your room."
-                  : "Only if you're travelling in — flights in and out help us plan pickups and rooms."}
+                {"Only if you're travelling in — flights in and out help us plan pickups and rooms."}
               </span>
               {current?.updated_by && current.updated_by !== myId ? (
                 <span className="mt-1 block text-xs text-muted-foreground">Updated by your hosts</span>
