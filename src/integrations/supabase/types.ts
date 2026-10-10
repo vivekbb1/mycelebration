@@ -799,11 +799,14 @@ export type Database = {
           code: string
           created_at: string
           email: string | null
+          extra_nights_paid_by: string | null
           id: string
           invite_id: string | null
           link_opened_at: string | null
           name: string
           needs_wardrobe: boolean
+          prepaid_checkin_date: string | null
+          prepaid_checkout_date: string | null
           signup_link_id: string | null
           travel_need: string | null
         }
@@ -812,11 +815,14 @@ export type Database = {
           code: string
           created_at?: string
           email?: string | null
+          extra_nights_paid_by?: string | null
           id?: string
           invite_id?: string | null
           link_opened_at?: string | null
           name: string
           needs_wardrobe?: boolean
+          prepaid_checkin_date?: string | null
+          prepaid_checkout_date?: string | null
           signup_link_id?: string | null
           travel_need?: string | null
         }
@@ -825,11 +831,14 @@ export type Database = {
           code?: string
           created_at?: string
           email?: string | null
+          extra_nights_paid_by?: string | null
           id?: string
           invite_id?: string | null
           link_opened_at?: string | null
           name?: string
           needs_wardrobe?: boolean
+          prepaid_checkin_date?: string | null
+          prepaid_checkout_date?: string | null
           signup_link_id?: string | null
           travel_need?: string | null
         }
