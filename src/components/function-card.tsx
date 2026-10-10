@@ -99,7 +99,7 @@ export function FunctionCard({
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
-                    {t("card.gift_badge", "Outfit is our gift to you")}
+                    {t("card.gift_badge", "With compliments from the family")}
                   </Badge>
                 )}
                 <Button asChild variant="outline" size="sm">

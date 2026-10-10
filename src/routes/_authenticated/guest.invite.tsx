@@ -217,7 +217,7 @@ function InvitationPage() {
       body: needsOutfits
         ? t(
             "step.outfit_body",
-            "Pick a look for each event where the outfit is our gift to you.",
+            "Pick a look for each event — with compliments from the family.",
           )
         : t(
             "step.outfit_body_own",
