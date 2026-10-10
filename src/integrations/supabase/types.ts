@@ -2311,6 +2311,7 @@ export type Database = {
           silhouette: string | null
           size_note: string | null
           sizes: Json | null
+          sizes_checked_at: string | null
           source_sku: string | null
           title: string
           updated_at: string
@@ -2336,6 +2337,7 @@ export type Database = {
           silhouette?: string | null
           size_note?: string | null
           sizes?: Json | null
+          sizes_checked_at?: string | null
           source_sku?: string | null
           title: string
           updated_at?: string
@@ -2361,6 +2363,7 @@ export type Database = {
           silhouette?: string | null
           size_note?: string | null
           sizes?: Json | null
+          sizes_checked_at?: string | null
           source_sku?: string | null
           title?: string
           updated_at?: string

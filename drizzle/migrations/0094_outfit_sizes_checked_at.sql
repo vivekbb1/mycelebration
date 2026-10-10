@@ -1,0 +1,1 @@
+ALTER TABLE public.outfits ADD COLUMN IF NOT EXISTS sizes_checked_at timestamptz;
