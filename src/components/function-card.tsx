@@ -106,7 +106,7 @@ export function FunctionCard({
                   <Link to="/guest/outfits">
                     {chosenLook
                       ? t("card.change_cta", "Change your look")
-                      : `${t("card.choose_prefix", "Choose your look for")} ${eventName}`}
+                      : t("card.choose_cta", "Choose your outfit for this event")}
                   </Link>
                 </Button>
                 {event.outfit_choose_by && !chosenLook ? (
