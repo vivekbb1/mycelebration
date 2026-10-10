@@ -32,7 +32,7 @@ export async function perniaSizes(url: string): Promise<ShopSize[] | null> {
 }
 
 /** Kora (Shopify) product sizes with stock. */
-async function koraSizes(url: string): Promise<ShopSize[] | null> {
+export async function koraSizes(url: string): Promise<ShopSize[] | null> {
   const u = new URL(url);
   if (u.origin !== "https://koranm.com") return null;
   const m = u.pathname.match(/\/products\/([a-z0-9-]{1,200})/i);

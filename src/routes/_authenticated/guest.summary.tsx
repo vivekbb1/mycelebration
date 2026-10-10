@@ -188,6 +188,7 @@ function ConfirmPage() {
             event_id: r.outfits?.event_id ?? null,
             guest_name: r.guest_name,
             confirmed: Boolean(r.build_garment && r.build_size),
+            title: r.outfits?.title ?? null,
           }))}
         />
 

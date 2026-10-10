@@ -3106,6 +3106,7 @@ export type Database = {
         Args: { _base_url: string }
         Returns: undefined
       }
+      wake_stock_refresh: { Args: { _base_url: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "guest"
