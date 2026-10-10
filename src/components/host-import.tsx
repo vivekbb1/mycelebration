@@ -305,34 +305,26 @@ export function HostImport() {
     }
   };
 
-  const jobsPanel = (jobs.data ?? []).length ? (
+  const finished = (jobs.data ?? []).filter((j) => j.status !== "running" && j.imported > 0);
+  const jobsPanel = running.length || finished.length ? (
     <div className="panel space-y-2 p-4">
-      <p className="text-sm font-medium">Background imports</p>
-      {(jobs.data ?? []).map((j) => {
+      {running.map((j) => {
         const done = j.imported + j.skipped + j.failed;
         const pct = j.total ? Math.round((done / j.total) * 100) : 0;
         return (
           <div key={j.id} className="space-y-1 text-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span>
-                {j.status === "running"
-                  ? `Adding ${done} of ${j.total} · ${j.imported} added`
-                  : j.status === "cancelled"
-                    ? `Stopped at ${done} of ${j.total} · ${j.imported} added`
-                    : `Finished · ${j.imported} added${j.skipped ? ` · ${j.skipped} already in the wardrobe` : ""}${j.failed ? ` · ${j.failed} couldn't be read` : ""}`}
-              </span>
-              {j.status === "running" ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={async () => {
-                    await cancelImport({ data: { id: j.id } });
-                    void jobs.refetch();
-                  }}
-                >
-                  Stop
-                </Button>
-              ) : null}
+              <span>Adding looks in the background · {j.imported} added so far</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  await cancelImport({ data: { id: j.id } });
+                  void jobs.refetch();
+                }}
+              >
+                Stop
+              </Button>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded bg-muted">
               <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
@@ -341,9 +333,29 @@ export function HostImport() {
         );
       })}
       {running.length ? (
-        <p className="text-xs text-muted-foreground">
-          This carries on even if you close the page.
-        </p>
+        <p className="text-xs text-muted-foreground">This carries on even if you close the page.</p>
+      ) : null}
+      {finished.length ? (
+        <details className="text-sm">
+          <summary className="cursor-pointer text-muted-foreground">Import log ({finished.length})</summary>
+          <ul className="mt-2 space-y-1">
+            {finished.map((j) => (
+              <li key={j.id} className="flex justify-between gap-3 text-xs text-muted-foreground">
+                <span>
+                  {new Date(j.finished_at ?? j.created_at).toLocaleString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                <span>
+                  {j.imported} {j.imported === 1 ? "look" : "looks"} added
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
       ) : null}
     </div>
   ) : null;
