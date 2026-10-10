@@ -89,7 +89,7 @@ export function FamilyTravelAdmin({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("id, travel_need")
+        .select("id, travel_need, prepaid_checkin_date, prepaid_checkout_date, extra_nights_paid_by")
         .eq("id", familyId as string)
         .maybeSingle();
       if (error) throw error;
@@ -298,6 +298,19 @@ export function FamilyTravelAdmin({
           </SelectContent>
         </Select>
         <p className="mt-1 text-xs text-muted-foreground">Currently effective: {effectiveNeed}</p>
+      </div>
+
+      {effectiveNeed !== "none" && familyId ? (
+        <PrepaidStay
+          key={`${familyId}:${family.data?.prepaid_checkin_date}:${family.data?.prepaid_checkout_date}:${family.data?.extra_nights_paid_by}`}
+          familyId={familyId}
+          checkin={family.data?.prepaid_checkin_date ?? ""}
+          checkout={family.data?.prepaid_checkout_date ?? ""}
+          paidBy={family.data?.extra_nights_paid_by ?? ""}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["family-row", familyId] })}
+        />
+      ) : null}
+      <div>
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
