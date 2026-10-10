@@ -137,7 +137,7 @@ export function HostRegistered() {
               title="Send password reset link"
               disabled={!r.email}
               onClick={async () => {
-                if (!confirm(`Email a password reset link to ${r.email}?`)) return;
+                if (!window.confirm(`Email a password reset link to ${r.email}?`)) return;
                 const { error } = await supabase.auth.resetPasswordForEmail(r.email, {
                   redirectTo: `${window.location.origin}/reset-password`,
                 });
