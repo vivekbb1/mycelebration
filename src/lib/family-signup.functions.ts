@@ -206,6 +206,39 @@ export const addFamilyMember = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** A host adds a person to a family in their celebration (e.g. after a failed registration). */
+export const hostAddMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    member.extend({ inviteId: z.string().uuid(), household: z.string().trim().min(1).max(120) }).parse(d),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: boolean; error?: string }> => {
+    const { data: isHost } = await context.supabase.rpc("is_celebration_host", { _invite_id: data.inviteId });
+    if (!isHost) return { ok: false, error: "Only this celebration's hosts can do that." };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: fam } = await supabaseAdmin
+      .from("families").select("id").eq("invite_id", data.inviteId).eq("name", data.household).maybeSingle();
+    const { data: peer } = await supabaseAdmin
+      .from("invite_codes").select("category").eq("invite_id", data.inviteId).eq("household", data.household)
+      .limit(1).maybeSingle();
+    const { error } = await supabaseAdmin.from("invite_codes").insert({
+      code: memberCode(data.name),
+      guest_name: data.name,
+      email: data.email || null,
+      phone: data.phone || null,
+      gender: data.gender,
+      category: peer?.category ?? "family",
+      household: data.household,
+      family_id: fam?.id ?? null,
+      invite_id: data.inviteId,
+    });
+    if (error) {
+      const msg = /family/i.test(error.message) ? "That email already belongs to another family in this celebration." : "We couldn't add that person.";
+      return { ok: false, error: msg };
+    }
+    return { ok: true };
+  });
+
 /** A host removes a family's registration (members, codes, event invites, replies). */
 export const deleteFamilyRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
+import { AddFamilyMemberButton, FamilyMemberActions } from "@/components/host-family-members";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAnyHost } from "@/lib/host-role";
@@ -287,7 +288,15 @@ function FamilyPage() {
 
       <div className="grid gap-6">
         <section className="panel p-4 sm:p-6">
-          <h2 className="text-xl">Family members</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl">Family members</h2>
+            {isHost && inviteId ? <AddFamilyMemberButton inviteId={inviteId} household={name} /> : null}
+          </div>
+          {rows.length === 1 && rows[0]?.claimed_by ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Registration may not be finished — add the rest of the family here.
+            </p>
+          ) : null}
           {rows.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">No one on this family yet.</p>
           ) : (
@@ -302,6 +311,7 @@ function FamilyPage() {
                       {p.claimed_by ? "Registered" : "Not registered"}
                     </Badge>
                     <Badge variant="outline">{rsvpLabel(p.rsvp_status)}</Badge>
+                    {isHost ? <span className="ml-auto flex"><FamilyMemberActions person={p} /></span> : null}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {[p.code, p.email, p.phone].filter(Boolean).join(" · ") || "No contact details"}
