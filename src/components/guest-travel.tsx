@@ -555,7 +555,35 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                 </div>
               ) : null}
 
-              {settings.need === "stay" || settings.need === "stay_transfer" ? (
+
+              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="travel-notes">Anything else? (optional)</Label>
+                  <Textarea
+                    id="travel-notes"
+                    rows={3}
+                    maxLength={600}
+                    placeholder="Connecting flight, early check-in, someone joining later…"
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <Button className="mt-5" disabled={busy} onClick={saveTravel}>
+                {current ? "Update travel details" : "Save travel details"}
+              </Button>
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
+      {settings.need === "stay" || settings.need === "stay_transfer" ? (
+        <section className="panel mt-6 p-4 sm:p-6">
+          <h2 className="flex items-center gap-2 text-xl"><CalendarClock className="size-4 text-primary" /> Check-in &amp; check-out</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {batches.length > 1 && current ? `For ${membersOf(current).join(", ")} — pick another batch under travel to change theirs.` : "When you plan to check in and out of the hotel."}
+          </p>
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
                   <div className="space-y-4">
                     <p className="text-eyebrow">Check-in</p>
@@ -600,27 +628,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                     </div>
                   </div>
                 </div>
-              ) : null}
-
-              <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="travel-notes">Anything else? (optional)</Label>
-                  <Textarea
-                    id="travel-notes"
-                    rows={3}
-                    maxLength={600}
-                    placeholder="Connecting flight, early check-in, someone joining later…"
-                    value={form.notes}
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <Button className="mt-5" disabled={busy} onClick={saveTravel}>
-                {current ? "Update travel details" : "Save travel details"}
-              </Button>
-            </>
-          ) : null}
+          <Button className="mt-5" disabled={busy} onClick={saveTravel}>Save check-in &amp; check-out</Button>
         </section>
       ) : null}
 

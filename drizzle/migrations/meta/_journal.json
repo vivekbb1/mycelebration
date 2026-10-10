@@ -638,6 +638,13 @@
       "when": 1791624180560,
       "tag": "0090_travel_batches",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1791624403420,
+      "tag": "0091_fix_travel_host_log",
+      "breakpoints": true
     }
   ]
 }
