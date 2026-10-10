@@ -115,10 +115,19 @@ function InvitationPage() {
       if (!ids.length) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select("outfit_id, outfits(title, event_id)")
+        .select("outfit_id, guest_name, outfits(title, event_id)")
         .in("guest_id", ids);
       if (error) throw error;
       return data;
+    },
+  });
+
+  const members = useQuery({
+    queryKey: ["household-members", "invitation"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("household_members");
+      if (error) throw error;
+      return (data ?? []) as { name: string | null; gender: string | null }[];
     },
   });
 
@@ -175,11 +184,27 @@ function InvitationPage() {
   const list = (events.data ?? []).filter((ev) => guestEvent.allows(ev.id));
 
   const outfitFunctions = list.filter((ev) => picksOutfit(ev));
-  const chosenCount = outfitFunctions.filter((ev) => lookByEvent.has(ev.id)).length;
   const needsOutfits = outfitFunctions.length > 0;
+  // Count looks for every family member × every outfit event.
+  const memberNames = (() => {
+    const names = (members.data ?? []).map((m) => (m.name ?? "").trim().toLowerCase()).filter(Boolean);
+    const mine = (profile.data?.full_name ?? "").trim().toLowerCase();
+    return names.length ? [...new Set(names)] : mine ? [mine] : [""];
+  })();
+  const outfitEventIds = new Set(outfitFunctions.map((e) => e.id));
+  const chosenPairs = new Set<string>();
+  for (const row of myLooks.data ?? []) {
+    const ev = (row.outfits as { event_id: string | null } | null)?.event_id;
+    if (!ev || !outfitEventIds.has(ev)) continue;
+    let who = (row.guest_name ?? "").trim().toLowerCase();
+    if (!who && memberNames.length === 1) who = memberNames[0]!;
+    if (memberNames.includes(who)) chosenPairs.add(`${who}|${ev}`);
+  }
+  const chosenCount = chosenPairs.size;
+  const totalLooks = outfitFunctions.length * memberNames.length;
 
   const rsvpDone = rsvp === "yes" || rsvp === "no";
-  const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount === outfitFunctions.length);
+  const outfitsDone = !needsOutfits || (chosenCount > 0 && chosenCount >= totalLooks);
   const measurementsDone = (myMeasurements.data ?? []).length > 0;
 
   const allSteps: {
