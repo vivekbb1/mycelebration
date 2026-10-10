@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 
@@ -28,6 +28,7 @@ export function SizePickDialog({
   onConfirm: (size: string) => Promise<void> | void;
 }) {
   const check = useServerFn(checkOutfitSizes);
+  const navigate = useNavigate();
   const [sizes, setSizes] = useState<ShopSize[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [choice, setChoice] = useState<string | null>(null);
@@ -88,6 +89,8 @@ export function SizePickDialog({
     }
     await onConfirm(choice);
     setBusy(false);
+    // Made to measure can't be tailored without numbers — take them straight to the form.
+    if (choice === MADE_TO_MEASURE && !hasMeasurements) navigate({ to: "/guest/measurements" });
   };
 
   return (
@@ -150,15 +153,16 @@ export function SizePickDialog({
         {warn ? <p className="text-sm text-destructive">{warn}</p> : null}
         {!hasMeasurements ? (
           <p className="rounded-md bg-secondary p-3 text-xs">
-            {choice === MADE_TO_MEASURE ? "Made to measure needs " : "Add "}
-            {person}'s measurements so we can check the fit.{" "}
+            {choice === MADE_TO_MEASURE
+              ? `Made to measure needs ${person}'s measurements. After reserving, we'll take you to the measurements form.`
+              : `Add ${person}'s measurements so we can check the fit.`}{" "}
             <Link to="/guest/measurements" className="underline">Add measurements</Link>
           </p>
         ) : null}
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={confirm} disabled={!choice || busy}>{busy ? "Reserving…" : "Reserve"}</Button>
+          <Button onClick={confirm} disabled={!choice || busy}>{busy ? "Reserving…" : choice === MADE_TO_MEASURE && !hasMeasurements ? "Reserve & add measurements" : "Reserve"}</Button>
         </div>
       </DialogContent>
     </Dialog>
