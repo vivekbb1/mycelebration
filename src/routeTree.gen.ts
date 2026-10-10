@@ -45,6 +45,7 @@ import { Route as AuthenticatedHostSplatRouteImport } from './routes/_authentica
 import { Route as ApiPublicFollowupRemindersRouteImport } from './routes/api/public/followup-reminders'
 import { Route as ApiPublicOutfitImportWorkerRouteImport } from './routes/api/public/outfit-import-worker'
 import { Route as ApiPublicShopImageRouteImport } from './routes/api/public/shop-image'
+import { Route as ApiPublicStockRefreshRouteImport } from './routes/api/public/stock-refresh'
 import { Route as LovableEmailEventsRouteImport } from './routes/lovable/email/events'
 import { Route as ApiPublicEmailInboundRouteImport } from './routes/api/public/email/inbound'
 import { Route as ApiPublicOutfitImageSplatRouteImport } from './routes/api/public/outfit-image.$'
@@ -240,6 +241,11 @@ const ApiPublicShopImageRoute = ApiPublicShopImageRouteImport.update({
   path: '/api/public/shop-image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicStockRefreshRoute = ApiPublicStockRefreshRouteImport.update({
+  id: '/api/public/stock-refresh',
+  path: '/api/public/stock-refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LovableEmailEventsRoute = LovableEmailEventsRouteImport.update({
   id: '/lovable/email/events',
   path: '/lovable/email/events',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/api/public/outfit-import-worker': typeof ApiPublicOutfitImportWorkerRoute
   '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/stock-refresh': typeof ApiPublicStockRefreshRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/host/': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/api/public/outfit-import-worker': typeof ApiPublicOutfitImportWorkerRoute
   '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/stock-refresh': typeof ApiPublicStockRefreshRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/host': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
@@ -390,6 +398,7 @@ export interface FileRoutesById {
   '/api/public/followup-reminders': typeof ApiPublicFollowupRemindersRoute
   '/api/public/outfit-import-worker': typeof ApiPublicOutfitImportWorkerRoute
   '/api/public/shop-image': typeof ApiPublicShopImageRoute
+  '/api/public/stock-refresh': typeof ApiPublicStockRefreshRoute
   '/lovable/email/events': typeof LovableEmailEventsRoute
   '/_authenticated/host/': typeof AuthenticatedHostIndexRoute
   '/api/public/email/inbound': typeof ApiPublicEmailInboundRoute
@@ -434,6 +443,7 @@ export interface FileRouteTypes {
     | '/api/public/followup-reminders'
     | '/api/public/outfit-import-worker'
     | '/api/public/shop-image'
+    | '/api/public/stock-refresh'
     | '/lovable/email/events'
     | '/host/'
     | '/api/public/email/inbound'
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/api/public/followup-reminders'
     | '/api/public/outfit-import-worker'
     | '/api/public/shop-image'
+    | '/api/public/stock-refresh'
     | '/lovable/email/events'
     | '/host'
     | '/api/public/email/inbound'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/api/public/followup-reminders'
     | '/api/public/outfit-import-worker'
     | '/api/public/shop-image'
+    | '/api/public/stock-refresh'
     | '/lovable/email/events'
     | '/_authenticated/host/'
     | '/api/public/email/inbound'
@@ -537,6 +549,7 @@ export interface RootRouteChildren {
   ApiPublicFollowupRemindersRoute: typeof ApiPublicFollowupRemindersRoute
   ApiPublicOutfitImportWorkerRoute: typeof ApiPublicOutfitImportWorkerRoute
   ApiPublicShopImageRoute: typeof ApiPublicShopImageRoute
+  ApiPublicStockRefreshRoute: typeof ApiPublicStockRefreshRoute
   LovableEmailEventsRoute: typeof LovableEmailEventsRoute
   ApiPublicEmailInboundRoute: typeof ApiPublicEmailInboundRoute
   ApiPublicOutfitImageSplatRoute: typeof ApiPublicOutfitImageSplatRoute
@@ -798,6 +811,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicShopImageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/stock-refresh': {
+      id: '/api/public/stock-refresh'
+      path: '/api/public/stock-refresh'
+      fullPath: '/api/public/stock-refresh'
+      preLoaderRoute: typeof ApiPublicStockRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/events': {
       id: '/lovable/email/events'
       path: '/lovable/email/events'
@@ -909,6 +929,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFollowupRemindersRoute: ApiPublicFollowupRemindersRoute,
   ApiPublicOutfitImportWorkerRoute: ApiPublicOutfitImportWorkerRoute,
   ApiPublicShopImageRoute: ApiPublicShopImageRoute,
+  ApiPublicStockRefreshRoute: ApiPublicStockRefreshRoute,
   LovableEmailEventsRoute: LovableEmailEventsRoute,
   ApiPublicEmailInboundRoute: ApiPublicEmailInboundRoute,
   ApiPublicOutfitImageSplatRoute: ApiPublicOutfitImageSplatRoute,

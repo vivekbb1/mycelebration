@@ -666,6 +666,13 @@
       "when": 1791627815755,
       "tag": "0094_outfit_sizes_checked_at",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1791628230603,
+      "tag": "0095_nightly_stock_refresh",
+      "breakpoints": true
     }
   ]
 }
