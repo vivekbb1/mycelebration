@@ -3,7 +3,6 @@ import { SizePickDialog } from "@/components/size-pick-dialog";
 import { WARDROBES, WARDROBE_VALUES, isWardrobe, wardrobeLabel } from "@/lib/wardrobe-options";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LiveFeed } from "@/components/live-feed";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -982,17 +981,6 @@ function Lookbook() {
         </>
       )}
 
-      {hideGallery ? null : activeEvent !== "all" && pickableEvents.some((e) => e.id === activeEvent) ? (
-        <LiveFeed
-          eventId={activeEvent}
-          defaultAudience={wardrobe ?? null}
-          guestName={activeName || me.data?.full_name || null}
-        />
-      ) : activeEvent === "all" && pickableEvents.length > 0 ? (
-        <p className="mt-8 text-sm text-muted-foreground">
-          Pick a day above to see more looks for it.
-        </p>
-      ) : null}
     </main>
   );
 }
