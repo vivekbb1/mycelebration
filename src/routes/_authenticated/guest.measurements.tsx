@@ -182,7 +182,8 @@ function Measurements() {
       usual_size: usual || null,
       notes: notes.trim() || null,
     };
-    for (const k of KEYS) payload[k] = fields.includes(k) ? num(k) : null;
+    // Only send boxes shown on this form, so values saved earlier (e.g. a woman's inseam) are kept.
+    for (const k of KEYS) if (fields.includes(k)) payload[k] = num(k);
     // Keep the older single "bust" column filled for men so existing screens still read it.
     if (form === "men") payload["bust"] = num("chest");
     const { error } = await supabase.from("measurements").upsert(payload as never, { onConflict: "guest_id,guest_name" });
