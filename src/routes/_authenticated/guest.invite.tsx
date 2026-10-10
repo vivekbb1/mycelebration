@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/guest/invite")({
   component: InvitationPage,
 });
 
-type StepTarget = "/guest/schedule" | "/guest/outfits" | "/guest/measurements";
+type StepTarget = "/guest/schedule" | "/guest/outfits" | "/guest/measurements" | "/guest/summary";
 
 function InvitationPage() {
   const deliveryPlan = useDeliveryPlan();
@@ -303,7 +303,7 @@ function InvitationPage() {
     },
     ...(needsOutfits
       ? [{
-          to: "/guest/summary",
+          to: "/guest/summary" as const,
           icon: Check,
           title: t("step.confirm_title", "Confirm your outfits"),
           body: t(
