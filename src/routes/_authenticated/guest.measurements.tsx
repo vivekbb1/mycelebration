@@ -35,8 +35,8 @@ const KEYS = [
 type Key = (typeof KEYS)[number];
 
 const FORM_FIELDS: Record<ChartForm, Key[]> = {
-  women: ["height", "bust", "under_bust", "waist", "hip", "shoulder", "sleeve_length", "armhole", "top_length", "bottom_length"],
-  men: ["height", "chest", "neck", "waist", "hip", "shoulder", "sleeve_length", "top_length", "bottom_length", "inseam"],
+  women: ["height", "bust", "under_bust", "waist", "hip", "shoulder", "sleeve_length", "armhole", "top_length", "bottom_length", "inseam"],
+  men: ["height", "chest", "neck", "waist", "hip", "shoulder", "sleeve_length", "armhole", "top_length", "bottom_length", "inseam"],
 };
 const LABEL_FOR: Record<ChartForm, Partial<Record<Key, string>>> = {
   women: { top_length: "Blouse length", bottom_length: "Skirt / lehenga length" },

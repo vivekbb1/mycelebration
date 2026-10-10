@@ -3,8 +3,8 @@ import type { ChartForm } from "@/lib/size-charts";
 /** Numbered measuring points on a simple figure. Order matches `measurePoints(form)`. */
 export function measurePoints(form: ChartForm) {
   return form === "men"
-    ? ["chest", "neck", "shoulder", "sleeve_length", "waist", "hip", "top_length", "bottom_length", "inseam", "height"]
-    : ["bust", "under_bust", "shoulder", "sleeve_length", "armhole", "waist", "hip", "top_length", "bottom_length", "height"];
+    ? ["chest", "neck", "shoulder", "sleeve_length", "armhole", "waist", "hip", "top_length", "bottom_length", "inseam", "height"]
+    : ["bust", "under_bust", "shoulder", "sleeve_length", "armhole", "waist", "hip", "top_length", "bottom_length", "inseam", "height"];
 }
 
 const POS: Record<string, [number, number]> = {
