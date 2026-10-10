@@ -106,7 +106,7 @@ export const refreshGallerySizes = createServerFn({ method: "POST" })
           fresh = null;
         }
         const patch: Record<string, unknown> = { sizes_checked_at: new Date().toISOString() };
-        if (fresh) patch.sizes = fresh;
+        if (fresh) patch["sizes"] = fresh;
         await supabaseAdmin.from("outfits").update(patch as any).eq("id", r.id);
         if (fresh) updated++;
       }
