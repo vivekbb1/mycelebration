@@ -573,9 +573,33 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                 </div>
               </div>
 
-              <Button className="mt-5" disabled={busy} onClick={saveTravel}>
-                {current ? "Update travel details" : "Save travel details"}
-              </Button>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Button disabled={busy} onClick={saveTravel}>
+                  {current ? "Update travel details" : "Save travel details"}
+                </Button>
+                {current ? (
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={async () => {
+                      if (!window.confirm(`Delete this batch (${membersOf(current).join(", ") || "travel details"})? Its flights and notes will be removed.`)) return;
+                      setBusy(true);
+                      const { error } = await supabase.from("travel_plans").delete().eq("id", current.id);
+                      setBusy(false);
+                      if (error) {
+                        toast.error(error.message);
+                        return;
+                      }
+                      toast.success("Batch deleted.");
+                      setSel(null);
+                      setLoaded(null);
+                      await queryClient.invalidateQueries({ queryKey: ["travel-plans", household] });
+                    }}
+                  >
+                    Delete batch
+                  </Button>
+                ) : null}
+              </div>
             </>
           ) : null}
         </section>
