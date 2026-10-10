@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Pencil, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,23 @@ export function HostRegistered() {
                   .join(" · ")}
               </p>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Send ${r.name} a password reset link`}
+              title="Send password reset link"
+              disabled={!r.email}
+              onClick={async () => {
+                if (!confirm(`Email a password reset link to ${r.email}?`)) return;
+                const { error } = await supabase.auth.resetPasswordForEmail(r.email, {
+                  redirectTo: `${window.location.origin}/reset-password`,
+                });
+                if (error) toast.error(error.message);
+                else toast.success(`Reset link sent to ${r.email}`);
+              }}
+            >
+              <KeyRound className="size-4" />
+            </Button>
             <Button variant="ghost" size="icon" aria-label={`Edit ${r.name}`} onClick={() => openEdit(r)}>
               <Pencil className="size-4" />
             </Button>
