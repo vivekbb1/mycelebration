@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandingProvider } from "@/lib/branding";
+import { takePendingRegister } from "@/lib/signup-link";
 
 function NotFoundComponent() {
   return (

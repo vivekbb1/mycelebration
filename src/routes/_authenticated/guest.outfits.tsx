@@ -523,6 +523,7 @@ function Lookbook() {
           >
             Unlock the wardrobe
           </Button>
+          <FinishRegistering />
         </div>
       </main>
     );
