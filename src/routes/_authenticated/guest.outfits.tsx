@@ -66,7 +66,7 @@ function Lookbook() {
   const deliveryPlan = useDeliveryPlan();
   const queryClient = useQueryClient();
   const emailConfirmation = useServerFn(sendReservationEmail);
-  const [activeEvent, setActiveEvent] = useState<string>("all");
+  const [pickedEvent, setActiveEvent] = useState<string>("all");
   const [code, setCode] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [favOnly, setFavOnly] = useState(false);
@@ -225,6 +225,10 @@ function Lookbook() {
   const pickableEvents = eventList.filter(
     (e) => familyPicks(e.id),
   );
+  // Always work on one day at a time, so guests know which event they are choosing for.
+  const activeEvent = pickableEvents.some((e) => e.id === pickedEvent)
+    ? pickedEvent
+    : (pickableEvents[0]?.id ?? "all");
   const ownOutfitEvents = eventList.filter(
     (e) => !familyPicks(e.id),
   );
@@ -722,9 +726,6 @@ function Lookbook() {
       ) : null}
 
       <div className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-        <FilterChip active={activeEvent === "all"} onClick={() => setActiveEvent("all")}>
-          All days
-        </FilterChip>
         {pickableEvents.map((ev) => {
           const chosen = myOutfits.some((o) => o.event_id === ev.id);
           return (
