@@ -51,6 +51,9 @@ const blank = {
   notes: "",
 };
 
+const fmtDay = (d: string) =>
+  new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+
 /** Yes/no per event with a head count up top, plus optional travel details. */
 export function GuestTravel({ events }: { events: EventRow[] }) {
   const queryClient = useQueryClient();
@@ -70,6 +73,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [topCount, setTopCount] = useState("");
   const [travelOpen, setTravelOpen] = useState(false);
+  const [stayOpen, setStayOpen] = useState(false);
 
   const travelSettings = useTravelSettings();
   const settings = travelSettings.data ?? { need: "none" as const, travel_required: false, passport_required: false };
@@ -382,7 +386,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
         </div>
       </section>
 
-      {settings.need !== "none" ? (
+      {settings.need === "stay_transfer" ? (
         <section className="panel mt-6 p-4 sm:p-6">
           <button
             type="button"
@@ -580,10 +584,19 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
 
       {settings.need === "stay" || settings.need === "stay_transfer" ? (
         <section className="panel mt-6 p-4 sm:p-6">
-          <h2 className="flex items-center gap-2 text-xl"><CalendarClock className="size-4 text-primary" /> Check-in &amp; check-out</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {batches.length > 1 && current ? `For ${membersOf(current).join(", ")} — pick another batch under travel to change theirs.` : "When you plan to check in and out of the hotel."}
-          </p>
+          <button type="button" onClick={() => setStayOpen((v) => !v)} aria-expanded={stayOpen} className="flex w-full items-center justify-between gap-3 text-left">
+            <span>
+              <span className="flex items-center gap-2 text-xl"><CalendarClock className="size-4 text-primary" /> Check-in &amp; check-out (optional)</span>
+              <span className="mt-1 block text-sm text-muted-foreground">
+                {settings.prepaid_checkin || settings.prepaid_checkout
+                  ? `Your hosts cover your stay${settings.prepaid_checkin ? ` from ${fmtDay(settings.prepaid_checkin)}` : ""}${settings.prepaid_checkout ? ` to ${fmtDay(settings.prepaid_checkout)}` : ""}. Extra nights are arranged by the events team${settings.extra_paid_by === "guest" ? " on your account" : settings.extra_paid_by === "host" ? " and covered by your hosts" : ""}.`
+                  : "When you plan to check in and out of the hotel."}
+                {batches.length > 1 && current ? ` For ${membersOf(current).join(", ")}.` : ""}
+              </span>
+            </span>
+            {stayOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
+          </button>
+          {stayOpen ? (<>
                 <div className="mt-5 grid gap-5 sm:grid-cols-2">
                   <div className="space-y-4">
                     <p className="text-eyebrow">Check-in</p>
@@ -629,6 +642,7 @@ export function GuestTravel({ events }: { events: EventRow[] }) {
                   </div>
                 </div>
           <Button className="mt-5" disabled={busy} onClick={saveTravel}>Save check-in &amp; check-out</Button>
+          </>) : null}
         </section>
       ) : null}
 
