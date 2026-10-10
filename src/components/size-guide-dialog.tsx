@@ -12,6 +12,8 @@ export const MEASURE_LABEL: Record<string, string> = {
   hip: "Hip", shoulder: "Shoulder", sleeve_length: "Sleeve length", armhole: "Armhole",
   top_length: "Blouse / kurta length", bottom_length: "Skirt / trouser length", inseam: "Inseam",
 };
+const MEN_LABEL: Record<string, string> = { top_length: "Kurta length", bottom_length: "Trouser length" };
+const WOMEN_LABEL: Record<string, string> = { top_length: "Kurta / blouse length", bottom_length: "Skirt / lehenga length" };
 
 export function SizeChartTable({ form, unit, highlight }: { form: ChartForm; unit: "cm" | "in"; highlight?: string | null | undefined }) {
   const rows = chartFor(form);
@@ -65,7 +67,7 @@ export function SizeGuideBody({ form, suggested, initialTab = "chart" }: { form:
         <MeasureDiagram form={form} />
         <ol className="space-y-2 text-sm">
           {pts.map((k, i) => (
-            <li key={k}><span className="font-medium">{i + 1}. {MEASURE_LABEL[k]}:</span> <span className="text-muted-foreground">{HOW_TO[k]}</span></li>
+            <li key={k}><span className="font-medium">{i + 1}. {(form === "men" ? MEN_LABEL[k] : WOMEN_LABEL[k]) ?? MEASURE_LABEL[k]}:</span> <span className="text-muted-foreground">{HOW_TO[k]}</span></li>
           ))}
         </ol>
       </TabsContent>

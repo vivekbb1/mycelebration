@@ -9,8 +9,8 @@ export function measurePoints(form: ChartForm) {
 
 const POS: Record<string, [number, number]> = {
   neck: [100, 46], shoulder: [100, 62], bust: [100, 86], chest: [100, 86], under_bust: [100, 100],
-  armhole: [66, 74], sleeve_length: [44, 112], waist: [100, 124], hip: [100, 152], top_length: [138, 110],
-  bottom_length: [138, 200], inseam: [92, 210], height: [176, 150],
+  armhole: [66, 74], sleeve_length: [44, 112], waist: [100, 124], hip: [100, 152], top_length: [140, 196],
+  bottom_length: [140, 262], inseam: [92, 222], height: [176, 150],
 };
 
 export function MeasureDiagram({ form, highlight }: { form: ChartForm; highlight?: string | null }) {
