@@ -124,6 +124,81 @@ export function HostRooms() {
     refresh();
   }
 
+  const TEMPLATE_COLS = ["Hotel", "City", "Room category", "Floor", "Room number", "Beds", "Max guests", "Extra bed (yes/no)", "Check-in (YYYY-MM-DD)", "Check-out (YYYY-MM-DD)", "Notes"];
+
+  async function downloadTemplate() {
+    const XLSX = await import("xlsx");
+    const sample = [
+      TEMPLATE_COLS,
+      [data.hotels[0]?.name ?? "Grand Hotel", data.hotels[0]?.city ?? "Dubai", "Deluxe", "3", "301", 2, 2, "yes", "", "", ""],
+      [data.hotels[0]?.name ?? "Grand Hotel", data.hotels[0]?.city ?? "Dubai", "Suite", "5", "501", 1, 3, "no", "", "", "Sea view"],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(sample);
+    ws["!cols"] = TEMPLATE_COLS.map((c) => ({ wch: Math.max(12, c.length + 2) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rooms");
+    XLSX.writeFile(wb, "rooms-template.xlsx");
+  }
+
+  async function uploadRooms(file: File) {
+    if (!inviteId) return;
+    try {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]!]!, { defval: "" });
+      const get = (r: Record<string, unknown>, start: string) => {
+        const k = Object.keys(r).find((x) => x.toLowerCase().startsWith(start.toLowerCase()));
+        const v = k ? r[k] : "";
+        if (v instanceof Date) return v.toISOString().slice(0, 10);
+        return String(v ?? "").trim();
+      };
+      const date = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+      const hotels = new Map(data.hotels.map((h) => [h.name.trim().toLowerCase(), h.id]));
+      const existing = new Set(data.rooms.map((r) => `${r.vendor_id}|${r.room_number.trim().toLowerCase()}`));
+      const toInsert: Record<string, unknown>[] = [];
+      let skipped = 0;
+      for (const r of rows) {
+        const hotel = get(r, "Hotel");
+        const num = get(r, "Room number");
+        if (!hotel || !num) { skipped++; continue; }
+        let vid = hotels.get(hotel.toLowerCase());
+        if (!vid) {
+          const { data: v, error } = await supabase.from("vendors")
+            .insert({ name: hotel, city: get(r, "City") || null, category: "hotel", invite_id: inviteId })
+            .select("id").single();
+          if (error) throw error;
+          vid = v.id;
+          hotels.set(hotel.toLowerCase(), vid);
+        }
+        const dup = `${vid}|${num.toLowerCase()}`;
+        if (existing.has(dup)) { skipped++; continue; }
+        existing.add(dup);
+        const beds = Math.max(1, Number(get(r, "Beds")) || 1);
+        toInsert.push({
+          invite_id: inviteId,
+          vendor_id: vid,
+          category: get(r, "Room category") || "Standard",
+          floor: get(r, "Floor") || null,
+          room_number: num,
+          beds,
+          max_occupancy: Math.max(1, Number(get(r, "Max guests")) || beds),
+          extra_bed_allowed: /^(y|yes|true|1)$/i.test(get(r, "Extra bed")),
+          block_checkin_date: date(get(r, "Check-in")),
+          block_checkout_date: date(get(r, "Check-out")),
+          notes: get(r, "Notes") || null,
+        });
+      }
+      if (toInsert.length) {
+        const { error } = await supabase.from("hotel_rooms").insert(toInsert as never);
+        if (error) throw error;
+      }
+      toast.success(`${toInsert.length} room${toInsert.length === 1 ? "" : "s"} added${skipped ? ` · ${skipped} skipped (blank or already there)` : ""}`);
+      refresh();
+    } catch (e) {
+      toast.error((e as Error).message || "Couldn't read that file");
+    }
+  }
+
   async function removeRoom(id: string) {
     if (!confirm("Remove this room and its guest assignments?")) return;
     const { error } = await supabase.from("hotel_rooms").delete().eq("id", id);
@@ -297,6 +372,28 @@ export function HostRooms() {
           <label className="flex items-center gap-2 pt-6 text-sm"><Checkbox checked={bulk.extra} onCheckedChange={(v) => setBulk({ ...bulk, extra: !!v })} />Extra bed allowed</label>
         </div>
         <Button onClick={addRooms}>Add rooms</Button>
+        <div className="border-t border-border pt-3">
+          <p className="text-sm font-medium">Bulk upload</p>
+          <p className="text-xs text-muted-foreground">Download the template, fill one row per room, then upload it. New hotels are added automatically; rooms already listed are skipped.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button variant="outline" onClick={downloadTemplate}>Download template</Button>
+            <Button variant="outline" asChild>
+              <label className="cursor-pointer">
+                Upload rooms
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (f) void uploadRooms(f);
+                  }}
+                />
+              </label>
+            </Button>
+          </div>
+        </div>
       </section>
 
       <section className="panel space-y-4 p-4 sm:p-6">
