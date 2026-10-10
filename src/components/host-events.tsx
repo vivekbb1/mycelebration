@@ -554,6 +554,21 @@ export function HostEvents() {
               onCheckedChange={(v) => setForm((f) => ({ ...f, outfit_selection: v }))}
             />
           </div>
+          {!form.outfit_selection && (form.outfit_choose_by || form.outfit_ready_by) ? (
+            <div className="flex flex-col gap-2 rounded-lg border border-border/70 bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-muted-foreground">
+                Guests wear their own outfit here, so outfit dates aren't needed.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setForm((f) => ({ ...f, outfit_choose_by: "", outfit_ready_by: "" }))}
+              >
+                Clear outfit dates
+              </Button>
+            </div>
+          ) : null}
           <div className="rounded-lg border border-border/70 p-4">
             <p className="text-sm">Outfit slot</p>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -619,6 +634,15 @@ export function HostEvents() {
               }
             >
               {picked.length === scheduleList.length ? "Clear selection" : "Select all"}
+            </Button>
+          ) : null}
+          {scheduleList.some((e) => !e.outfit_selection) ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPicked(scheduleList.filter((e) => !e.outfit_selection).map((e) => e.id))}
+            >
+              Select own-outfit events
             </Button>
           ) : null}
         </div>

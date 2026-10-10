@@ -22,6 +22,7 @@ export function HostEventsBulk({ ids, onDone }: { ids: string[]; onDone: () => v
   });
   const [selection, setSelection] = useState<Selection>("keep");
   const [busy, setBusy] = useState(false);
+  const [clearOutfitDates, setClearOutfitDates] = useState(false);
 
   const set = (k: Field) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setValues((v) => ({ ...v, [k]: e.target.value }));
@@ -32,6 +33,10 @@ export function HostEventsBulk({ ids, onDone }: { ids: string[]; onDone: () => v
       const v = values[k].trim();
       if (v) patch[k] = v;
     });
+    if (clearOutfitDates) {
+      patch["outfit_choose_by"] = null;
+      patch["outfit_ready_by"] = null;
+    }
     if (selection !== "keep") patch["outfit_selection"] = selection === "on";
     if (Object.keys(patch).length === 0) {
       toast.error("Fill in at least one box to change.");
@@ -105,6 +110,20 @@ export function HostEventsBulk({ ids, onDone }: { ids: string[]; onDone: () => v
           <Input id="b-venue" maxLength={160} value={values.venue} onChange={set("venue")} />
         </div>
       </div>
+      <label className="mt-3 flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={clearOutfitDates}
+          onChange={(e) => setClearOutfitDates(e.target.checked)}
+        />
+        <span>
+          Clear "Choose looks by" and "Outfit ready by" dates
+          <span className="block text-xs text-muted-foreground">
+            Useful for events where guests wear their own outfit.
+          </span>
+        </span>
+      </label>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <Button onClick={apply} disabled={busy} className="sm:flex-1">
           {busy ? "Saving…" : "Apply to selected"}
