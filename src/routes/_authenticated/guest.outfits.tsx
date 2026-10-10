@@ -4,7 +4,7 @@ import { WARDROBES, WARDROBE_VALUES, isWardrobe, wardrobeLabel } from "@/lib/war
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search } from "lucide-react";
 
@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { claimInvite } from "@/routes/auth";
 import { useDeliveryPlan } from "@/lib/logistics";
+import { LAST_REGISTER } from "@/lib/signup-link";
 
 export const Route = createFileRoute("/_authenticated/guest/outfits")({
   head: () => ({
@@ -1067,6 +1068,25 @@ function LookGallery({ outfit, dimmed, eager }: { outfit: Outfit; dimmed: boolea
             ))
           : null}
       </div>
+    </div>
+  );
+}
+
+/** Offers the family sign-up link this browser last opened, for guests who never finished registering. */
+function FinishRegistering() {
+  const [href, setHref] = useState<string | null>(null);
+  useEffect(() => {
+    setHref(localStorage.getItem(LAST_REGISTER));
+  }, []);
+  if (!href) return null;
+  return (
+    <div className="mt-6 border-t border-border pt-5">
+      <p className="text-sm text-muted-foreground">
+        Signed up through a family link? Finish registering your family there — no code needed.
+      </p>
+      <Button asChild variant="outline" className="mt-3 w-full">
+        <a href={href}>Finish registering our family</a>
+      </Button>
     </div>
   );
 }
