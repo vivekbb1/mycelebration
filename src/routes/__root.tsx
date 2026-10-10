@@ -129,6 +129,12 @@ function RootComponent() {
       // Guests whose email is already on the guest list join without a code.
       if (session && !emailChecked && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
         emailChecked = true;
+        // Back from Apple / Google / Microsoft after starting on a family sign-up link:
+        // return to that page so the family can finish registering.
+        const back = takePendingRegister();
+        if (back && `${window.location.pathname}${window.location.search}` !== back) {
+          setTimeout(() => void router.navigate({ href: back, replace: true }), 0);
+        }
         setTimeout(async () => {
           const { data: n } = await supabase.rpc("claim_invites_by_email");
           if (n && n > 0) {
