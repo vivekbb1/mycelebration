@@ -95,6 +95,7 @@ function Lookbook() {
     await favourites.refetch();
   };
   const [activePerson, setActivePerson] = useState<string | null>(null);
+  const [browseAgain, setBrowseAgain] = useState<Record<string, boolean>>({});
   const [wardrobeOverride, setWardrobeOverride] = useState<Record<string, string>>({});
   const { needsWardrobe } = useNeedsWardrobe();
 
@@ -559,6 +560,13 @@ function Lookbook() {
       (o) => mineByOutfit.has(o.id) && (mineByOutfit.get(o.id) ?? activeName) === name,
     );
   const myOutfits = outfitsFor(activeName);
+  // Once this person has a look for the day being viewed (or every day), hide the gallery.
+  const doneEvents = pickableEvents.filter((ev) => myOutfits.some((o) => o.event_id === ev.id));
+  const allChosen =
+    activeEvent === "all"
+      ? pickableEvents.length > 0 && doneEvents.length === pickableEvents.length
+      : doneEvents.some((ev) => ev.id === activeEvent);
+  const hideGallery = allChosen && !browseAgain[`${activeName}|${activeEvent}`];
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -766,7 +774,27 @@ function Lookbook() {
           })()
         : null}
 
-      {outfits.isLoading ? (
+      {hideGallery ? (
+        <div className="panel mt-6 p-6 text-center">
+          <Check className="mx-auto size-6 text-primary" />
+          <h2 className="mt-2 text-xl">
+            {activeEvent === "all"
+              ? `${activeName} has a look reserved for every event`
+              : `Reserved for ${activeName}`}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            See the reserved looks above. Choose another family member to keep going.
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-3"
+            onClick={() => setBrowseAgain((b) => ({ ...b, [`${activeName}|${activeEvent}`]: true }))}
+          >
+            Browse looks anyway
+          </Button>
+        </div>
+      ) : outfits.isLoading ? (
         <p className="mt-10 text-sm text-muted-foreground">Loading the wardrobe…</p>
       ) : inEvent.length === 0 ? (
         <div className="panel mt-8 p-8 text-center">
@@ -960,7 +988,7 @@ function Lookbook() {
         </>
       )}
 
-      {activeEvent !== "all" && pickableEvents.some((e) => e.id === activeEvent) ? (
+      {hideGallery ? null : activeEvent !== "all" && pickableEvents.some((e) => e.id === activeEvent) ? (
         <LiveFeed
           eventId={activeEvent}
           defaultAudience={wardrobe ?? null}
