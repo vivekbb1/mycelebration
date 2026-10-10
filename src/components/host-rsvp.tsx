@@ -136,7 +136,7 @@ export function HostRsvp() {
       .update({ rsvp_note: note.trim() || null, rsvp_recorded_at: new Date().toISOString(), rsvp_recorded_by: userData.user?.id ?? null })
       .eq("id", g.id);
     setBusy(null);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Note saved.");
     await queryClient.invalidateQueries({ queryKey: ["rsvp-guests"] });
   };
@@ -155,7 +155,7 @@ export function HostRsvp() {
         .eq("id", g.claimed_by);
     }
     setBusy(null);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${g.guest_name}: reply cleared`);
     await queryClient.invalidateQueries({ queryKey: ["rsvp-guests"] });
     await queryClient.invalidateQueries({ queryKey: ["rsvp-profiles"] });
@@ -167,7 +167,7 @@ export function HostRsvp() {
     let q = supabase.from("event_attendance").delete().eq("household", household);
     if (inviteId) q = q.eq("invite_id", inviteId);
     const { error } = await q;
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${household}: event replies cleared`);
     await queryClient.invalidateQueries();
   };
