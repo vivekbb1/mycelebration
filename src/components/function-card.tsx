@@ -15,6 +15,7 @@ export type WeddingFunction = {
   dress_code: string | null;
   note: string | null;
   background_image_url?: string | null;
+  outfit_choose_by?: string | null;
 };
 
 export const formatEventDate = (value: string | null) =>
@@ -108,12 +109,19 @@ export function FunctionCard({
                       : `${t("card.choose_prefix", "Choose your look for")} ${eventName}`}
                   </Link>
                 </Button>
+                {event.outfit_choose_by && !chosenLook ? (
+                  <p className="text-xs text-muted-foreground">
+                    {new Date().toISOString().slice(0, 10) > event.outfit_choose_by
+                      ? "Choices closed on "
+                      : "Choose by "}
+                    {new Date(`${event.outfit_choose_by}T00:00:00`).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                    })}
+                  </p>
+                ) : null}
               </>
-            ) : (
-              <Badge variant="secondary">
-                {t("card.own_badge", "Please wear your own outfit for this event")}
-              </Badge>
-            )}
+            ) : null}
           </div>
         ) : null}
       </div>
