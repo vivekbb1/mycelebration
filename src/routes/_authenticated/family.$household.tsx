@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
-import { AddFamilyMemberButton, FamilyMemberActions } from "@/components/host-family-members";
+import { AddFamilyMemberButton, FamilyMemberActions, RenameFamilyButton } from "@/components/host-family-members";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAnyHost } from "@/lib/host-role";
@@ -278,7 +278,10 @@ function FamilyPage() {
         </Link>
       </Button>
 
-      <h1 className="mt-4 text-3xl">{name}</h1>
+      <div className="mt-4 flex items-center gap-2">
+        <h1 className="text-3xl">{name}</h1>
+        {isHost && rows[0] && rows[0].household === name ? <RenameFamilyButton codeId={rows[0].id} current={name} person={rows[0]} /> : null}
+      </div>
       <p className="mt-2 text-sm text-muted-foreground">
         {rows.length} {rows.length === 1 ? "person" : "people"} on the list
         {totalCount ? ` · ${totalCount} coming at most` : ""}
