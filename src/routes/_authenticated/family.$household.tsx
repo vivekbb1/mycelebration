@@ -434,7 +434,7 @@ function FamilyPage() {
         ) : null}
 
         {has("wardrobe_picker") ? (
-          <section className="panel p-4 sm:p-6">
+          <section className="panel min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">Wardrobe choices</h2>
             <FamilyWardrobeChoices
               people={rows}
