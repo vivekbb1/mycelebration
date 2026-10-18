@@ -69,7 +69,7 @@ export function HostFamilyPicks({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("travel_plans")
-        .select("household, guest_name, travellers, arrival_date, invite_id");
+        .select("household, guest_name, travellers, arrival_date, checkin_date, invite_id");
       if (error) throw error;
       return (data ?? []).filter((r) => !inviteId || r.invite_id === inviteId);
     },
@@ -115,12 +115,13 @@ export function HostFamilyPicks({
           (x) => (m.claimed_by && x.guest_id === m.claimed_by && (!x.guest_name || norm(x.guest_name) === name)) ||
             (ids.has(x.guest_id) && norm(x.guest_name) === name),
         );
-        const plans = (travel.data ?? []).filter((t) => t.household === household && t.arrival_date);
+        const plans = (travel.data ?? []).filter((t) => t.household === household && (t.arrival_date || t.checkin_date));
         const plan =
           plans.find((t) => (t.travellers ?? []).some((n: string) => norm(n) === name)) ??
           plans.find((t) => norm(t.guest_name) === name) ??
           plans.find((t) => !(t.travellers ?? []).length && !t.guest_name);
-        const arrival = plan?.arrival_date ?? null;
+        const arrival = plan?.arrival_date ?? plan?.checkin_date ?? null;
+        const byCheckin = Boolean(plan && !plan.arrival_date);
         const perEvent = evs.map((ev) => {
           const look = looks.find((r) => {
             const o = r.outfits as { event_id: string | null } | null;
@@ -134,7 +135,7 @@ export function HostFamilyPicks({
           if (counts && look) chosen++;
           return { ev, look, counts };
         });
-        return { m, measured, perEvent, arrival };
+        return { m, measured, perEvent, arrival, byCheckin };
       });
       return { household, people, chosen, total, evs };
     }).sort((a, b) => Number(a.chosen >= a.total) - Number(b.chosen >= b.total) || a.household.localeCompare(b.household));
@@ -212,7 +213,7 @@ export function HostFamilyPicks({
                   </Badge>
                 </div>
                 <div className="mt-3 divide-y divide-border">
-                  {f.people.map(({ m, measured, perEvent, arrival }) => (
+                  {f.people.map(({ m, measured, perEvent, arrival, byCheckin }) => (
                     <div key={m.id} className="py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm">{m.guest_name}</p>
@@ -224,7 +225,7 @@ export function HostFamilyPicks({
                       </div>
                       <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                         <Plane className="size-3" />
-                        {arrival ? `Arrives ${fmt(arrival)}` : "Arrival not shared yet"}
+                        {arrival ? `${byCheckin ? "Checks in" : "Arrives"} ${fmt(arrival)}` : "Arrival or check-in not shared yet"}
                       </p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {perEvent.filter((p) => p.counts).map(({ ev, look }) => {
