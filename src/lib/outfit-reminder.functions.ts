@@ -1,3 +1,4 @@
+import { missingOutfitEvents } from "@/lib/outfit-pick-progress";
 import { PUBLIC_ORIGIN } from "@/lib/public-url";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -15,7 +16,7 @@ function prettyDate(value: string | null) {
 /**
  * Nudges one guest who hasn't chosen a look yet. Lists the events still
  * waiting on them and links straight to the wardrobe.
- * Host-only: the caller must hold the admin role.
+ * Host-only: the caller must host the guest’s celebration.
  */
 export const sendOutfitReminder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -31,7 +32,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
 
     const { data: guest } = await context.supabase
       .from("invite_codes")
-      .select("guest_name, email, household, claimed_by, invite_id")
+      .select("guest_name, email, household, claimed_by, invite_id, gender")
       .eq("id", data.inviteId)
       .maybeSingle();
 
@@ -42,46 +43,26 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
         : { data: false };
       if (isHost !== true) return { sent: false, reason: "forbidden" };
     }
-    if (!guest.email) return { sent: false, reason: "no_email" };
-
-    // Which events is this household invited to?
-    let allowed: string[] | null = null;
-    if (guest.household) {
-      const { data: rows } = await context.supabase
-        .from("household_event_invites")
-        .select("event_id")
-        .eq("household", guest.household);
-      if (rows && rows.length > 0) allowed = rows.map((r) => r.event_id);
+    if (!guest.invite_id) return { sent: false, reason: "guest_not_found" };
+    const inviteId = guest.invite_id;
+    const [members, access, events, reservations, outfits, feeds] = await Promise.all([
+      context.supabase.from("invite_codes").select("guest_name, email, household, claimed_by, gender").eq("invite_id", inviteId),
+      context.supabase.from("household_event_invites").select("household, event_id, outfit_selection").eq("invite_id", inviteId),
+      context.supabase.from("events").select("id, name, event_date, dress_code, outfit_selection, outfit_ready_by, sort_order").eq("invite_id", inviteId).order("sort_order"),
+      context.supabase.from("reservations").select("guest_id, guest_name, outfits(event_id)").eq("invite_id", inviteId),
+      context.supabase.from("outfits").select("event_id, gender").eq("invite_id", inviteId).in("gender", ["boy", "girl"]),
+      context.supabase.from("outfit_feeds").select("event_id, audience").eq("invite_id", inviteId).in("audience", ["boy", "girl"]),
+    ]);
+    for (const result of [members, access, events, reservations, outfits, feeds]) {
+      if (result.error) throw result.error;
     }
-
-    let eventQuery = context.supabase
-      .from("events")
-      .select("id, name, event_date, dress_code, outfit_selection, outfit_ready_by, invite_id, sort_order")
-      .order("sort_order", { ascending: true });
-    if (guest.invite_id) eventQuery = eventQuery.eq("invite_id", guest.invite_id);
-    const { data: allEvents } = await eventQuery;
-
-    const pickable = (allEvents ?? []).filter(
-      (e) => e.outfit_selection !== false && (!allowed || allowed.includes(e.id)),
-    );
-    if (pickable.length === 0) return { sent: false, reason: "nothing_to_choose" };
-
-    // Which of those already have a look against this guest's name?
-    const chosen = new Set<string>();
-    if (guest.claimed_by) {
-      const { data: res } = await context.supabase
-        .from("reservations")
-        .select("guest_name, outfits(event_id)")
-        .eq("guest_id", guest.claimed_by);
-      for (const r of res ?? []) {
-        const name = (r.guest_name ?? "").trim().toLowerCase();
-        if (name && name !== guest.guest_name.trim().toLowerCase()) continue;
-        const outfit = r.outfits as { event_id: string | null } | null | undefined;
-        if (outfit?.event_id) chosen.add(outfit.event_id);
-      }
-    }
-
-    const waiting = pickable.filter((e) => !chosen.has(e.id));
+    const recipient = guest.email || (members.data ?? []).find((m) => m.household === guest.household && m.email)?.email;
+    if (!recipient) return { sent: false, reason: "no_email" };
+    const kids = new Set([
+      ...(outfits.data ?? []).map((o) => `${o.event_id}|${o.gender}`),
+      ...(feeds.data ?? []).map((f) => `${f.event_id}|${f.audience}`),
+    ]);
+    const waiting = missingOutfitEvents(guest, members.data ?? [], events.data ?? [], access.data ?? [], reservations.data ?? [], kids);
     if (waiting.length === 0) return { sent: false, reason: "already_chosen" };
 
     const { escapeHtml, emailShell, sendGuestEmail } = await import("@/lib/email.server");
@@ -124,7 +105,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
 
     return sendGuestEmail({
       inviteId: guest.invite_id,
-      to: guest.email,
+      to: recipient,
       subject: `${guest.guest_name}, please choose your outfit`,
       html,
     });
