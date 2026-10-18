@@ -3,6 +3,8 @@
 ## What changes
 Replace the "Outfit picks per guest" table with "Outfit picks by family". The reminder panel and Measurements panel above and below it stay as they are.
 
+At the top of the tab, add a row of cards, one for each event where guests choose an outfit. Each card shows the event name and date, "x / y outfits chosen" across all families, and a thin progress bar. On top of these, one card shows the total for the whole celebration. On mobile, the cards wrap two per row.
+
 Each family gets a card:
 - **Header:** the family name and a score "x / y outfits chosen". For example, 2 members × 2 events where you give the outfits = 4 to choose. The score is green with "All set" once x = y.
 - **Members:** one row per member, with their name, men's/women's/boy/girl and a measurements badge ("Measurements in" or "No measurements yet").
