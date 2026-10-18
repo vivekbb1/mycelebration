@@ -15,6 +15,7 @@ import { useFeatures } from "@/lib/features";
 import { GuestPassports } from "@/components/guest-passports";
 import { FamilyTravelAdmin } from "@/components/family-travel-admin";
 import { FamilyNotes } from "@/components/family-notes";
+import { FamilyWardrobeChoices } from "@/components/family-wardrobe-choices";
 import { splitTags } from "@/components/host-function-access";
 
 export const Route = createFileRoute("/_authenticated/family/$household")({
@@ -95,7 +96,7 @@ function FamilyPage() {
     queryKey: ["family-events", inviteId],
     enabled: isHost && rows.length > 0,
     queryFn: async () => {
-      const query = supabase.from("events").select("id, name, event_date, dress_code").order("sort_order");
+      const query = supabase.from("events").select("id, name, event_date, dress_code, outfit_selection").order("sort_order");
       const { data, error } = inviteId ? await query.eq("invite_id", inviteId) : await query;
       if (error) throw error;
       return data ?? [];
@@ -172,25 +173,17 @@ function FamilyPage() {
   });
 
   const looks = useQuery({
-    queryKey: ["family-looks", name, userIds.join(",")],
-    enabled: isHost && has("wardrobe_picker") && userIds.length > 0,
+    queryKey: ["family-looks", name, inviteId, userIds.join(",")],
+    enabled: isHost && has("wardrobe_picker") && userIds.length > 0 && Boolean(inviteId),
     queryFn: async () => {
-      const res = await supabase
+      if (!inviteId) return [];
+      const { data, error } = await supabase
         .from("reservations")
-        .select("id, guest_id, guest_name, status, order_status, build_garment, build_size, outfit_id")
+        .select("id, guest_id, guest_name, status, build_garment, build_size, size_choice, outfits(title, designer, notes, image_url, images, boutique_url, event_id)")
+        .eq("invite_id", inviteId)
         .in("guest_id", userIds);
-      if (res.error) throw res.error;
-      const outfitIds = [...new Set((res.data ?? []).map((r) => r.outfit_id))];
-      const outfits = outfitIds.length
-        ? await supabase
-            .from("outfits")
-            .select("id, title, designer, image_url, event_id")
-            .in("id", outfitIds)
-        : { data: [] as Array<{ id: string; title: string; designer: string | null; image_url: string | null; event_id: string | null }> };
-      return (res.data ?? []).map((r) => ({
-        ...r,
-        outfit: (outfits.data ?? []).find((o) => o.id === r.outfit_id) ?? null,
-      }));
+      if (error) throw error;
+      return (data ?? []).map((r) => ({ ...r, outfit: r.outfits }));
     },
   });
 
@@ -443,38 +436,12 @@ function FamilyPage() {
         {has("wardrobe_picker") ? (
           <section className="panel p-4 sm:p-6">
             <h2 className="text-xl">Wardrobe choices</h2>
-            {(looks.data ?? []).length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">No looks chosen yet.</p>
-            ) : (
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {(looks.data ?? []).map((r) => {
-                  const ev = (events.data ?? []).find((e) => e.id === r.outfit?.event_id);
-                  return (
-                    <article key={r.id} className="overflow-hidden rounded-xl border border-border">
-                      {r.outfit?.image_url ? (
-                        <img
-                          src={r.outfit.image_url}
-                          referrerPolicy="no-referrer"
-                          alt={r.outfit.title}
-                          loading="lazy"
-                          className="aspect-[3/4] w-full object-cover"
-                        />
-                      ) : null}
-                      <div className="p-3">
-                        {ev ? <p className="text-xs text-primary">{ev.name}</p> : null}
-                        <p className="mt-0.5 text-sm">{r.outfit?.title ?? "Outfit"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {[r.guest_name, r.outfit?.designer, r.build_size].filter(Boolean).join(" · ")}
-                        </p>
-                        <Badge variant="outline" className="mt-2">
-                          {r.order_status}
-                        </Badge>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
+            <FamilyWardrobeChoices
+              people={rows}
+              events={eventList}
+              choices={looks.data ?? []}
+              loading={people.isLoading || events.isLoading || looks.isLoading}
+            />
           </section>
         ) : null}
 
