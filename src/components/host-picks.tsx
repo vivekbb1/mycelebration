@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { HostFamilyPicks } from "@/components/host-family-picks";
 
 /** Plain-English reasons a reminder didn't go out. */
 const reminderReasons: Record<string, string> = {
@@ -207,95 +208,12 @@ export function HostPicks() {
         )}
       </div>
 
-      <div className="panel p-4 sm:p-6">
-        <h2 className="text-xl">Outfit picks per guest</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          One column per event that guests choose a look for.
-          {ownOutfit.length > 0
-            ? ` ${ownOutfit.map((e) => e.name).join(", ")} ${
-                ownOutfit.length > 1 ? "are" : "is"
-              } own-outfit, so nothing is tracked there.`
-            : ""}
-        </p>
+      <HostFamilyPicks
+        inviteId={selectedInvite ?? null}
+        events={events.data ?? []}
+        measurements={(measurements.data ?? []) as Array<{ guest_id: string; guest_name: string | null }>}
+      />
 
-        {loading ? (
-          <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
-        ) : pickable.length === 0 ? (
-          <p className="mt-6 text-sm text-muted-foreground">
-            No event has outfit selection switched on yet.
-          </p>
-        ) : (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="py-2 pr-4 font-normal">Guest</th>
-                  {pickable.map((ev) => (
-                    <th key={ev.id} className="py-2 pr-4 font-normal">
-                      {ev.name}
-                    </th>
-                  ))}
-                  <th className="py-2 font-normal">Still to pick</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sortedGuests.map((g) => {
-                  const forGuest = picks.get(g.id);
-                  const missing = pickable.filter((ev) => !forGuest?.get(ev.id)).length;
-                  return (
-                    <tr key={g.id}>
-                      <td className="py-3 pr-4">
-                        <p className="truncate">{g.full_name || g.email || "Guest"}</p>
-                        {g.household ? (
-                          <p className="truncate text-xs text-primary">{g.household}</p>
-                        ) : null}
-                        <p className="text-xs text-muted-foreground">
-                          {g.rsvp_status}
-                          {g.gender ? ` · ${wardrobeLabel(g.gender)}` : ""}
-                        </p>
-                      </td>
-                      {pickable.map((ev) => {
-                        const title = forGuest?.get(ev.id);
-                        return (
-                          <td key={ev.id} className="py-3 pr-4 align-top">
-                            {title ? (
-                              <span className="flex items-start gap-1 text-primary">
-                                <Check className="mt-0.5 size-3.5 shrink-0" />
-                                <span className="text-xs">{title}</span>
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1 text-muted-foreground">
-                                <Minus className="size-3.5" />
-                                <span className="text-xs">Not chosen</span>
-                              </span>
-                            )}
-                          </td>
-                        );
-                      })}
-                      <td className="py-3 text-xs">
-                        {missing === 0 ? (
-                          <span className="text-primary">All set</span>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            {missing} event{missing > 1 ? "s" : ""}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {(guests.data ?? []).length === 0 ? (
-                  <tr>
-                    <td className="py-4 text-sm text-muted-foreground" colSpan={pickable.length + 2}>
-                      No guests have signed in yet.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
 
       <div className="panel p-4 sm:p-6">
         <h2 className="text-xl">Measurements</h2>
