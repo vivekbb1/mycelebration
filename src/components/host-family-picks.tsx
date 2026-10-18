@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Check, Minus, Ruler } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Check, ChevronRight, Minus, Plane, Ruler } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,17 @@ export function HostFamilyPicks({
     },
   });
 
+  const travel = useQuery({
+    queryKey: ["family-picks-travel", inviteId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("travel_plans")
+        .select("household, guest_name, travellers, arrival_date, invite_id");
+      if (error) throw error;
+      return (data ?? []).filter((r) => !inviteId || r.invite_id === inviteId);
+    },
+  });
+
   const kids = useQuery({
     queryKey: ["family-picks-kids", inviteId],
     queryFn: async () => {
@@ -103,6 +115,12 @@ export function HostFamilyPicks({
           (x) => (m.claimed_by && x.guest_id === m.claimed_by && (!x.guest_name || norm(x.guest_name) === name)) ||
             (ids.has(x.guest_id) && norm(x.guest_name) === name),
         );
+        const plans = (travel.data ?? []).filter((t) => t.household === household && t.arrival_date);
+        const plan =
+          plans.find((t) => (t.travellers ?? []).some((n: string) => norm(n) === name)) ??
+          plans.find((t) => norm(t.guest_name) === name) ??
+          plans.find((t) => !(t.travellers ?? []).length && !t.guest_name);
+        const arrival = plan?.arrival_date ?? null;
         const perEvent = evs.map((ev) => {
           const look = looks.find((r) => {
             const o = r.outfits as { event_id: string | null } | null;
@@ -116,11 +134,11 @@ export function HostFamilyPicks({
           if (counts && look) chosen++;
           return { ev, look, counts };
         });
-        return { m, measured, perEvent };
+        return { m, measured, perEvent, arrival };
       });
       return { household, people, chosen, total, evs };
     }).sort((a, b) => Number(a.chosen >= a.total) - Number(b.chosen >= b.total) || a.household.localeCompare(b.household));
-  }, [codes.data, access.data, res.data, kids.data, pickable, measurements]);
+  }, [codes.data, access.data, res.data, kids.data, travel.data, pickable, measurements]);
 
   const eventStats = pickable.map((ev) => {
     let c = 0;
@@ -181,13 +199,20 @@ export function HostFamilyPicks({
             return (
               <div key={f.household} className="rounded-xl border border-border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-lg">{f.household}</p>
+                  <Link
+                    to="/family/$household"
+                    params={{ household: f.household }}
+                    className="flex items-center gap-1 text-lg hover:text-primary"
+                  >
+                    {f.household}
+                    <ChevronRight className="size-4" />
+                  </Link>
                   <Badge variant={done ? "default" : "secondary"}>
                     {f.chosen} / {f.total} outfits chosen{done ? " · All set" : ""}
                   </Badge>
                 </div>
                 <div className="mt-3 divide-y divide-border">
-                  {f.people.map(({ m, measured, perEvent }) => (
+                  {f.people.map(({ m, measured, perEvent, arrival }) => (
                     <div key={m.id} className="py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm">{m.guest_name}</p>
@@ -197,6 +222,10 @@ export function HostFamilyPicks({
                           {measured ? "Measurements in" : "No measurements yet"}
                         </span>
                       </div>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                        <Plane className="size-3" />
+                        {arrival ? `Arrives ${fmt(arrival)}` : "Arrival not shared yet"}
+                      </p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {perEvent.filter((p) => p.counts).map(({ ev, look }) => {
                           const o = look?.outfits as { title: string; image_url: string | null; images: unknown } | null | undefined;
@@ -224,6 +253,7 @@ export function HostFamilyPicks({
                                 ) : (
                                   <p className="text-xs text-muted-foreground">Not chosen</p>
                                 )}
+                                <p className="text-[0.65rem] text-muted-foreground">{gap(arrival, ev.event_date)}</p>
                               </div>
                             </div>
                           );
@@ -256,4 +286,17 @@ function StatCard({ title, sub, c, t }: { title: string; sub: string; c: number;
       </div>
     </div>
   );
+}
+
+function fmt(d: string) {
+  return new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+/** Days between arrival and the event, for planning alterations. */
+function gap(arrival: string | null, event: string | null) {
+  if (!arrival || !event) return "Days before event: —";
+  const d = Math.round((Date.parse(`${event}T00:00:00Z`) - Date.parse(`${arrival}T00:00:00Z`)) / 86400000);
+  if (d < 0) return `Arrives ${-d} day${d === -1 ? "" : "s"} after the event`;
+  if (d === 0) return "Arrives on the day";
+  return `${d} day${d === 1 ? "" : "s"} before the event`;
 }
