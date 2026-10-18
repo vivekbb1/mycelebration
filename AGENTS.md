@@ -11,6 +11,7 @@
 
 - Live feeds per event: shop filters per audience, guests claim live, host hide. Why: no bulk importing needed.
 - Host outfit reminders share a pure member/event eligibility helper between the list and email handler. Why: missing choices must be attributed to the wearer consistently.
+- Family profile wardrobe choices use a dedicated table component and the shared wearer matching helper. Why: family members must align across event columns without attributing another member’s look to the reserving account.
 - Tenancy: every celebration-owned row carries `invite_id`; RLS uses `is_celebration_host(invite_id)` / `is_guest_of` / `is_my_household`, never `has_role('admin')`. Why: hosts of one celebration must never see another's data.
 - Host membership lives in `celebration_hosts`; `user_roles.admin` is only a UI marker synced from it and grants no data. Why: keeps old "is host" checks working without global access.
 - A BEFORE INSERT trigger `fill_invite_id` derives `invite_id` from event/outfit/family/household or the caller's single celebration. Why: existing inserts keep working; multi-celebration screens must pass `invite_id` explicitly.
