@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [ ] Selection: host-only shop links and selected sizes; reminders for every member missing any eligible outfit
 - [x] Phase 1: celebration hosts, owner/co-host, host codes tied to a celebration
 - [x] Phase 2: per-celebration access rules on every table and file
 - [x] Tenancy check page for the operator (Platform page)
