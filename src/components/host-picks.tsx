@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { sendOutfitReminder } from "@/lib/outfit-reminder.functions";
 import { useSelectedEvent } from "@/lib/selected-event";
+import { HostFamilyPicks } from "@/components/host-family-picks";
 
 /** Plain-English reasons a reminder didn't go out. */
 const reminderReasons: Record<string, string> = {
