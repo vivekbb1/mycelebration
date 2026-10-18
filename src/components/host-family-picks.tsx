@@ -58,7 +58,7 @@ export function HostFamilyPicks({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, guest_id, guest_name, status, build_garment, build_size, invite_id, outfits(title, image_url, images, event_id)");
+        .select("id, guest_id, guest_name, status, size_choice, build_garment, build_size, invite_id, outfits(title, image_url, images, event_id, boutique_url)");
       if (error) throw error;
       return (data ?? []).filter((r) => !inviteId || r.invite_id === inviteId);
     },
@@ -229,13 +229,14 @@ export function HostFamilyPicks({
                       </p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {perEvent.filter((p) => p.counts).map(({ ev, look }) => {
-                          const o = look?.outfits as { title: string; image_url: string | null; images: unknown } | null | undefined;
+                          const o = look?.outfits as { title: string; image_url: string | null; images: unknown; boutique_url: string | null } | null | undefined;
                           const img = o?.image_url || (Array.isArray(o?.images) ? (o?.images[0] as string) : null);
-                          const confirmed = Boolean(look && ((look.build_garment && look.build_size) || look.status === "confirmed"));
+                          const shop = o?.boutique_url && /^https?:\/\//i.test(o.boutique_url) ? o.boutique_url : null;
+                           const confirmed = Boolean(look && ((look.build_garment && look.build_size) || look.status === "confirmed"));
                           return (
                             <div key={ev.id} className="flex items-center gap-3 rounded-lg bg-surface p-2">
                               {img ? (
-                                <img src={sized(img, 120)} alt={o?.title ?? ""} loading="lazy" className="h-16 w-12 shrink-0 rounded object-cover" />
+                                shop ? <a href={shop} target="_blank" rel="noopener noreferrer" aria-label={`Open ${o?.title ?? "outfit"} in shop`} className="shrink-0"><img src={sized(img, 120)} alt={o?.title ?? ""} loading="lazy" className="h-16 w-12 rounded object-cover" /></a> : <img src={sized(img, 120)} alt={o?.title ?? ""} loading="lazy" className="h-16 w-12 shrink-0 rounded object-cover" />
                               ) : (
                                 <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded bg-muted">
                                   <Minus className="size-3.5 text-muted-foreground" />
@@ -245,7 +246,8 @@ export function HostFamilyPicks({
                                 <p className="text-[0.65rem] tracking-wider text-muted-foreground uppercase">{ev.name}</p>
                                 {o ? (
                                   <>
-                                    <p className="truncate text-xs">{o.title}</p>
+                                    {shop ? <a href={shop} target="_blank" rel="noopener noreferrer" className="block truncate text-xs hover:text-primary hover:underline" title={o.title}>{o.title}</a> : <p className="truncate text-xs">{o.title}</p>}
+                                     <p className="text-xs text-muted-foreground">Size: {look?.size_choice ?? look?.build_size ?? "Not selected"}</p>
                                     <p className="flex items-center gap-1 text-xs text-primary">
                                       <Check className="size-3" />
                                       {confirmed ? "Confirmed" : "Reserved"}

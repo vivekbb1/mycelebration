@@ -1,4 +1,4 @@
-import { wardrobeLabel } from "@/lib/wardrobe-options";
+import { missingOutfitEvents } from "@/lib/outfit-pick-progress";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -63,7 +63,7 @@ export function HostPicks() {
   const reservations = useQuery({
     queryKey: ["host-picks-reservations"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("reservations").select("id, outfit_id, guest_id");
+      const { data, error } = await supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, outfits(event_id)");
       if (error) throw error;
       return data;
     },
@@ -85,32 +85,13 @@ export function HostPicks() {
   const pickable = (events.data ?? []).filter((e) => e.outfit_selection !== false);
   const ownOutfit = (events.data ?? []).filter((e) => e.outfit_selection === false);
 
-  const outfitById = useMemo(
-    () => new Map((outfits.data ?? []).map((o) => [o.id, o])),
-    [outfits.data],
-  );
-
-  /** guestId -> eventId -> outfit title */
-  const picks = useMemo(() => {
-    const map = new Map<string, Map<string, string>>();
-    for (const r of reservations.data ?? []) {
-      const outfit = outfitById.get(r.outfit_id);
-      if (!outfit) continue;
-      const key = outfit.event_id ?? "any";
-      const forGuest = map.get(r.guest_id) ?? new Map<string, string>();
-      forGuest.set(key, outfit.title);
-      map.set(r.guest_id, forGuest);
-    }
-    return map;
-  }, [reservations.data, outfitById]);
-
   /** The guest list as invited (invitation codes), so reminders can go out by email. */
   const invited = useQuery({
     queryKey: ["host-picks-invited", selectedInvite],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invite_codes")
-        .select("id, guest_name, email, claimed_by, household, invite_id")
+        .select("id, guest_name, email, claimed_by, household, invite_id, gender")
         .order("guest_name");
       if (error) throw error;
       return (data ?? []).filter((g) => !selectedInvite || g.invite_id === selectedInvite);
@@ -140,18 +121,41 @@ export function HostPicks() {
   const remind = useServerFn(sendOutfitReminder);
   const [sending, setSending] = useState<string | null>(null);
 
-  /** Guests with an email who still have at least one look to choose. */
-  const toRemind = useMemo(() => {
-    if (pickable.length === 0) return [];
-    return (invited.data ?? [])
-      .filter((g) => g.email)
-      .map((g) => {
-        const chosen = g.claimed_by ? picks.get(g.claimed_by) : undefined;
-        const missing = pickable.filter((ev) => !chosen?.get(ev.id));
-        return { ...g, missing };
-      })
-      .filter((g) => g.missing.length > 0);
-  }, [invited.data, picks, pickable]);
+  const access = useQuery({
+    queryKey: ["family-picks-access", selectedInvite],
+    queryFn: async () => {
+      if (!selectedInvite) return [];
+      const { data, error } = await supabase.from("household_event_invites")
+        .select("household, event_id, outfit_selection, invite_id").eq("invite_id", selectedInvite);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const kids = useQuery({
+    queryKey: ["family-picks-kids", selectedInvite],
+    queryFn: async () => {
+      const ids = pickable.map((e) => e.id);
+      if (!ids.length) return new Set<string>();
+      const [outfits, feeds] = await Promise.all([
+        supabase.from("outfits").select("event_id, gender").in("event_id", ids).in("gender", ["boy", "girl"]),
+        supabase.from("outfit_feeds").select("event_id, audience").in("event_id", ids).in("audience", ["boy", "girl"]),
+      ]);
+      if (outfits.error) throw outfits.error;
+      if (feeds.error) throw feeds.error;
+      return new Set([
+        ...(outfits.data ?? []).map((o) => `${o.event_id}|${o.gender}`),
+        ...(feeds.data ?? []).map((f) => `${f.event_id}|${f.audience}`),
+      ]);
+    },
+  });
+  const toRemind = useMemo(() => (invited.data ?? [])
+    .map((g) => {
+      const missing = missingOutfitEvents(g, invited.data ?? [], pickable, access.data ?? [], reservations.data ?? [], kids.data ?? new Set());
+      const familyEmail = (invited.data ?? []).find((m) => m.household === g.household && m.email)?.email;
+      return { ...g, missing, contactEmail: g.email || familyEmail };
+    })
+    .filter((g) => g.missing.length > 0),
+    [invited.data, pickable, access.data, reservations.data, kids.data]);
 
   async function sendReminder(id: string, name: string) {
     setSending(id);
@@ -177,11 +181,11 @@ export function HostPicks() {
           A short email listing the days still waiting on them, with a link to the wardrobe.
         </p>
 
-        {invited.isLoading || loading ? (
+        {invited.isLoading || loading || access.isLoading || kids.isLoading ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
         ) : toRemind.length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
-            Everyone with an email address has chosen their looks.
+            Everyone has chosen their looks.
           </p>
         ) : (
           <ul className="mt-5 divide-y divide-border">
@@ -196,11 +200,11 @@ export function HostPicks() {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={sending === g.id}
+                  disabled={sending === g.id || !g.contactEmail}
                   onClick={() => sendReminder(g.id, g.guest_name)}
                 >
                   <Mail className="mr-2 size-3.5" />
-                  {sending === g.id ? "Sending…" : "Send reminder"}
+                  {sending === g.id ? "Sending…" : !g.contactEmail ? "No family email" : "Send reminder"}
                 </Button>
               </li>
             ))}
