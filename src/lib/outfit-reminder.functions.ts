@@ -32,7 +32,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
 
     const { data: guest } = await context.supabase
       .from("invite_codes")
-      .select("guest_name, email, household, claimed_by, invite_id, gender")
+      .select("id, guest_name, email, household, claimed_by, invite_id, gender")
       .eq("id", data.inviteId)
       .maybeSingle();
 
@@ -46,10 +46,10 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
     if (!guest.invite_id) return { sent: false, reason: "guest_not_found" };
     const inviteId = guest.invite_id;
     const [members, access, events, reservations, outfits, feeds] = await Promise.all([
-      context.supabase.from("invite_codes").select("guest_name, email, household, claimed_by, gender").eq("invite_id", inviteId),
+      context.supabase.from("invite_codes").select("id, guest_name, email, household, claimed_by, gender").eq("invite_id", inviteId),
       context.supabase.from("household_event_invites").select("household, event_id, outfit_selection").eq("invite_id", inviteId),
       context.supabase.from("events").select("id, name, event_date, dress_code, outfit_selection, outfit_ready_by, sort_order").eq("invite_id", inviteId).order("sort_order"),
-      context.supabase.from("reservations").select("guest_id, guest_name, outfits(event_id)").eq("invite_id", inviteId),
+      context.supabase.from("reservations").select("guest_id, guest_name, member_code_id, outfits(event_id)").eq("invite_id", inviteId),
       context.supabase.from("outfits").select("event_id, gender").eq("invite_id", inviteId).in("gender", ["boy", "girl"]),
       context.supabase.from("outfit_feeds").select("event_id, audience").eq("invite_id", inviteId).in("audience", ["boy", "girl"]),
     ]);

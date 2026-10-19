@@ -28,7 +28,7 @@ export function HostDashboard() {
           .eq("invite_id", id),
         supabase
           .from("reservations")
-          .select("guest_id, guest_name, outfits(title, event_id)")
+          .select("guest_id, guest_name, member_code_id, outfits(title, event_id)")
           .eq("invite_id", id),
         supabase.from("measurements").select("guest_id, guest_name").eq("invite_id", id),
       ]);

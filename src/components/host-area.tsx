@@ -244,7 +244,7 @@ function HostDashboard() {
   const reservations = useQuery({
     queryKey: ["reservations", selectedEvent],
     queryFn: async () => {
-      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, created_at");
+      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, member_code_id, created_at");
       if (selectedEvent) q = q.eq("invite_id", selectedEvent);
       const { data, error } = await q;
       if (error) throw error;

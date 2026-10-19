@@ -62,7 +62,7 @@ export function HostOverview() {
   const reservations = useQuery({
     queryKey: ["overview-reservations", inviteId],
     queryFn: async () => {
-      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, outfits(event_id)");
+      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, member_code_id, outfits(event_id)");
       if (inviteId) q = q.eq("invite_id", inviteId);
       const { data, error } = await q;
       if (error) throw error;

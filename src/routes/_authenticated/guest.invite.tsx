@@ -115,7 +115,7 @@ function InvitationPage() {
       if (!ids.length) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select("outfit_id, guest_name, status, outfits(title, event_id)")
+        .select("outfit_id, guest_name, member_code_id, status, outfits(title, event_id)")
         .in("guest_id", ids);
       if (error) throw error;
       return data;

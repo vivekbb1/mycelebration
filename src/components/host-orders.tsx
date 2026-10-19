@@ -51,7 +51,7 @@ export function HostOrders() {
             "*, outfits(title, designer, boutique_url, image_url, event_id, gender, sizes, is_available, price_inr, price_note, notes, source_sku, events(name, invite_id))",
           ).eq("invite_id", inviteId),
         supabase.from("measurements").select("*").eq("invite_id", inviteId),
-        supabase.from("invite_codes").select("claimed_by, household, guest_name, invite_id").eq("invite_id", inviteId),
+        supabase.from("invite_codes").select("id, claimed_by, household, guest_name, invite_id").eq("invite_id", inviteId),
       ]);
       if (res.error) throw res.error;
       if (meas.error) throw meas.error;

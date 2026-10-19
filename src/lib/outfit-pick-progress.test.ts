@@ -33,4 +33,15 @@ describe("outfit reminders", () => {
     deepStrictEqual(missingOutfitEvents(child, [child], events, [], [], new Set()), []);
     strictEqual(missingOutfitEvents(child, [child], events, [], [], new Set(["wedding|boy"])).length, 1);
   });
+});describe("code-linked records", () => {
+  const fam: Array<{ id: string; guest_name: string; household: string; claimed_by: string | null; gender: string }> = [{ id: "c-alla", guest_name: "Alla Ferreiro", household: "F", claimed_by: "u1", gender: "women" }, { id: "c-alb", guest_name: "Alberto Ferreiro", household: "F", claimed_by: null, gender: "men" }];
+  it("keeps a look with its person after a rename", () => {
+    const look = { guest_id: "u1", guest_name: "Alla", member_code_id: "c-alla", outfits: { event_id: "wedding" } };
+    strictEqual(memberLook({ ...fam[0]!, guest_name: "Alla F. Renamed" }, fam, [look], "wedding"), look);
+  });
+  it("the code wins over a mismatched name", () => {
+    const look = { guest_id: "u1", guest_name: "Alberto Ferreiro", member_code_id: "c-alla", outfits: { event_id: "wedding" } };
+    strictEqual(memberLook(fam[1]!, fam, [look], "wedding"), undefined);
+    strictEqual(memberLook(fam[0]!, fam, [look], "wedding"), look);
+  });
 });

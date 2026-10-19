@@ -73,7 +73,7 @@ export function HostFamilyPicks({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, guest_id, guest_name, status, size_choice, build_garment, build_size, invite_id, outfits(title, designer, notes, source_sku, image_url, images, event_id, boutique_url)");
+        .select("id, guest_id, guest_name, member_code_id, status, size_choice, build_garment, build_size, invite_id, outfits(title, designer, notes, source_sku, image_url, images, event_id, boutique_url)");
       if (error) throw error;
       return (data ?? []).filter((r) => !inviteId || r.invite_id === inviteId);
     },

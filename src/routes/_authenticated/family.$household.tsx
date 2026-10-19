@@ -189,7 +189,7 @@ function FamilyPageContent() {
       if (!inviteId) return [];
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, guest_id, guest_name, status, build_garment, build_size, size_choice, outfits(title, designer, notes, image_url, images, boutique_url, event_id)")
+        .select("id, guest_id, guest_name, member_code_id, status, build_garment, build_size, size_choice, outfits(title, designer, notes, image_url, images, boutique_url, event_id)")
         .eq("invite_id", inviteId)
         .in("guest_id", userIds);
       if (error) throw error;

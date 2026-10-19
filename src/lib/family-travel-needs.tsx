@@ -92,7 +92,7 @@ export function MissingTravelDetails({ inviteId }: { inviteId: string | null | u
       const [ev, codes, res, meas] = await Promise.all([
         supabase.from("events").select("id").eq("invite_id", inviteId!).eq("outfit_selection", true),
         supabase.from("invite_codes").select("household, claimed_by").eq("invite_id", inviteId!),
-        supabase.from("reservations").select("guest_id, guest_name").eq("invite_id", inviteId!),
+        supabase.from("reservations").select("guest_id, guest_name, member_code_id").eq("invite_id", inviteId!),
         supabase.from("measurements").select("guest_id, guest_name").eq("invite_id", inviteId!),
       ]);
       if (!ev.data?.length) return { looks: [] as string[], measurements: [] as string[] };
