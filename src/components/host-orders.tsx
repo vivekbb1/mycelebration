@@ -33,6 +33,15 @@ type Draft = {
   order_note: string;
 };
 
+const FILTER_TABS = [
+  ["all", "All looks"],
+  ["ready", "Ready to order"],
+  ["fit", "Size mismatch"],
+  ["nomeas", "Missing measurements"],
+  ["soldout", "Sold out"],
+  ["placed", "Ordered"],
+] as const;
+
 /**
  * Orders: once a guest has confirmed their look and sent measurements, the
  * host places the order with the shop and tracks money and shipping here.
@@ -41,7 +50,7 @@ export function HostOrders() {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [filter, setFilter] = useState<"ready" | "placed" | "all" | "fit" | "nomeas" | "soldout">("ready");
+  const [filter, setFilter] = useState<(typeof FILTER_TABS)[number][0]>("all");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [startWith, setStartWith] = useState<OrderItem[] | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
@@ -207,7 +216,8 @@ export function HostOrders() {
     setPdfBusy(true);
     try {
       const list = picked.size ? pickedRows : rows;
-      await downloadPreorderPdf("Pre-order for stylist review", list.map((r) => ({
+      const tab = FILTER_TABS.find(([k]) => k === filter)?.[1] ?? "All looks";
+      await downloadPreorderPdf(`Pre-order - ${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => ({
         wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "",
         title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "",
         size: r.size_choice || r.build_size || "", suggested: r.suggested ?? "",
@@ -269,14 +279,7 @@ export function HostOrders() {
         ) : null}
         <div className="mt-4 flex flex-wrap gap-2">
           {(
-            [
-              ["ready", "Ready to order"],
-              ["placed", "Ordered"],
-              ["all", "All looks"],
-              ["fit", "Size may not fit"],
-              ["nomeas", "No measurements yet"],
-              ["soldout", "Sold out selections"],
-            ] as const
+            FILTER_TABS
           ).map(([k, label]) => (
             <Button
               key={k}
