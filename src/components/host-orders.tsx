@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ExternalLink, Package } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { ExternalLink, FileDown, Package } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
+import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +41,11 @@ export function HostOrders() {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [tab, setTab] = useState<"pre" | "orders">("pre");
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState<OrderItem[] | null>(null);
+  const [working, setWorking] = useState(false);
+  const clearPending = useCallback(() => setPending(null), []);
   const [filter, setFilter] = useState<"ready" | "placed" | "all" | "fit" | "nomeas" | "soldout">("ready");
 
   const data = useQuery({
@@ -179,16 +187,57 @@ export function HostOrders() {
   const field = (r: Row, k: keyof Draft, v: string) =>
     setDrafts((p) => ({ ...p, [r.id]: { ...draftOf(r), [k]: v } }));
 
+  const placedOrders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
+    const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
+    if (error) throw error; return data ?? [];
+  } });
+  const inOrder = new Set((placedOrders.data ?? []).flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.reservationId)));
+  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
+  const pickedItems = () => (data.data ?? []).filter((r) => picked.has(r.id)).map(toItem);
+  const togglePick = (id: string, on: boolean) => setPicked((p) => { const n = new Set(p); if (on) n.add(id); else n.delete(id); return n; });
+  async function placeIndividual() {
+    setWorking(true);
+    try {
+      const day = new Date().toISOString().slice(0, 10);
+      const rows = pickedItems().map((item, i) => ({ invite_id: inviteId, reference: `ORDER-${day}-${i + 1}-${item.wearer.split(" ")[0]}`, shop_name: item.designer, currency: "INR", items: [item] as unknown as Json, payments: [] as unknown as Json, status: "draft" }));
+      const { error } = await supabase.from("wardrobe_orders").insert(rows);
+      if (error) throw error;
+      toast.success(`${rows.length} draft order${rows.length === 1 ? "" : "s"} created — open each to add seller details.`);
+      setPicked(new Set()); setTab("orders"); await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't create orders"); } finally { setWorking(false); }
+  }
+  async function discussionPdf() {
+    setWorking(true);
+    try { await downloadShopOrderPdf(`DISCUSSION-${new Date().toISOString().slice(0, 10)}`, "", "INR", pickedItems(), [], ""); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't generate PDF"); } finally { setWorking(false); }
+  }
+
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
   return (
     <div className="space-y-5">
-      <GroupedShopOrders inviteId={inviteId} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
+      <div className="flex flex-wrap gap-2">
+        <Button variant={tab === "pre" ? "default" : "outline"} onClick={() => setTab("pre")}>Pre-orders</Button>
+        <Button variant={tab === "orders" ? "default" : "outline"} onClick={() => setTab("orders")}>Orders ({(placedOrders.data ?? []).length})</Button>
+      </div>
+      <div className={tab === "orders" ? "" : "hidden"}>
+        <GroupedShopOrders inviteId={inviteId} pending={pending} onPendingHandled={clearPending} />
+      </div>
+      {tab === "pre" ? <>
+      {picked.size ? (
+        <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-2 p-3">
+          <span className="text-sm font-medium">{picked.size} selected</span>
+          <Button size="sm" disabled={working} onClick={() => { setPending(pickedItems()); setPicked(new Set()); setTab("orders"); }}>Place combined order</Button>
+          <Button size="sm" variant="outline" disabled={working} onClick={() => void placeIndividual()}>Place individual orders</Button>
+          <Button size="sm" variant="outline" disabled={working} onClick={() => void discussionPdf()}><FileDown className="size-4" /> Discussion PDF</Button>
+          <Button size="sm" variant="ghost" onClick={() => setPicked(new Set())}>Clear</Button>
+        </div>
+      ) : null}
       <div className="panel-wrap p-5">
-        <h2 className="font-display text-xl">Orders</h2>
+        <h2 className="font-display text-xl">Pre-orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Once a guest has confirmed their look and sent measurements, place the order with the
-          shop and keep the reference, amount, payment and shipping here.
+          Looks guests have chosen, waiting to become orders. Tick looks to place one combined
+          order or individual orders, or download a PDF to discuss with the seller's stylist.
         </p>
         {totals.length ? (
           <div className="mt-4 flex flex-wrap gap-3">
@@ -245,6 +294,7 @@ export function HostOrders() {
             return (
               <li key={r.id} className="panel-wrap p-5">
                 <div className="flex flex-wrap items-start gap-4">
+                  <Checkbox className="mt-1" aria-label={`Select ${o?.title ?? "look"} for ${r.guest_name || "guest"}`} disabled={inOrder.has(r.id)} checked={picked.has(r.id)} onCheckedChange={(v) => togglePick(r.id, v === true)} />
                   {o?.image_url ? (
                     <img
                       src={o.image_url}
@@ -258,7 +308,7 @@ export function HostOrders() {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{o?.title ?? "Look"}</p>
+                    <p className="font-medium">{o?.title ?? "Look"}{inOrder.has(r.id) ? <Badge variant="secondary" className="ml-2">In an order</Badge> : null}</p>
                     <p className="text-sm text-muted-foreground">
                       {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest?.guest_name ?? "").trim().toLowerCase()
                         ? `${r.guest_name} (by ${r.guest?.guest_name ?? "family"})`
@@ -395,6 +445,7 @@ export function HostOrders() {
           })}
         </ul>
       )}
+      </> : null}
     </div>
   );
 }
