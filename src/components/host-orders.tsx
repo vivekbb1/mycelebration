@@ -13,6 +13,9 @@ import { GroupedShopOrders } from "@/components/grouped-shop-orders";
 import { OrderAlterations } from "@/components/order-alterations";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
 import type { OrderItem } from "@/lib/shop-order";
+import { Checkbox } from "@/components/ui/checkbox";
+import { downloadPreorderPdf } from "@/lib/shop-order-pdf";
+import { FileDown, ShoppingBag } from "lucide-react";
 
 const PAYMENT = ["unpaid", "part paid", "paid", "refunded"] as const;
 const SHIPPING = ["not shipped", "shipped", "in transit", "delivered", "returned"] as const;
@@ -39,6 +42,24 @@ export function HostOrders() {
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [filter, setFilter] = useState<"ready" | "placed" | "all" | "fit" | "nomeas" | "soldout">("ready");
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [startWith, setStartWith] = useState<OrderItem[] | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const orderList = useQuery({
+    queryKey: ["wardrobe-orders", inviteId],
+    enabled: Boolean(inviteId),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  /** Which active order (if any) each look already sits in. */
+  const inOrder = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const o of orderList.data ?? []) if (o.status !== "cancelled") for (const i of o.items as unknown as OrderItem[]) m.set(i.reservationId, o.reference);
+    return m;
+  }, [orderList.data]);
 
   const data = useQuery({
     queryKey: ["host-orders", inviteId],
@@ -179,16 +200,57 @@ export function HostOrders() {
   const field = (r: Row, k: keyof Draft, v: string) =>
     setDrafts((p) => ({ ...p, [r.id]: { ...draftOf(r), [k]: v } }));
 
+  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
+  const pickedRows = rows.filter((r) => picked.has(r.id));
+  const convertible = pickedRows.filter((r) => !inOrder.has(r.id));
+  async function preorderPdf() {
+    setPdfBusy(true);
+    try {
+      const list = picked.size ? pickedRows : rows;
+      await downloadPreorderPdf("Pre-order for stylist review", list.map((r) => ({
+        wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "",
+        title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "",
+        size: r.size_choice || r.build_size || "", suggested: r.suggested ?? "",
+        status: [r.confirmed ? "Confirmed" : "Reserved", r.soldOut ? "size sold out" : "", inOrder.has(r.id) ? `in order ${inOrder.get(r.id)}` : ""].filter(Boolean).join(", "),
+        price: r.outfits?.price_inr != null ? `INR ${Number(r.outfits.price_inr).toLocaleString()}` : r.outfits?.price_note || "Not supplied",
+        measurements: r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => `${k.replaceAll("_", " ")} ${v}`).join(", ") : "",
+        shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", notes: r.build_fabric || "",
+      })));
+    } catch { toast.error("Couldn't create the PDF"); } finally { setPdfBusy(false); }
+  }
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
   return (
     <div className="space-y-5">
-      <GroupedShopOrders inviteId={inviteId} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
+      <GroupedShopOrders inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
+      {rows.length ? (
+        <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-3 p-3">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              aria-label="Select all shown"
+              checked={rows.length > 0 && rows.every((r) => picked.has(r.id))}
+              onCheckedChange={(v) => setPicked(v ? new Set(rows.map((r) => r.id)) : new Set())}
+            />
+            Select all shown ({rows.length})
+          </label>
+          <span className="text-sm text-muted-foreground">
+            {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + Number(r.order_amount ?? r.outfits?.price_inr ?? 0), 0).toLocaleString()}
+          </span>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" disabled={pdfBusy || (!picked.size && !rows.length)} onClick={() => void preorderPdf()}>
+              <FileDown className="size-4" /> Pre-order PDF{picked.size ? ` (${picked.size})` : ""}
+            </Button>
+            <Button size="sm" disabled={!convertible.length} onClick={() => setStartWith(convertible.map(toItem))}>
+              <ShoppingBag className="size-4" /> Convert {convertible.length || ""} to one order
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <div className="panel-wrap p-5">
-        <h2 className="font-display text-xl">Orders</h2>
+        <h2 className="font-display text-xl">Pre-orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Once a guest has confirmed their look and sent measurements, place the order with the
-          shop and keep the reference, amount, payment and shipping here.
+          Every look guests have chosen, waiting to be ordered. Tick several (or select all) to
+          convert them into one shop order, or download a pre-order PDF for the stylist to review.
         </p>
         {totals.length ? (
           <div className="mt-4 flex flex-wrap gap-3">
@@ -245,6 +307,12 @@ export function HostOrders() {
             return (
               <li key={r.id} className="panel-wrap p-5">
                 <div className="flex flex-wrap items-start gap-4">
+                  <Checkbox
+                    className="mt-1"
+                    aria-label={`Select ${o?.title ?? "look"}`}
+                    checked={picked.has(r.id)}
+                    onCheckedChange={(v) => setPicked((p) => { const n = new Set(p); if (v) n.add(r.id); else n.delete(r.id); return n; })}
+                  />
                   {o?.image_url ? (
                     <img
                       src={o.image_url}
@@ -299,6 +367,7 @@ export function HostOrders() {
                       <Badge variant={r.measured ? "default" : "outline"}>
                         {r.measured ? "Measurements in" : "No measurements"}
                       </Badge>
+                      {inOrder.has(r.id) ? <Badge variant="secondary">In order {inOrder.get(r.id)}</Badge> : null}
                       {r.order_placed_at ? (
                         <>
                           <Badge variant="secondary">
