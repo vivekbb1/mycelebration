@@ -12,7 +12,8 @@ export const regroupFamily = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: result, error } = await context.supabase.rpc("host_regroup_family_members", {
       _invite_id: data.inviteId, _source: data.source, _member_ids: data.memberIds,
-      _target_id: data.targetId, _new_name: data.newName,
+      ...(data.targetId ? { _target_id: data.targetId } : {}),
+      ...(data.newName ? { _new_name: data.newName } : {}),
     });
     if (error) return { ok: false as const, error: error.message };
     const household = result && typeof result === "object" && !Array.isArray(result) ? result["household"] : null;
