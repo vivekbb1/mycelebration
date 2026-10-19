@@ -326,7 +326,7 @@ export function HostOrders() {
           ))}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {([["gender", "All looks: man / woman / boy / girl"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
+          {([["gender", "Looks: all"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
             <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
               onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
               <option value="">{all}</option>
