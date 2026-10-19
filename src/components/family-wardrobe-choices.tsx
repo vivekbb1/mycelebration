@@ -6,7 +6,7 @@ import { wardrobeLabel } from "@/lib/wardrobe-options";
 
 type Person = { id: string; guest_name: string; household: string | null; claimed_by: string | null; gender: string | null };
 type Outfit = { title: string; designer: string | null; notes: string | null; image_url: string | null; images: unknown; boutique_url: string | null; event_id: string | null };
-type Choice = { id: string; guest_id: string; guest_name: string | null; status: string; build_garment: string | null; build_size: string | null; size_choice: string | null; outfit: Outfit | null };
+type Choice = { id: string; guest_id: string; guest_name: string | null; member_code_id?: string | null; status: string; build_garment: string | null; build_size: string | null; size_choice: string | null; outfit: Outfit | null };
 
 function imageUrl(src: string) {
   if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=240`;
