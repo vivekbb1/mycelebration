@@ -50,34 +50,40 @@ export async function downloadShopOrderPdf(...args: Parameters<typeof buildShopO
   const a = document.createElement("a"); a.href = url; a.download = `shop-order-${args[0].replace(/[^a-z0-9-]/gi, "-")}.pdf`; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export type PreorderLine = { wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; suggested: string; status: string; price: string; measurements: string; shop: string; image: string; notes: string };
+export type PreorderLine = { wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; suggested: string; status: string; price: string; amount?: number | null; measurements: string; shop: string; image: string; notes: string };
 
 /** One-document pre-order list for the stylist to review before anything is ordered. */
-export async function buildPreorderPdf(title: string, lines: PreorderLine[]) {
+export async function buildPreorderPdf(title: string, subtitle: string, lines: PreorderLine[]) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const clean = (s: string) => s.replace(/[₹]/g, "INR ").replace(/[–—]/g, "-").replace(/[·]/g, "|").replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
+  const accent = rgb(.55, .27, .12);
   let page = pdf.addPage([595, 842]); let y = 800;
-  const wrap = (value: string, size: number, font = regular, width = 400) => {
+  const wrap = (value: string, size: number, font = regular, width = 330) => {
     const out: string[] = []; let line = "";
     for (const word of clean(value).split(/\s+/)) { if (font.widthOfTextAtSize(`${line} ${word}`, size) > width && line) { out.push(line); line = word; } else line += `${line ? " " : ""}${word}`; }
     if (line) out.push(line); return out;
   };
-  page.drawText(clean(title), { x: 40, y, size: 14, font: bold }); y -= 18;
-  page.drawText(clean(`Pre-order list for review | ${lines.length} outfits | ${new Date().toLocaleDateString("en-GB")}`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 22;
+  const right = (p: typeof page, t: string, yy: number, size: number, font = bold, color = accent) => {
+    const s = clean(t); p.drawText(s, { x: 555 - font.widthOfTextAtSize(s, size), y: yy, size, font, color });
+  };
+  page.drawText(clean(title), { x: 40, y, size: 18, font: bold }); y -= 18;
+  page.drawText(clean(`${subtitle} | ${lines.length} outfits | ${new Date().toLocaleDateString("en-GB")}`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 22;
+  let total = 0; let unpriced = 0;
   for (const [i, l] of lines.entries()) {
+    if (l.amount != null) total += l.amount; else unpriced++;
     const body = [
       `${l.designer}${l.sku ? ` | SKU ${l.sku}` : ""}`,
       `Wearer: ${l.wearer} | ${l.family} | ${l.event}`,
-      `Size: ${l.size || "Not chosen"}${l.suggested ? ` (suggested ${l.suggested})` : ""} | ${l.status} | Price: ${l.price}`,
+      `Size: ${l.size || "Not chosen"}${l.suggested ? ` (suggested ${l.suggested})` : ""} | ${l.status}`,
       `Measurements: ${l.measurements || "Not supplied"}`,
       ...(l.notes ? [`Notes: ${l.notes}`] : []),
       ...(l.shop ? [`Shop: ${l.shop}`] : []),
     ].flatMap((t) => wrap(t, 8.5));
     const head = wrap(`${i + 1}. ${l.title}`, 10, bold);
     const h = Math.max(96, head.length * 13 + body.length * 11 + 8);
-    if (y - h < 40) { page = pdf.addPage([595, 842]); y = 800; }
+    if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
     if (l.image) { try {
       const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
@@ -85,11 +91,28 @@ export async function buildPreorderPdf(title: string, lines: PreorderLine[]) {
       const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
       const s = img.scaleToFit(64, 90); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
     } catch { /* photo optional */ } }
+    // Highlighted price, right aligned
+    const priceText = clean(l.price); const pw = bold.widthOfTextAtSize(priceText, 11);
+    page.drawRectangle({ x: 555 - pw - 8, y: y - 15, width: pw + 8, height: 16, color: rgb(.98, .93, .86) });
+    right(page, priceText, y - 11, 11, bold, accent);
     for (const t of head) { page.drawText(t, { x: 120, y: ty - 10, size: 10, font: bold }); ty -= 13; }
     for (const t of body) { page.drawText(t, { x: 120, y: ty - 9, size: 8.5, font: regular, color: rgb(.2, .2, .2) }); ty -= 11; }
     y -= h + 6;
     page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
   }
+  if (y < 100) { page = pdf.addPage([595, 842]); y = 800; }
+  y -= 14;
+  page.drawLine({ start: { x: 330, y: y + 16 }, end: { x: 555, y: y + 16 }, thickness: 1, color: accent });
+  page.drawText(`Total (${lines.length} outfits)`, { x: 330, y, size: 12, font: bold });
+  right(page, `INR ${money(total, "INR")}`, y, 12);
+  if (unpriced) { y -= 14; right(page, `${unpriced} outfit${unpriced > 1 ? "s" : ""} without a price not included`, y, 8, regular, rgb(.4, .4, .4)); }
+  const pages = pdf.getPages();
+  pages.forEach((p, n) => {
+    p.drawLine({ start: { x: 40, y: 34 }, end: { x: 555, y: 34 }, thickness: .5, color: rgb(.85, .85, .85) });
+    p.drawText("mycelebration.app", { x: 40, y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) });
+    const pt = `Page ${n + 1} of ${pages.length}`;
+    p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) });
+  });
   const bytes = await pdf.save();
   return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
 }
