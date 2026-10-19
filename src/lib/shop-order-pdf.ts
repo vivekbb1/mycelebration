@@ -53,7 +53,7 @@ export async function downloadShopOrderPdf(...args: Parameters<typeof buildShopO
 export type PreorderLine = { wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; suggested: string; status: string; price: string; measurements: string; shop: string; image: string; notes: string };
 
 /** One-document pre-order list for the stylist to review before anything is ordered. */
-export async function downloadPreorderPdf(title: string, lines: PreorderLine[]) {
+export async function buildPreorderPdf(title: string, lines: PreorderLine[]) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -80,7 +80,7 @@ export async function downloadPreorderPdf(title: string, lines: PreorderLine[]) 
     if (y - h < 40) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
     if (l.image) { try {
-      const res = await fetch(l.image); if (!res.ok) throw new Error();
+      const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
       const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
       const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
       const s = img.scaleToFit(64, 90); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
@@ -91,7 +91,12 @@ export async function downloadPreorderPdf(title: string, lines: PreorderLine[]) 
     page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
   }
   const bytes = await pdf.save();
-  const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
-  const a = document.createElement("a"); a.href = url; a.download = `pre-order-${new Date().toISOString().slice(0, 10)}.pdf`; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+}
+
+export function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
