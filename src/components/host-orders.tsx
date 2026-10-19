@@ -75,9 +75,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     queryKey: ["alterations-list", inviteId],
     enabled: Boolean(inviteId) && view === "alterations",
     queryFn: async () => {
-      const { data, error } = await supabase.from("wardrobe_alterations").select("reservation_id, status, photos, vendor_id").eq("invite_id", inviteId!);
+      const { data, error } = await supabase.from("wardrobe_alterations").select("reservation_id, status, photos, vendor_id, workman").eq("invite_id", inviteId!);
       if (error) throw error;
-      return new Map((data ?? []).map((a) => [a.reservation_id, { status: a.status, photos: Array.isArray(a.photos) ? a.photos.length : 0 }]));
+      return new Map((data ?? []).map((a) => [a.reservation_id, { status: a.status, photos: Array.isArray(a.photos) ? a.photos.length : 0, workman: a.workman }]));
     },
   });
   const data = useQuery({
@@ -319,6 +319,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                 <p className="text-xs text-muted-foreground">{r.guest?.household ?? ""} · size {r.size_choice || r.build_size || "not chosen"}</p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   <Badge variant={a?.status === "complete" ? "default" : a ? "secondary" : "outline"}>{a ? (a.status === "with vendor" ? "With tailor" : a.status.charAt(0).toUpperCase() + a.status.slice(1)) : "Not started"}</Badge>
+                  {a?.workman ? <Badge variant="outline">By {a.workman}</Badge> : null}
                   {a?.photos ? <Badge variant="outline">{a.photos} photo{a.photos === 1 ? "" : "s"}</Badge> : null}
                   <Badge variant="outline">{r.measured ? "Measurements in" : "No measurements"}</Badge>
                 </div>
