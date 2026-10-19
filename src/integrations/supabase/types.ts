@@ -3026,33 +3026,42 @@ export type Database = {
           invite_id: string
           measurements: Json
           notes: string
+          photo_notes: Json
           photos: Json
           reservation_id: string
           status: string
           updated_at: string
           vendor_id: string | null
+          workman: string
+          workman_phone: string
         }
         Insert: {
           id?: string
           invite_id: string
           measurements?: Json
           notes?: string
+          photo_notes?: Json
           photos?: Json
           reservation_id: string
           status?: string
           updated_at?: string
           vendor_id?: string | null
+          workman?: string
+          workman_phone?: string
         }
         Update: {
           id?: string
           invite_id?: string
           measurements?: Json
           notes?: string
+          photo_notes?: Json
           photos?: Json
           reservation_id?: string
           status?: string
           updated_at?: string
           vendor_id?: string | null
+          workman?: string
+          workman_phone?: string
         }
         Relationships: [
           {
