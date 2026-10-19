@@ -14,6 +14,7 @@ import { OrderAlterations } from "@/components/order-alterations";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
 import type { OrderItem } from "@/lib/shop-order";
 import { Checkbox } from "@/components/ui/checkbox";
+import { money, nf } from "@/lib/shop-order";
 import { buildPreorderPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { FileDown, ShoppingBag } from "lucide-react";
 
@@ -235,7 +236,7 @@ export function HostOrders() {
         title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "",
         size: r.size_choice || r.build_size || "", suggested: r.suggested ?? "",
         status: [r.confirmed ? "Confirmed" : "Reserved", r.soldOut ? "size sold out" : "", inOrder.has(r.id) ? `in order ${inOrder.get(r.id)}` : ""].filter(Boolean).join(", "),
-        price: r.outfits?.price_inr != null ? `INR ${Number(r.outfits.price_inr).toLocaleString()}` : r.outfits?.price_note || "Not supplied",
+        price: r.outfits?.price_inr != null ? `INR ${money(Number(r.outfits.price_inr))}` : r.outfits?.price_note || "Not supplied",
         measurements: r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => `${k.replaceAll("_", " ")} ${v}`).join(", ") : "",
         shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", notes: r.build_fabric || "",
       })));
@@ -258,7 +259,7 @@ export function HostOrders() {
             Select all shown ({rows.length})
           </label>
           <span className="text-sm text-muted-foreground">
-            {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + Number(r.order_amount ?? r.outfits?.price_inr ?? 0), 0).toLocaleString()}
+            {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + Number(r.order_amount ?? r.outfits?.price_inr ?? 0), 0).toLocaleString(...nf())}
           </span>
           <div className="ml-auto flex flex-wrap gap-2">
             <Button size="sm" variant="outline" disabled={pdfBusy || (!picked.size && !rows.length)} onClick={() => void preorderPdf()}>
@@ -286,11 +287,11 @@ export function HostOrders() {
             {totals.map(([cur, t]) => (
               <div key={cur} className="rounded-md border border-border px-3 py-2 text-sm">
                 <span className="font-medium">
-                  {cur} {t.due.toLocaleString()}
+                  {cur} {t.due.toLocaleString(...nf(cur))}
                 </span>{" "}
-                ordered · {cur} {t.paid.toLocaleString()} paid ·{" "}
+                ordered · {cur} {t.paid.toLocaleString(...nf(cur))} paid ·{" "}
                 <span className="text-primary">
-                  {cur} {Math.max(t.due - t.paid, 0).toLocaleString()} outstanding
+                  {cur} {Math.max(t.due - t.paid, 0).toLocaleString(...nf())} outstanding
                 </span>
               </div>
             ))}
@@ -373,7 +374,7 @@ export function HostOrders() {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
-                    <p className="text-sm">Shop price: {o?.price_inr != null ? `INR ${Number(o.price_inr).toLocaleString()}` : o?.price_note || "Not supplied"}</p>
+                    <p className="text-sm">Shop price: {o?.price_inr != null ? `INR ${money(Number(o.price_inr))}` : o?.price_note || "Not supplied"}</p>
                     {r.size_choice || r.suggested ? (
                       <p className="text-sm">
                         Size chosen: <span className="font-medium">{r.size_choice ?? "—"}</span>

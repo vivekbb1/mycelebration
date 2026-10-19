@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { orderTotals, substituteItem, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
+import { nf, orderTotals, substituteItem, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -117,14 +117,14 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
 
   return <section className="space-y-3 border-b border-border pb-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><h2 className="text-xl">Shop orders</h2>{active.length ? <p className="text-sm text-muted-foreground">{active.length} active · total {sum.total.toLocaleString()} · paid {sum.paid.toLocaleString()} · balance {(sum.total - sum.paid).toLocaleString()}</p> : null}</div>
+      <div><h2 className="text-xl">Shop orders</h2>{active.length ? <p className="text-sm text-muted-foreground">{active.length} active · total {sum.total.toLocaleString(...nf(currency))} · paid {sum.paid.toLocaleString(...nf(currency))} · balance {(sum.total - sum.paid).toLocaleString(...nf(currency))}</p> : null}</div>
       <Button onClick={() => reset()} disabled={!inviteId}><Plus className="size-4" /> New order</Button>
     </div>
     {(orders.data ?? []).map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
       <div key={o.id} className={`flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
         <div>
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
-          <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString()} · advance {t.advance.toLocaleString()} · paid {t.paid.toLocaleString()} · balance {t.balance.toLocaleString()}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
+          <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · balance {t.balance.toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => openOrder(o)}>Open order</Button>
       </div>); })}
@@ -174,7 +174,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="text-sm">Shop price ({currency})<Input type="number" min="0" value={item.price} onChange={(e) => changeItem(item.reservationId, { price: Number(e.target.value) })} /></label>
           <label className="text-sm">Discount ({currency})<Input type="number" min="0" max={item.price} value={item.discount} onChange={(e) => changeItem(item.reservationId, { discount: Number(e.target.value) })} /></label>
-          <p className="self-end pb-2 text-sm">Net {currency} {(item.price - item.discount).toLocaleString()}</p>
+          <p className="self-end pb-2 text-sm">Net {currency} {(item.price - item.discount).toLocaleString(...nf(currency))}</p>
         </div>
         <h3 className="text-sm font-medium">Wearer measurements</h3>
         <dl className="grid gap-2 text-xs sm:grid-cols-3">{item.measurements ? Object.entries(item.measurements).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-destructive">No measurements supplied</p>}</dl>
@@ -184,13 +184,13 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
       <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-3">
         <label className="text-sm">Courier charges ({currency})<Input type="number" min="0" value={courierCharges} onChange={(e) => setCourierCharges(e.target.value)} /></label>
         <label className="text-sm">Seller's quoted total ({currency})<Input type="number" min="0" placeholder="From proforma / invoice" value={sellerTotal} onChange={(e) => setSellerTotal(e.target.value)} /></label>
-        <div className="self-end pb-2 text-sm">{sellerTotal && Number(sellerTotal) !== totals.total ? <span className="text-destructive">Differs from our total by {(Number(sellerTotal) - totals.total).toLocaleString()}</span> : null}</div>
+        <div className="self-end pb-2 text-sm">{sellerTotal && Number(sellerTotal) !== totals.total ? <span className="text-destructive">Differs from our total by {(Number(sellerTotal) - totals.total).toLocaleString(...nf(currency))}</span> : null}</div>
       </div>
       <label className="text-sm">Discount / delivery discussion notes<Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
 
       <div className="border-t border-border pt-4">
         <h3 className="font-medium">Advance and payments</h3>
-        {payments.map((p, index) => <div key={index} className="flex items-center justify-between gap-2 py-2 text-sm"><span>{p.kind === "advance" ? "Advance" : "Payment"} · {p.date} · {currency} {p.amount.toLocaleString()}{p.reference ? ` · ${p.reference}` : ""}</span><Button variant="ghost" size="icon" title="Remove payment record" onClick={() => setPayments((a) => a.filter((_, i) => i !== index))}><Trash2 className="size-4" /></Button></div>)}
+        {payments.map((p, index) => <div key={index} className="flex items-center justify-between gap-2 py-2 text-sm"><span>{p.kind === "advance" ? "Advance" : "Payment"} · {p.date} · {currency} {p.amount.toLocaleString(...nf(currency))}{p.reference ? ` · ${p.reference}` : ""}</span><Button variant="ghost" size="icon" title="Remove payment record" onClick={() => setPayments((a) => a.filter((_, i) => i !== index))}><Trash2 className="size-4" /></Button></div>)}
         <div className="grid gap-2 sm:grid-cols-5">
           <select className="field-select h-9 rounded-md border border-border bg-background px-2 text-sm" aria-label="Payment type" value={payKind} onChange={(e) => setPayKind(e.target.value as PaymentKind)}><option value="advance">Advance</option><option value="payment">Payment</option></select>
           <Input type="number" min="0" placeholder="Amount" aria-label="Payment amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -202,7 +202,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
 
       <div className="border-t border-border pt-4">
         <h3 className="font-medium">Proforma, invoices and bills</h3>
-        {docs.map((d) => <div key={d.path} className="flex items-center justify-between gap-2 py-2 text-sm"><button type="button" className="text-left hover:text-primary hover:underline" onClick={() => void openDoc(d.path)}>{DOC_LABEL[d.kind]}{d.number ? ` #${d.number}` : ""} · {d.date}{d.amount != null ? ` · ${currency} ${d.amount.toLocaleString()}` : ""} · {d.name}</button><Button variant="ghost" size="icon" title="Remove document" disabled={busy} onClick={() => void removeDoc(d.path)}><Trash2 className="size-4" /></Button></div>)}
+        {docs.map((d) => <div key={d.path} className="flex items-center justify-between gap-2 py-2 text-sm"><button type="button" className="text-left hover:text-primary hover:underline" onClick={() => void openDoc(d.path)}>{DOC_LABEL[d.kind]}{d.number ? ` #${d.number}` : ""} · {d.date}{d.amount != null ? ` · ${currency} ${d.amount.toLocaleString(...nf(currency))}` : ""} · {d.name}</button><Button variant="ghost" size="icon" title="Remove document" disabled={busy} onClick={() => void removeDoc(d.path)}><Trash2 className="size-4" /></Button></div>)}
         <div className="grid gap-2 sm:grid-cols-5">
           <select className="field-select h-9 rounded-md border border-border bg-background px-2 text-sm" aria-label="Document type" value={docKind} onChange={(e) => setDocKind(e.target.value as DocKind)}>{(Object.keys(DOC_LABEL) as DocKind[]).map((k) => <option key={k} value={k}>{DOC_LABEL[k]}</option>)}</select>
           <Input placeholder="Document number" value={docNumber} onChange={(e) => setDocNumber(e.target.value)} />
@@ -217,7 +217,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
         <label className="text-sm">Courier<Input value={courier} onChange={(e) => setCourier(e.target.value)} /></label>
         <label className="text-sm">Tracking number<Input value={tracking} onChange={(e) => setTracking(e.target.value)} /></label>
       </div>
-      <p className="font-medium">Order value {currency} {totals.total.toLocaleString()} <span className="font-normal text-muted-foreground">(outfits {totals.gross.toLocaleString()} − discount {totals.discount.toLocaleString()} + courier {totals.courier.toLocaleString()})</span> · advance {totals.advance.toLocaleString()} · paid {totals.paid.toLocaleString()} · balance {totals.balance.toLocaleString()}</p>
+      <p className="font-medium">Order value {currency} {totals.total.toLocaleString(...nf(currency))} <span className="font-normal text-muted-foreground">(outfits {totals.gross.toLocaleString(...nf(currency))} − discount {totals.discount.toLocaleString(...nf(currency))} + courier {totals.courier.toLocaleString(...nf(currency))})</span> · advance {totals.advance.toLocaleString(...nf(currency))} · paid {totals.paid.toLocaleString(...nf(currency))} · balance {totals.balance.toLocaleString(...nf(currency))}</p>
 
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" disabled={busy || !items.length} onClick={() => void pdf()}><FileDown className="size-4" /> Shop PDF</Button>
