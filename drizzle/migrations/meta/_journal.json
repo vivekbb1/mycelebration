@@ -687,6 +687,13 @@
       "when": 1792400587690,
       "tag": "0097_shop_orders_and_alterations",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1792400630728,
+      "tag": "0098_private_alteration_photo_access",
+      "breakpoints": true
     }
   ]
 }
