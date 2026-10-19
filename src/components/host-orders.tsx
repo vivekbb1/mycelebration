@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { formFor, hasChart, MADE_TO_MEASURE, suggestSize, type ShopSize } from "@/lib/size-charts";
+import { GroupedShopOrders } from "@/components/grouped-shop-orders";
+import { OrderAlterations } from "@/components/order-alterations";
+import { memberMeasurements } from "@/lib/outfit-pick-progress";
+import type { OrderItem } from "@/lib/shop-order";
 
 const PAYMENT = ["unpaid", "part paid", "paid", "refunded"] as const;
 const SHIPPING = ["not shipped", "shipped", "in transit", "delivered", "returned"] as const;
@@ -34,19 +38,20 @@ export function HostOrders() {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [filter, setFilter] = useState<"ready" | "placed" | "all" | "fit" | "nomeas">("ready");
+  const [filter, setFilter] = useState<"ready" | "placed" | "all" | "fit" | "nomeas" | "soldout">("ready");
 
   const data = useQuery({
     queryKey: ["host-orders", inviteId],
     queryFn: async () => {
+      if (!inviteId) return [];
       const [res, meas, codes] = await Promise.all([
         supabase
           .from("reservations")
           .select(
-            "*, outfits(title, designer, boutique_url, image_url, event_id, gender, sizes, events(name, invite_id))",
-          ),
-        supabase.from("measurements").select("guest_id, guest_name, unit, bust, chest, waist, hip, neck, usual_size, height"),
-        supabase.from("invite_codes").select("claimed_by, household, guest_name, invite_id"),
+            "*, outfits(title, designer, boutique_url, image_url, event_id, gender, sizes, is_available, price_inr, price_note, notes, source_sku, events(name, invite_id))",
+          ).eq("invite_id", inviteId),
+        supabase.from("measurements").select("*").eq("invite_id", inviteId),
+        supabase.from("invite_codes").select("claimed_by, household, guest_name, invite_id").eq("invite_id", inviteId),
       ]);
       if (res.error) throw res.error;
       if (meas.error) throw meas.error;
@@ -60,21 +65,26 @@ export function HostOrders() {
       return (res.data ?? [])
         .filter((r) => guests.has(r.guest_id))
         .map((r) => {
-          const mine = (meas.data ?? []).filter((m) => m.guest_id === r.guest_id);
           const key = (r.guest_name ?? "").trim().toLowerCase();
-          const m = mine.find((x) => (x.guest_name ?? "").trim().toLowerCase() === key) ?? (mine.length === 1 ? mine[0] : undefined);
+          const guest = guests.get(r.guest_id);
+          const family = (codes.data ?? []).filter((c) => c.household === guest?.household);
+          const member = family.find((c) => c.guest_name.trim().toLowerCase() === key) ?? guest;
+          const m = member ? memberMeasurements(member, family, meas.data ?? []) : undefined;
+          const measurementValues: Record<string, string | number> = {};
+          if (m) for (const k of ["unit", "usual_size", "height", "chest", "bust", "under_bust", "waist", "hip", "shoulder", "armhole", "neck", "sleeve_length", "top_length", "bottom_length", "inseam", "notes"] as const) { const v = m[k]; if(v !== null && v !== "") measurementValues[k] = v; }
           const gender = (r.outfits as { gender?: string } | null)?.gender ?? null;
           const suggested = m && hasChart(gender) ? (suggestSize(m, formFor(gender))?.size ?? m.usual_size ?? null) : null;
           const size = r.size_choice ?? null;
           const shopSizes = ((r.outfits as { sizes?: unknown } | null)?.sizes as ShopSize[] | null) ?? [];
           return {
             ...r,
-            guest: guests.get(r.guest_id)!,
+            guest,
+            measurementValues: m ? measurementValues : null,
             measured: Boolean(m),
             confirmed: r.status === "confirmed",
             suggested,
             misfit: Boolean(size && suggested && size !== MADE_TO_MEASURE && size !== suggested),
-            soldOut: Boolean(size && shopSizes.find((x) => x.label === size && !x.available)),
+            soldOut: Boolean(size && shopSizes.find((x) => x.label === size && !x.available)) || (shopSizes.length > 0 && shopSizes.every((s) => !s.available)),
           };
         })
         .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
@@ -86,6 +96,7 @@ export function HostOrders() {
   const rows = useMemo(() => {
     const all = data.data ?? [];
     if (filter === "placed") return all.filter((r) => r.order_placed_at);
+    if (filter === "soldout") return all.filter((r) => r.soldOut);
     if (filter === "fit") return all.filter((r) => r.misfit || r.soldOut);
     if (filter === "nomeas") return all.filter((r) => !r.measured);
     if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.confirmed && r.measured);
@@ -162,6 +173,7 @@ export function HostOrders() {
     all: (data.data ?? []).length,
     fit: (data.data ?? []).filter((r) => r.misfit || r.soldOut).length,
     nomeas: (data.data ?? []).filter((r) => !r.measured).length,
+    soldout: (data.data ?? []).filter((r) => r.soldOut).length,
   };
 
   const field = (r: Row, k: keyof Draft, v: string) =>
@@ -171,6 +183,7 @@ export function HostOrders() {
 
   return (
     <div className="space-y-5">
+      <GroupedShopOrders inviteId={inviteId} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
       <div className="panel-wrap p-5">
         <h2 className="font-display text-xl">Orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -200,6 +213,7 @@ export function HostOrders() {
               ["all", "All looks"],
               ["fit", "Size may not fit"],
               ["nomeas", "No measurements yet"],
+              ["soldout", "Sold out selections"],
             ] as const
           ).map(([k, label]) => (
             <Button
@@ -246,10 +260,10 @@ export function HostOrders() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{o?.title ?? "Look"}</p>
                     <p className="text-sm text-muted-foreground">
-                      {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest.guest_name ?? "").trim().toLowerCase()
-                        ? `${r.guest_name} (by ${r.guest.guest_name})`
-                        : r.guest_name || r.guest.guest_name}
-                      {r.guest.household ? ` · ${r.guest.household}` : ""}
+                      {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest?.guest_name ?? "").trim().toLowerCase()
+                        ? `${r.guest_name} (by ${r.guest?.guest_name ?? "family"})`
+                        : r.guest_name || r.guest?.guest_name}
+                      {r.guest?.household ? ` · ${r.guest.household}` : ""}
                       {o?.events?.name ? ` · ${o.events.name}` : ""}
                     </p>
                     {r.created_at ? (
@@ -269,6 +283,7 @@ export function HostOrders() {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
+                    <p className="text-sm">Shop price: {o?.price_inr != null ? `INR ${Number(o.price_inr).toLocaleString()}` : o?.price_note || "Not supplied"}</p>
                     {r.size_choice || r.suggested ? (
                       <p className="text-sm">
                         Size chosen: <span className="font-medium">{r.size_choice ?? "—"}</span>
@@ -350,7 +365,9 @@ export function HostOrders() {
                   <Input value={d.order_note} onChange={(e) => field(r, "order_note", e.target.value)} placeholder="Alterations, delivery address…" />
                 </label>
 
+                <div className="mt-4 border-t border-border pt-3"><h3 className="text-sm font-medium">Wearer measurements</h3><dl className="mt-2 grid gap-2 text-xs sm:grid-cols-3 lg:grid-cols-5">{r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-muted-foreground">Not supplied</p>}</dl></div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <OrderAlterations inviteId={inviteId} reservationId={r.id} wearer={r.guest_name || r.guest?.guest_name || "Guest"} measurements={r.measurementValues} />
                   {r.order_placed_at ? (
                     <Button size="sm" disabled={save.isPending} onClick={() => save.mutate({ r })}>
                       Save

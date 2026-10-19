@@ -1,4 +1,6 @@
 # Roadmap — multi-celebration platform
+- [x] Orders: sold-out filter, grouped orders, prices/discounts, manual part-payments and measurements
+- [x] Orders: shop PDF and alteration vendors/photos/measurements
 - [x] Family picks: size/event filters and shop ordering spreadsheet with measurements
 - [x] Overview: count proxy selections by wearer
 - [x] Host family merge/split with protected account and logistics handling
