@@ -63,7 +63,7 @@ export function HostPicks() {
   const reservations = useQuery({
     queryKey: ["host-picks-reservations"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, outfits(event_id)");
+      const { data, error } = await supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, member_code_id, outfits(event_id)");
       if (error) throw error;
       return data;
     },

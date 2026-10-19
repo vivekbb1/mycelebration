@@ -68,7 +68,7 @@ function HostDashboard() {
             .from("invite_codes")
             .select("id, invite_id, family_id, rsvp_status, claimed_by"),
           supabase.from("families").select("id, invite_id, needs_wardrobe"),
-          supabase.from("reservations").select("guest_id, guest_name"),
+          supabase.from("reservations").select("guest_id, guest_name, member_code_id"),
         ]);
       const membership = await supabase
         .from("celebration_hosts")

@@ -49,7 +49,7 @@ export function HostGuestTracker() {
           )
           .order("household"),
         supabase.from("families").select("id, email, invite_id"),
-        supabase.from("reservations").select("guest_id, guest_name, status, outfit_id"),
+        supabase.from("reservations").select("guest_id, guest_name, member_code_id, status, outfit_id"),
         supabase.from("outfits").select("id, title, event_id"),
         supabase.from("events").select("id, invite_id"),
         supabase.from("email_delivery_events").select("recipient, event_type"),

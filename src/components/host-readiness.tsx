@@ -68,7 +68,7 @@ export function HostDownloads({ inviteId }: { inviteId: string | null | undefine
       supabase.from("invite_codes").select("guest_name, household, email, phone, rsvp_status, claimed_by, gender").eq("invite_id", inviteId).order("household"),
       supabase.from("events").select("id, name").eq("invite_id", inviteId).order("sort_order"),
       supabase.from("event_attendance").select("household, event_id, attending, guest_count").eq("invite_id", inviteId),
-      supabase.from("reservations").select("guest_id, guest_name, status, outfit_id").eq("invite_id", inviteId),
+      supabase.from("reservations").select("guest_id, guest_name, member_code_id, status, outfit_id").eq("invite_id", inviteId),
       supabase.from("outfits").select("id, title, designer, event_id").eq("invite_id", inviteId),
       supabase.from("measurements").select("*").eq("invite_id", inviteId),
     ]);

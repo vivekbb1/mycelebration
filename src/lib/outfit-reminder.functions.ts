@@ -49,7 +49,7 @@ export const sendOutfitReminder = createServerFn({ method: "POST" })
       context.supabase.from("invite_codes").select("guest_name, email, household, claimed_by, gender").eq("invite_id", inviteId),
       context.supabase.from("household_event_invites").select("household, event_id, outfit_selection").eq("invite_id", inviteId),
       context.supabase.from("events").select("id, name, event_date, dress_code, outfit_selection, outfit_ready_by, sort_order").eq("invite_id", inviteId).order("sort_order"),
-      context.supabase.from("reservations").select("guest_id, guest_name, outfits(event_id)").eq("invite_id", inviteId),
+      context.supabase.from("reservations").select("guest_id, guest_name, member_code_id, outfits(event_id)").eq("invite_id", inviteId),
       context.supabase.from("outfits").select("event_id, gender").eq("invite_id", inviteId).in("gender", ["boy", "girl"]),
       context.supabase.from("outfit_feeds").select("event_id, audience").eq("invite_id", inviteId).in("audience", ["boy", "girl"]),
     ]);
