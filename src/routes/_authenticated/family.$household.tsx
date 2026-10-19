@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 import { AddFamilyMemberButton, FamilyMemberActions, RenameFamilyButton } from "@/components/host-family-members";
+import { FamilyRegroupDialog } from "@/components/family-regroup-dialog";
+import { useSelectedEvent } from "@/lib/selected-event";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAnyHost } from "@/lib/host-role";
@@ -58,6 +60,7 @@ const rsvpLabel = (value: string | null | undefined) => {
 function FamilyPage() {
   const { household } = Route.useParams();
   const name = decodeURIComponent(household);
+  const { inviteId: selectedInviteId } = useSelectedEvent();
   const queryClient = useQueryClient();
   const { has } = useFeatures();
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -66,13 +69,15 @@ function FamilyPage() {
   const isHost = role.data === true;
 
   const people = useQuery({
-    queryKey: ["family-people", name],
-    enabled: isHost,
+    queryKey: ["family-people", name, selectedInviteId],
+    enabled: isHost && Boolean(selectedInviteId),
     queryFn: async () => {
+      if (!selectedInviteId) return [];
       const byHousehold = await supabase
         .from("invite_codes")
         .select("*")
         .eq("household", name)
+        .eq("invite_id", selectedInviteId)
         .order("guest_name");
       if (byHousehold.error) throw byHousehold.error;
       if ((byHousehold.data ?? []).length > 0) return byHousehold.data;
@@ -80,6 +85,7 @@ function FamilyPage() {
         .from("invite_codes")
         .select("*")
         .eq("guest_name", name)
+        .eq("invite_id", selectedInviteId)
         .order("guest_name");
       if (byName.error) throw byName.error;
       return byName.data ?? [];
@@ -286,7 +292,7 @@ function FamilyPage() {
         <section className="panel p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl">Family members</h2>
-            {isHost && inviteId ? <AddFamilyMemberButton inviteId={inviteId} household={name} /> : null}
+            {isHost && inviteId ? <div className="flex flex-wrap gap-2"><FamilyRegroupDialog inviteId={inviteId} household={name} members={rows} /><AddFamilyMemberButton inviteId={inviteId} household={name} /></div> : null}
           </div>
           {rows.length === 1 && rows[0]?.claimed_by ? (
             <p className="mt-2 text-xs text-muted-foreground">
