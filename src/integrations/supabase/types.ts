@@ -2854,6 +2854,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tailor_workmen: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          invite_id: string
+          name: string
+          phone: string
+          vendor_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          invite_id: string
+          name: string
+          phone?: string
+          vendor_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          invite_id?: string
+          name?: string
+          phone?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tailor_workmen_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tailor_workmen_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       travel_plans: {
         Row: {
           arrival_date: string | null
@@ -2973,6 +3018,7 @@ export type Database = {
           name: string
           notes: string | null
           status: string
+          tailor_notes: string
           updated_at: string
           website: string | null
         }
@@ -2990,6 +3036,7 @@ export type Database = {
           name: string
           notes?: string | null
           status?: string
+          tailor_notes?: string
           updated_at?: string
           website?: string | null
         }
@@ -3007,6 +3054,7 @@ export type Database = {
           name?: string
           notes?: string | null
           status?: string
+          tailor_notes?: string
           updated_at?: string
           website?: string | null
         }
@@ -3022,6 +3070,7 @@ export type Database = {
       }
       wardrobe_alterations: {
         Row: {
+          adjustments: string
           id: string
           invite_id: string
           measurements: Json
@@ -3033,9 +3082,11 @@ export type Database = {
           updated_at: string
           vendor_id: string | null
           workman: string
+          workman_id: string | null
           workman_phone: string
         }
         Insert: {
+          adjustments?: string
           id?: string
           invite_id: string
           measurements?: Json
@@ -3047,9 +3098,11 @@ export type Database = {
           updated_at?: string
           vendor_id?: string | null
           workman?: string
+          workman_id?: string | null
           workman_phone?: string
         }
         Update: {
+          adjustments?: string
           id?: string
           invite_id?: string
           measurements?: Json
@@ -3061,6 +3114,7 @@ export type Database = {
           updated_at?: string
           vendor_id?: string | null
           workman?: string
+          workman_id?: string | null
           workman_phone?: string
         }
         Relationships: [
@@ -3083,6 +3137,13 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wardrobe_alterations_workman_id_fkey"
+            columns: ["workman_id"]
+            isOneToOne: false
+            referencedRelation: "tailor_workmen"
             referencedColumns: ["id"]
           },
         ]

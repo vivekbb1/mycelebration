@@ -29,3 +29,7 @@
 
 - [x] Link outfit choices and measurements to member codes; recover 14 unmatched choices
 - [ ] Rooms, passports and travel screens: read/write member codes (columns added and backfilled; screens still match by name)
+- [x] Workmen list per tailor, picked from a dropdown on each alteration
+- [x] "Adjustments needed" per outfit and general comments per tailor
+- [x] "Talk to the hosts" shows only the signed-in guest's own family thread
+- [ ] Federico Michelini: two measurement records disagree — waiting on host to say which values are correct

@@ -40,17 +40,29 @@ export function GuestMessages() {
         .select("id, full_name, household")
         .eq("id", userData.user.id)
         .maybeSingle();
-      return data;
+      // The family comes from the guest's own invite code, so hosts previewing see only their own family too.
+      const { data: code } = await supabase
+        .from("invite_codes")
+        .select("household, invite_id")
+        .eq("claimed_by", userData.user.id)
+        .not("household", "is", null)
+        .order("claimed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data ? { ...data, household: code?.household ?? data.household, invite_id: code?.invite_id ?? null } : null;
     },
   });
 
   const thread = useQuery({
-    queryKey: ["guest-messages"],
+    queryKey: ["guest-messages", me.data?.household, me.data?.invite_id],
+    enabled: Boolean(me.data?.household),
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("guest_messages")
         .select("id, household, author_name, from_host, body, created_at")
-        .order("created_at");
+        .eq("household", me.data!.household!);
+      if (me.data?.invite_id) q = q.eq("invite_id", me.data.invite_id);
+      const { data, error } = await q.order("created_at");
       if (error) throw error;
       return (data ?? []) as GuestMessage[];
     },
@@ -69,6 +81,7 @@ export function GuestMessages() {
     setBusy(true);
     const { error } = await supabase.from("guest_messages").insert({
       household: me.data.household,
+      ...(me.data.invite_id ? { invite_id: me.data.invite_id } : {}),
       author_id: me.data.id,
       author_name: me.data.full_name,
       from_host: false,

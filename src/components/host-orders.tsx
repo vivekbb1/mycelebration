@@ -75,9 +75,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     queryKey: ["alterations-list", inviteId],
     enabled: Boolean(inviteId) && view === "alterations",
     queryFn: async () => {
-      const { data, error } = await supabase.from("wardrobe_alterations").select("reservation_id, status, photos, vendor_id, workman").eq("invite_id", inviteId!);
+      const { data, error } = await supabase.from("wardrobe_alterations").select("reservation_id, status, photos, vendor_id, workman, workman_id, adjustments, tailor_workmen(name)").eq("invite_id", inviteId!);
       if (error) throw error;
-      return new Map((data ?? []).map((a) => [a.reservation_id, { status: a.status, photos: Array.isArray(a.photos) ? a.photos.length : 0, workman: a.workman }]));
+      return new Map((data ?? []).map((a) => [a.reservation_id, { status: a.status, photos: Array.isArray(a.photos) ? a.photos.length : 0, workman: (a.tailor_workmen as { name: string } | null)?.name || a.workman, adjustments: a.adjustments }]));
     },
   });
   const data = useQuery({
@@ -147,6 +147,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     (!dim.person || wearerOf(r) === dim.person) && (!dim.family || r.guest?.household === dim.family) &&
     (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender)), [data.data, dim]);
   const [sort, setSort] = useState("recent");
+  const [workmanFilter, setWorkmanFilter] = useState("");
   const [altFilter, setAltFilter] = useState<"all" | "needed" | "with vendor" | "complete" | "none">("all");
   const rows = useMemo(() => {
     const sorted = (list: Row[]) => {
@@ -305,10 +306,14 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
           ))}
         </div>
         {filterBar}
+        {(() => { const names = [...new Set([...(alterations.data?.values() ?? [])].map((a) => a.workman).filter(Boolean))].sort(); return names.length ? (
+          <select aria-label="Workman" className="field-select mt-2 h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={workmanFilter} onChange={(e) => setWorkmanFilter(e.target.value)}>
+            <option value="">All workmen</option>{names.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>) : null; })()}
       </div>
       {data.isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
       <ul className="space-y-3">
-        {rows.filter((r) => { const a = alterations.data?.get(r.id); return altFilter === "all" || (altFilter === "none" ? !a : a?.status === altFilter); }).map((r) => {
+        {rows.filter((r) => { const a = alterations.data?.get(r.id); return (!workmanFilter || a?.workman === workmanFilter) && (altFilter === "all" || (altFilter === "none" ? !a : a?.status === altFilter)); }).map((r) => {
           const a = alterations.data?.get(r.id);
           return (
             <li key={r.id} className="panel-wrap grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 p-3 sm:flex sm:items-center sm:p-4">
@@ -317,6 +322,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                 <p className="truncate font-medium">{wearerOf(r)}</p>
                 <p className="truncate text-sm text-muted-foreground">{r.outfits?.title ?? "Look"} · {r.outfits?.events?.name ?? ""}</p>
                 <p className="text-xs text-muted-foreground">{r.guest?.household ?? ""} · size {r.size_choice || r.build_size || "not chosen"}</p>
+                {a?.adjustments ? <p className="mt-1 line-clamp-2 text-xs">Adjustments: {a.adjustments}</p> : null}
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   <Badge variant={a?.status === "complete" ? "default" : a ? "secondary" : "outline"}>{a ? (a.status === "with vendor" ? "With tailor" : a.status.charAt(0).toUpperCase() + a.status.slice(1)) : "Not started"}</Badge>
                   {a?.workman ? <Badge variant="outline">By {a.workman}</Badge> : null}

@@ -722,6 +722,13 @@
       "when": 1792407782445,
       "tag": "0102_alteration_photo_notes_workman",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1792408270400,
+      "tag": "0103_tailor_workmen_and_adjustments",
+      "breakpoints": true
     }
   ]
 }
