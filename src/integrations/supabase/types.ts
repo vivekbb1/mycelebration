@@ -3081,7 +3081,10 @@ export type Database = {
       wardrobe_orders: {
         Row: {
           advance_amount: number
+          cancel_reason: string
+          cancelled_at: string | null
           courier: string
+          courier_charges: number
           created_at: string
           currency: string
           documents: Json
@@ -3103,7 +3106,10 @@ export type Database = {
         }
         Insert: {
           advance_amount?: number
+          cancel_reason?: string
+          cancelled_at?: string | null
           courier?: string
+          courier_charges?: number
           created_at?: string
           currency?: string
           documents?: Json
@@ -3125,7 +3131,10 @@ export type Database = {
         }
         Update: {
           advance_amount?: number
+          cancel_reason?: string
+          cancelled_at?: string | null
           courier?: string
+          courier_charges?: number
           created_at?: string
           currency?: string
           documents?: Json
