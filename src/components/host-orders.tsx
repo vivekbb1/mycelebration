@@ -351,8 +351,8 @@ export function HostOrders() {
             const o = r.outfits;
             const canPlace = r.confirmed && r.measured;
             return (
-              <li key={r.id} className="panel-wrap p-5">
-                <div className="flex flex-wrap items-start gap-4">
+              <li key={r.id} className="panel-wrap p-4 sm:p-5">
+                <div className="flex flex-wrap items-start gap-3 sm:gap-4">
                   <Checkbox
                     className="mt-1"
                     aria-label={`Select ${o?.title ?? "look"}`}
@@ -364,14 +364,14 @@ export function HostOrders() {
                       src={o.image_url}
                       alt={o.title}
                       referrerPolicy="no-referrer"
-                      className="h-24 w-20 rounded-md object-cover"
+                      className="h-24 w-20 shrink-0 rounded-md object-cover"
                     />
                   ) : (
                     <div className="grid h-24 w-20 place-items-center rounded-md bg-muted">
                       <Package className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-[10.5rem] flex-1">
                     <p className="font-medium">{o?.title ?? "Look"}</p>
                     <p className="text-sm text-muted-foreground">
                       {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest?.guest_name ?? "").trim().toLowerCase()
