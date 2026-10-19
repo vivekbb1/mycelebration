@@ -31,6 +31,7 @@ const SUBS: Record<string, Record<string, string>> = {
     picks: "selection",
     preorders: "pre-orders",
     orders: "orders",
+    alterations: "alterations",
     logistics: "delivery",
   },
   setup: {
