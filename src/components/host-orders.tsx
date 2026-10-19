@@ -262,7 +262,7 @@ export function HostOrders() {
     <div className="space-y-5">
       <GroupedShopOrders inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
       {rows.length ? (
-        <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-3 p-3">
+        <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
           <label className="flex items-center gap-2 text-sm">
             <Checkbox
               aria-label="Select all shown"
@@ -274,7 +274,7 @@ export function HostOrders() {
           <span className="text-sm text-muted-foreground">
             {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + Number(r.order_amount ?? r.outfits?.price_inr ?? 0), 0).toLocaleString(...nf())}
           </span>
-          <div className="ml-auto flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap">
             <Button size="sm" variant="outline" disabled={pdfBusy || (!picked.size && !rows.length)} onClick={() => void preorderPdf()}>
               <FileDown className="size-4" /> {pdfBusy ? "Preparing…" : "Pre-order PDF"}{picked.size ? ` (${picked.size})` : ""}
             </Button>
@@ -289,7 +289,7 @@ export function HostOrders() {
           </div>
         </div>
       ) : null}
-      <div className="panel-wrap p-5">
+      <div className="panel-wrap p-4 sm:p-5">
         <h2 className="font-display text-xl">Pre-orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Every look guests have chosen, waiting to be ordered. Tick several (or select all) to
@@ -310,7 +310,7 @@ export function HostOrders() {
             ))}
           </div>
         ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {(
             FILTER_TABS
           ).map(([k, label]) => (
@@ -318,6 +318,7 @@ export function HostOrders() {
               key={k}
               size="sm"
               variant={filter === k ? "default" : "outline"}
+              className="shrink-0"
               onClick={() => { setFilter(k); setPicked(new Set()); setPdfReady(null); }}
             >
               {label} ({counts[k]})
