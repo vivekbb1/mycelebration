@@ -1,7 +1,7 @@
 # Roadmap — multi-celebration platform
-- [ ] Family picks: size/event filters and shop ordering spreadsheet with measurements
-- [ ] Overview: count proxy selections by wearer
-- [ ] Host family merge/split with protected account and logistics handling
+- [x] Family picks: size/event filters and shop ordering spreadsheet with measurements
+- [x] Overview: count proxy selections by wearer
+- [x] Host family merge/split with protected account and logistics handling
 - [x] Selection: host-only shop links and selected sizes; reminders for every member missing any eligible outfit
 - [x] Phase 1: celebration hosts, owner/co-host, host codes tied to a celebration
 - [x] Phase 2: per-celebration access rules on every table and file
