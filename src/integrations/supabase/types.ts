@@ -3029,6 +3029,16 @@ export type Database = {
         Returns: boolean
       }
       host_can_see_user: { Args: { _user_id: string }; Returns: boolean }
+      host_regroup_family_members: {
+        Args: {
+          _invite_id: string
+          _member_ids: string[]
+          _new_name?: string
+          _source: string
+          _target_id?: string
+        }
+        Returns: Json
+      }
       household_members: {
         Args: never
         Returns: {

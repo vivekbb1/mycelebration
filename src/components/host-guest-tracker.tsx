@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { MissingTravelDetails } from "@/lib/family-travel-needs";
+import { memberLook } from "@/lib/outfit-pick-progress";
 
 type Stage = "not_sent" | "sent" | "opened" | "joined" | "chosen" | "confirmed";
 
@@ -44,7 +45,7 @@ export function HostGuestTracker() {
         supabase
           .from("invite_codes")
           .select(
-            "id, guest_name, household, email, invite_id, family_id, invite_sent_at, link_opened_at, claimed_by, claimed_at",
+            "id, guest_name, household, email, invite_id, family_id, invite_sent_at, link_opened_at, claimed_by, claimed_at, gender",
           )
           .order("household"),
         supabase.from("families").select("id, email, invite_id"),
@@ -84,15 +85,17 @@ export function HostGuestTracker() {
       })
       .map((c) => {
         const email = (c.email ?? (c.family_id ? famById.get(c.family_id)?.email : null) ?? "").toLowerCase();
-        const looks = c.claimed_by
-          ? d.res
-              .filter((r) => r.guest_id === c.claimed_by && outfitById.has(r.outfit_id))
+        const family = d.codes.filter((m) => m.household === c.household && m.invite_id === c.invite_id);
+        const looks = d.res
+              .filter((r) => {
+                const outfit = outfitById.get(r.outfit_id);
+                return outfit?.event_id && memberLook(c, family, [{ ...r, outfits: outfit }], outfit.event_id);
+              })
               .map((r) => ({
                 title: outfitById.get(r.outfit_id)?.title ?? "Look",
                 confirmed: r.status === "confirmed",
                 who: r.guest_name,
-              }))
-          : [];
+              }));
         const s: Stage = looks.some((l) => l.confirmed)
           ? "confirmed"
           : looks.length

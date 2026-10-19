@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, ChevronRight, Minus, Plane, Ruler } from "lucide-react";
+import { Check, ChevronRight, Download, Minus, Plane, Ruler } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { memberLook, memberMeasurements } from "@/lib/outfit-pick-progress";
+import type { Database } from "@/integrations/supabase/types";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,18 @@ export function HostFamilyPicks({
   measurements: Array<{ guest_id: string; guest_name: string | null }>;
 }) {
   const [filter, setFilter] = useState<"all" | "open" | "done">("all");
+  const [eventFilter, setEventFilter] = useState("all");
+  const [sizeFilter, setSizeFilter] = useState("all");
+  const fullMeasurements = useQuery({
+    queryKey: ["family-picks-order-measurements", inviteId],
+    enabled: Boolean(inviteId),
+    queryFn: async () => {
+      if (!inviteId) return [];
+      const { data, error } = await supabase.from("measurements").select("*").eq("invite_id", inviteId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const codes = useQuery({
     queryKey: ["family-picks-codes", inviteId],
@@ -58,7 +73,7 @@ export function HostFamilyPicks({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, guest_id, guest_name, status, size_choice, build_garment, build_size, invite_id, outfits(title, image_url, images, event_id, boutique_url)");
+        .select("id, guest_id, guest_name, status, size_choice, build_garment, build_size, invite_id, outfits(title, designer, notes, source_sku, image_url, images, event_id, boutique_url)");
       if (error) throw error;
       return (data ?? []).filter((r) => !inviteId || r.invite_id === inviteId);
     },
@@ -123,13 +138,7 @@ export function HostFamilyPicks({
         const arrival = plan?.arrival_date ?? plan?.checkin_date ?? null;
         const byCheckin = Boolean(plan && !plan.arrival_date);
         const perEvent = evs.map((ev) => {
-          const look = looks.find((r) => {
-            const o = r.outfits as { event_id: string | null } | null;
-            if (o?.event_id !== ev.id) return false;
-            const who = norm(r.guest_name);
-            if (who) return who === name;
-            return r.guest_id === m.claimed_by || names.length === 1;
-          });
+          const look = memberLook(m, members, looks, ev.id);
           const counts = !kid || kidSet.has(`${ev.id}|${m.gender}`) || Boolean(look);
           if (counts) total++;
           if (counts && look) chosen++;
@@ -157,9 +166,34 @@ export function HostFamilyPicks({
   const allC = eventStats.reduce((s, e) => s + e.c, 0);
   const allT = eventStats.reduce((s, e) => s + e.t, 0);
 
+  const matches = (p: typeof families[number]["people"][number]["perEvent"][number]) =>
+    (eventFilter === "all" || p.ev.id === eventFilter) &&
+    (sizeFilter === "all" || (p.look && (p.look.size_choice || p.look.build_size || "Not selected") === sizeFilter));
+  const sizes = [...new Set((res.data ?? []).filter((r) => eventFilter === "all" || r.outfits?.event_id === eventFilter).map((r) => r.size_choice || r.build_size || "Not selected"))].sort();
   const shown = families.filter((f) =>
     filter === "all" ? true : filter === "done" ? f.total > 0 && f.chosen >= f.total : f.chosen < f.total,
-  );
+  ).filter((f) => f.people.some((p) => p.perEvent.some((e) => e.counts && matches(e))));
+  const orderRows = shown.flatMap((f) => f.people.flatMap((p) => p.perEvent.filter((e) => e.look && matches(e)).map((e) => ({ f, p, e }))));
+  async function downloadOrders() {
+    const XLSX = await import("xlsx");
+    const fields = ["unit", "usual_size", "height", "chest", "bust", "under_bust", "waist", "hip", "shoulder", "armhole", "neck", "sleeve_length", "top_length", "bottom_length", "inseam", "notes"] as const;
+    const records = orderRows.map(({ f, p, e }) => {
+      const m = memberMeasurements(p.m, f.people.map((x) => x.m), fullMeasurements.data ?? []);
+      const look = e.look;
+      return {
+        Family: f.household, Guest: p.m.guest_name, Event: e.ev.name, "Event date": e.ev.event_date ?? "",
+        Outfit: look?.outfits?.title ?? "", Designer: look?.outfits?.designer ?? "", SKU: look?.outfits?.source_sku ?? "",
+        Description: look?.outfits?.notes ?? "", "Selected size": look?.size_choice || look?.build_size || "Not selected",
+        Status: look && ((look.build_garment && look.build_size) || look.status === "confirmed") ? "Confirmed" : "Reserved",
+        "Shop link": look?.outfits?.boutique_url ?? "", Photo: look?.outfits?.image_url ?? "",
+        "Measurements supplied": m ? "Yes" : "No",
+        ...Object.fromEntries(fields.map((k) => [k.replaceAll("_", " "), m?.[k] ?? ""])),
+      };
+    });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(records), "Shop orders");
+    XLSX.writeFile(workbook, "family-outfit-shop-orders.xlsx");
+  }
 
   if (codes.isLoading || res.isLoading || access.isLoading)
     return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -193,6 +227,18 @@ export function HostFamilyPicks({
           </div>
         </div>
 
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Select value={eventFilter} onValueChange={(v) => { setEventFilter(v); setSizeFilter("all"); }}>
+            <SelectTrigger aria-label="Filter outfits by event" className="w-full sm:w-56"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">All events</SelectItem>{pickable.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={sizeFilter} onValueChange={setSizeFilter}>
+            <SelectTrigger aria-label="Filter outfits by size" className="w-full sm:w-44"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">All sizes</SelectItem>{sizes.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+          <Button variant="outline" disabled={!orderRows.length || fullMeasurements.isLoading || fullMeasurements.isError} onClick={() => void downloadOrders()}><Download className="size-4" /> Shop order list ({orderRows.length})</Button>
+        </div>
+
         <div className="mt-5 space-y-4">
           {shown.length === 0 ? <p className="text-sm text-muted-foreground">No families here.</p> : null}
           {shown.map((f) => {
@@ -213,7 +259,7 @@ export function HostFamilyPicks({
                   </Badge>
                 </div>
                 <div className="mt-3 divide-y divide-border">
-                  {f.people.map(({ m, measured, perEvent, arrival, byCheckin }) => (
+                  {f.people.filter((p) => p.perEvent.some((e) => e.counts && matches(e))).map(({ m, measured, perEvent, arrival, byCheckin }) => (
                     <div key={m.id} className="py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm">{m.guest_name}</p>
@@ -228,7 +274,7 @@ export function HostFamilyPicks({
                         {arrival ? `${byCheckin ? "Checks in" : "Arrives"} ${fmt(arrival)}` : "Arrival or check-in not shared yet"}
                       </p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {perEvent.filter((p) => p.counts).map(({ ev, look }) => {
+                        {perEvent.filter((p) => p.counts && matches(p)).map(({ ev, look }) => {
                           const o = look?.outfits as { title: string; image_url: string | null; images: unknown; boutique_url: string | null } | null | undefined;
                           const img = o?.image_url || (Array.isArray(o?.images) ? (o?.images[0] as string) : null);
                           const shop = o?.boutique_url && /^https?:\/\//i.test(o.boutique_url) ? o.boutique_url : null;

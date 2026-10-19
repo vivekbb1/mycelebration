@@ -673,6 +673,13 @@
       "when": 1791628230603,
       "tag": "0095_nightly_stock_refresh",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1792399766320,
+      "tag": "0096_host_regroup_family_members",
+      "breakpoints": true
     }
   ]
 }

@@ -14,6 +14,11 @@ export function memberLook<T extends Look>(member: Member, family: Member[], loo
   });
 }
 
+export function memberMeasurements<T extends { guest_id: string; guest_name: string | null }>(member: Pick<Member, "guest_name" | "claimed_by">, family: Array<Pick<Member, "claimed_by">>, rows: T[]) {
+  const ids = new Set(family.map((m) => m.claimed_by).filter(Boolean));
+  return rows.find((row) => ids.has(row.guest_id) && (normalize(row.guest_name) ? normalize(row.guest_name) === normalize(member.guest_name) : Boolean(member.claimed_by && row.guest_id === member.claimed_by)));
+}
+
 export function missingOutfitEvents<T extends Event>(member: Member, members: Member[], events: T[], access: Access[], looks: Look[], kids: Set<string>) {
   const family = members.filter((m) => m.household === member.household);
   const rows = access.filter((r) => r.household === member.household);

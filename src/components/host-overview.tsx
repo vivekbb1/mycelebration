@@ -7,6 +7,7 @@ import { HostDashboard } from "@/components/host-dashboard";
 import { useSelectedEvent } from "@/lib/selected-event";
 import { MissingTravelDetails } from "@/lib/family-travel-needs";
 import { HostDownloads, ReadyToInvite } from "@/components/host-readiness";
+import { memberLook } from "@/lib/outfit-pick-progress";
 
 /**
  * At-a-glance numbers for the hosts: who has replied, who has confirmed a look,
@@ -28,7 +29,7 @@ export function HostOverview() {
   const invites = useQuery({
     queryKey: ["overview-invites", inviteId],
     queryFn: async () => {
-      let q = supabase.from("invite_codes").select("id, guest_name, household, claimed_by, rsvp_status");
+      let q = supabase.from("invite_codes").select("id, guest_name, household, claimed_by, rsvp_status, gender");
       if (inviteId) q = q.eq("invite_id", inviteId);
       const { data, error } = await q;
       if (error) throw error;
@@ -61,7 +62,7 @@ export function HostOverview() {
   const reservations = useQuery({
     queryKey: ["overview-reservations", inviteId],
     queryFn: async () => {
-      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name");
+      let q = supabase.from("reservations").select("id, outfit_id, guest_id, guest_name, outfits(event_id)");
       if (inviteId) q = q.eq("invite_id", inviteId);
       const { data, error } = await q;
       if (error) throw error;
@@ -88,7 +89,7 @@ export function HostOverview() {
       invited,
       households,
       registered: claimed.length,
-      guestIds: new Set(claimed.map((i) => i.claimed_by!)),
+      guestIds: new Set(claimed.flatMap((i) => i.claimed_by ? [i.claimed_by] : [])),
       notRegistered: invited - claimed.length,
       yes,
       no,
@@ -97,14 +98,19 @@ export function HostOverview() {
   }, [profiles.data, invites.data]);
 
   const chosen = useMemo(() => {
-    const rows = (reservations.data ?? []).filter((r) => rsvp.guestIds.has(r.guest_id));
-    const guests = new Set(rows.map((r) => r.guest_id)).size;
+    const list = invites.data ?? [];
+    const matched = list.map((m) => {
+      const family = list.filter((p) => p.household === m.household);
+      return (reservations.data ?? []).filter((r) => r.outfits?.event_id && memberLook(m, family, [r], r.outfits.event_id));
+    });
+    const guests = matched.filter((rows) => rows.length > 0).length;
+    const rows = new Set(matched.flat().map((r) => r.id));
     return {
-      looks: rows.length,
+      looks: rows.size,
       guests,
-      stillToChoose: Math.max(rsvp.registered - guests, 0),
+      stillToChoose: Math.max(list.length - guests, 0),
     };
-  }, [reservations.data, rsvp.registered, rsvp.guestIds]);
+  }, [reservations.data, invites.data]);
 
   const byFunction = useMemo(() => {
     const outfitById = new Map((outfits.data ?? []).map((o) => [o.id, o]));
