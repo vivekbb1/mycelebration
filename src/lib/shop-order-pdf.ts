@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { orderTotals, type OrderItem, type OrderPayment } from "./shop-order";
+import { money, orderTotals, type OrderItem, type OrderPayment } from "./shop-order";
 
 export async function buildShopOrderPdf(reference: string, shop: string, currency: string, items: OrderItem[], payments: OrderPayment[], notes: string) {
   const pdf = await PDFDocument.create();
@@ -33,13 +33,13 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(item.title, true); text(`${item.designer} | SKU: ${item.sku || "Not supplied"}`);
     text(`Wearer: ${item.wearer} | Family: ${item.family} | Event: ${item.event}`);
     text(`Selected size: ${item.size || "Not supplied"}`);
-    text(`Price: ${currency} ${item.price.toFixed(2)} | Discount: ${currency} ${item.discount.toFixed(2)} | Net: ${currency} ${(item.price - item.discount).toFixed(2)}`);
+    text(`Price: ${currency} ${money(item.price, currency)} | Discount: ${currency} ${money(item.discount, currency)} | Net: ${currency} ${money((item.price - item.discount), currency)}`);
     text(`Shop: ${item.shop || "Not supplied"}`);
     text("Wearer measurements", true);
     text(item.measurements ? Object.entries(item.measurements).map(([k, v]) => `${k.replaceAll("_", " ")}: ${v}`).join(" | ") : "Measurements not supplied");
     if (item.notes) text(`Customisations: ${item.notes}`);
     if (notes) text(`Order discussion: ${notes}`);
-    text(`Group total: ${currency} ${totals.total.toFixed(2)} | Paid: ${currency} ${totals.paid.toFixed(2)} | Balance: ${currency} ${totals.balance.toFixed(2)}`, true);
+    text(`Group total: ${currency} ${money(totals.total, currency)} | Paid: ${currency} ${money(totals.paid, currency)} | Balance: ${currency} ${money(totals.balance, currency)}`, true);
   }
   return pdf.save();
 }

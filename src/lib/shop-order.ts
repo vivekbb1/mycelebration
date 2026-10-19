@@ -29,3 +29,9 @@ export function substituteItem(items: OrderItem[], outId: string, next: OrderIte
   if (items.some((i) => i.reservationId === next.reservationId)) throw new Error("That outfit is already in this order");
   return items.map((i) => (i.reservationId === outId ? next : i));
 }
+
+/** Indian digit grouping (xx,xx,xxx.xx) for INR; standard grouping otherwise. */
+export function nf(currency = "INR"): [string, Intl.NumberFormatOptions] {
+  return [currency === "INR" ? "en-IN" : "en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }];
+}
+export const money = (n: number, currency = "INR") => n.toLocaleString(...nf(currency));
