@@ -129,6 +129,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
         <Button variant="outline" size="sm" onClick={() => openOrder(o)}>Open order</Button>
       </div>); })}
+    {orders.isSuccess && !(orders.data ?? []).length ? <p className="text-sm text-muted-foreground">No shop orders yet. Tick looks in Pre-orders and choose "Convert to one order", or start a new order here.</p> : null}
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
     </>}
 
