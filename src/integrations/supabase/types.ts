@@ -2557,6 +2557,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reservation_history: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          invite_id: string | null
+          new_row: Json | null
+          old_row: Json | null
+          reservation_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          invite_id?: string | null
+          new_row?: Json | null
+          old_row?: Json | null
+          reservation_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          invite_id?: string | null
+          new_row?: Json | null
+          old_row?: Json | null
+          reservation_id?: string
+        }
+        Relationships: []
+      }
       reservations: {
         Row: {
           amount_paid: number
