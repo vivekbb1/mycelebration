@@ -47,7 +47,7 @@ const FILTER_TABS = [
  * Orders: once a guest has confirmed their look and sent measurements, the
  * host places the order with the shop and tracks money and shipping here.
  */
-export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
+export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "alterations" }) {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -71,6 +71,15 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
     return m;
   }, [orderList.data]);
 
+  const alterations = useQuery({
+    queryKey: ["alterations-list", inviteId],
+    enabled: Boolean(inviteId) && view === "alterations",
+    queryFn: async () => {
+      const { data, error } = await supabase.from("wardrobe_alterations").select("reservation_id, status, photos, vendor_id").eq("invite_id", inviteId!);
+      if (error) throw error;
+      return new Map((data ?? []).map((a) => [a.reservation_id, { status: a.status, photos: Array.isArray(a.photos) ? a.photos.length : 0 }]));
+    },
+  });
   const data = useQuery({
     queryKey: ["host-orders", inviteId],
     queryFn: async () => {
@@ -138,6 +147,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
     (!dim.person || wearerOf(r) === dim.person) && (!dim.family || r.guest?.household === dim.family) &&
     (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender)), [data.data, dim]);
   const [sort, setSort] = useState("recent");
+  const [altFilter, setAltFilter] = useState<"all" | "needed" | "with vendor" | "complete" | "none">("all");
   const rows = useMemo(() => {
     const sorted = (list: Row[]) => {
       if (sort === "recent") return list;
@@ -269,6 +279,59 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
   const candidates = (data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }));
+  const filterBar = (<div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {([["gender", "All looks"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
+            <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
+              onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
+              <option value="">{all}</option>
+              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? ({ men: "Man", women: "Woman", boy: "Boy", girl: "Girl", man: "Man", woman: "Woman" } as Record<string, string>)[v] ?? v : v}</option>)}
+            </select>
+          ))}
+          <select aria-label="Sort" className="field-select col-span-2 h-9 w-full rounded-md border border-border bg-background px-2 text-sm sm:col-span-4" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="recent">Sort: newest first</option>
+            <option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option>
+            <option value="size-asc">Size ascending</option><option value="size-desc">Size descending</option>
+            <option value="price-asc">Price low to high</option><option value="price-desc">Price high to low</option>
+          </select>
+        </div>);
+  if (view === "alterations") return (
+    <div className="space-y-4">
+      <div className="panel-wrap p-4 sm:p-5">
+        <h2 className="font-display text-xl">Alterations</h2>
+        <p className="mt-1 text-sm text-muted-foreground">For the tailor: record each person's look with fitting photos, notes, revised measurements and any extra measurements.</p>
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          {([["all", "All"], ["needed", "Needed"], ["with vendor", "With tailor"], ["complete", "Complete"], ["none", "Not started"]] as const).map(([k, l]) => (
+            <Button key={k} size="sm" className="shrink-0" variant={altFilter === k ? "default" : "outline"} onClick={() => setAltFilter(k)}>{l}</Button>
+          ))}
+        </div>
+        {filterBar}
+      </div>
+      {data.isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
+      <ul className="space-y-3">
+        {rows.filter((r) => { const a = alterations.data?.get(r.id); return altFilter === "all" || (altFilter === "none" ? !a : a?.status === altFilter); }).map((r) => {
+          const a = alterations.data?.get(r.id);
+          return (
+            <li key={r.id} className="panel-wrap grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 p-3 sm:flex sm:items-center sm:p-4">
+              {r.outfits?.image_url ? <img src={r.outfits.image_url} alt={r.outfits.title} referrerPolicy="no-referrer" className="h-20 w-16 shrink-0 rounded-md object-cover" /> : <div className="grid h-20 w-16 shrink-0 place-items-center rounded-md bg-muted"><Package className="size-5 text-muted-foreground" /></div>}
+              <div className="min-w-0 sm:flex-1">
+                <p className="truncate font-medium">{wearerOf(r)}</p>
+                <p className="truncate text-sm text-muted-foreground">{r.outfits?.title ?? "Look"} · {r.outfits?.events?.name ?? ""}</p>
+                <p className="text-xs text-muted-foreground">{r.guest?.household ?? ""} · size {r.size_choice || r.build_size || "not chosen"}</p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  <Badge variant={a?.status === "complete" ? "default" : a ? "secondary" : "outline"}>{a ? (a.status === "with vendor" ? "With tailor" : a.status.charAt(0).toUpperCase() + a.status.slice(1)) : "Not started"}</Badge>
+                  {a?.photos ? <Badge variant="outline">{a.photos} photo{a.photos === 1 ? "" : "s"}</Badge> : null}
+                  <Badge variant="outline">{r.measured ? "Measurements in" : "No measurements"}</Badge>
+                </div>
+              </div>
+              <div className="col-span-2 sm:col-span-1 sm:shrink-0">
+                <OrderAlterations inviteId={inviteId!} reservationId={r.id} wearer={wearerOf(r)} measurements={r.measurementValues} label={a ? "Open alteration" : "Record alteration"} />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
   if (view === "orders") return (
     <div className="space-y-5">
       <GroupedShopOrders inviteId={inviteId} candidates={candidates} />
@@ -341,21 +404,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
             </Button>
           ))}
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {([["gender", "All looks"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
-            <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
-              onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
-              <option value="">{all}</option>
-              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? ({ men: "Man", women: "Woman", boy: "Boy", girl: "Girl", man: "Man", woman: "Woman" } as Record<string, string>)[v] ?? v : v}</option>)}
-            </select>
-          ))}
-          <select aria-label="Sort" className="field-select col-span-2 h-9 w-full rounded-md border border-border bg-background px-2 text-sm sm:col-span-4" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="recent">Sort: newest first</option>
-            <option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option>
-            <option value="size-asc">Size ascending</option><option value="size-desc">Size descending</option>
-            <option value="price-asc">Price low to high</option><option value="price-desc">Price high to low</option>
-          </select>
-        </div>
+        {filterBar}
       </div>
 
       {data.isLoading ? (
