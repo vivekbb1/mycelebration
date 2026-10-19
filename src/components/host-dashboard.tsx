@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { matchesSelectedEvent, useSelectedEvent } from "@/lib/selected-event";
+import { memberLook, memberMeasurements } from "@/lib/outfit-pick-progress";
 
 type Filter = "all" | "no_reply" | "no_look" | "no_measure";
 
@@ -23,11 +24,11 @@ export function HostDashboard() {
       const [guests, res, meas] = await Promise.all([
         supabase
           .from("invite_codes")
-          .select("id, guest_name, household, claimed_by, rsvp_status, invite_id")
+          .select("id, guest_name, household, claimed_by, rsvp_status, invite_id, gender")
           .eq("invite_id", id),
         supabase
           .from("reservations")
-          .select("guest_id, guest_name, outfits(title)")
+          .select("guest_id, guest_name, outfits(title, event_id)")
           .eq("invite_id", id),
         supabase.from("measurements").select("guest_id, guest_name").eq("invite_id", id),
       ]);
@@ -70,13 +71,12 @@ export function HostDashboard() {
     return d.guests
       .filter((g) => matchesSelectedEvent(g.invite_id, inviteId))
       .map((g) => {
+        const family = d.guests.filter((m) => m.household === g.household);
         const looks = d.res
-          .filter((r) => r.guest_id === g.claimed_by && (!r.guest_name || r.guest_name === g.guest_name))
+          .filter((r) => r.outfits?.event_id && memberLook(g, family, [r], r.outfits.event_id))
           .map((r) => (r.outfits as { title: string } | null)?.title ?? "A look");
-        const measured = d.meas.some(
-          (m) => m.guest_id === g.claimed_by && (!m.guest_name || m.guest_name === g.guest_name),
-        );
-        return { ...g, looks, measured: !!g.claimed_by && measured };
+        const measured = Boolean(memberMeasurements(g, family, d.meas));
+        return { ...g, looks, measured };
       })
       .sort((a, b) => (a.household ?? "").localeCompare(b.household ?? ""));
   }, [data.data, inviteId]);

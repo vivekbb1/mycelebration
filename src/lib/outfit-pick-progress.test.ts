@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import { deepStrictEqual, strictEqual } from "node:assert";
-import { missingOutfitEvents } from "./outfit-pick-progress";
+import { missingOutfitEvents, memberLook, memberMeasurements } from "./outfit-pick-progress";
 
 const events = [{ id: "wedding", outfit_selection: true }, { id: "sangeet", outfit_selection: true }, { id: "own", outfit_selection: false }];
 const members = [
@@ -9,6 +9,13 @@ const members = [
   { guest_name: "Grant", household: "Fleming", claimed_by: "grant", gender: "men" },
 ] as const;
 describe("outfit reminders", () => {
+  it("credits a spouse's proxy selection and measurements to the wearer without an account", () => {
+    const look = { guest_id: "federico", guest_name: "Annalisa", outfits: { event_id: "wedding" } };
+    strictEqual(memberLook(members[1], [...members], [look], "wedding"), look);
+    strictEqual(memberLook(members[0], [...members], [look], "wedding"), undefined);
+    const measurement = { guest_id: "federico", guest_name: "Annalisa", waist: 72 };
+    strictEqual(memberMeasurements(members[1], [...members], [measurement])?.waist, 72);
+  });
   it("includes Annalisa with one of two outfits missing even without her own account", () => {
     const looks = [{ guest_id: "federico", guest_name: "Annalisa", outfits: { event_id: "wedding" } }];
     deepStrictEqual(missingOutfitEvents(members[1], [...members], events, [], looks, new Set()).map((e) => e.id), ["sangeet"]);
