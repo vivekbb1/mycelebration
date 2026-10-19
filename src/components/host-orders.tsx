@@ -33,6 +33,15 @@ type Draft = {
   order_note: string;
 };
 
+const FILTER_TABS = [
+  ["all", "All looks"],
+  ["ready", "Ready to order"],
+  ["fit", "Size mismatch"],
+  ["nomeas", "Missing measurements"],
+  ["soldout", "Sold out"],
+  ["placed", "Ordered"],
+] as const;
+
 /**
  * Orders: once a guest has confirmed their look and sent measurements, the
  * host places the order with the shop and tracks money and shipping here.
