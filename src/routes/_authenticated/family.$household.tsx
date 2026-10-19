@@ -233,6 +233,18 @@ function FamilyPageContent() {
     await queryClient.invalidateQueries({ queryKey: ["family-people", name] });
   };
 
+  const owner = useQuery({
+    queryKey: ["is-celebration-owner", inviteId],
+    enabled: isHost && Boolean(inviteId),
+    queryFn: async () => {
+      if (!inviteId) return false;
+      const { data, error } = await supabase.rpc("is_celebration_owner", { _invite_id: inviteId });
+      if (error) throw error;
+      return Boolean(data);
+    },
+  });
+  const isOwner = owner.data === true;
+
   if (role.isLoading) {
     return (
       <p className="mx-auto max-w-6xl px-4 py-12 text-sm text-muted-foreground sm:px-6">Loading…</p>
@@ -254,17 +266,6 @@ function FamilyPageContent() {
     );
   }
 
-
-  const owner = useQuery({
-    queryKey: ["is-celebration-owner", inviteId],
-    enabled: isHost && Boolean(inviteId),
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("is_celebration_owner", { _invite_id: inviteId as string });
-      if (error) throw error;
-      return Boolean(data);
-    },
-  });
-  const isOwner = owner.data === true;
 
   const eventList = (events.data ?? []).filter(
     (e) => (assigned.data ?? []).length === 0 || (assigned.data ?? []).includes(e.id),
