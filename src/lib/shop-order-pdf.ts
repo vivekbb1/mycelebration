@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFString, StandardFonts, rgb } from "pdf-lib";
 import { money, orderTotals, type OrderItem, type OrderPayment } from "./shop-order";
 
 export async function buildShopOrderPdf(reference: string, shop: string, currency: string, items: OrderItem[], payments: OrderPayment[], notes: string) {
@@ -73,16 +73,16 @@ export async function buildPreorderPdf(title: string, subtitle: string, lines: P
   let total = 0; let unpriced = 0;
   for (const [i, l] of lines.entries()) {
     if (l.amount != null) total += l.amount; else unpriced++;
+    const nameLines = wrap(l.wearer, 9.5, bold).map((t) => ({ t, font: bold, size: 9.5 }));
     const body = [
       `${l.designer}${l.sku ? ` | SKU ${l.sku}` : ""}`,
-      `Wearer: ${l.wearer} | ${l.family} | ${l.event}`,
+      `${l.family} | ${l.event}`,
       `Size: ${l.size || "Not chosen"}${l.suggested ? ` (suggested ${l.suggested})` : ""} | ${l.status}`,
       `Measurements: ${l.measurements || "Not supplied"}`,
       ...(l.notes ? [`Notes: ${l.notes}`] : []),
-      ...(l.shop ? [`Shop: ${l.shop}`] : []),
-    ].flatMap((t) => wrap(t, 8.5));
+    ].flatMap((t) => wrap(t, 8.5)).map((t) => ({ t, font: regular, size: 8.5 }));
     const head = wrap(`${i + 1}. ${l.title}`, 10, bold);
-    const h = Math.max(96, head.length * 13 + body.length * 11 + 8);
+    const h = Math.max(96, head.length * 13 + (nameLines.length + body.length + (l.shop ? 1 : 0)) * 11 + 8);
     if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
     if (l.image) { try {
@@ -96,7 +96,19 @@ export async function buildPreorderPdf(title: string, subtitle: string, lines: P
     page.drawRectangle({ x: 555 - pw - 8, y: y - 15, width: pw + 8, height: 16, color: rgb(.98, .93, .86) });
     right(page, priceText, y - 11, 11, bold, accent);
     for (const t of head) { page.drawText(t, { x: 120, y: ty - 10, size: 10, font: bold }); ty -= 13; }
-    for (const t of body) { page.drawText(t, { x: 120, y: ty - 9, size: 8.5, font: regular, color: rgb(.2, .2, .2) }); ty -= 11; }
+    for (const b of [...nameLines, ...body]) { page.drawText(b.t, { x: 120, y: ty - 9, size: b.size, font: b.font, color: rgb(.15, .15, .15) }); ty -= 11; }
+    if (l.shop && /^https?:\/\//i.test(l.shop)) {
+      const label = "Open in shop >"; const lw = regular.widthOfTextAtSize(label, 8.5); const ly = ty - 9;
+      const blue = rgb(.1, .3, .75);
+      page.drawText(label, { x: 120, y: ly, size: 8.5, font: regular, color: blue });
+      page.drawLine({ start: { x: 120, y: ly - 1.5 }, end: { x: 120 + lw, y: ly - 1.5 }, thickness: .5, color: blue });
+      const annot = pdf.context.register(pdf.context.obj({
+        Type: "Annot", Subtype: "Link", Rect: [118, ly - 3, 122 + lw, ly + 9], Border: [0, 0, 0],
+        A: { Type: "Action", S: "URI", URI: PDFString.of(l.shop) },
+      }));
+      page.node.addAnnot(annot);
+      ty -= 11;
+    }
     y -= h + 6;
     page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
   }
