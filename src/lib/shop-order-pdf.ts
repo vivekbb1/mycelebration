@@ -12,7 +12,11 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     let page = pdf.addPage([595, 842]); let y = 790;
     const text = (value: string, heading = false) => {
       const font = heading ? bold : regular; const size = heading ? 12 : 10;
-      const words = clean(value).split(/\s+/); let line = "";
+      const words = clean(value).split(/\s+/).flatMap((word) => {
+        const parts: string[] = []; let part = "";
+        for (const char of word) { if (font.widthOfTextAtSize(part + char, size) > 500) { parts.push(part); part = char; } else part += char; }
+        if (part) parts.push(part); return parts;
+      }); let line = "";
       const draw = () => { if (y < 55) { page = pdf.addPage([595, 842]); y = 790; } page.drawText(line, { x: 42, y, size, font, color: rgb(.12, .12, .12) }); y -= 16; };
       for (const word of words) { if (font.widthOfTextAtSize(`${line} ${word}`, size) > 510 && line) { draw(); line = word; } else line += `${line ? " " : ""}${word}`; }
       if (line) draw(); y -= 5;
