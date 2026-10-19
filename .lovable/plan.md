@@ -1,11 +1,11 @@
-# Bring back the missing outfit choices on the Selection tab
+# Link every outfit choice to the person's code, not their name
 
 ## What is happening
-None of these choices were deleted. All 49 are still saved, and that's why they show in Manage. The Selection tab only credits a choice to a person when the name saved on the choice matches that person's full name on the guest list. For 7 families, the choice was saved under a first name only, or with the names in the wrong order, so it doesn't match:
+Nothing was deleted. All 49 outfit choices are still saved, which is why they show in Manage. Selection credits a choice to a person only when the name saved on the choice matches their full name. For 7 people, the saved name doesn't match, so their 14 choices are not shown in Selection:
 
-| Saved as | Guest list name | Events |
+| Saved as | Person (code) | Events |
 |---|---|---|
-| Alla | Alla Ferreiro | Wedding, Big Bollywood Night |
+| Alla | Alla Ferreiro (ALLA-GFNC2W28) | Wedding, Big Bollywood Night |
 | Olena | Olena Stupin | Wedding, Big Bollywood Night |
 | Anna | Anna Roques | Wedding, Big Bollywood Night |
 | Roques Hugo | Hugo Roques | Wedding, Big Bollywood Night |
@@ -13,15 +13,16 @@ None of these choices were deleted. All 49 are still saved, and that's why they 
 | Dennis | Dennis Ruf | Wedding, Big Bollywood Night |
 | Jordan | Jordan Grogor | Wedding, Big Bollywood Night |
 
-That makes 14 choices in total.
-
 ## Steps
-1. **Confirm with you first.** I'll check the table above with you before anything is saved.
-2. **Correct the names on those 14 choices only.** I'll change just the wearer's name to the full guest-list name. The look, the size, the confirmation, any order and any payment stay exactly as they are. No other choices are touched, and the change is recorded in the new choice history.
-3. **Stop it happening again.** Selection, Overview, the reminder list and the family page will also accept a first name, or a name written in reverse order, when it clearly belongs to exactly one person in that family. When a new look is chosen, the full guest-list name will be saved with it.
-4. **Check the result.** Open Wardrobe → Selection and confirm that Alla, Olena, Anna, Hugo, Grant, Dennis and Jordan each show 2 looks, and that the family scores add up to the 49 choices.
+1. **Link choices to codes.** Every outfit choice, and every set of measurements, gets a link to the person's family-profile code. Once linked, renaming a person or a family no longer affects their choices.
+2. **Link existing choices.** The 35 choices that already match a name are linked automatically. For the 14 choices above, I'll show you the list and wait for your OK before linking them. Looks, sizes, confirmations, orders and payments stay exactly as they are, and every change is recorded in the choice history.
+3. **New choices use the code.** When a guest or host reserves a look for a family member, the code is saved with it. The name is kept only for display.
+4. **Every screen reads the code first.** This covers Selection, Overview, Orders, nudge reminders, the family page and the guest Invite and Summary pages. They match by name only for a choice that has no code yet.
+5. **Check the result.** In Selection, each of the 7 people shows 2 looks, and the family scores add up to 49. Then I'll rename a test person and confirm their looks stay with them.
 
 ## Technical details
-- Change the data with a single UPDATE on `reservations.guest_name`, keyed by reservation id, for the 14 rows only. The `reservations_history` trigger records the old and new values.
-- In `normalize`/matching in `src/lib/outfit-pick-progress.ts`, also accept a reversed full name, and accept a first-name-only match when it is unique within the family. Add tests for "Alla", "Roques Hugo", and an ambiguous first name that should not match.
-- When a look is reserved, set `guest_name` to the invite_code's full `guest_name`.
+- Migration: add a nullable column `reservations.member_code_id uuid` that references `invite_codes(id)` with ON DELETE SET NULL, and do the same for `measurements`, with indexes on both. Backfill only exact matches within the same household and celebration: a normalised full name, or the account's own code when no name is set.
+- After you confirm, the 14 ambiguous rows are updated by reservation id with `supabase--run_sql`. The `reservation_history` trigger records each change.
+- Make `memberLook`/`memberMeasurements` in `src/lib/outfit-pick-progress.ts` match on `member_code_id === member.id` first. Fall back to name matching only when the code is null. Add tests for code matching surviving a rename, and for a code taking priority over a mismatched name.
+- Reserve paths (`guest.outfits.tsx`, `feed.functions.ts`, the host proxy reserve) and the measurements form (`guest.measurements.tsx`) send the selected member's code id.
+- Record the rule "member records link by invite_code id, not name" in AGENTS.md, and add the task to roadmap.md.
