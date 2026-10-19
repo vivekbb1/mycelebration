@@ -2557,6 +2557,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reservation_history: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          invite_id: string | null
+          new_row: Json | null
+          old_row: Json | null
+          reservation_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          invite_id?: string | null
+          new_row?: Json | null
+          old_row?: Json | null
+          reservation_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          invite_id?: string | null
+          new_row?: Json | null
+          old_row?: Json | null
+          reservation_id?: string
+        }
+        Relationships: []
+      }
       reservations: {
         Row: {
           amount_paid: number
@@ -3004,9 +3037,11 @@ export type Database = {
       }
       wardrobe_orders: {
         Row: {
+          advance_amount: number
           courier: string
           created_at: string
           currency: string
+          documents: Json
           id: string
           invite_id: string
           items: Json
@@ -3014,15 +3049,21 @@ export type Database = {
           payments: Json
           placed_at: string | null
           reference: string
+          salesperson_mobile: string
+          salesperson_name: string
+          seller_reference: string
+          seller_total: number | null
           shop_name: string
           status: string
           tracking_number: string
           updated_at: string
         }
         Insert: {
+          advance_amount?: number
           courier?: string
           created_at?: string
           currency?: string
+          documents?: Json
           id?: string
           invite_id: string
           items?: Json
@@ -3030,15 +3071,21 @@ export type Database = {
           payments?: Json
           placed_at?: string | null
           reference: string
+          salesperson_mobile?: string
+          salesperson_name?: string
+          seller_reference?: string
+          seller_total?: number | null
           shop_name?: string
           status?: string
           tracking_number?: string
           updated_at?: string
         }
         Update: {
+          advance_amount?: number
           courier?: string
           created_at?: string
           currency?: string
+          documents?: Json
           id?: string
           invite_id?: string
           items?: Json
@@ -3046,6 +3093,10 @@ export type Database = {
           payments?: Json
           placed_at?: string | null
           reference?: string
+          salesperson_mobile?: string
+          salesperson_name?: string
+          seller_reference?: string
+          seller_total?: number | null
           shop_name?: string
           status?: string
           tracking_number?: string
