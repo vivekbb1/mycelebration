@@ -2944,6 +2944,123 @@ export type Database = {
           },
         ]
       }
+      wardrobe_alterations: {
+        Row: {
+          id: string
+          invite_id: string
+          measurements: Json
+          notes: string
+          photos: Json
+          reservation_id: string
+          status: string
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          id?: string
+          invite_id: string
+          measurements?: Json
+          notes?: string
+          photos?: Json
+          reservation_id: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          id?: string
+          invite_id?: string
+          measurements?: Json
+          notes?: string
+          photos?: Json
+          reservation_id?: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_alterations_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wardrobe_alterations_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wardrobe_alterations_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wardrobe_orders: {
+        Row: {
+          courier: string
+          created_at: string
+          currency: string
+          id: string
+          invite_id: string
+          items: Json
+          notes: string
+          payments: Json
+          placed_at: string | null
+          reference: string
+          shop_name: string
+          status: string
+          tracking_number: string
+          updated_at: string
+        }
+        Insert: {
+          courier?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invite_id: string
+          items?: Json
+          notes?: string
+          payments?: Json
+          placed_at?: string | null
+          reference: string
+          shop_name?: string
+          status?: string
+          tracking_number?: string
+          updated_at?: string
+        }
+        Update: {
+          courier?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invite_id?: string
+          items?: Json
+          notes?: string
+          payments?: Json
+          placed_at?: string | null
+          reference?: string
+          shop_name?: string
+          status?: string
+          tracking_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_orders_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_broadcasts: {
         Row: {
           created_at: string
