@@ -14,7 +14,7 @@ import { OrderAlterations } from "@/components/order-alterations";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
 import type { OrderItem } from "@/lib/shop-order";
 import { Checkbox } from "@/components/ui/checkbox";
-import { downloadPreorderPdf } from "@/lib/shop-order-pdf";
+import { buildPreorderPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { FileDown, ShoppingBag } from "lucide-react";
 
 const PAYMENT = ["unpaid", "part paid", "paid", "refunded"] as const;
@@ -210,6 +210,19 @@ export function HostOrders() {
     setDrafts((p) => ({ ...p, [r.id]: { ...draftOf(r), [k]: v } }));
 
   const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
+  const [pdfReady, setPdfReady] = useState<{ blob: Blob; name: string } | null>(null);
+  async function releaseFromOrder(rid: string) {
+    const o = (orderList.data ?? []).find((x) => x.status !== "cancelled" && (x.items as unknown as OrderItem[]).some((i) => i.reservationId === rid));
+    if (!o) return;
+    const items = (o.items as unknown as OrderItem[]).filter((i) => i.reservationId !== rid);
+    if (!items.length) { toast.error(`It's the only look in order ${o.reference} — cancel that order instead`); return; }
+    if (!window.confirm(`Release this look from order ${o.reference} back to pre-orders?`)) return;
+    const { error } = await supabase.from("wardrobe_orders").update({ items: items as never }).eq("id", o.id);
+    if (error) { toast.error(error.message); return; }
+    await supabase.from("reservations").update({ order_placed_at: null }).eq("id", rid);
+    toast.success("Released back to pre-orders");
+    qc.invalidateQueries({ queryKey: ["wardrobe-orders"] }); qc.invalidateQueries({ queryKey: ["host-orders"] });
+  }
   const pickedRows = rows.filter((r) => picked.has(r.id));
   const convertible = pickedRows.filter((r) => !inOrder.has(r.id));
   async function preorderPdf() {
@@ -217,7 +230,7 @@ export function HostOrders() {
     try {
       const list = picked.size ? pickedRows : rows;
       const tab = FILTER_TABS.find(([k]) => k === filter)?.[1] ?? "All looks";
-      await downloadPreorderPdf(`Pre-order - ${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => ({
+      const blob = await buildPreorderPdf(`Pre-order - ${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => ({
         wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "",
         title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "",
         size: r.size_choice || r.build_size || "", suggested: r.suggested ?? "",
@@ -226,7 +239,8 @@ export function HostOrders() {
         measurements: r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => `${k.replaceAll("_", " ")} ${v}`).join(", ") : "",
         shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", notes: r.build_fabric || "",
       })));
-    } catch { toast.error("Couldn't create the PDF"); } finally { setPdfBusy(false); }
+      setPdfReady({ blob, name: `pre-order-${tab.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf` });
+    } catch (e) { console.error(e); toast.error("Couldn't create the PDF"); } finally { setPdfBusy(false); }
   }
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
@@ -248,8 +262,13 @@ export function HostOrders() {
           </span>
           <div className="ml-auto flex flex-wrap gap-2">
             <Button size="sm" variant="outline" disabled={pdfBusy || (!picked.size && !rows.length)} onClick={() => void preorderPdf()}>
-              <FileDown className="size-4" /> Pre-order PDF{picked.size ? ` (${picked.size})` : ""}
+              <FileDown className="size-4" /> {pdfBusy ? "Preparing…" : "Pre-order PDF"}{picked.size ? ` (${picked.size})` : ""}
             </Button>
+            {pdfReady ? (
+              <Button size="sm" onClick={() => { saveBlob(pdfReady.blob, pdfReady.name); setPdfReady(null); }}>
+                <FileDown className="size-4" /> Download PDF
+              </Button>
+            ) : null}
             <Button size="sm" disabled={!convertible.length} onClick={() => setStartWith(convertible.map(toItem))}>
               <ShoppingBag className="size-4" /> Convert {convertible.length || ""} to one order
             </Button>
@@ -370,7 +389,7 @@ export function HostOrders() {
                       <Badge variant={r.measured ? "default" : "outline"}>
                         {r.measured ? "Measurements in" : "No measurements"}
                       </Badge>
-                      {inOrder.has(r.id) ? <Badge variant="secondary">In order {inOrder.get(r.id)}</Badge> : null}
+                      {inOrder.has(r.id) ? <><Badge variant="secondary">In order {inOrder.get(r.id)}</Badge><Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => void releaseFromOrder(r.id)}>Release to pre-order</Button></> : null}
                       {r.order_placed_at ? (
                         <>
                           <Badge variant="secondary">
