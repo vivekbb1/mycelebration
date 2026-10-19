@@ -701,6 +701,13 @@
       "when": 1792401971530,
       "tag": "0099_protect_guest_selections",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1792402900415,
+      "tag": "0100_link_member_records_to_codes",
+      "breakpoints": true
     }
   ]
 }

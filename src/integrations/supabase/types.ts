@@ -1165,6 +1165,7 @@ export type Database = {
           id: string
           invite_id: string | null
           last_name: string | null
+          member_code_id: string | null
           nationality: string | null
           passport_number: string | null
           person_name: string
@@ -1181,6 +1182,7 @@ export type Database = {
           id?: string
           invite_id?: string | null
           last_name?: string | null
+          member_code_id?: string | null
           nationality?: string | null
           passport_number?: string | null
           person_name: string
@@ -1197,6 +1199,7 @@ export type Database = {
           id?: string
           invite_id?: string | null
           last_name?: string | null
+          member_code_id?: string | null
           nationality?: string | null
           passport_number?: string | null
           person_name?: string
@@ -1209,6 +1212,13 @@ export type Database = {
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_passports_member_code_id_fkey"
+            columns: ["member_code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
             referencedColumns: ["id"]
           },
         ]
@@ -1983,6 +1993,7 @@ export type Database = {
           id: string
           inseam: number | null
           invite_id: string | null
+          member_code_id: string | null
           neck: number | null
           notes: string | null
           shoulder: number | null
@@ -2008,6 +2019,7 @@ export type Database = {
           id?: string
           inseam?: number | null
           invite_id?: string | null
+          member_code_id?: string | null
           neck?: number | null
           notes?: string | null
           shoulder?: number | null
@@ -2033,6 +2045,7 @@ export type Database = {
           id?: string
           inseam?: number | null
           invite_id?: string | null
+          member_code_id?: string | null
           neck?: number | null
           notes?: string | null
           shoulder?: number | null
@@ -2050,6 +2063,13 @@ export type Database = {
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "measurements_member_code_id_fkey"
+            columns: ["member_code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
             referencedColumns: ["id"]
           },
         ]
@@ -2601,6 +2621,7 @@ export type Database = {
           guest_name: string | null
           id: string
           invite_id: string | null
+          member_code_id: string | null
           order_amount: number | null
           order_currency: string
           order_note: string | null
@@ -2627,6 +2648,7 @@ export type Database = {
           guest_name?: string | null
           id?: string
           invite_id?: string | null
+          member_code_id?: string | null
           order_amount?: number | null
           order_currency?: string
           order_note?: string | null
@@ -2653,6 +2675,7 @@ export type Database = {
           guest_name?: string | null
           id?: string
           invite_id?: string | null
+          member_code_id?: string | null
           order_amount?: number | null
           order_currency?: string
           order_note?: string | null
@@ -2678,6 +2701,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reservations_member_code_id_fkey"
+            columns: ["member_code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reservations_outfit_id_fkey"
             columns: ["outfit_id"]
             isOneToOne: true
@@ -2695,6 +2725,7 @@ export type Database = {
           household: string
           id: string
           invite_id: string
+          member_code_id: string | null
           room_id: string
         }
         Insert: {
@@ -2705,6 +2736,7 @@ export type Database = {
           household: string
           id?: string
           invite_id: string
+          member_code_id?: string | null
           room_id: string
         }
         Update: {
@@ -2715,6 +2747,7 @@ export type Database = {
           household?: string
           id?: string
           invite_id?: string
+          member_code_id?: string | null
           room_id?: string
         }
         Relationships: [
@@ -2723,6 +2756,13 @@ export type Database = {
             columns: ["invite_id"]
             isOneToOne: false
             referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_assignments_member_code_id_fkey"
+            columns: ["member_code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
             referencedColumns: ["id"]
           },
           {
@@ -2834,6 +2874,7 @@ export type Database = {
           invite_id: string | null
           notes: string | null
           party_size: number | null
+          traveller_code_ids: string[] | null
           travellers: string[] | null
           updated_at: string
           updated_by: string | null
@@ -2857,6 +2898,7 @@ export type Database = {
           invite_id?: string | null
           notes?: string | null
           party_size?: number | null
+          traveller_code_ids?: string[] | null
           travellers?: string[] | null
           updated_at?: string
           updated_by?: string | null
@@ -2880,6 +2922,7 @@ export type Database = {
           invite_id?: string | null
           notes?: string | null
           party_size?: number | null
+          traveller_code_ids?: string[] | null
           travellers?: string[] | null
           updated_at?: string
           updated_by?: string | null
@@ -3262,6 +3305,10 @@ export type Database = {
       my_pay_instructions: { Args: never; Returns: string }
       my_room: { Args: never; Returns: Json }
       my_travel_settings: { Args: never; Returns: Json }
+      resolve_member_code: {
+        Args: { _account: string; _invite: string; _name: string }
+        Returns: string
+      }
       signup_link_info: { Args: { _token: string }; Returns: Json }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
       sync_household_rsvp_in: {
