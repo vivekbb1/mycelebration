@@ -694,13 +694,6 @@
       "when": 1792400630728,
       "tag": "0098_private_alteration_photo_access",
       "breakpoints": true
-    },
-    {
-      "idx": 99,
-      "version": "7",
-      "when": 1792401471732,
-      "tag": "0099_seller_order_details",
-      "breakpoints": true
     }
   ]
 }
