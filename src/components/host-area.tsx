@@ -285,13 +285,16 @@ function HostDashboard() {
     },
   });
 
-  const guestName = (guestId: string, forName: string | null) => {
-    const by =
-      profiles.data?.find((p) => p.id === guestId)?.full_name ||
-      invites.data?.find((i) => i.claimed_by === guestId)?.guest_name ||
-      null;
-    const who = (forName ?? "").trim();
-    if (who && by && who.toLowerCase() !== by.trim().toLowerCase()) return `${who} (by ${by})`;
+  /** Wearer from their own invite code; the selector shown only when someone else chose for them. */
+  const guestName = (guestId: string, forName: string | null, codeId?: string | null) => {
+    const wearerCode = codeId ? invites.data?.find((i) => i.id === codeId) : undefined;
+    const selectorCode = invites.data?.find((i) => i.claimed_by === guestId);
+    const by = selectorCode?.guest_name || profiles.data?.find((p) => p.id === guestId)?.full_name || null;
+    const who = (wearerCode?.guest_name ?? forName ?? "").trim();
+    const proxy = wearerCode
+      ? wearerCode.claimed_by !== guestId && wearerCode.id !== selectorCode?.id
+      : Boolean(who && by && who.toLowerCase() !== by.trim().toLowerCase());
+    if (who && by && proxy) return `${who} (by ${by.trim()})`;
     return who || by || "Guest";
   };
 
@@ -387,7 +390,7 @@ function HostDashboard() {
         const outfit = outfits.data?.find((o) => o.id === r.outfit_id);
         return {
           id: r.id,
-          guest: guestName(r.guest_id, r.guest_name),
+          guest: guestName(r.guest_id, r.guest_name, r.member_code_id),
           guestId: r.guest_id,
           outfit: outfit?.title ?? "Outfit",
           image: outfit?.image_url ?? null,
@@ -1223,7 +1226,7 @@ function HostDashboard() {
                       <div className="absolute right-2 top-2">
                         {res ? (
                           <Badge variant="secondary" className="max-w-28 truncate">
-                            {guestName(res.guest_id, res.guest_name)}
+                            {guestName(res.guest_id, res.guest_name, res.member_code_id)}
                           </Badge>
                         ) : (
                           <Badge>Available</Badge>
