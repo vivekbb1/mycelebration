@@ -308,6 +308,7 @@ export function HostFamilyPicks({
                           );
                         })}
                       </div>
+                      <MemberMeasurements row={memberMeasurements(m, f.people.map((x) => x.m), fullMeasurements.data ?? []) as Record<string, unknown> | undefined} />
                     </div>
                   ))}
                 </div>
@@ -316,6 +317,37 @@ export function HostFamilyPicks({
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+const MEASURE_FIELDS: Array<[string, string]> = [
+  ["height", "Height"], ["bust", "Bust"], ["chest", "Chest"], ["under_bust", "Under bust"], ["waist", "Waist"], ["hip", "Hip"],
+  ["shoulder", "Shoulder"], ["armhole", "Armhole"], ["neck", "Neck"], ["sleeve_length", "Sleeve"], ["top_length", "Top / kurta length"],
+  ["bottom_length", "Skirt / trouser length"], ["inseam", "Inseam"],
+];
+
+function MemberMeasurements({ row }: { row: Record<string, unknown> | undefined }) {
+  if (!row) return null;
+  const unit = (row["unit"] as string | null) ?? "cm";
+  const given = MEASURE_FIELDS.filter(([k]) => row[k] !== null && row[k] !== undefined);
+  if (!given.length && !row["usual_size"] && !row["notes"]) return null;
+  return (
+    <div className="mt-2 rounded-lg border border-border p-2">
+      <p className="flex items-center gap-1 text-[0.65rem] tracking-wider text-muted-foreground uppercase">
+        <Ruler className="size-3" /> Measurements · {unit}{row["usual_size"] ? ` · usual size ${String(row["usual_size"])}` : ""}
+      </p>
+      {given.length ? (
+        <dl className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3 lg:grid-cols-5">
+          {given.map(([k, label]) => (
+            <div key={k} className="flex items-baseline justify-between gap-2">
+              <dt className="text-xs text-muted-foreground">{label}</dt>
+              <dd className="text-xs">{String(row[k])}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {row["notes"] ? <p className="mt-1.5 text-xs text-muted-foreground">Note for the tailor: {String(row["notes"])}</p> : null}
     </div>
   );
 }
