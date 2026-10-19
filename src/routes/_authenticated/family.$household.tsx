@@ -6,7 +6,7 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 import { AddFamilyMemberButton, FamilyMemberActions, RenameFamilyButton } from "@/components/host-family-members";
 import { FamilyRegroupDialog } from "@/components/family-regroup-dialog";
-import { useSelectedEvent } from "@/lib/selected-event";
+import { SelectedEventProvider, useSelectedEvent } from "@/lib/selected-event";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAnyHost } from "@/lib/host-role";
@@ -58,6 +58,10 @@ const rsvpLabel = (value: string | null | undefined) => {
 };
 
 function FamilyPage() {
+  return <SelectedEventProvider><FamilyPageContent /></SelectedEventProvider>;
+}
+
+function FamilyPageContent() {
   const { household } = Route.useParams();
   const name = decodeURIComponent(household);
   const { inviteId: selectedInviteId } = useSelectedEvent();
