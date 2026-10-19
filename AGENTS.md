@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 - Live feeds per event: shop filters per audience, guests claim live, host hide. Why: no bulk importing needed.
+- Grouped shop orders snapshot wearer details, prices and measurements in celebration-scoped host-only records, with database validation of discounts and manual payments. Why: offline shop negotiation must remain auditable without changing guest choices.
+- Alteration photos use a private celebration-prefixed bucket and signed URLs; shop PDFs are generated in the browser. Why: fitting media and measurements stay host-only and PDF generation needs no server filesystem.
 - Host outfit reminders share a pure member/event eligibility helper between the list and email handler. Why: missing choices must be attributed to the wearer consistently.
 - Family profile wardrobe choices use a dedicated table component and the shared wearer matching helper. Why: family members must align across event columns without attributing another member’s look to the reserving account.
 - Host overview, ordering exports and family selections use shared wearer matching for proxy reservations and measurements. Why: the account selecting a look is not necessarily its wearer.
