@@ -265,12 +265,13 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     try {
       const list = picked.size ? pickedRows : rows;
       const tab = FILTER_TABS.find(([k]) => k === filter)?.[1] ?? "All looks";
-      const blob = await buildPreorderPdf(`Pre-order - ${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => ({
+      const blob = await buildPreorderPdf("Pre-Order", `${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => ({
         wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "",
         title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "",
         size: r.size_choice || r.build_size || "", suggested: r.suggested ?? "",
         status: [r.confirmed ? "Confirmed" : "Reserved", r.soldOut ? "size sold out" : "", inOrder.has(r.id) ? `in order ${inOrder.get(r.id)}` : ""].filter(Boolean).join(", "),
-        price: r.outfits?.price_inr != null ? `INR ${money(Number(r.outfits.price_inr))}` : r.outfits?.price_note || "Not supplied",
+        price: r.outfits?.price_inr != null ? `INR ${money(Number(r.outfits.price_inr), "INR")}` : r.outfits?.price_note || "Not supplied",
+        amount: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null,
         measurements: r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => `${k.replaceAll("_", " ")} ${v}`).join(", ") : "",
         shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", notes: r.build_fabric || "",
       })));
