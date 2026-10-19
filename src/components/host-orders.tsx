@@ -124,15 +124,26 @@ export function HostOrders() {
 
   type Row = NonNullable<typeof data.data>[number];
 
-  const rows = useMemo(() => {
+  const [dim, setDim] = useState({ person: "", family: "", event: "", gender: "" });
+  const wearerOf = (r: Row) => r.guest_name || r.guest?.guest_name || "Guest";
+  const genderOf = (r: Row) => (r.outfits as { gender?: string } | null)?.gender ?? "";
+  const options = useMemo(() => {
     const all = data.data ?? [];
+    const uniq = (f: (r: Row) => string) => [...new Set(all.map(f).filter(Boolean))].sort();
+    return { person: uniq(wearerOf), family: uniq((r) => r.guest?.household ?? ""), event: uniq((r) => r.outfits?.events?.name ?? ""), gender: uniq(genderOf) };
+  }, [data.data]);
+  const base = useMemo(() => (data.data ?? []).filter((r) =>
+    (!dim.person || wearerOf(r) === dim.person) && (!dim.family || r.guest?.household === dim.family) &&
+    (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender)), [data.data, dim]);
+  const rows = useMemo(() => {
+    const all = base;
     if (filter === "placed") return all.filter((r) => r.order_placed_at);
     if (filter === "soldout") return all.filter((r) => r.soldOut);
     if (filter === "fit") return all.filter((r) => r.misfit || r.soldOut);
     if (filter === "nomeas") return all.filter((r) => !r.measured);
     if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.confirmed && r.measured);
     return all;
-  }, [data.data, filter]);
+  }, [base, filter]);
 
   const draftOf = (r: Row): Draft =>
     drafts[r.id] ?? {
@@ -199,12 +210,12 @@ export function HostOrders() {
   }, [data.data]);
 
   const counts = {
-    ready: (data.data ?? []).filter((r) => !r.order_placed_at && r.confirmed && r.measured).length,
-    placed: (data.data ?? []).filter((r) => r.order_placed_at).length,
-    all: (data.data ?? []).length,
-    fit: (data.data ?? []).filter((r) => r.misfit || r.soldOut).length,
-    nomeas: (data.data ?? []).filter((r) => !r.measured).length,
-    soldout: (data.data ?? []).filter((r) => r.soldOut).length,
+    ready: base.filter((r) => !r.order_placed_at && r.confirmed && r.measured).length,
+    placed: base.filter((r) => r.order_placed_at).length,
+    all: base.length,
+    fit: base.filter((r) => r.misfit || r.soldOut).length,
+    nomeas: base.filter((r) => !r.measured).length,
+    soldout: base.filter((r) => r.soldOut).length,
   };
 
   const field = (r: Row, k: keyof Draft, v: string) =>
@@ -309,6 +320,15 @@ export function HostOrders() {
             >
               {label} ({counts[k]})
             </Button>
+          ))}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {([["gender", "All departments"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
+            <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
+              onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
+              <option value="">{all}</option>
+              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? v.charAt(0).toUpperCase() + v.slice(1) : v}</option>)}
+            </select>
           ))}
         </div>
       </div>
