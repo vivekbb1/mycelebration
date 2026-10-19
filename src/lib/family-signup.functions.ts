@@ -372,7 +372,7 @@ export const updateRegisteredGuest = createServerFn({ method: "POST" })
     if (oldName && newName && newName !== oldName) {
       const { count: clash } = await supabaseAdmin
         .from("families").select("id", { count: "exact", head: true })
-        .eq("invite_id", code.invite_id).ilike("name", newName);
+        .eq("invite_id", code.invite_id).ilike("name", newName).neq("name", oldName);
       if ((clash ?? 0) > 0) return { ok: false, error: "Another family already has that name." };
       const scope = { invite_id: code.invite_id, household: oldName };
       for (const t of HOUSEHOLD_TABLES) {
