@@ -273,14 +273,14 @@ export function HostFamilyPicks({
                         <Plane className="size-3" />
                         {arrival ? `${byCheckin ? "Checks in" : "Arrives"} ${fmt(arrival)}` : "Arrival or check-in not shared yet"}
                       </p>
-                      <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {perEvent.filter((p) => p.counts && matches(p)).map(({ ev, look }) => {
                           const o = look?.outfits as { title: string; image_url: string | null; images: unknown; boutique_url: string | null } | null | undefined;
                           const img = o?.image_url || (Array.isArray(o?.images) ? (o?.images[0] as string) : null);
                           const shop = o?.boutique_url && /^https?:\/\//i.test(o.boutique_url) ? o.boutique_url : null;
                            const confirmed = Boolean(look && ((look.build_garment && look.build_size) || look.status === "confirmed"));
                           return (
-                            <div key={ev.id} className="flex items-center gap-3 rounded-lg bg-surface p-2">
+                            <div key={ev.id} className="flex min-w-0 items-center gap-3 rounded-lg bg-surface p-2">
                               {img ? (
                                 shop ? <a href={shop} target="_blank" rel="noopener noreferrer" aria-label={`Open ${o?.title ?? "outfit"} in shop`} className="shrink-0"><img src={sized(img, 120)} alt={o?.title ?? ""} loading="lazy" className="h-16 w-12 rounded object-cover" /></a> : <img src={sized(img, 120)} alt={o?.title ?? ""} loading="lazy" className="h-16 w-12 shrink-0 rounded object-cover" />
                               ) : (
@@ -288,7 +288,7 @@ export function HostFamilyPicks({
                                   <Minus className="size-3.5 text-muted-foreground" />
                                 </div>
                               )}
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <p className="text-[0.65rem] tracking-wider text-muted-foreground uppercase">{ev.name}</p>
                                 {o ? (
                                   <>

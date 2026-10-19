@@ -99,7 +99,8 @@ export function HostOrders() {
           const key = (r.guest_name ?? "").trim().toLowerCase();
           const guest = guests.get(r.guest_id);
           const family = (codes.data ?? []).filter((c) => c.household === guest?.household);
-          const member = family.find((c) => c.guest_name.trim().toLowerCase() === key) ?? guest;
+          const coded = r.member_code_id ? (codes.data ?? []).find((c) => c.id === r.member_code_id) : undefined;
+          const member = coded ?? family.find((c) => c.guest_name.trim().toLowerCase() === key) ?? guest;
           const m = member ? memberMeasurements(member, family, meas.data ?? []) : undefined;
           const measurementValues: Record<string, string | number> = {};
           if (m) for (const k of ["unit", "usual_size", "height", "chest", "bust", "under_bust", "waist", "hip", "shoulder", "armhole", "neck", "sleeve_length", "top_length", "bottom_length", "inseam", "notes"] as const) { const v = m[k]; if(v !== null && v !== "") measurementValues[k] = v; }
@@ -109,6 +110,7 @@ export function HostOrders() {
           const shopSizes = ((r.outfits as { sizes?: unknown } | null)?.sizes as ShopSize[] | null) ?? [];
           return {
             ...r,
+            guest_name: coded?.guest_name ?? r.guest_name,
             guest,
             measurementValues: m ? measurementValues : null,
             measured: Boolean(m),
@@ -260,7 +262,7 @@ export function HostOrders() {
     <div className="space-y-5">
       <GroupedShopOrders inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
       {rows.length ? (
-        <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-3 p-3">
+        <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
           <label className="flex items-center gap-2 text-sm">
             <Checkbox
               aria-label="Select all shown"
@@ -272,7 +274,7 @@ export function HostOrders() {
           <span className="text-sm text-muted-foreground">
             {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + Number(r.order_amount ?? r.outfits?.price_inr ?? 0), 0).toLocaleString(...nf())}
           </span>
-          <div className="ml-auto flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap">
             <Button size="sm" variant="outline" disabled={pdfBusy || (!picked.size && !rows.length)} onClick={() => void preorderPdf()}>
               <FileDown className="size-4" /> {pdfBusy ? "Preparing…" : "Pre-order PDF"}{picked.size ? ` (${picked.size})` : ""}
             </Button>
@@ -287,7 +289,7 @@ export function HostOrders() {
           </div>
         </div>
       ) : null}
-      <div className="panel-wrap p-5">
+      <div className="panel-wrap p-4 sm:p-5">
         <h2 className="font-display text-xl">Pre-orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Every look guests have chosen, waiting to be ordered. Tick several (or select all) to
@@ -308,7 +310,7 @@ export function HostOrders() {
             ))}
           </div>
         ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {(
             FILTER_TABS
           ).map(([k, label]) => (
@@ -316,6 +318,7 @@ export function HostOrders() {
               key={k}
               size="sm"
               variant={filter === k ? "default" : "outline"}
+              className="shrink-0"
               onClick={() => { setFilter(k); setPicked(new Set()); setPdfReady(null); }}
             >
               {label} ({counts[k]})
@@ -323,11 +326,11 @@ export function HostOrders() {
           ))}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {([["gender", "All departments"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
+          {([["gender", "Looks: all"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
             <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
               onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
               <option value="">{all}</option>
-              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? v.charAt(0).toUpperCase() + v.slice(1) : v}</option>)}
+              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? ({ men: "Man", women: "Woman", boy: "Boy", girl: "Girl", man: "Man", woman: "Woman" } as Record<string, string>)[v] ?? v : v}</option>)}
             </select>
           ))}
         </div>
@@ -348,8 +351,8 @@ export function HostOrders() {
             const o = r.outfits;
             const canPlace = r.confirmed && r.measured;
             return (
-              <li key={r.id} className="panel-wrap p-5">
-                <div className="flex flex-wrap items-start gap-4">
+              <li key={r.id} className="panel-wrap p-4 sm:p-5">
+                <div className="flex flex-wrap items-start gap-3 sm:gap-4">
                   <Checkbox
                     className="mt-1"
                     aria-label={`Select ${o?.title ?? "look"}`}
@@ -361,14 +364,14 @@ export function HostOrders() {
                       src={o.image_url}
                       alt={o.title}
                       referrerPolicy="no-referrer"
-                      className="h-24 w-20 rounded-md object-cover"
+                      className="h-24 w-20 shrink-0 rounded-md object-cover"
                     />
                   ) : (
                     <div className="grid h-24 w-20 place-items-center rounded-md bg-muted">
                       <Package className="size-5 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-[10.5rem] flex-1">
                     <p className="font-medium">{o?.title ?? "Look"}</p>
                     <p className="text-sm text-muted-foreground">
                       {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest?.guest_name ?? "").trim().toLowerCase()
