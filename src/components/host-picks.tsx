@@ -217,9 +217,6 @@ export function HostPicks() {
         events={events.data ?? []}
         measurements={(measurements.data ?? []) as Array<{ guest_id: string; guest_name: string | null }>}
       />
-
-
-      </div>
     </div>
   );
 }
