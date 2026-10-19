@@ -50,3 +50,48 @@ export async function downloadShopOrderPdf(...args: Parameters<typeof buildShopO
   const a = document.createElement("a"); a.href = url; a.download = `shop-order-${args[0].replace(/[^a-z0-9-]/gi, "-")}.pdf`; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+export type PreorderLine = { wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; suggested: string; status: string; price: string; measurements: string; shop: string; image: string; notes: string };
+
+/** One-document pre-order list for the stylist to review before anything is ordered. */
+export async function downloadPreorderPdf(title: string, lines: PreorderLine[]) {
+  const pdf = await PDFDocument.create();
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const clean = (s: string) => s.replace(/[₹]/g, "INR ").replace(/[–—]/g, "-").replace(/[·]/g, "|").replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
+  let page = pdf.addPage([595, 842]); let y = 800;
+  const wrap = (value: string, size: number, font = regular, width = 400) => {
+    const out: string[] = []; let line = "";
+    for (const word of clean(value).split(/\s+/)) { if (font.widthOfTextAtSize(`${line} ${word}`, size) > width && line) { out.push(line); line = word; } else line += `${line ? " " : ""}${word}`; }
+    if (line) out.push(line); return out;
+  };
+  page.drawText(clean(title), { x: 40, y, size: 14, font: bold }); y -= 18;
+  page.drawText(clean(`Pre-order list for review | ${lines.length} outfits | ${new Date().toLocaleDateString("en-GB")}`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 22;
+  for (const [i, l] of lines.entries()) {
+    const body = [
+      `${l.designer}${l.sku ? ` | SKU ${l.sku}` : ""}`,
+      `Wearer: ${l.wearer} | ${l.family} | ${l.event}`,
+      `Size: ${l.size || "Not chosen"}${l.suggested ? ` (suggested ${l.suggested})` : ""} | ${l.status} | Price: ${l.price}`,
+      `Measurements: ${l.measurements || "Not supplied"}`,
+      ...(l.notes ? [`Notes: ${l.notes}`] : []),
+      ...(l.shop ? [`Shop: ${l.shop}`] : []),
+    ].flatMap((t) => wrap(t, 8.5));
+    const head = wrap(`${i + 1}. ${l.title}`, 10, bold);
+    const h = Math.max(96, head.length * 13 + body.length * 11 + 8);
+    if (y - h < 40) { page = pdf.addPage([595, 842]); y = 800; }
+    let ty = y;
+    if (l.image) { try {
+      const res = await fetch(l.image); if (!res.ok) throw new Error();
+      const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
+      const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+      const s = img.scaleToFit(64, 90); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
+    } catch { /* photo optional */ } }
+    for (const t of head) { page.drawText(t, { x: 120, y: ty - 10, size: 10, font: bold }); ty -= 13; }
+    for (const t of body) { page.drawText(t, { x: 120, y: ty - 9, size: 8.5, font: regular, color: rgb(.2, .2, .2) }); ty -= 11; }
+    y -= h + 6;
+    page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
+  }
+  const bytes = await pdf.save();
+  const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
+  const a = document.createElement("a"); a.href = url; a.download = `pre-order-${new Date().toISOString().slice(0, 10)}.pdf`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
