@@ -16,8 +16,8 @@ const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
 
 /** Orders built from pre-order selections. `startWith` opens a new order prefilled with looks. */
-export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }: {
-  inviteId: string; candidates: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void;
+export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden }: {
+  inviteId: string; candidates: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean;
 }) {
   const qc = useQueryClient();
   const orders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
@@ -115,7 +115,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const sum = active.reduce((acc, o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); acc.total += t.total; acc.paid += t.paid; return acc; }, { total: 0, paid: 0 });
 
-  return <section className="space-y-3 border-b border-border pb-6">
+  return <section className={listHidden ? "contents" : "space-y-3"}>
+    {listHidden ? null : <>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h2 className="text-xl">Shop orders</h2>{active.length ? <p className="text-sm text-muted-foreground">{active.length} active · total {sum.total.toLocaleString(...nf(currency))} · paid {sum.paid.toLocaleString(...nf(currency))} · balance {(sum.total - sum.paid).toLocaleString(...nf(currency))}</p> : null}</div>
       <Button onClick={() => reset()} disabled={!inviteId}><Plus className="size-4" /> New order</Button>
@@ -129,6 +130,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted }
         <Button variant="outline" size="sm" onClick={() => openOrder(o)}>Open order</Button>
       </div>); })}
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
+    </>}
 
     <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
       <DialogHeader><DialogTitle>{id ? `Order ${reference}` : "New order"}{cancelled ? " (cancelled)" : ""}</DialogTitle></DialogHeader>

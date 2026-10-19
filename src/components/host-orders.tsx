@@ -47,7 +47,7 @@ const FILTER_TABS = [
  * Orders: once a guest has confirmed their look and sent measurements, the
  * host places the order with the shop and tracks money and shipping here.
  */
-export function HostOrders() {
+export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -137,7 +137,16 @@ export function HostOrders() {
   const base = useMemo(() => (data.data ?? []).filter((r) =>
     (!dim.person || wearerOf(r) === dim.person) && (!dim.family || r.guest?.household === dim.family) &&
     (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender)), [data.data, dim]);
+  const [sort, setSort] = useState("recent");
   const rows = useMemo(() => {
+    const sorted = (list: Row[]) => {
+      if (sort === "recent") return list;
+      const [key, dir] = sort.split("-"); const m = dir === "desc" ? -1 : 1;
+      const val = (r: Row) => key === "name" ? wearerOf(r).toLowerCase() : key === "size" ? (r.size_choice || r.build_size || "~") : Number(r.order_amount ?? r.outfits?.price_inr ?? 0);
+      return [...list].sort((a, b) => { const x = val(a), y = val(b); return (typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true })) * m; });
+    };
+    return sorted(pick());
+    function pick() {
     const all = base;
     if (filter === "placed") return all.filter((r) => r.order_placed_at);
     if (filter === "soldout") return all.filter((r) => r.soldOut);
@@ -145,7 +154,8 @@ export function HostOrders() {
     if (filter === "nomeas") return all.filter((r) => !r.measured);
     if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.confirmed && r.measured);
     return all;
-  }, [base, filter]);
+    }
+  }, [base, filter, sort]);
 
   const draftOf = (r: Row): Draft =>
     drafts[r.id] ?? {
@@ -258,9 +268,14 @@ export function HostOrders() {
   }
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
+  if (view === "orders") return (
+    <div className="space-y-5">
+      <GroupedShopOrders inviteId={inviteId} candidates={candidates} />
+    </div>
+  );
   return (
     <div className="space-y-5">
-      <GroupedShopOrders inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
+      <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} data-x={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
       {rows.length ? (
         <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
           <label className="flex items-center gap-2 text-sm">
@@ -326,13 +341,19 @@ export function HostOrders() {
           ))}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {([["gender", "Looks: all"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
+          {([["gender", "All looks"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
             <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
               onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
               <option value="">{all}</option>
               {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? ({ men: "Man", women: "Woman", boy: "Boy", girl: "Girl", man: "Man", woman: "Woman" } as Record<string, string>)[v] ?? v : v}</option>)}
             </select>
           ))}
+          <select aria-label="Sort" className="field-select col-span-2 h-9 w-full rounded-md border border-border bg-background px-2 text-sm sm:col-span-4" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="recent">Sort: newest first</option>
+            <option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option>
+            <option value="size-asc">Size ascending</option><option value="size-desc">Size descending</option>
+            <option value="price-asc">Price low to high</option><option value="price-desc">Price high to low</option>
+          </select>
         </div>
       </div>
 
