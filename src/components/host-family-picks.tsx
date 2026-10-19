@@ -329,13 +329,13 @@ const MEASURE_FIELDS: Array<[string, string]> = [
 
 function MemberMeasurements({ row }: { row: Record<string, unknown> | undefined }) {
   if (!row) return null;
-  const unit = (row.unit as string | null) ?? "cm";
+  const unit = (row["unit"] as string | null) ?? "cm";
   const given = MEASURE_FIELDS.filter(([k]) => row[k] !== null && row[k] !== undefined);
-  if (!given.length && !row.usual_size && !row.notes) return null;
+  if (!given.length && !row["usual_size"] && !row["notes"]) return null;
   return (
     <div className="mt-2 rounded-lg border border-border p-2">
       <p className="flex items-center gap-1 text-[0.65rem] tracking-wider text-muted-foreground uppercase">
-        <Ruler className="size-3" /> Measurements · {unit}{row.usual_size ? ` · usual size ${String(row.usual_size)}` : ""}
+        <Ruler className="size-3" /> Measurements · {unit}{row["usual_size"] ? ` · usual size ${String(row["usual_size"])}` : ""}
       </p>
       {given.length ? (
         <dl className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3 lg:grid-cols-5">
@@ -347,7 +347,7 @@ function MemberMeasurements({ row }: { row: Record<string, unknown> | undefined 
           ))}
         </dl>
       ) : null}
-      {row.notes ? <p className="mt-1.5 text-xs text-muted-foreground">Note for the tailor: {String(row.notes)}</p> : null}
+      {row["notes"] ? <p className="mt-1.5 text-xs text-muted-foreground">Note for the tailor: {String(row["notes"])}</p> : null}
     </div>
   );
 }
