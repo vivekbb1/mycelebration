@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
-import { ExternalLink, Package } from "lucide-react";
+import { ExternalLink, FileDown, Package } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
+import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -231,10 +234,10 @@ export function HostOrders() {
         </div>
       ) : null}
       <div className="panel-wrap p-5">
-        <h2 className="font-display text-xl">Orders</h2>
+        <h2 className="font-display text-xl">Pre-orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Once a guest has confirmed their look and sent measurements, place the order with the
-          shop and keep the reference, amount, payment and shipping here.
+          Looks guests have chosen, waiting to become orders. Tick looks to place one combined
+          order or individual orders, or download a PDF to discuss with the seller's stylist.
         </p>
         {totals.length ? (
           <div className="mt-4 flex flex-wrap gap-3">
@@ -291,6 +294,7 @@ export function HostOrders() {
             return (
               <li key={r.id} className="panel-wrap p-5">
                 <div className="flex flex-wrap items-start gap-4">
+                  <Checkbox className="mt-1" aria-label={`Select ${o?.title ?? "look"} for ${r.guest_name || "guest"}`} disabled={inOrder.has(r.id)} checked={picked.has(r.id)} onCheckedChange={(v) => togglePick(r.id, v === true)} />
                   {o?.image_url ? (
                     <img
                       src={o.image_url}
@@ -304,7 +308,7 @@ export function HostOrders() {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{o?.title ?? "Look"}</p>
+                    <p className="font-medium">{o?.title ?? "Look"}{inOrder.has(r.id) ? <Badge variant="secondary" className="ml-2">In an order</Badge> : null}</p>
                     <p className="text-sm text-muted-foreground">
                       {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest?.guest_name ?? "").trim().toLowerCase()
                         ? `${r.guest_name} (by ${r.guest?.guest_name ?? "family"})`
@@ -441,6 +445,7 @@ export function HostOrders() {
           })}
         </ul>
       )}
+      </> : null}
     </div>
   );
 }
