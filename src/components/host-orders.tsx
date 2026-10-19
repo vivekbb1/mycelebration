@@ -268,6 +268,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
   }
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
+  const candidates = (data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }));
   if (view === "orders") return (
     <div className="space-y-5">
       <GroupedShopOrders inviteId={inviteId} candidates={candidates} />
@@ -275,7 +276,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" }) {
   );
   return (
     <div className="space-y-5">
-      <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} data-x={(data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }))} />
+      <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} />
       {rows.length ? (
         <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
           <label className="flex items-center gap-2 text-sm">

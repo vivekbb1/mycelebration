@@ -29,6 +29,7 @@ const SUBS: Record<string, Record<string, string>> = {
     import: "bulk-upload",
     feeds: "live-feeds",
     picks: "selection",
+    preorders: "pre-orders",
     orders: "orders",
     logistics: "delivery",
   },
