@@ -537,10 +537,13 @@ function HostDashboard() {
   };
 
   const removeOutfit = async (id: string, title: string) => {
-    if (!window.confirm(`Remove “${title}” from the lookbook? Any reservation on it is released.`)) {
+    if ((reservations.data ?? []).some((r) => r.outfit_id === id)) {
+      toast.error("A guest has chosen this look — release their choice first.");
       return;
     }
-    await supabase.from("reservations").delete().eq("outfit_id", id);
+    if (!window.confirm(`Remove “${title}” from the lookbook?`)) {
+      return;
+    }
     const { error } = await supabase.from("outfits").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
