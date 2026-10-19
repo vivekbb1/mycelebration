@@ -99,7 +99,8 @@ export function HostOrders() {
           const key = (r.guest_name ?? "").trim().toLowerCase();
           const guest = guests.get(r.guest_id);
           const family = (codes.data ?? []).filter((c) => c.household === guest?.household);
-          const member = family.find((c) => c.guest_name.trim().toLowerCase() === key) ?? guest;
+          const coded = r.member_code_id ? (codes.data ?? []).find((c) => c.id === r.member_code_id) : undefined;
+          const member = coded ?? family.find((c) => c.guest_name.trim().toLowerCase() === key) ?? guest;
           const m = member ? memberMeasurements(member, family, meas.data ?? []) : undefined;
           const measurementValues: Record<string, string | number> = {};
           if (m) for (const k of ["unit", "usual_size", "height", "chest", "bust", "under_bust", "waist", "hip", "shoulder", "armhole", "neck", "sleeve_length", "top_length", "bottom_length", "inseam", "notes"] as const) { const v = m[k]; if(v !== null && v !== "") measurementValues[k] = v; }
@@ -109,6 +110,7 @@ export function HostOrders() {
           const shopSizes = ((r.outfits as { sizes?: unknown } | null)?.sizes as ShopSize[] | null) ?? [];
           return {
             ...r,
+            guest_name: coded?.guest_name ?? r.guest_name,
             guest,
             measurementValues: m ? measurementValues : null,
             measured: Boolean(m),
@@ -323,11 +325,11 @@ export function HostOrders() {
           ))}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {([["gender", "All departments"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
+          {([["gender", "All looks: man / woman / boy / girl"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
             <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
               onChange={(e) => { setDim((d) => ({ ...d, [k]: e.target.value })); setPicked(new Set()); setPdfReady(null); }}>
               <option value="">{all}</option>
-              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? v.charAt(0).toUpperCase() + v.slice(1) : v}</option>)}
+              {options[k].map((v) => <option key={v} value={v}>{k === "gender" ? ({ men: "Man", women: "Woman", boy: "Boy", girl: "Girl", man: "Man", woman: "Woman" } as Record<string, string>)[v] ?? v : v}</option>)}
             </select>
           ))}
         </div>
