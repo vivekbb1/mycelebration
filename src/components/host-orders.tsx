@@ -304,7 +304,7 @@ export function HostOrders() {
               key={k}
               size="sm"
               variant={filter === k ? "default" : "outline"}
-              onClick={() => setFilter(k)}
+              onClick={() => { setFilter(k); setPicked(new Set()); setPdfReady(null); }}
             >
               {label} ({counts[k]})
             </Button>
