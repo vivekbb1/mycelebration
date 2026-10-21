@@ -1,5 +1,5 @@
 # Roadmap — multi-celebration platform
-- [ ] Order pricing: original upload snapshot, revised price, discount and net alongside actual payments
+- [x] Order pricing: original upload snapshot, revised price, discount and net alongside actual payments; tests and unsaved host preview verified
 - [x] Host placed orders: confirm guest looks and display actual ordered sizes without replacing guest selections
 - [x] Invoice upload: parse vendor details, review wearer matches, convert to grouped orders and hide ordered looks from pre-orders
 - [ ] Record supplied vendor invoices: awaiting host confirmation; both reviews tested without saving production orders
