@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { addAddOn, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
+import { addAddOn, familyOrderReport, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -126,6 +126,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   async function pdf() { setBusy(true); try { validateOrder(items, payments, courierNum); await downloadShopOrderPdf(reference || "enquiry", shop, currency, items, payments, notes); } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't generate PDF"); } finally { setBusy(false); } }
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
+  const [orderSearch, setOrderSearch] = useState(""); const [showReport, setShowReport] = useState(false);
+  const q = orderSearch.trim().toLowerCase();
+  const itemHit = (i: OrderItem) => !q || `${i.wearer} ${i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""}`.toLowerCase().includes(q);
+  const shownOrders = (orders.data ?? []).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
+  const familyReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]));
   const sum = active.reduce((acc, o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); acc.total += t.total; acc.paid += t.paid; return acc; }, { total: 0, paid: 0 });
 
   return <section className={listHidden ? "contents" : "space-y-3"}>
@@ -134,11 +139,21 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <div><h2 className="text-xl">Shop orders</h2>{active.length ? <p className="text-sm text-muted-foreground">{active.length} active · total {sum.total.toLocaleString(...nf(currency))} · paid {sum.paid.toLocaleString(...nf(currency))} · balance {(sum.total - sum.paid).toLocaleString(...nf(currency))}</p> : null}</div>
       <Button onClick={() => reset()} disabled={!inviteId}><Plus className="size-4" /> New order</Button>
     </div>
-    {(orders.data ?? []).map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Input className="sm:max-w-sm" placeholder="Search orders by person, family, event, outfit or reference" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
+      <Button size="sm" variant="outline" onClick={() => setShowReport((v) => !v)}>{showReport ? "Hide" : "Show"} amount by family</Button>
+    </div>
+    {showReport ? <div className="overflow-x-auto rounded-md border border-border"><table className="w-full text-sm">
+      <thead><tr className="text-left text-muted-foreground"><th className="p-2">Family</th><th className="p-2">People</th><th className="p-2 text-right">Looks</th><th className="p-2 text-right">Extra items</th><th className="p-2 text-right">Amount ordered</th></tr></thead>
+      <tbody>{familyReport.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.extras}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf(currency))}</td></tr>)}
+      <tr className="border-t border-border font-medium"><td className="p-2" colSpan={4}>Total (excludes courier charges)</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount, 0).toLocaleString(...nf(currency))}</td></tr></tbody>
+    </table><p className="p-2 text-xs text-muted-foreground">Active orders only. To move a person into another family, open their family page and use the move-members button beside Add member; new orders then show the new family.</p></div> : null}
+    {shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
       <div key={o.id} className={`flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
         <div>
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
           <p className="text-sm">{[...new Set((o.items as unknown as OrderItem[]).map((i) => i.wearer))].join(" · ")}</p>
+          {q ? <p className="text-xs text-primary">{(o.items as unknown as OrderItem[]).filter(itemHit).map((i) => `${i.wearer} · ${i.event} · ${i.alternative?.title || i.title}`).join(" | ")}</p> : null}
           <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · balance {t.balance.toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => openOrder(o)}>Open order</Button>

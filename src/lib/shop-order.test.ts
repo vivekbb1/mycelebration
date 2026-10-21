@@ -1,6 +1,6 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { addAddOn, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, validateOrder, type OrderItem } from "./shop-order";
+import { addAddOn, familyOrderReport, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, validateOrder, type OrderItem } from "./shop-order";
 const item = { price: 10000, discount: 1000 } as OrderItem;
 it("retains original price while revised size pricing and discounts determine value, not payment", () => {
   const original = [{ ...item, reservationId: "a", originalPrice: 10000 }];
@@ -50,4 +50,11 @@ it("an order-only alternative keeps the guest's chosen look and size", () => {
   const swapped = setAlternative(original, "a", { title: "Alt", sku: "ALT1", designer: "", shop: "", image: "" });
   strictEqual(swapped[0]?.title, "Guest look"); strictEqual(swapped[0]?.size, "M"); strictEqual(swapped[0]?.reservationId, "a");
   strictEqual(swapped[0]?.alternative?.sku, "ALT1"); strictEqual(original[0]?.alternative, undefined);
+});
+it("reports amount ordered per family including extra items", () => {
+  const a = { ...item, reservationId: "a", wearer: "A", family: "Sethi", addOns: [{ id: "t", label: "Trousers", sku: "", size: "", shop: "", price: 4840, discount: 242, notes: "" }] };
+  const b = { ...item, reservationId: "b", wearer: "B", family: "Sethi" }, c = { ...item, reservationId: "c", wearer: "C", family: "Malik" };
+  const r = familyOrderReport([[a, c], [b]]);
+  strictEqual(r[0]?.family, "Sethi"); strictEqual(r[0]?.amount, 22598); strictEqual(r[0]?.looks, 2); strictEqual(r[0]?.extras, 1);
+  strictEqual(r[1]?.amount, 9000);
 });
