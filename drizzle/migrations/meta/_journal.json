@@ -750,6 +750,13 @@
       "when": 1792600329455,
       "tag": "0106_confirm_host_ordered_looks",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1792603303638,
+      "tag": "0107_order_addons_in_totals",
+      "breakpoints": true
     }
   ]
 }
