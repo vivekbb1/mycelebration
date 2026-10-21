@@ -33,6 +33,7 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(item.title, true); text(`${item.designer} | SKU: ${item.sku || "Not supplied"}`);
     text(`Wearer: ${item.wearer} | Family: ${item.family} | Event: ${item.event}`);
     text(`Selected size: ${item.size || "Not supplied"}`);
+    text(`Actual size ordered: ${item.orderedSize || "Not recorded"}`, true);
     text(`Price: ${currency} ${money(item.price, currency)} | Discount: ${currency} ${money(item.discount, currency)} | Net: ${currency} ${money((item.price - item.discount), currency)}`);
     text(`Shop: ${item.shop || "Not supplied"}`);
     text("Wearer measurements", true);

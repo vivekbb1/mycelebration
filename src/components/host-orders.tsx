@@ -44,7 +44,7 @@ const FILTER_TABS = [
 ] as const;
 
 /**
- * Orders: once a guest has confirmed their look and sent measurements, the
+ * Orders: once a guest has reserved their look and sent measurements, the
  * host places the order with the shop and tracks money and shipping here.
  */
 export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "alterations" }) {
@@ -164,7 +164,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     if (filter === "soldout") return all.filter((r) => r.soldOut);
     if (filter === "fit") return all.filter((r) => r.misfit || r.soldOut);
     if (filter === "nomeas") return all.filter((r) => !r.measured);
-    if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.confirmed && r.measured);
+    if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.measured);
     return all;
     }
   }, [base, filter, sort]);
@@ -237,7 +237,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   }, [data.data]);
 
   const counts = {
-    ready: base.filter((r) => !r.order_placed_at && r.confirmed && r.measured).length,
+    ready: base.filter((r) => !r.order_placed_at && r.measured).length,
     placed: base.filter((r) => r.order_placed_at).length,
     all: base.length,
     fit: base.filter((r) => r.misfit || r.soldOut).length,
@@ -432,7 +432,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
       ) : rows.length === 0 ? (
         <p className="panel-wrap p-5 text-sm text-muted-foreground">
           {filter === "ready"
-            ? "Nothing ready yet — looks appear here once the guest has confirmed and sent measurements."
+            ? "Nothing ready yet — reserved looks appear here once measurements are in."
             : "Nothing here yet."}
         </p>
       ) : (
@@ -440,7 +440,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
           {rows.map((r) => {
             const d = draftOf(r);
             const o = r.outfits;
-            const canPlace = r.confirmed && r.measured;
+            const canPlace = r.measured;
             return (
               <li key={r.id} className="panel-wrap p-4 sm:p-5">
                 <div className="flex flex-wrap items-start gap-3 sm:gap-4">
@@ -593,7 +593,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                   ) : null}
                   {!canPlace ? (
                     <span className="text-xs text-muted-foreground">
-                      Can be ordered once the look is confirmed and measurements are in.
+                      Measurements are needed before ordering.
                     </span>
                   ) : null}
                 </div>

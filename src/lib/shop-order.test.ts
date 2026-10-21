@@ -1,7 +1,15 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { orderTotals, substituteItem, validateOrder, type OrderItem } from "./shop-order";
+import { orderTotals, setOrderedSize, substituteItem, validateOrder, type OrderItem } from "./shop-order";
 const item = { price: 10000, discount: 1000 } as OrderItem;
+it("records a different actual size for each look without changing selected sizes", () => {
+  const original = [{ ...item, reservationId: "a", size: "M" }, { ...item, reservationId: "b", size: "S" }];
+  const changed = setOrderedSize(setOrderedSize(original, "a", "L"), "b", "Made to measure");
+  const saved = JSON.parse(JSON.stringify(changed)) as OrderItem[];
+  strictEqual(saved[0]?.orderedSize, "L"); strictEqual(saved[1]?.orderedSize, "Made to measure");
+  strictEqual(saved[0]?.size, "M"); strictEqual(saved[1]?.size, "S");
+  strictEqual(original[0]?.orderedSize, undefined);
+});
 it("subtracts discounts and part-payments from a grouped order", () => {
   const t = orderTotals([item, { ...item, price: 5000, discount: 500 }], [{ amount: 3000, date: "2026-10-19", reference: "deposit" }]);
   strictEqual(t.total, 13500); strictEqual(t.paid, 3000); strictEqual(t.balance, 10500);
