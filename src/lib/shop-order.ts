@@ -48,7 +48,14 @@ export function orderTotals(items: OrderItem[], payments: OrderPayment[], courie
 
 export function validateOrder(items: OrderItem[], payments: OrderPayment[], courier = 0) {
   if (!items.length) throw new Error("Select at least one outfit");
-  for (const i of items) if (!Number.isFinite(i.price) || !Number.isFinite(i.discount) || i.price < 0 || i.discount < 0 || i.discount > i.price) throw new Error("Discount must be between zero and the outfit price");
+  for (const i of items) {
+    if (!Number.isFinite(i.price) || !Number.isFinite(i.discount) || i.price < 0 || i.discount < 0 || i.discount > i.price) throw new Error("Discount must be between zero and the outfit price");
+    for (const a of i.addOns ?? []) {
+      if (!a.label.trim()) throw new Error("Name each extra item (for example Trousers)");
+      if (!Number.isFinite(a.price) || !Number.isFinite(a.discount) || a.price < 0 || a.discount < 0 || a.discount > a.price) throw new Error("Extra item discount must be between zero and its price");
+    }
+    if (i.alternative && !i.alternative.title.trim() && !i.alternative.sku.trim()) throw new Error("Give the alternative outfit a name or model number");
+  }
   if (!Number.isFinite(courier) || courier < 0) throw new Error("Courier charges can't be negative");
   for (const p of payments) if (!Number.isFinite(p.amount) || p.amount <= 0) throw new Error("Payment must be greater than zero");
   if (orderTotals(items, payments, courier).balance < 0) throw new Error("Payments cannot exceed the order total");
