@@ -2629,6 +2629,7 @@ export type Database = {
           order_reference: string | null
           order_status: string
           order_status_updated_at: string
+          ordered_size: string | null
           outfit_id: string
           payment_status: string
           shipping_carrier: string | null
@@ -2656,6 +2657,7 @@ export type Database = {
           order_reference?: string | null
           order_status?: string
           order_status_updated_at?: string
+          ordered_size?: string | null
           outfit_id: string
           payment_status?: string
           shipping_carrier?: string | null
@@ -2683,6 +2685,7 @@ export type Database = {
           order_reference?: string | null
           order_status?: string
           order_status_updated_at?: string
+          ordered_size?: string | null
           outfit_id?: string
           payment_status?: string
           shipping_carrier?: string | null

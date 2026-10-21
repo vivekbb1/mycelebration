@@ -77,6 +77,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     if (result.error) throw result.error;
     setId(result.data.id); setStatus(nextStatus);
     await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
+    await qc.invalidateQueries({ queryKey: ["reservations"] });
+    await qc.invalidateQueries({ queryKey: ["confirm-looks"] });
+    await qc.invalidateQueries({ queryKey: ["host-orders"] });
     return result.data.id as string;
   }
   async function run(fn: () => Promise<unknown>, ok: string, close = true) {

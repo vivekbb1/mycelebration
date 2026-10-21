@@ -209,7 +209,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
           tracking_url: url || null,
           shipping_status: d.shipping_status,
           order_note: d.order_note.trim() || null,
-          ...(place ? { order_placed_at: new Date().toISOString(), order_status: "in progress" } : {}),
+          ...(place ? { status: "confirmed", order_placed_at: new Date().toISOString(), order_status: "in progress" } : {}),
           ...(d.shipping_status === "delivered" ? { order_status: "ready" } : {}),
           order_status_updated_at: new Date().toISOString(),
         })

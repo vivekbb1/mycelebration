@@ -173,7 +173,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, status, size_choice");
+        .select("id, outfit_id, guest_id, guest_name, status, size_choice, ordered_size");
       if (error) throw error;
       return data;
     },
@@ -766,9 +766,10 @@ function Lookbook() {
                 <img src={held.image_url} referrerPolicy="no-referrer" alt={held.title} className="h-40 w-28 rounded-md object-cover" />
               ) : null}
               <div className="min-w-0 flex-1">
-                <p className="text-eyebrow">Reserved for {activeName}</p>
+                <p className="text-eyebrow">{locked ? "Confirmed" : "Reserved"} for {activeName}</p>
                 <h2 className="mt-1 text-xl">{held?.title}</h2>
                 {res?.size_choice ? <p className="mt-1 text-sm text-muted-foreground">Size: {res.size_choice}</p> : null}
+                {res?.ordered_size ? <p className="mt-1 text-sm font-medium">Size ordered: {res.ordered_size}</p> : null}
                 <p className="mt-2 text-sm text-muted-foreground">
                   {locked
                     ? "Your hosts have confirmed this look, so it can't be changed here. Contact them to change it."
