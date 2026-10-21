@@ -729,6 +729,13 @@
       "when": 1792408270400,
       "tag": "0103_tailor_workmen_and_adjustments",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1792599231174,
+      "tag": "0104_host_orders_allow_reserved_looks",
+      "breakpoints": true
     }
   ]
 }
