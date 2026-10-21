@@ -41,6 +41,9 @@ const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "Made to measure"];
 
 type Row = {
   id: string;
+  status: string;
+  size_choice: string | null;
+  ordered_size: string | null;
   outfit_id: string;
   guest_name: string | null;
   build_garment: string | null;
@@ -104,7 +107,7 @@ function ConfirmPage() {
       const { data, error } = await supabase
         .from("reservations")
         .select(
-          "id, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
+          "id, status, size_choice, ordered_size, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
         )
         .in("guest_id", [...ids])
         .order("created_at");
@@ -187,7 +190,7 @@ function ConfirmPage() {
           looks={(looks.data ?? []).map((r) => ({
             event_id: r.outfits?.event_id ?? null,
             guest_name: r.guest_name,
-            confirmed: Boolean(r.build_garment && r.build_size),
+            confirmed: r.status === "confirmed",
             title: r.outfits?.title ?? null,
           }))}
         />
@@ -220,7 +223,7 @@ function ConfirmPage() {
               const d = draft[row.id] ?? { garment: "", size: "", fabric: "" };
               const set = (patch: Partial<typeof d>) =>
                 setDraft((prev) => ({ ...prev, [row.id]: { ...d, ...patch } }));
-              const done = Boolean(row.build_garment && row.build_size);
+              const done = row.status === "confirmed";
               return (
                 <li key={row.id} className="panel p-5 sm:p-6">
                   <div className="flex flex-wrap items-start gap-4">
@@ -256,6 +259,8 @@ function ConfirmPage() {
                           Boutique note: {row.outfits.size_note}
                         </p>
                       ) : null}
+                      {row.ordered_size ? <p className="mt-2 text-sm font-medium">Size ordered: {row.ordered_size}</p> : null}
+                      {row.size_choice ? <p className="mt-1 text-sm text-muted-foreground">Size selected: {row.size_choice}</p> : null}
                     </div>
                   </div>
 

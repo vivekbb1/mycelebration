@@ -53,6 +53,9 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
       if (result.error) throw result.error;
       uploaded = false;
       await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
+      await qc.invalidateQueries({ queryKey: ["reservations"] });
+      await qc.invalidateQueries({ queryKey: ["confirm-looks"] });
+      await qc.invalidateQueries({ queryKey: ["host-orders"] });
       setInvoice(null); setFile(null);
       toast.success(`Invoice ${invoice.reference} recorded — ${items.length} looks moved to Orders`);
     } catch (e) {
