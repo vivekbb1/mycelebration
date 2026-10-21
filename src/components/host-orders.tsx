@@ -136,6 +136,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   type Row = NonNullable<typeof data.data>[number];
 
   const [dim, setDim] = useState({ person: "", family: "", event: "", gender: "" });
+  const [outfitSearch, setOutfitSearch] = useState("");
   const wearerOf = (r: Row) => r.guest_name || r.guest?.guest_name || "Guest";
   const genderOf = (r: Row) => (r.outfits as { gender?: string } | null)?.gender ?? "";
   const options = useMemo(() => {
@@ -145,7 +146,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   }, [data.data]);
   const base = useMemo(() => (data.data ?? []).filter((r) =>
     (!dim.person || wearerOf(r) === dim.person) && (!dim.family || r.guest?.household === dim.family) &&
-    (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender)), [data.data, dim]);
+    (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender) &&
+    (view !== "pre" || !outfitSearch.trim() || [r.outfits?.title, r.outfits?.designer, r.outfits?.source_sku, r.outfits?.boutique_url]
+      .some((value) => value?.toLowerCase().includes(outfitSearch.trim().toLowerCase())))), [data.data, dim, outfitSearch, view]);
   const [sort, setSort] = useState("recent");
   const [workmanFilter, setWorkmanFilter] = useState("");
   const [altFilter, setAltFilter] = useState<"all" | "needed" | "with vendor" | "complete" | "none">("all");
