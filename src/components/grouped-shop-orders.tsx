@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ban, FileDown, FileUp, Plus, Repeat, Trash2, Undo2 } from "lucide-react";
+import { Ban, FileDown, FileUp, Plus, Repeat, Save, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +97,21 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       toast.error(message);
     }
     finally { setBusy(false); }
+  }
+
+  async function saveOrderedSize(item: OrderItem) {
+    if (!id) throw new Error("Save the order first");
+    // Read the latest order so a size-only change never overwrites payments or other edits.
+    const current = await supabase.from("wardrobe_orders").select("items, status, updated_at").eq("id", id).eq("invite_id", inviteId).single();
+    if (current.error) throw current.error;
+    if (!["placed", "shipped", "delivered"].includes(current.data.status)) throw new Error("Reopen the order — its status has changed");
+    const latest = current.data.items as unknown as OrderItem[];
+    if (!latest.some((i) => i.reservationId === item.reservationId)) throw new Error("This look is no longer in the order. Reopen it to continue");
+    const next = setOrderedSize(latest, item.reservationId, (item.orderedSize ?? "").trim());
+    const saved = await supabase.from("wardrobe_orders").update({ items: next as unknown as Json }).eq("id", id).eq("invite_id", inviteId).eq("updated_at", current.data.updated_at).select("id").maybeSingle();
+    if (saved.error) throw saved.error;
+    if (!saved.data) throw new Error("The order changed while saving. Try again");
+    await Promise.all(["wardrobe-orders", "reservations", "confirm-looks", "host-orders"].map((key) => qc.invalidateQueries({ queryKey: [key] })));
   }
 
   async function uploadDoc(file: File) {
@@ -204,7 +219,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           </div> : null}
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          <label className="text-sm">Actual size ordered<Input aria-label={`Actual size ordered for ${item.wearer} — ${item.event}`} value={item.orderedSize ?? ""} placeholder={item.size ? `Guest selected: ${item.size}` : "Size / made to measure"} onChange={(e) => setItems((all) => setOrderedSize(all, item.reservationId, e.target.value))} /></label>
+          <div className="space-y-1">
+            <label className="text-sm">Actual size ordered<div className="flex items-center gap-2"><Input aria-label={`Actual size ordered for ${item.wearer} — ${item.event}`} value={item.orderedSize ?? ""} disabled={busy || cancelled} placeholder={item.size ? `Guest selected: ${item.size}` : "Size / made to measure"} onChange={(e) => setItems((all) => setOrderedSize(all, item.reservationId, e.target.value))} />
+            {id && ["placed", "shipped", "delivered"].includes(status) ? <Button type="button" variant="outline" size="icon" disabled={busy} title={`Save ordered size for ${item.wearer}`} aria-label={`Save ordered size for ${item.wearer} — ${item.event}`} onClick={() => void run(() => saveOrderedSize(item), `Ordered size saved for ${item.wearer}`, false)}><Save className="size-4" /></Button> : null}</div></label>
+            <p className="text-xs text-muted-foreground">Guest requested size: {item.size || "Not recorded"}</p>
+          </div>
           <p className="text-sm">Original uploaded price<br /><strong>{item.originalPrice != null ? `${currency} ${item.originalPrice.toLocaleString(...nf(currency))}` : "Not recorded"}</strong></p>
           <label className="text-sm">Revised price ({currency})<Input aria-label={`Revised price for ${item.wearer} — ${item.event}`} type="number" min="0" step="0.01" value={item.price} onChange={(e) => setItems((all) => setRevisedPrice(all, item.reservationId, Number(e.target.value)))} /></label>
           <label className="text-sm">Discount ({currency})<Input type="number" min="0" max={item.price} value={item.discount} onChange={(e) => changeItem(item.reservationId, { discount: Number(e.target.value) })} /></label>

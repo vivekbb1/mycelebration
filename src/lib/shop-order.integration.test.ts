@@ -2,8 +2,9 @@ import { it } from "node:test";
 import { strictEqual } from "node:assert";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+type SizeOrder = Pick<Database["public"]["Tables"]["wardrobe_orders"]["Row"], "items" | "payments" | "documents" | "status">;
 
 it("placed orders confirm looks and expose actual ordered sizes without replacing guest selections", async () => {
   const minted = JSON.parse(readFileSync(`${homedir()}/.cache/lovable-auth/session.json`, "utf8"));
@@ -32,6 +33,23 @@ it("placed orders confirm looks and expose actual ordered sizes without replacin
     strictEqual(after.data.size_choice, choice.size_choice);
     strictEqual(after.data.outfit_id, choice.outfit_id);
     strictEqual(after.data.member_code_id, choice.member_code_id);
+    for (const [status, orderedSize] of [["placed", "XL"], ["shipped", "XXL"], ["delivered", "Custom tailored"]] as const) {
+      const latest: PostgrestSingleResponse<SizeOrder> = await client.from("wardrobe_orders").select("items, payments, documents, status").eq("id", orderId).single();
+      if (latest.error) throw latest.error;
+      const items = latest.data.items as unknown as { reservationId: string; orderedSize: string }[];
+      const changed: PostgrestSingleResponse<SizeOrder> = await client.from("wardrobe_orders").update({ status, items: items.map((i) => ({ ...i, orderedSize })) }).eq("id", orderId).select("items, payments, documents, status").single();
+      if (changed.error) throw changed.error;
+      strictEqual(changed.data.status, status);
+      strictEqual(JSON.stringify(changed.data.payments), JSON.stringify(latest.data.payments));
+      strictEqual(JSON.stringify(changed.data.documents), JSON.stringify(latest.data.documents));
+      const guest = await client.from("reservations").select("ordered_size, size_choice, outfit_id, member_code_id, status").eq("id", choice.id).single();
+      if (guest.error) throw guest.error;
+      strictEqual(guest.data.ordered_size, orderedSize);
+      strictEqual(guest.data.size_choice, "M");
+      strictEqual(guest.data.outfit_id, choice.outfit_id);
+      strictEqual(guest.data.member_code_id, choice.member_code_id);
+      strictEqual(guest.data.status, "confirmed");
+    }
     const cancelled = await client.from("wardrobe_orders").update({ status: "cancelled" }).eq("id", orderId);
     if (cancelled.error) throw cancelled.error;
     const released = await client.from("reservations").select("ordered_size, status, size_choice").eq("id", choice.id).single();
