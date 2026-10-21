@@ -1,6 +1,6 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { orderTotals, setOrderedSize, setRevisedPrice, substituteItem, validateOrder, type OrderItem } from "./shop-order";
+import { addAddOn, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, validateOrder, type OrderItem } from "./shop-order";
 const item = { price: 10000, discount: 1000 } as OrderItem;
 it("retains original price while revised size pricing and discounts determine value, not payment", () => {
   const original = [{ ...item, reservationId: "a", originalPrice: 10000 }];
@@ -37,4 +37,17 @@ it("substitutes an outfit in place and refuses duplicates", () => {
   const a = { ...item, reservationId: "a" }, b = { ...item, reservationId: "b" }, c = { ...item, reservationId: "c" };
   strictEqual(substituteItem([a, b], "a", c)[0]?.reservationId, "c");
   throws(() => substituteItem([a, b], "a", b));
+});
+it("adds extra items such as trousers to the order total and validates their discounts", () => {
+  const withTrousers = addAddOn([{ ...item, reservationId: "a" }], "a", { id: "t", label: "Trousers", sku: "TR1", size: "32", shop: "", price: 3000, discount: 500, notes: "" });
+  const t = orderTotals(withTrousers, [{ amount: 11000, date: "2026-10-21", reference: "" }]);
+  strictEqual(t.total, 11500); strictEqual(t.balance, 500);
+  throws(() => validateOrder(updateAddOn(withTrousers, "a", "t", { discount: 3001 }), []));
+  strictEqual(orderTotals(removeAddOn(withTrousers, "a", "t"), []).total, 9000);
+});
+it("an order-only alternative keeps the guest's chosen look and size", () => {
+  const original = [{ ...item, reservationId: "a", title: "Guest look", size: "M" }];
+  const swapped = setAlternative(original, "a", { title: "Alt", sku: "ALT1", designer: "", shop: "", image: "" });
+  strictEqual(swapped[0]?.title, "Guest look"); strictEqual(swapped[0]?.size, "M"); strictEqual(swapped[0]?.reservationId, "a");
+  strictEqual(swapped[0]?.alternative?.sku, "ALT1"); strictEqual(original[0]?.alternative, undefined);
 });

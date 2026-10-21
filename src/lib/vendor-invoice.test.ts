@@ -32,3 +32,11 @@ it("rejects invoices with inconsistent totals", () => throws(() => parseVendorIn
   const i = parseVendorInvoice("ORDER NO : 1 DATE : 21-10-2026 TUPO032424-Custom Tailored 1 ₹26,500.00 ₹1,325.00 ₹25,175.00 TushPosh KASB082443-BO-L 1 ₹4,840.00 ₹242.00 ₹4,598.00 ORDER TAKEN BY M TOTAL AMOUNT ₹1 TOTAL PAYABLE ₹29,773.00 TOTAL PAID ₹20,000.00 AMOUNT DUE ₹9,773.00");
   strictEqual(i.lines.length, 2); strictEqual(i.lines[0]?.sku, "TUPO032424"); strictEqual(i.lines[0]?.orderedSize, "Custom tailored");
 });
+it("assigns an unmatched invoice line to a person as an alternative or as trousers on a look", () => {
+  const i = parseVendorInvoice("ORDER NO : 2 DATE : 21-10-2026 ROPK112508-BO-S X 1 ₹10,000.00 ₹0.00 ₹10,000.00 TRSR000001-BO-32 Y 1 ₹3,000.00 ₹500.00 ₹2,500.00 ORDER TAKEN BY M TOTAL AMOUNT ₹1 TOTAL PAYABLE ₹12,500.00 TOTAL PAID ₹12,500.00 AMOUNT DUE ₹0.00");
+  const a = { reservationId: "a", sku: "OTHER1", size: "M", price: 9000, discount: 0, title: "Guest look" } as OrderItem;
+  const alt = invoiceOrderItems(i, [a], [["a"], ["a"]], [["alternative"], ["addon"]]);
+  strictEqual(alt.length, 1); strictEqual(alt[0]?.title, "Guest look"); strictEqual(alt[0]?.size, "M");
+  strictEqual(alt[0]?.alternative?.sku, "ROPK112508"); strictEqual(alt[0]?.addOns?.[0]?.sku, "TRSR000001"); strictEqual(alt[0]?.addOns?.[0]?.size, "32");
+  throws(() => invoiceOrderItems(i, [a], [["a"], ["a"]], [["alternative"], ["alternative"]]));
+});
