@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { money, type OrderItem } from "@/lib/shop-order";
-import { invoiceMatches, invoiceOrderItems, parseVendorInvoice, type VendorInvoice } from "@/lib/vendor-invoice";
+import { defaultSlotMode, invoiceMatches, invoiceOrderItems, parseVendorInvoice, type SlotMode, type VendorInvoice } from "@/lib/vendor-invoice";
 
 export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string; candidates: OrderItem[] }) {
   const qc = useQueryClient();
@@ -15,6 +15,7 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
   const [file, setFile] = useState<File | null>(null);
   const [invoice, setInvoice] = useState<VendorInvoice | null>(null);
   const [matches, setMatches] = useState<string[][]>([]);
+  const [modes, setModes] = useState<SlotMode[][]>([]);
   async function read(file: File) {
     setBusy(true);
     try {
@@ -24,12 +25,13 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
       if (existing.error) throw existing.error;
       if (existing.data.length) throw new Error(`Invoice ${parsed.reference} is already recorded`);
       setFile(file); setInvoice(parsed);
-      setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, candidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : []; }));
+      setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, candidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : Array.from({ length: line.quantity }, () => ""); }));
+      setModes(parsed.lines.map((line) => Array.from({ length: line.quantity }, () => defaultSlotMode(line, candidates))));
     } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't read invoice"); }
     finally { setBusy(false); }
   }
   let valid = false;
-  if (invoice) { try { invoiceOrderItems(invoice, candidates, matches); valid = true; } catch { /* unresolved matches */ } }
+  if (invoice) { try { invoiceOrderItems(invoice, candidates, matches, modes); valid = true; } catch { /* unresolved matches */ } }
   async function save() {
     if (!invoice || !file) return;
     setBusy(true);
@@ -37,7 +39,7 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
     const path = `${inviteId}/orders/${id}/${file.name.replace(/[^a-z0-9.-]/gi, "_")}`;
     let uploaded = false;
     try {
-      const items = invoiceOrderItems(invoice, candidates, matches);
+      const items = invoiceOrderItems(invoice, candidates, matches, modes);
       const up = await supabase.storage.from("alteration-photos").upload(path, file, { contentType: "application/pdf" });
       if (up.error) throw up.error;
       uploaded = true;
@@ -72,18 +74,38 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
         {invoice ? <>
           <p className="text-sm">{invoice.date} · {invoice.stylist} · {invoice.lines.length} invoice lines</p>
           <div className="grid grid-cols-3 gap-2 text-sm"><p>Total<br /><strong>INR {money(invoice.total)}</strong></p><p>Stated paid<br /><strong>INR {money(invoice.paid)}</strong></p><p>Due<br /><strong>INR {money(invoice.due)}</strong></p></div>
-          {invoice.lines.map((line, index) => { const options = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
+          {invoice.lines.map((line, index) => { const exact = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
             <p className="font-medium">{line.sku} · ordered size {line.orderedSize}</p>
             <p className="text-sm text-muted-foreground">Revised price INR {money(line.price)} − discount {money(line.discount)} = discounted price INR {money(line.net)}</p>
-            {(matches[index] ?? []).map((id) => { const item = options.find((o) => o.reservationId === id); return item ? <p key={id} className="text-sm">{item.wearer} · Original uploaded price: {item.originalPrice != null ? `INR ${money(item.originalPrice)}` : "Not recorded"}</p> : null; })}
-            {Array.from({ length: line.quantity }, (_, slot) => <label key={slot} className="block text-sm">Wearer{line.quantity > 1 ? ` ${slot + 1}` : ""}
-              <select aria-label={`Wearer for ${line.sku}${line.quantity > 1 ? ` ${slot + 1}` : ""}`} className="field-select w-full" value={matches[index]?.[slot] ?? ""} onChange={(e) => setMatches((all) => all.map((ids, i) => { if (i !== index) return ids; const next = [...ids]; next[slot] = e.target.value; return next; }))}>
-                <option value="">{options.length ? "Choose the matching person and event" : "No matching pending look — check model number"}</option>
-                {options.map((o) => <option key={o.reservationId} value={o.reservationId}>{o.wearer} · {o.event} · {o.family} · selected size {o.size || "—"}</option>)}
-              </select>
-            </label>)}
+            {!exact.length ? <p className="text-xs text-muted-foreground">No guest chose this model number. Assign it to a person as an alternative to their look, or as an extra item such as trousers.</p> : null}
+            {Array.from({ length: line.quantity }, (_, slot) => {
+              const mode = modes[index]?.[slot] ?? defaultSlotMode(line, candidates);
+              const lookIds = new Set(invoice.lines.flatMap((l, i) => (matches[i] ?? []).filter((id, s) => id && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon")));
+              const options = mode === "look" ? exact : mode === "alternative" ? candidates : candidates.filter((c) => lookIds.has(c.reservationId));
+              const chosen = candidates.find((c) => c.reservationId === matches[index]?.[slot]);
+              const setSlot = (id: string, m: SlotMode = mode) => {
+                setMatches((all) => all.map((ids, i) => { if (i !== index) return ids; const next = [...ids]; next[slot] = id; return next; }));
+                setModes((all) => all.map((ms, i) => { if (i !== index) return ms; const next = [...ms]; next[slot] = m; return next; }));
+              };
+              return <div key={slot} className="grid gap-2 sm:grid-cols-[minmax(0,14rem)_1fr]">
+                <label className="text-sm">Use as{line.quantity > 1 ? ` (${slot + 1})` : ""}
+                  <select aria-label={`Use ${line.sku} as`} className="field-select w-full" value={mode} onChange={(e) => setSlot("", e.target.value as SlotMode)}>
+                    {exact.length ? <option value="look">Their chosen look</option> : null}
+                    <option value="alternative">Alternative to their look</option>
+                    <option value="addon">Extra item (e.g. trousers)</option>
+                  </select>
+                </label>
+                <label className="text-sm">{mode === "addon" ? "Add to whose look on this invoice" : "Person"}
+                  <select aria-label={`Wearer for ${line.sku}${line.quantity > 1 ? ` ${slot + 1}` : ""}`} className="field-select w-full" value={matches[index]?.[slot] ?? ""} onChange={(e) => setSlot(e.target.value)}>
+                    <option value="">{options.length ? "Choose a person and event" : mode === "addon" ? "Assign the main looks first" : "No matching pending look"}</option>
+                    {options.map((o) => <option key={o.reservationId} value={o.reservationId}>{o.wearer} · {o.event} · {o.title}{o.sku ? ` (${o.sku})` : ""} · selected size {o.size || "—"}</option>)}
+                  </select>
+                </label>
+                {chosen && mode !== "addon" ? <p className="text-xs text-muted-foreground sm:col-span-2">Original uploaded price: {chosen.originalPrice != null ? `INR ${money(chosen.originalPrice)}` : "Not recorded"}{mode === "alternative" ? " · Guest still sees their own choice" : ""}</p> : null}
+              </div>;
+            })}
           </div>; })}
-          {!valid ? <p className="text-sm text-destructive">Every invoice line needs a unique matching pending look before saving.</p> : null}
+          {!valid ? <p className="text-sm text-destructive">Every invoice line needs a person. Each person's look can be used once; extra items must go with a look on this invoice.</p> : null}
           <Button disabled={busy || !valid} onClick={() => void save()}>{busy ? "Saving…" : "Confirm invoice and move to Orders"}</Button>
         </> : null}
       </DialogContent>

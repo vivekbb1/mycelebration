@@ -37,6 +37,17 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(`Original uploaded price: ${item.originalPrice != null ? `${currency} ${money(item.originalPrice, currency)}` : "Not recorded"}`);
     text(`Revised price: ${currency} ${money(item.price, currency)} | Discount: ${currency} ${money(item.discount, currency)} | Discounted price: ${currency} ${money((item.price - item.discount), currency)}`);
     text(`Shop: ${item.shop || "Not supplied"}`);
+    if (item.alternative) {
+      text("ORDER THIS ALTERNATIVE INSTEAD", true);
+      text(`${item.alternative.title || "Alternative"} | ${item.alternative.designer || "Designer not supplied"} | SKU: ${item.alternative.sku || "Not supplied"}`);
+      if (item.alternative.shop) text(`Shop: ${item.alternative.shop}`);
+    }
+    for (const a of item.addOns ?? []) {
+      text(`Extra item: ${a.label}`, true);
+      text(`SKU: ${a.sku || "Not supplied"} | Size: ${a.size || "Not recorded"} | Price: ${currency} ${money(a.price, currency)} | Discount: ${currency} ${money(a.discount, currency)} | Discounted: ${currency} ${money(a.price - a.discount, currency)}`);
+      if (a.shop) text(`Shop: ${a.shop}`);
+      if (a.notes) text(`Notes: ${a.notes}`);
+    }
     text("Wearer measurements", true);
     text(item.measurements ? Object.entries(item.measurements).map(([k, v]) => `${k.replaceAll("_", " ")}: ${v}`).join(" | ") : "Measurements not supplied");
     if (item.notes) text(`Customisations: ${item.notes}`);

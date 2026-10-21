@@ -1,4 +1,8 @@
-export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string };
+/** Order-only replacement: what the shop actually supplies instead of the guest's chosen look. */
+export type OrderAlternative = { title: string; sku: string; designer: string; shop: string; image: string; outfitId?: string | null };
+/** Extra piece ordered for a wearer's look (e.g. trousers for a kurta sold without them). Host-only. */
+export type OrderAddOn = { id: string; label: string; sku: string; size: string; shop: string; price: number; discount: number; notes: string };
+export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string; alternative?: OrderAlternative | null; addOns?: OrderAddOn[] };
 
 /** Revised vendor price changes never replace the original upload snapshot. */
 export function setRevisedPrice(items: OrderItem[], reservationId: string, price: number) {
@@ -9,6 +13,21 @@ export function setRevisedPrice(items: OrderItem[], reservationId: string, price
 export function setOrderedSize(items: OrderItem[], reservationId: string, orderedSize: string) {
   return items.map((item) => item.reservationId === reservationId ? { ...item, orderedSize } : item);
 }
+
+/** Swap what the shop supplies for one wearer; the guest's own choice stays untouched. */
+export function setAlternative(items: OrderItem[], reservationId: string, alternative: OrderAlternative | null) {
+  return items.map((item) => item.reservationId === reservationId ? { ...item, alternative } : item);
+}
+
+export function addAddOn(items: OrderItem[], reservationId: string, addOn: OrderAddOn) {
+  return items.map((item) => item.reservationId === reservationId ? { ...item, addOns: [...(item.addOns ?? []), addOn] } : item);
+}
+export function updateAddOn(items: OrderItem[], reservationId: string, id: string, patch: Partial<OrderAddOn>) {
+  return items.map((item) => item.reservationId === reservationId ? { ...item, addOns: (item.addOns ?? []).map((a) => a.id === id ? { ...a, ...patch } : a) } : item);
+}
+export function removeAddOn(items: OrderItem[], reservationId: string, id: string) {
+  return items.map((item) => item.reservationId === reservationId ? { ...item, addOns: (item.addOns ?? []).filter((a) => a.id !== id) } : item);
+}
 export type PaymentKind = "advance" | "payment";
 export type OrderPayment = { amount: number; date: string; reference: string; kind?: PaymentKind };
 export type DocKind = "proforma" | "invoice" | "bill" | "receipt" | "other";
@@ -16,10 +35,11 @@ export type OrderDocument = { kind: DocKind; path: string; name: string; number:
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
-/** Order value = outfit prices − discounts + courier charges; payments (advance included) reduce the balance. */
+/** Order value = outfit + extra-item prices − discounts + courier charges; payments (advance included) reduce the balance. */
 export function orderTotals(items: OrderItem[], payments: OrderPayment[], courier = 0) {
-  const gross = items.reduce((s, i) => s + i.price, 0);
-  const discount = items.reduce((s, i) => s + i.discount, 0);
+  const gross = r2(items.reduce((s, i) => s + i.price + (i.addOns ?? []).reduce((a, x) => a + x.price, 0), 0));
+  const discount = r2(items.reduce((s, i) => s + i.discount + (i.addOns ?? []).reduce((a, x) => a + x.discount, 0), 0));
+
   const total = r2(gross - discount + (courier || 0));
   const paid = r2(payments.reduce((s, p) => s + p.amount, 0));
   const advance = r2(payments.filter((p) => p.kind === "advance").reduce((s, p) => s + p.amount, 0));
@@ -28,7 +48,14 @@ export function orderTotals(items: OrderItem[], payments: OrderPayment[], courie
 
 export function validateOrder(items: OrderItem[], payments: OrderPayment[], courier = 0) {
   if (!items.length) throw new Error("Select at least one outfit");
-  for (const i of items) if (!Number.isFinite(i.price) || !Number.isFinite(i.discount) || i.price < 0 || i.discount < 0 || i.discount > i.price) throw new Error("Discount must be between zero and the outfit price");
+  for (const i of items) {
+    if (!Number.isFinite(i.price) || !Number.isFinite(i.discount) || i.price < 0 || i.discount < 0 || i.discount > i.price) throw new Error("Discount must be between zero and the outfit price");
+    for (const a of i.addOns ?? []) {
+      if (!a.label.trim()) throw new Error("Name each extra item (for example Trousers)");
+      if (!Number.isFinite(a.price) || !Number.isFinite(a.discount) || a.price < 0 || a.discount < 0 || a.discount > a.price) throw new Error("Extra item discount must be between zero and its price");
+    }
+    if (i.alternative && !i.alternative.title.trim() && !i.alternative.sku.trim()) throw new Error("Give the alternative outfit a name or model number");
+  }
   if (!Number.isFinite(courier) || courier < 0) throw new Error("Courier charges can't be negative");
   for (const p of payments) if (!Number.isFinite(p.amount) || p.amount <= 0) throw new Error("Payment must be greater than zero");
   if (orderTotals(items, payments, courier).balance < 0) throw new Error("Payments cannot exceed the order total");
