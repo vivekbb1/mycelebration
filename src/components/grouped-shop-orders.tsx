@@ -186,9 +186,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="text-sm">Actual size ordered<Input aria-label={`Actual size ordered for ${item.wearer} — ${item.event}`} value={item.orderedSize ?? ""} placeholder={item.size ? `Guest selected: ${item.size}` : "Size / made to measure"} onChange={(e) => setItems((all) => setOrderedSize(all, item.reservationId, e.target.value))} /></label>
-          <label className="text-sm">Shop price ({currency})<Input type="number" min="0" value={item.price} onChange={(e) => changeItem(item.reservationId, { price: Number(e.target.value) })} /></label>
+          <p className="text-sm">Original uploaded price<br /><strong>{item.originalPrice != null ? `${currency} ${item.originalPrice.toLocaleString(...nf(currency))}` : "Not recorded"}</strong></p>
+          <label className="text-sm">Revised price ({currency})<Input aria-label={`Revised price for ${item.wearer} — ${item.event}`} type="number" min="0" step="0.01" value={item.price} onChange={(e) => changeItem(item.reservationId, { price: Number(e.target.value) })} /></label>
           <label className="text-sm">Discount ({currency})<Input type="number" min="0" max={item.price} value={item.discount} onChange={(e) => changeItem(item.reservationId, { discount: Number(e.target.value) })} /></label>
-          <p className="self-end pb-2 text-sm">Net {currency} {(item.price - item.discount).toLocaleString(...nf(currency))}</p>
+          <p className="self-end pb-2 text-sm font-medium">Discounted price {currency} {(item.price - item.discount).toLocaleString(...nf(currency))}</p>
         </div>
         <h3 className="text-sm font-medium">Wearer measurements</h3>
         <dl className="grid gap-2 text-xs sm:grid-cols-3">{item.measurements ? Object.entries(item.measurements).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-destructive">No measurements supplied</p>}</dl>

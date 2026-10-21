@@ -1,7 +1,16 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { orderTotals, setOrderedSize, substituteItem, validateOrder, type OrderItem } from "./shop-order";
+import { orderTotals, setOrderedSize, setRevisedPrice, substituteItem, validateOrder, type OrderItem } from "./shop-order";
 const item = { price: 10000, discount: 1000 } as OrderItem;
+it("retains original price while revised size pricing and discounts determine value, not payment", () => {
+  const original = [{ ...item, reservationId: "a", originalPrice: 10000 }];
+  const revised = setRevisedPrice(original, "a", 12000);
+  strictEqual(revised[0]?.originalPrice, 10000);
+  strictEqual(revised[0]?.price, 12000);
+  strictEqual(original[0]?.price, 10000);
+  const t = orderTotals(revised, [{ amount: 3000, date: "2026-10-21", reference: "Advance" }]);
+  strictEqual(t.total, 11000); strictEqual(t.paid, 3000); strictEqual(t.balance, 8000);
+});
 it("records a different actual size for each look without changing selected sizes", () => {
   const original = [{ ...item, reservationId: "a", size: "M" }, { ...item, reservationId: "b", size: "S" }];
   const changed = setOrderedSize(setOrderedSize(original, "a", "L"), "b", "Made to measure");
