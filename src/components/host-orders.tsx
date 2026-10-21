@@ -16,7 +16,7 @@ import { pendingOrderLook } from "@/lib/vendor-invoice";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
 import type { OrderItem } from "@/lib/shop-order";
 import { Checkbox } from "@/components/ui/checkbox";
-import { money, nf } from "@/lib/shop-order";
+import { familyOrderReport, money, nf } from "@/lib/shop-order";
 import { buildPreorderPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { FileDown, ShoppingBag } from "lucide-react";
 
