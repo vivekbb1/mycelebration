@@ -72,3 +72,16 @@ export function nf(currency = "INR"): [string, Intl.NumberFormatOptions] {
   return [currency === "INR" ? "en-IN" : "en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 }];
 }
 export const money = (n: number, currency = "INR") => n.toLocaleString(...nf(currency));
+
+/** Discounted amount ordered per family (looks + extra items) across the given orders' items. */
+export function familyOrderReport(orders: OrderItem[][]) {
+  const map = new Map<string, { family: string; people: Set<string>; looks: number; extras: number; amount: number }>();
+  for (const i of orders.flat()) {
+    const family = i.family?.trim() || "No family";
+    const row = map.get(family) ?? { family, people: new Set(), looks: 0, extras: 0, amount: 0 };
+    row.people.add(i.wearer); row.looks++; row.extras += (i.addOns ?? []).length;
+    row.amount = r2(row.amount + i.price - i.discount + (i.addOns ?? []).reduce((s, a) => s + a.price - a.discount, 0));
+    map.set(family, row);
+  }
+  return [...map.values()].map((r) => ({ ...r, people: [...r.people].sort() })).sort((a, b) => b.amount - a.amount);
+}
