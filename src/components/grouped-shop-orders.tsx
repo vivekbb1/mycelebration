@@ -145,7 +145,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const q = orderSearch.trim().toLowerCase();
   const itemHit = (i: OrderItem) => !q || `${i.wearer} ${i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""}`.toLowerCase().includes(q);
   const shownOrders = (orders.data ?? []).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
-  const familyReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]));
+  const currentFamily = new Map(candidates.map((c) => [c.reservationId, c.family]));
+  const familyReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]), (i) => currentFamily.get(i.reservationId) || undefined);
   const sum = active.reduce((acc, o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); acc.total += t.total; acc.paid += t.paid; return acc; }, { total: 0, paid: 0 });
 
   return <section className={listHidden ? "contents" : "space-y-3"}>

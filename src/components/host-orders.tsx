@@ -16,7 +16,7 @@ import { pendingOrderLook } from "@/lib/vendor-invoice";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
 import type { OrderItem } from "@/lib/shop-order";
 import { Checkbox } from "@/components/ui/checkbox";
-import { money, nf } from "@/lib/shop-order";
+import { familyOrderReport, money, nf } from "@/lib/shop-order";
 import { buildPreorderPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { FileDown, ShoppingBag } from "lucide-react";
 
@@ -124,6 +124,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
             ...r,
             guest_name: coded?.guest_name ?? r.guest_name,
             guest,
+            wearerFamily: coded?.household ?? member?.household ?? guest?.household ?? "",
             measurementValues: m ? measurementValues : null,
             measured: Boolean(m),
             confirmed: r.status === "confirmed",
@@ -253,7 +254,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   const field = (r: Row, k: keyof Draft, v: string) =>
     setDrafts((p) => ({ ...p, [r.id]: { ...draftOf(r), [k]: v } }));
 
-  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", originalPrice: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null, price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
+  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.wearerFamily || r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", originalPrice: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null, price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
   const [pdfReady, setPdfReady] = useState<{ blob: Blob; name: string } | null>(null);
   async function releaseFromOrder(rid: string) {
     const o = (orderList.data ?? []).find((x) => x.status !== "cancelled" && (x.items as unknown as OrderItem[]).some((i) => i.reservationId === rid));
@@ -359,6 +360,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     <div className="space-y-5">
       <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} />
       <VendorInvoiceUpload inviteId={inviteId} candidates={candidates.filter((c) => !inOrder.has(c.reservationId) && !(data.data ?? []).find((r) => r.id === c.reservationId)?.order_placed_at)} />
+      {rows.length ? <PreorderFamilyTotals items={rows.map(toItem)} /> : null}
       {rows.length ? (
         <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
           <label className="flex items-center gap-2 text-sm">
@@ -609,6 +611,27 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+function PreorderFamilyTotals({ items }: { items: OrderItem[] }) {
+  const [open, setOpen] = useState(false);
+  const report = familyOrderReport([items]);
+  const total = report.reduce((s, f) => s + f.amount, 0);
+  return (
+    <div className="panel-wrap p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm">Amount by family (looks shown) · <span className="font-medium">INR {total.toLocaleString(...nf())}</span></p>
+        <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>{open ? "Hide" : "Show"} amount by family</Button>
+      </div>
+      {open ? (
+        <div className="mt-2 overflow-x-auto"><table className="w-full min-w-[480px] text-sm">
+          <thead className="text-left text-xs text-muted-foreground"><tr><th className="p-2 font-normal">Family</th><th className="p-2 font-normal">People</th><th className="p-2 text-right font-normal">Looks</th><th className="p-2 text-right font-normal">Amount</th></tr></thead>
+          <tbody>{report.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf())}</td></tr>)}
+          <tr className="border-t border-border font-medium"><td className="p-2" colSpan={3}>Total</td><td className="p-2 text-right">{total.toLocaleString(...nf())}</td></tr></tbody>
+        </table></div>
+      ) : null}
     </div>
   );
 }
