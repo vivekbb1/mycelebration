@@ -33,3 +33,4 @@
 
 - Per-person records (reservations, measurements, room assignments, passports, travel travellers) link to the person by invite_code id (`member_code_id` / `traveller_code_ids`); names are display-only and a fallback for unlinked rows. Why: renaming a person must never detach their choices.
 - Pre-order search filters visibility, not selected reservation IDs; PDF and conversion resolve selections from the active tab's rows, while tab and dimension changes clear selections. Why: hosts can collect looks across searches without losing ticks or exporting another tab's selections.
+- Order-only alternatives (`alternative`) and extra pieces like trousers (`addOns`) live inside each order item and count toward totals in both client validation and the order trigger; reservations are never changed. Why: hosts can swap or supplement what the shop supplies without altering guest choices.
