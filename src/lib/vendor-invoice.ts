@@ -14,7 +14,7 @@ export function parseVendorInvoice(text: string): VendorInvoice {
   const paid = flat.match(/TOTAL PAID\s*₹\s*([\d,.]+)/i)?.[1];
   const due = flat.match(/AMOUNT DUE\s*₹\s*([\d,.]+)/i)?.[1];
   const lines: InvoiceLine[] = [];
-  const rows = /([A-Z]+\d+)-(?:BO-([A-Z\d]+)|(Custom\s+Tailored))\s+.*?\s(\d+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)/g;
+  const rows = /([A-Z]+\d+)-(?:BO-([A-Z\d]+)|(Custom\s+Tailored))\s+(?:.*?\s)?(\d+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)/g;
   for (const m of flat.matchAll(rows)) {
     const [, sku, boSize, custom, quantity, price, discount, net] = m;
     const orderedSize = boSize ?? (custom ? "Custom tailored" : undefined);
