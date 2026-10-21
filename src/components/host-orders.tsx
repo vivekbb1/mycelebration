@@ -418,6 +418,14 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
         {filterBar}
       </div>
 
+      <Input
+        type="search"
+        aria-label="Search outfits"
+        placeholder="Search outfit, model number, designer or shop link"
+        value={outfitSearch}
+        onChange={(e) => { setOutfitSearch(e.target.value); setPicked(new Set()); setPdfReady(null); }}
+      />
+
       {data.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : rows.length === 0 ? (
@@ -455,6 +463,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                   )}
                   <div className="min-w-[10.5rem] flex-1">
                     <p className="font-medium">{o?.title ?? "Look"}</p>
+                    <p className="break-words text-sm text-muted-foreground">Model number: {o?.source_sku || "Not supplied"}</p>
                     <p className="text-sm text-muted-foreground">
                       {r.guest_name && r.guest_name.trim().toLowerCase() !== (r.guest?.guest_name ?? "").trim().toLowerCase()
                         ? `${r.guest_name} (by ${r.guest?.guest_name ?? "family"})`
