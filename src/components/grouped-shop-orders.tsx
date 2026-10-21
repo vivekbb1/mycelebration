@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { nf, orderTotals, setOrderedSize, setRevisedPrice, substituteItem, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
+import { addAddOn, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -22,6 +22,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const qc = useQueryClient();
   const orders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
+    if (error) throw error; return data ?? [];
+  } });
+  const wardrobe = useQuery({ queryKey: ["order-wardrobe", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
+    const { data, error } = await supabase.from("outfits").select("id, title, designer, source_sku, boutique_url, image_url, price_inr, gender").eq("invite_id", inviteId).order("title");
     if (error) throw error; return data ?? [];
   } });
   const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false);
@@ -178,7 +182,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       {items.map((item) => <div key={item.reservationId} className="space-y-3 border-t border-border pt-4">
         <div className="flex gap-3">
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}
-          <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku}</p></div>
+          <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku}</p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""}</p> : null}{item.addOns?.length ? <p className="text-sm text-muted-foreground">+ {item.addOns.map((a) => a.label).join(", ")}</p> : null}</div>
           {!cancelled ? <div className="flex shrink-0 flex-col gap-1">
             <Button variant="ghost" size="sm" title="Substitute another outfit" onClick={() => { setSwapFor(item.reservationId); setAdding(false); }}><Repeat className="size-4" /> Substitute</Button>
             <Button variant="ghost" size="sm" title="Remove from order" onClick={() => setItems((a) => a.filter((i) => i.reservationId !== item.reservationId))}><Trash2 className="size-4" /> Remove</Button>
@@ -193,6 +197,41 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
         <h3 className="text-sm font-medium">Wearer measurements</h3>
         <dl className="grid gap-2 text-xs sm:grid-cols-3">{item.measurements ? Object.entries(item.measurements).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-destructive">No measurements supplied</p>}</dl>
+        <div className="space-y-2 rounded-md border border-border p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-medium">Alternative for the shop order <span className="font-normal text-muted-foreground">(guest still sees their own choice)</span></h3>
+            {!cancelled ? (item.alternative
+              ? <Button size="sm" variant="ghost" onClick={() => setItems((all) => setAlternative(all, item.reservationId, null))}>Remove alternative</Button>
+              : <Button size="sm" variant="outline" onClick={() => setItems((all) => setAlternative(all, item.reservationId, { title: "", sku: "", designer: "", shop: "", image: "" }))}><Repeat className="size-4" /> Order an alternative</Button>) : null}
+          </div>
+          {item.alternative ? <div className="grid gap-2 sm:grid-cols-2">
+            <label className="text-sm sm:col-span-2">Pick from wardrobe<select aria-label={`Wardrobe alternative for ${item.wearer} — ${item.event}`} className="field-select w-full" value={item.alternative.outfitId ?? ""} disabled={cancelled} onChange={(e) => { const o = (wardrobe.data ?? []).find((w) => w.id === e.target.value); if (!o) { setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, outfitId: null })); return; } setItems((all) => { const next = setAlternative(all, item.reservationId, { outfitId: o.id, title: o.title, sku: o.source_sku ?? "", designer: o.designer ?? "", shop: o.boutique_url ?? "", image: o.image_url ?? "" }); return o.price_inr != null ? setRevisedPrice(next, item.reservationId, Number(o.price_inr)) : next; }); }}>
+              <option value="">Type it in by hand below</option>
+              {(wardrobe.data ?? []).filter((w) => w.id !== item.alternative?.outfitId || true).map((w) => <option key={w.id} value={w.id}>{w.title}{w.source_sku ? ` (${w.source_sku})` : ""}{w.designer ? ` · ${w.designer}` : ""} · {w.gender}</option>)}
+            </select></label>
+            <label className="text-sm">Outfit name<Input value={item.alternative.title} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, title: e.target.value }))} /></label>
+            <label className="text-sm">Model number<Input value={item.alternative.sku} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, sku: e.target.value }))} /></label>
+            <label className="text-sm">Designer<Input value={item.alternative.designer} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, designer: e.target.value }))} /></label>
+            <label className="text-sm">Shop link<Input value={item.alternative.shop} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, shop: e.target.value }))} /></label>
+            <p className="text-xs text-muted-foreground sm:col-span-2">Set the alternative's price in "Revised price" above.</p>
+          </div> : null}
+        </div>
+        <div className="space-y-2 rounded-md border border-border p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-medium">Extra items for this look <span className="font-normal text-muted-foreground">(e.g. trousers · hosts only)</span></h3>
+            {!cancelled ? <Button size="sm" variant="outline" onClick={() => setItems((all) => addAddOn(all, item.reservationId, { id: crypto.randomUUID(), label: "Trousers", sku: "", size: "", shop: "", price: 0, discount: 0, notes: "" }))}><Plus className="size-4" /> Add extra item</Button> : null}
+          </div>
+          {(item.addOns ?? []).map((a) => { const up = (patch: Partial<OrderAddOn>) => setItems((all) => updateAddOn(all, item.reservationId, a.id, patch)); return <div key={a.id} className="grid gap-2 border-t border-border pt-2 sm:grid-cols-4">
+            <label className="text-sm">Item<Input aria-label={`Extra item for ${item.wearer}`} value={a.label} disabled={cancelled} onChange={(e) => up({ label: e.target.value })} /></label>
+            <label className="text-sm">Model number<Input value={a.sku} disabled={cancelled} onChange={(e) => up({ sku: e.target.value })} /></label>
+            <label className="text-sm">Size<Input value={a.size} disabled={cancelled} onChange={(e) => up({ size: e.target.value })} /></label>
+            <label className="text-sm">Shop link<Input value={a.shop} disabled={cancelled} onChange={(e) => up({ shop: e.target.value })} /></label>
+            <label className="text-sm">Price ({currency})<Input type="number" min="0" step="0.01" value={a.price} disabled={cancelled} onChange={(e) => up({ price: Number(e.target.value) })} /></label>
+            <label className="text-sm">Discount ({currency})<Input type="number" min="0" value={a.discount} disabled={cancelled} onChange={(e) => up({ discount: Number(e.target.value) })} /></label>
+            <p className="self-end pb-2 text-sm font-medium">{currency} {(a.price - a.discount).toLocaleString(...nf(currency))}</p>
+            {!cancelled ? <Button className="self-end" variant="ghost" size="sm" onClick={() => setItems((all) => removeAddOn(all, item.reservationId, a.id))}><Trash2 className="size-4" /> Remove</Button> : null}
+          </div>; })}
+        </div>
         <label className="block text-sm">Customisations / availability questions<Textarea value={item.notes} onChange={(e) => changeItem(item.reservationId, { notes: e.target.value })} /></label>
       </div>)}
 
