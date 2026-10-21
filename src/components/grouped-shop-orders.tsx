@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { nf, orderTotals, substituteItem, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
+import { nf, orderTotals, setOrderedSize, substituteItem, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -84,7 +84,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     try { await fn(); toast.success(ok); if (close) setOpen(false); }
     catch (e) {
       // Data API errors are plain objects, not Error instances. Keep the actual
-      // rejection visible (confirmation, measurements, duplicate order, etc.).
+      // rejection visible (measurements, duplicate order, etc.).
       const message = e && typeof e === "object" && "message" in e && typeof e.message === "string"
         ? e.message : "Couldn't save order";
       toast.error(message);
@@ -181,6 +181,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           </div> : null}
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
+          <label className="text-sm">Actual size ordered<Input aria-label={`Actual size ordered for ${item.wearer} — ${item.event}`} value={item.orderedSize ?? ""} placeholder={item.size ? `Guest selected: ${item.size}` : "Size / made to measure"} onChange={(e) => setItems((all) => setOrderedSize(all, item.reservationId, e.target.value))} /></label>
           <label className="text-sm">Shop price ({currency})<Input type="number" min="0" value={item.price} onChange={(e) => changeItem(item.reservationId, { price: Number(e.target.value) })} /></label>
           <label className="text-sm">Discount ({currency})<Input type="number" min="0" max={item.price} value={item.discount} onChange={(e) => changeItem(item.reservationId, { discount: Number(e.target.value) })} /></label>
           <p className="self-end pb-2 text-sm">Net {currency} {(item.price - item.discount).toLocaleString(...nf(currency))}</p>

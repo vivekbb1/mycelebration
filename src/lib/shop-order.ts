@@ -1,4 +1,9 @@
-export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string };
+export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string };
+
+/** Shop sizing is order-only; never overwrite the guest's selected size. */
+export function setOrderedSize(items: OrderItem[], reservationId: string, orderedSize: string) {
+  return items.map((item) => item.reservationId === reservationId ? { ...item, orderedSize } : item);
+}
 export type PaymentKind = "advance" | "payment";
 export type OrderPayment = { amount: number; date: string; reference: string; kind?: PaymentKind };
 export type DocKind = "proforma" | "invoice" | "bill" | "receipt" | "other";
