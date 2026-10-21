@@ -32,7 +32,7 @@ it("placed orders confirm looks and expose actual ordered sizes without replacin
     strictEqual(after.data.size_choice, choice.size_choice);
     strictEqual(after.data.outfit_id, choice.outfit_id);
     strictEqual(after.data.member_code_id, choice.member_code_id);
-    for (const [status, orderedSize] of [["placed", "XL"], ["shipped", "XXL"], ["delivered", "Custom tailored"]]) {
+    for (const [status, orderedSize] of [["placed", "XL"], ["shipped", "XXL"], ["delivered", "Custom tailored"]] as const) {
       const latest = await client.from("wardrobe_orders").select("items, payments, documents, status").eq("id", orderId).single();
       if (latest.error) throw latest.error;
       const items = latest.data.items as unknown as { reservationId: string; orderedSize: string }[];
