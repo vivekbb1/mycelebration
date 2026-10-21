@@ -253,7 +253,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   const field = (r: Row, k: keyof Draft, v: string) =>
     setDrafts((p) => ({ ...p, [r.id]: { ...draftOf(r), [k]: v } }));
 
-  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
+  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", originalPrice: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null, price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
   const [pdfReady, setPdfReady] = useState<{ blob: Blob; name: string } | null>(null);
   async function releaseFromOrder(rid: string) {
     const o = (orderList.data ?? []).find((x) => x.status !== "cancelled" && (x.items as unknown as OrderItem[]).some((i) => i.reservationId === rid));
@@ -289,7 +289,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   }
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
-  const candidates = (data.data ?? []).map((r): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }));
+  const candidates = (data.data ?? []).map(toItem);
   const filterBar = (<div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {([["gender", "All looks"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
             <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
