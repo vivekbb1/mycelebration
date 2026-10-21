@@ -1,5 +1,5 @@
 # Roadmap — multi-celebration platform
-- [ ] Allow hosts to order reserved looks and record actual ordered sizes per outfit
+- [x] Allow hosts to order reserved looks and record actual ordered sizes per outfit
 - [x] Orders: sold-out filter, grouped orders, prices/discounts, manual part-payments and measurements
 - [x] Orders: shop PDF and alteration vendors/photos/measurements
 - [x] Family picks: size/event filters and shop ordering spreadsheet with measurements
