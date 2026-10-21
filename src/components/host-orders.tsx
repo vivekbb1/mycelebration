@@ -146,13 +146,11 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   }, [data.data]);
   const base = useMemo(() => (data.data ?? []).filter((r) =>
     (!dim.person || wearerOf(r) === dim.person) && (!dim.family || r.guest?.household === dim.family) &&
-    (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender) &&
-    (view !== "pre" || !outfitSearch.trim() || [r.outfits?.title, r.outfits?.designer, r.outfits?.source_sku, r.outfits?.boutique_url]
-      .some((value) => value?.toLowerCase().includes(outfitSearch.trim().toLowerCase())))), [data.data, dim, outfitSearch, view]);
+    (!dim.event || r.outfits?.events?.name === dim.event) && (!dim.gender || genderOf(r) === dim.gender)), [data.data, dim]);
   const [sort, setSort] = useState("recent");
   const [workmanFilter, setWorkmanFilter] = useState("");
   const [altFilter, setAltFilter] = useState<"all" | "needed" | "with vendor" | "complete" | "none">("all");
-  const rows = useMemo(() => {
+  const tabRows = useMemo(() => {
     const sorted = (list: Row[]) => {
       if (sort === "recent") return list;
       const [key, dir] = sort.split("-"); const m = dir === "desc" ? -1 : 1;
@@ -170,6 +168,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     return all;
     }
   }, [base, filter, sort]);
+  const rows = useMemo(() => tabRows.filter((r) =>
+    view !== "pre" || !outfitSearch.trim() || [r.outfits?.title, r.outfits?.designer, r.outfits?.source_sku, r.outfits?.boutique_url]
+      .some((value) => value?.toLowerCase().includes(outfitSearch.trim().toLowerCase()))), [tabRows, outfitSearch, view]);
 
   const draftOf = (r: Row): Draft =>
     drafts[r.id] ?? {
@@ -261,7 +262,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     toast.success("Released back to pre-orders");
     qc.invalidateQueries({ queryKey: ["wardrobe-orders"] }); qc.invalidateQueries({ queryKey: ["host-orders"] });
   }
-  const pickedRows = rows.filter((r) => picked.has(r.id));
+  const pickedRows = tabRows.filter((r) => picked.has(r.id));
   const convertible = pickedRows.filter((r) => !inOrder.has(r.id));
   async function preorderPdf() {
     setPdfBusy(true);
@@ -357,7 +358,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
             <Checkbox
               aria-label="Select all shown"
               checked={rows.length > 0 && rows.every((r) => picked.has(r.id))}
-              onCheckedChange={(v) => setPicked(v ? new Set(rows.map((r) => r.id)) : new Set())}
+              onCheckedChange={(v) => { setPicked((p) => { const n = new Set(p); for (const r of rows) { if (v) n.add(r.id); else n.delete(r.id); } return n; }); setPdfReady(null); }}
             />
             Select all shown ({rows.length})
           </label>
@@ -423,7 +424,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
         aria-label="Search outfits"
         placeholder="Search outfit, model number, designer or shop link"
         value={outfitSearch}
-        onChange={(e) => { setOutfitSearch(e.target.value); setPicked(new Set()); setPdfReady(null); }}
+        onChange={(e) => { setOutfitSearch(e.target.value); setPdfReady(null); }}
       />
 
       {data.isLoading ? (
@@ -447,7 +448,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                     className="mt-1"
                     aria-label={`Select ${o?.title ?? "look"}`}
                     checked={picked.has(r.id)}
-                    onCheckedChange={(v) => setPicked((p) => { const n = new Set(p); if (v) n.add(r.id); else n.delete(r.id); return n; })}
+                    onCheckedChange={(v) => { setPicked((p) => { const n = new Set(p); if (v) n.add(r.id); else n.delete(r.id); return n; }); setPdfReady(null); }}
                   />
                   {o?.image_url ? (
                     <img
