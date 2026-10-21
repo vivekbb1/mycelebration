@@ -1,5 +1,5 @@
 # Roadmap — multi-celebration platform
-- [ ] Last-minute ordered-size changes on placed orders: explicit size save, preserving guest requests and other order details
+- [x] Last-minute ordered-size changes on placed orders: size-only save verified on a temporary order; requested sizes and existing orders preserved
 - [x] Order pricing: original upload snapshot, revised price, discount and net alongside actual payments; tests and unsaved host preview verified
 - [x] Host placed orders: confirm guest looks and display actual ordered sizes without replacing guest selections
 - [x] Invoice upload: parse vendor details, review wearer matches, convert to grouped orders and hide ordered looks from pre-orders
