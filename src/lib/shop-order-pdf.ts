@@ -32,7 +32,7 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     } catch { text("Photo unavailable; see shop link below."); } }
     text(item.title, true); text(`${item.designer} | SKU: ${item.sku || "Not supplied"}`);
     text(`Wearer: ${item.wearer} | Family: ${item.family} | Event: ${item.event}`);
-    text(`Selected size: ${item.size || "Not supplied"}`);
+    text(`Guest requested size: ${item.size || "Not supplied"}`);
     text(`Actual size ordered: ${item.orderedSize || "Not recorded"}`, true);
     text(`Original uploaded price: ${item.originalPrice != null ? `${currency} ${money(item.originalPrice, currency)}` : "Not recorded"}`);
     text(`Revised price: ${currency} ${money(item.price, currency)} | Discount: ${currency} ${money(item.discount, currency)} | Discounted price: ${currency} ${money((item.price - item.discount), currency)}`);
