@@ -40,7 +40,7 @@ export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[
       const item = invoiceMatches(line, candidates).find((c) => c.reservationId === id);
       if (!item || used.has(id)) throw new Error("Each invoice outfit must match a different pending look with the same model number");
       used.add(id);
-      return { ...item, orderedSize: line.orderedSize, price: line.price, discount: line.discount };
+      return { ...item, originalPrice: item.originalPrice ?? null, orderedSize: line.orderedSize, price: line.price, discount: line.discount };
     });
   });
 }

@@ -1,4 +1,9 @@
-export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string };
+export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string };
+
+/** Revised vendor price changes never replace the original upload snapshot. */
+export function setRevisedPrice(items: OrderItem[], reservationId: string, price: number) {
+  return items.map((item) => item.reservationId === reservationId ? { ...item, price } : item);
+}
 
 /** Shop sizing is order-only; never overwrite the guest's selected size. */
 export function setOrderedSize(items: OrderItem[], reservationId: string, orderedSize: string) {

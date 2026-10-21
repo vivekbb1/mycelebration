@@ -74,7 +74,8 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
           <div className="grid grid-cols-3 gap-2 text-sm"><p>Total<br /><strong>INR {money(invoice.total)}</strong></p><p>Stated paid<br /><strong>INR {money(invoice.paid)}</strong></p><p>Due<br /><strong>INR {money(invoice.due)}</strong></p></div>
           {invoice.lines.map((line, index) => { const options = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
             <p className="font-medium">{line.sku} · ordered size {line.orderedSize}</p>
-            <p className="text-sm text-muted-foreground">Price INR {money(line.price)} − discount {money(line.discount)} = {money(line.net)}</p>
+            <p className="text-sm text-muted-foreground">Revised price INR {money(line.price)} − discount {money(line.discount)} = discounted price INR {money(line.net)}</p>
+            {(matches[index] ?? []).map((id) => { const item = options.find((o) => o.reservationId === id); return item ? <p key={id} className="text-sm">{item.wearer} · Original uploaded price: {item.originalPrice != null ? `INR ${money(item.originalPrice)}` : "Not recorded"}</p> : null; })}
             {Array.from({ length: line.quantity }, (_, slot) => <label key={slot} className="block text-sm">Wearer{line.quantity > 1 ? ` ${slot + 1}` : ""}
               <select aria-label={`Wearer for ${line.sku}${line.quantity > 1 ? ` ${slot + 1}` : ""}`} className="field-select w-full" value={matches[index]?.[slot] ?? ""} onChange={(e) => setMatches((all) => all.map((ids, i) => { if (i !== index) return ids; const next = [...ids]; next[slot] = e.target.value; return next; }))}>
                 <option value="">{options.length ? "Choose the matching person and event" : "No matching pending look — check model number"}</option>
