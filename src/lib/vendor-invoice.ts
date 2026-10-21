@@ -32,18 +32,38 @@ export function invoiceMatches(line: InvoiceLine, candidates: OrderItem[]) {
   return candidates.filter((item) => item.sku.trim().toUpperCase().replace(/-BO-.*$/, "") === line.sku.toUpperCase());
 }
 
-export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][]): OrderItem[] {
+/** How an invoice line relates to a person: their own look, an order-only alternative to it, or an extra piece (e.g. trousers) for a look on this invoice. */
+export type SlotMode = "look" | "alternative" | "addon";
+
+export function defaultSlotMode(line: InvoiceLine, candidates: OrderItem[]): SlotMode {
+  return invoiceMatches(line, candidates).length ? "look" : "alternative";
+}
+
+export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = []): OrderItem[] {
   const used = new Set<string>();
-  return invoice.lines.flatMap((line, index) => {
+  const items: OrderItem[] = [];
+  const modeOf = (index: number, slot: number) => modes[index]?.[slot] ?? defaultSlotMode(invoice.lines[index]!, candidates);
+  invoice.lines.forEach((line, index) => {
     const ids = matches[index] ?? [];
-    if (ids.length !== line.quantity) throw new Error(`Match all ${line.quantity} wearer(s) for ${line.sku}`);
-    return ids.map((id) => {
-      const item = invoiceMatches(line, candidates).find((c) => c.reservationId === id);
-      if (!item || used.has(id)) throw new Error("Each invoice outfit must match a different pending look with the same model number");
+    if (ids.length !== line.quantity || ids.some((id) => !id)) throw new Error(`Match all ${line.quantity} wearer(s) for ${line.sku}`);
+    ids.forEach((id, slot) => {
+      const mode = modeOf(index, slot);
+      if (mode === "addon") return;
+      const item = (mode === "look" ? invoiceMatches(line, candidates) : candidates).find((c) => c.reservationId === id);
+      if (!item || used.has(id)) throw new Error("Each invoice outfit must go to a different person's pending look");
       used.add(id);
-      return { ...item, originalPrice: item.originalPrice ?? null, orderedSize: line.orderedSize, price: line.price, discount: line.discount };
+      const sameModel = invoiceMatches(line, [item]).length > 0;
+      items.push({ ...item, originalPrice: item.originalPrice ?? null, orderedSize: line.orderedSize, price: line.price, discount: line.discount,
+        alternative: mode === "alternative" && !sameModel ? { title: `Alternative ${line.sku}`, sku: line.sku, designer: "", shop: "", image: "" } : item.alternative ?? null });
     });
   });
+  invoice.lines.forEach((line, index) => (matches[index] ?? []).forEach((id, slot) => {
+    if (modeOf(index, slot) !== "addon") return;
+    const target = items.find((i) => i.reservationId === id);
+    if (!target) throw new Error(`Extra item ${line.sku} must go with a look on this invoice`);
+    target.addOns = [...(target.addOns ?? []), { id: `${line.sku}-${index}-${slot}`, label: "Extra item", sku: line.sku, size: line.orderedSize, shop: "", price: line.price, discount: line.discount, notes: "From vendor invoice" }];
+  }));
+  return items;
 }
 
 export function pendingOrderLook(reservationId: string, legacyPlaced: string | null, activeOrders: ReadonlyMap<string, string>) {
