@@ -2,8 +2,9 @@ import { it } from "node:test";
 import { strictEqual } from "node:assert";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+type SizeOrder = Pick<Database["public"]["Tables"]["wardrobe_orders"]["Row"], "items" | "payments" | "documents" | "status">;
 
 it("placed orders confirm looks and expose actual ordered sizes without replacing guest selections", async () => {
   const minted = JSON.parse(readFileSync(`${homedir()}/.cache/lovable-auth/session.json`, "utf8"));
@@ -33,10 +34,10 @@ it("placed orders confirm looks and expose actual ordered sizes without replacin
     strictEqual(after.data.outfit_id, choice.outfit_id);
     strictEqual(after.data.member_code_id, choice.member_code_id);
     for (const [status, orderedSize] of [["placed", "XL"], ["shipped", "XXL"], ["delivered", "Custom tailored"]] as const) {
-      const latest = await client.from("wardrobe_orders").select("items, payments, documents, status").eq("id", orderId).single();
+      const latest: PostgrestSingleResponse<SizeOrder> = await client.from("wardrobe_orders").select("items, payments, documents, status").eq("id", orderId).single();
       if (latest.error) throw latest.error;
       const items = latest.data.items as unknown as { reservationId: string; orderedSize: string }[];
-      const changed = await client.from("wardrobe_orders").update({ status, items: items.map((i) => ({ ...i, orderedSize })) }).eq("id", orderId).select("items, payments, documents, status").single();
+      const changed: PostgrestSingleResponse<SizeOrder> = await client.from("wardrobe_orders").update({ status, items: items.map((i) => ({ ...i, orderedSize })) }).eq("id", orderId).select("items, payments, documents, status").single();
       if (changed.error) throw changed.error;
       strictEqual(changed.data.status, status);
       strictEqual(JSON.stringify(changed.data.payments), JSON.stringify(latest.data.payments));
