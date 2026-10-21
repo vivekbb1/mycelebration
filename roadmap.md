@@ -1,5 +1,5 @@
 # Roadmap — multi-celebration platform
-- [ ] Host placed orders: confirm guest looks and display actual ordered sizes without replacing guest selections
+- [x] Host placed orders: confirm guest looks and display actual ordered sizes without replacing guest selections
 - [x] Invoice upload: parse vendor details, review wearer matches, convert to grouped orders and hide ordered looks from pre-orders
 - [ ] Record supplied vendor invoices: awaiting host confirmation; both reviews tested without saving production orders
 - [x] Allow hosts to order reserved looks and record actual ordered sizes per outfit
