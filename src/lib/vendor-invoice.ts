@@ -14,9 +14,10 @@ export function parseVendorInvoice(text: string): VendorInvoice {
   const paid = flat.match(/TOTAL PAID\s*₹\s*([\d,.]+)/i)?.[1];
   const due = flat.match(/AMOUNT DUE\s*₹\s*([\d,.]+)/i)?.[1];
   const lines: InvoiceLine[] = [];
-  const rows = /([A-Z]+\d+)-BO-([A-Z\d]+)\s+.*?\s(\d+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)/g;
+  const rows = /([A-Z]+\d+)-(?:BO-([A-Z\d]+)|(Custom\s+Tailored))\s+(?:.*?\s)??(\d+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)\s+₹\s*([\d,.]+)/g;
   for (const m of flat.matchAll(rows)) {
-    const [, sku, orderedSize, quantity, price, discount, net] = m;
+    const [, sku, boSize, custom, quantity, price, discount, net] = m;
+    const orderedSize = boSize ?? (custom ? "Custom tailored" : undefined);
     if (!sku || !orderedSize || !quantity || !price || !discount || !net) continue;
     lines.push({ sku, orderedSize, quantity: Number(quantity), price: amount(price), discount: amount(discount), net: amount(net) });
   }

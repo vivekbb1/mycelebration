@@ -28,4 +28,7 @@ it("ordered looks leave pending lists and return after cancellation", () => {
   strictEqual(pendingOrderLook("a", null, new Map()), true);
   strictEqual(pendingOrderLook("b", "2026-10-20", new Map()), false);
 });
-it("rejects invoices with inconsistent totals", () => throws(() => parseVendorInvoice(text.replace("₹4,750.00", "₹4,751.00"))));
+it("rejects invoices with inconsistent totals", () => throws(() => parseVendorInvoice(text.replace("₹4,750.00", "₹4,751.00"))));it("reads custom tailored lines without a size suffix", () => {
+  const i = parseVendorInvoice("ORDER NO : 1 DATE : 21-10-2026 TUPO032424-Custom Tailored 1 ₹26,500.00 ₹1,325.00 ₹25,175.00 TushPosh KASB082443-BO-L 1 ₹4,840.00 ₹242.00 ₹4,598.00 ORDER TAKEN BY M TOTAL AMOUNT ₹1 TOTAL PAYABLE ₹29,773.00 TOTAL PAID ₹20,000.00 AMOUNT DUE ₹9,773.00");
+  strictEqual(i.lines.length, 2); strictEqual(i.lines[0]?.sku, "TUPO032424"); strictEqual(i.lines[0]?.orderedSize, "Custom tailored");
+});
