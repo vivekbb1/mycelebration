@@ -743,6 +743,13 @@
       "when": 1792599715325,
       "tag": "0105_vendor_invoice_order_validation",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1792600329455,
+      "tag": "0106_confirm_host_ordered_looks",
+      "breakpoints": true
     }
   ]
 }
