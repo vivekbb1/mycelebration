@@ -736,6 +736,13 @@
       "when": 1792599231174,
       "tag": "0104_host_orders_allow_reserved_looks",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1792599715325,
+      "tag": "0105_vendor_invoice_order_validation",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,8 @@ import { useSelectedEvent } from "@/lib/selected-event";
 import { formFor, hasChart, MADE_TO_MEASURE, suggestSize, type ShopSize } from "@/lib/size-charts";
 import { GroupedShopOrders } from "@/components/grouped-shop-orders";
 import { OrderAlterations } from "@/components/order-alterations";
+import { VendorInvoiceUpload } from "@/components/vendor-invoice-upload";
+import { pendingOrderLook } from "@/lib/vendor-invoice";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
 import type { OrderItem } from "@/lib/shop-order";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -59,7 +61,8 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     queryKey: ["wardrobe-orders", inviteId],
     enabled: Boolean(inviteId),
     queryFn: async () => {
-      const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId!).order("created_at", { ascending: false });
+      if (!inviteId) return [];
+      const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -159,15 +162,16 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     };
     return sorted(pick());
     function pick() {
-    const all = base;
-    if (filter === "placed") return all.filter((r) => r.order_placed_at);
+    if (view !== "pre") return base;
+    if (filter === "placed") return base.filter((r) => !pendingOrderLook(r.id, r.order_placed_at, inOrder));
+    const all = base.filter((r) => pendingOrderLook(r.id, r.order_placed_at, inOrder));
     if (filter === "soldout") return all.filter((r) => r.soldOut);
     if (filter === "fit") return all.filter((r) => r.misfit || r.soldOut);
     if (filter === "nomeas") return all.filter((r) => !r.measured);
     if (filter === "ready") return all.filter((r) => !r.order_placed_at && r.measured);
     return all;
     }
-  }, [base, filter, sort]);
+  }, [base, filter, sort, inOrder, view]);
   const rows = useMemo(() => tabRows.filter((r) =>
     view !== "pre" || !outfitSearch.trim() || [r.outfits?.title, r.outfits?.designer, r.outfits?.source_sku, r.outfits?.boutique_url]
       .some((value) => value?.toLowerCase().includes(outfitSearch.trim().toLowerCase()))), [tabRows, outfitSearch, view]);
@@ -236,13 +240,14 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     return [...byCur.entries()];
   }, [data.data]);
 
+  const pending = base.filter((r) => pendingOrderLook(r.id, r.order_placed_at, inOrder));
   const counts = {
-    ready: base.filter((r) => !r.order_placed_at && r.measured).length,
-    placed: base.filter((r) => r.order_placed_at).length,
-    all: base.length,
-    fit: base.filter((r) => r.misfit || r.soldOut).length,
-    nomeas: base.filter((r) => !r.measured).length,
-    soldout: base.filter((r) => r.soldOut).length,
+    ready: pending.filter((r) => r.measured).length,
+    placed: base.length - pending.length,
+    all: pending.length,
+    fit: pending.filter((r) => r.misfit || r.soldOut).length,
+    nomeas: pending.filter((r) => !r.measured).length,
+    soldout: pending.filter((r) => r.soldOut).length,
   };
 
   const field = (r: Row, k: keyof Draft, v: string) =>
@@ -347,11 +352,13 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   if (view === "orders") return (
     <div className="space-y-5">
       <GroupedShopOrders inviteId={inviteId} candidates={candidates} />
+      <VendorInvoiceUpload inviteId={inviteId} candidates={candidates.filter((c) => !inOrder.has(c.reservationId) && !(data.data ?? []).find((r) => r.id === c.reservationId)?.order_placed_at)} />
     </div>
   );
   return (
     <div className="space-y-5">
       <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} />
+      <VendorInvoiceUpload inviteId={inviteId} candidates={candidates.filter((c) => !inOrder.has(c.reservationId) && !(data.data ?? []).find((r) => r.id === c.reservationId)?.order_placed_at)} />
       {rows.length ? (
         <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
           <label className="flex items-center gap-2 text-sm">

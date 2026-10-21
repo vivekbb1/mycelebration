@@ -131,6 +131,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <div key={o.id} className={`flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
         <div>
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
+          <p className="text-sm">{[...new Set((o.items as unknown as OrderItem[]).map((i) => i.wearer))].join(" · ")}</p>
           <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · balance {t.balance.toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => openOrder(o)}>Open order</Button>
