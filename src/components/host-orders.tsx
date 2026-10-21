@@ -352,7 +352,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   );
   if (view === "orders") return (
     <div className="space-y-5">
-      <GroupedShopOrders inviteId={inviteId} candidates={candidates} />
+      <GroupedShopOrders inviteId={inviteId} candidates={candidates} preorder={pending.map(toItem)} />
       <VendorInvoiceUpload inviteId={inviteId} candidates={candidates.filter((c) => !inOrder.has(c.reservationId) && !(data.data ?? []).find((r) => r.id === c.reservationId)?.order_placed_at)} />
     </div>
   );

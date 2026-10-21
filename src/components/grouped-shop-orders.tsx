@@ -16,8 +16,8 @@ const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
 
 /** Orders built from pre-order selections. `startWith` opens a new order prefilled with looks. */
-export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden }: {
-  inviteId: string; candidates: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean;
+export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden, preorder = [] }: {
+  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean;
 }) {
   const qc = useQueryClient();
   const orders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
@@ -146,7 +146,12 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const itemHit = (i: OrderItem) => !q || `${i.wearer} ${i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""}`.toLowerCase().includes(q);
   const shownOrders = (orders.data ?? []).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
   const currentFamily = new Map(candidates.map((c) => [c.reservationId, c.family]));
-  const familyReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]), (i) => currentFamily.get(i.reservationId) || undefined);
+  const orderedReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]), (i) => currentFamily.get(i.reservationId) || undefined);
+  const preReport = new Map(familyOrderReport([preorder]).map((f) => [f.family, f]));
+  const familyReport = [...new Set([...orderedReport.map((f) => f.family), ...preReport.keys()])].map((family) => {
+    const o = orderedReport.find((f) => f.family === family); const p = preReport.get(family);
+    return { family, people: [...new Set([...(o?.people ?? []), ...(p?.people ?? [])])].sort(), looks: o?.looks ?? 0, extras: o?.extras ?? 0, amount: o?.amount ?? 0, preLooks: p?.looks ?? 0, preAmount: p?.amount ?? 0 };
+  }).sort((a, b) => b.amount + b.preAmount - a.amount - a.preAmount);
   const sum = active.reduce((acc, o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); acc.total += t.total; acc.paid += t.paid; return acc; }, { total: 0, paid: 0 });
 
   return <section className={listHidden ? "contents" : "space-y-3"}>
@@ -160,10 +165,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <Button size="sm" variant="outline" onClick={() => setShowReport((v) => !v)}>{showReport ? "Hide" : "Show"} amount by family</Button>
     </div>
     {showReport ? <div className="overflow-x-auto rounded-md border border-border"><table className="w-full text-sm">
-      <thead><tr className="text-left text-muted-foreground"><th className="p-2">Family</th><th className="p-2">People</th><th className="p-2 text-right">Looks</th><th className="p-2 text-right">Extra items</th><th className="p-2 text-right">Amount ordered</th></tr></thead>
-      <tbody>{familyReport.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.extras}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf(currency))}</td></tr>)}
-      <tr className="border-t border-border font-medium"><td className="p-2" colSpan={4}>Total (excludes courier charges)</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount, 0).toLocaleString(...nf(currency))}</td></tr></tbody>
-    </table><p className="p-2 text-xs text-muted-foreground">Active orders only. To move a person into another family, open their family page and use the move-members button beside Add member; new orders then show the new family.</p></div> : null}
+      <thead><tr className="text-left text-muted-foreground"><th className="p-2">Family</th><th className="p-2">People</th><th className="p-2 text-right">Looks</th><th className="p-2 text-right">Extra items</th><th className="p-2 text-right">Amount ordered</th><th className="p-2 text-right">Still in pre-order</th><th className="p-2 text-right">Family total</th></tr></thead>
+      <tbody>{familyReport.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.extras}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{f.preAmount.toLocaleString(...nf(currency))}{f.preLooks ? ` (${f.preLooks})` : ""}</td><td className="p-2 text-right font-medium">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</td></tr>)}
+      <tr className="border-t border-border font-medium"><td className="p-2" colSpan={4}>Total (excludes courier charges)</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.preAmount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount + f.preAmount, 0).toLocaleString(...nf(currency))}</td></tr></tbody>
+    </table><p className="p-2 text-xs text-muted-foreground">Amount ordered = active orders after discounts. Still in pre-order = looks not yet in an order, at shop price (number of looks in brackets). To move a person into another family, open their family page and use the move-members button beside Add member; new orders then show the new family.</p></div> : null}
     {shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
       <div key={o.id} className={`flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
         <div>
