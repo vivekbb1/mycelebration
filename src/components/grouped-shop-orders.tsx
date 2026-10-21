@@ -82,7 +82,13 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   async function run(fn: () => Promise<unknown>, ok: string, close = true) {
     setBusy(true);
     try { await fn(); toast.success(ok); if (close) setOpen(false); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't save order"); }
+    catch (e) {
+      // Data API errors are plain objects, not Error instances. Keep the actual
+      // rejection visible (confirmation, measurements, duplicate order, etc.).
+      const message = e && typeof e === "object" && "message" in e && typeof e.message === "string"
+        ? e.message : "Couldn't save order";
+      toast.error(message);
+    }
     finally { setBusy(false); }
   }
 
