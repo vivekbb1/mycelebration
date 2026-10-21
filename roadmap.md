@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [ ] Invoice upload: parse vendor details, review wearer matches, convert to grouped orders and hide ordered looks from pre-orders
 - [x] Allow hosts to order reserved looks and record actual ordered sizes per outfit
 - [x] Orders: sold-out filter, grouped orders, prices/discounts, manual part-payments and measurements
 - [x] Orders: shop PDF and alteration vendors/photos/measurements
