@@ -69,5 +69,6 @@ export const HOST_SUB_LABELS: Record<string, string> = {
   travel: "Count", arrivals: "Logistics", rooms: "Rooms", hosts: "Communication", tracker: "Tracker",
   outfits: "Upload", manage: "Manage", registered: "Registered", import: "Bulk Upload", feeds: "Live feeds", picks: "Selection", orders: "Orders",
   logistics: "Delivery", boutiques: "Boutiques", vendors: "Vendors", budget: "Budget",
+  preorders: "Pre-orders", alterations: "Alterations",
   fees: "Celebration fees", email: "Email", look: "Wording",
 };
