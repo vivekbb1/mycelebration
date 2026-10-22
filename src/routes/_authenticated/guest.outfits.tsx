@@ -173,7 +173,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, status, size_choice, ordered_size");
+        .select("id, outfit_id, guest_id, guest_name, member_code_id, status, size_choice, ordered_size");
       if (error) throw error;
       return data;
     },
@@ -190,15 +190,29 @@ function Lookbook() {
   });
 
   // Only your own reservations are readable; other guests stay anonymous and
+  const memberCodes = useQuery({
+    queryKey: ["guest-family-codes", me.data?.household],
+    enabled: Boolean(me.data?.household),
+    queryFn: async () => {
+      if (!me.data?.household) return [];
+      const { data, error } = await supabase.rpc("my_family_member_codes");
+      if (error) throw error;
+      const { data: invites, error: scopeError } = await supabase.rpc("my_guest_invite_ids");
+      if (scopeError) throw scopeError;
+      const scope = new Set((invites ?? []).map((r) => r.invite_id));
+      return (data ?? []).filter((c) => c.invite_id && scope.has(c.invite_id));
+    },
+  });
   // an outfit taken by someone else simply shows as unavailable.
   const mineByOutfit = useMemo(() => {
     const map = new Map<string, string | null>();
     for (const r of reservations.data ?? []) {
-      if (me.data?.id && r.guest_id !== me.data.id) continue;
-      map.set(r.outfit_id, r.guest_name ?? null);
+      const coded = memberCodes.data?.find((c) => c.id === r.member_code_id);
+      if (!coded && me.data?.id && r.guest_id !== me.data.id) continue;
+      map.set(r.outfit_id, coded?.guest_name ?? r.guest_name ?? null);
     }
     return map;
-  }, [reservations.data, me.data?.id]);
+  }, [reservations.data, me.data?.id, memberCodes.data]);
 
   // Per-family choices: for some events a family chooses a look from us, for
   // others they wear their own — set by the hosts, family by family.
@@ -268,6 +282,17 @@ function Lookbook() {
     "You";
 
   const activeRecord = people.find((p) => p.name === activeName) ?? people[0];
+  const activeCode = memberCodes.data?.find((c) => c.guest_name === activeName);
+  const offered = useQuery({
+    queryKey: ["guest-offered-outfits", activeCode?.id],
+    enabled: Boolean(activeCode?.id),
+    queryFn: async () => {
+      if (!activeCode) return new Set<string>();
+      const { data, error } = await supabase.rpc("guest_outfit_ids", { _member: activeCode.id });
+      if (error) throw error;
+      return new Set(data ?? []);
+    },
+  });
 
   // One day at a time: open on the first event this person still needs a look for.
   const doneForPerson = new Set(
@@ -298,6 +323,7 @@ function Lookbook() {
   const selectable = (outfits.data ?? []).filter(
     (o) =>
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
+      (mineByOutfit.has(o.id) || offered.data?.has(o.id) === true) &&
       // Looks for an event this family isn't invited to stay hidden.
       (!o.event_id || !invitedIds || invitedIds.has(o.event_id)) &&
       (!wardrobe || (o.gender ?? "women") === wardrobe),
@@ -417,6 +443,7 @@ function Lookbook() {
       outfit_id: outfit.id,
       guest_id: user.id,
       guest_name: forName,
+      ...(activeCode ? { member_code_id: activeCode.id, invite_id: activeCode.invite_id } : {}),
       size_choice: size,
     });
     if (error) {

@@ -113,10 +113,13 @@ function InvitationPage() {
     queryFn: async () => {
       const ids = await myFamilyUserIds();
       if (!ids.length) return [];
+      const { data: familyCodes, error: codeError } = await supabase.rpc("my_family_member_codes");
+      if (codeError) throw codeError;
+      const codeIds = (familyCodes ?? []).map((c) => c.id);
       const { data, error } = await supabase
         .from("reservations")
         .select("outfit_id, guest_name, member_code_id, status, outfits(title, event_id)")
-        .in("guest_id", ids);
+        .or(`guest_id.in.(${ids.join(",")})${codeIds.length ? `,member_code_id.in.(${codeIds.join(",")})` : ""}`);
       if (error) throw error;
       return data;
     },

@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [x] Host-confirmed selection for guests without a look; registration-link price ranges and previous-link INR 35,000 cap, preserving existing choices; host save verified, guest signed-in flow requires guest session
 - [x] Last-minute ordered-size changes on placed orders: size-only save verified on a temporary order; requested sizes and existing orders preserved
 - [x] Order pricing: original upload snapshot, revised price, discount and net alongside actual payments; tests and unsaved host preview verified
 - [x] Host placed orders: confirm guest looks and display actual ordered sizes without replacing guest selections

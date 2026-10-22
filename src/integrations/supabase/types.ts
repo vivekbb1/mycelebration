@@ -2786,6 +2786,8 @@ export type Database = {
           id: string
           invite_id: string
           label: string
+          outfit_max_price: number | null
+          outfit_min_price: number | null
           token: string
           updated_at: string
         }
@@ -2797,6 +2799,8 @@ export type Database = {
           id?: string
           invite_id: string
           label?: string
+          outfit_max_price?: number | null
+          outfit_min_price?: number | null
           token: string
           updated_at?: string
         }
@@ -2808,6 +2812,8 @@ export type Database = {
           id?: string
           invite_id?: string
           label?: string
+          outfit_max_price?: number | null
+          outfit_min_price?: number | null
           token?: string
           updated_at?: string
         }
@@ -3314,6 +3320,7 @@ export type Database = {
       }
       code_celebration: { Args: { _code_id: string }; Returns: string }
       default_celebration_id: { Args: never; Returns: string }
+      guest_outfit_ids: { Args: { _member: string }; Returns: string[] }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3322,6 +3329,10 @@ export type Database = {
         Returns: boolean
       }
       host_can_see_user: { Args: { _user_id: string }; Returns: boolean }
+      host_choose_outfit: {
+        Args: { _member: string; _outfit: string; _size?: string }
+        Returns: string
+      }
       host_regroup_family_members: {
         Args: {
           _invite_id: string
@@ -3359,6 +3370,10 @@ export type Database = {
       }
       is_platform_admin: { Args: never; Returns: boolean }
       mark_invite_opened: { Args: { _code: string }; Returns: undefined }
+      member_outfit_allowed: {
+        Args: { _member: string; _outfit: string }
+        Returns: boolean
+      }
       my_branding: { Args: never; Returns: Json }
       my_celebration_ids: {
         Args: never
@@ -3371,6 +3386,14 @@ export type Database = {
         Args: never
         Returns: {
           event_id: string
+        }[]
+      }
+      my_family_member_codes: {
+        Args: never
+        Returns: {
+          guest_name: string
+          id: string
+          invite_id: string
         }[]
       }
       my_family_needs_wardrobe: { Args: never; Returns: boolean }

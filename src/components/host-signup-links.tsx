@@ -57,7 +57,7 @@ export function HostSignupLinks({ inviteId, slug }: { inviteId: string; slug: st
     await refresh();
   };
 
-  const update = async (id: string, patch: { event_ids?: string[]; enabled?: boolean; label?: string }) => {
+  const update = async (id: string, patch: { event_ids?: string[]; enabled?: boolean; label?: string; outfit_min_price?: number | null; outfit_max_price?: number | null }) => {
     const { error } = await supabase.from("signup_links").update(patch).eq("id", id);
     if (error) toast.error(error.message);
     await refresh();
@@ -110,6 +110,16 @@ export function HostSignupLinks({ inviteId, slug }: { inviteId: string; slug: st
                       <Switch checked={l.enabled} onCheckedChange={(v) => update(l.id, { enabled: v })} />
                       {l.enabled ? "Open" : "Paused"}
                     </label>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    {(["outfit_min_price", "outfit_max_price"] as const).map((field) => <label key={field} className="text-xs text-muted-foreground">
+                      {field === "outfit_min_price" ? "Minimum outfit price (INR)" : "Maximum outfit price (INR)"}
+                      <Input key={`${l.id}-${field}-${l[field]}`} className="mt-1" type="number" min="0" step="1" aria-label={`${l.label} ${field === "outfit_min_price" ? "minimum" : "maximum"} outfit price`} defaultValue={l[field] ?? ""} placeholder="No limit" onBlur={(e) => {
+                        const value = e.target.value === "" ? null : Number(e.target.value);
+                        if (value !== null && (!Number.isFinite(value) || value < 0)) { toast.error("Enter a valid price."); return; }
+                        if (value !== l[field]) void update(l.id, { [field]: value });
+                      }} />
+                    </label>)}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {(data.data?.events ?? []).map((e) => (
