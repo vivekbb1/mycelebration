@@ -3243,6 +3243,106 @@ export type Database = {
           },
         ]
       }
+      wardrobe_preorder_alternatives: {
+        Row: {
+          alternative: Json
+          invite_id: string
+          ordered_size: string
+          reservation_id: string
+          revised_price: number
+          updated_at: string
+        }
+        Insert: {
+          alternative: Json
+          invite_id: string
+          ordered_size?: string
+          reservation_id: string
+          revised_price?: number
+          updated_at?: string
+        }
+        Update: {
+          alternative?: Json
+          invite_id?: string
+          ordered_size?: string
+          reservation_id?: string
+          revised_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_preorder_alternatives_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wardrobe_preorder_alternatives_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: true
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wardrobe_substitution_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          invite_id: string
+          order_id: string | null
+          original: Json
+          previous: Json
+          replacement: Json
+          reservation_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          invite_id: string
+          order_id?: string | null
+          original: Json
+          previous: Json
+          replacement: Json
+          reservation_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          invite_id?: string
+          order_id?: string | null
+          original?: Json
+          previous?: Json
+          replacement?: Json
+          reservation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_substitution_history_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wardrobe_substitution_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "wardrobe_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wardrobe_substitution_history_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_broadcasts: {
         Row: {
           created_at: string
@@ -3410,8 +3510,28 @@ export type Database = {
       my_pay_instructions: { Args: never; Returns: string }
       my_room: { Args: never; Returns: Json }
       my_travel_settings: { Args: never; Returns: Json }
+      record_outfit_substitution: {
+        Args: {
+          _order: string
+          _previous: Json
+          _replacement: Json
+          _rid: string
+        }
+        Returns: undefined
+      }
       resolve_member_code: {
         Args: { _account: string; _invite: string; _name: string }
+        Returns: string
+      }
+      save_outfit_substitution: {
+        Args: {
+          _alternative?: Json
+          _expected?: string
+          _order_id?: string
+          _price?: number
+          _reservation_id: string
+          _size?: string
+        }
         Returns: string
       }
       signup_link_info: { Args: { _token: string }; Returns: Json }

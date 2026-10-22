@@ -19,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { familyOrderReport, money, nf } from "@/lib/shop-order";
 import { buildPreorderPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { FileDown, ShoppingBag } from "lucide-react";
+import { OutfitSubstitution } from "@/components/outfit-substitution";
+import { withPreorderAlternative } from "@/lib/outfit-substitution";
 
 const PAYMENT = ["unpaid", "part paid", "paid", "refunded"] as const;
 const SHIPPING = ["not shipped", "shipped", "in transit", "delivered", "returned"] as const;
@@ -57,6 +59,10 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [startWith, setStartWith] = useState<OrderItem[] | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
+  const preorderAlternatives = useQuery({ queryKey: ["preorder-alternatives", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
+    const result = await supabase.from("wardrobe_preorder_alternatives").select("*").eq("invite_id", inviteId);
+    if (result.error) throw result.error; return new Map(result.data.map(a => [a.reservation_id, a]));
+  } });
   const orderList = useQuery({
     queryKey: ["wardrobe-orders", inviteId],
     enabled: Boolean(inviteId),
@@ -254,7 +260,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   const field = (r: Row, k: keyof Draft, v: string) =>
     setDrafts((p) => ({ ...p, [r.id]: { ...draftOf(r), [k]: v } }));
 
-  const toItem = (r: Row): OrderItem => ({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.wearerFamily || r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", originalPrice: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null, price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" });
+  const toItem = (r: Row): OrderItem => withPreorderAlternative({ reservationId: r.id, wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.wearerFamily || r.guest?.household || "", event: r.outfits?.events?.name || "", title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "", size: r.size_choice || r.build_size || "", shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", originalPrice: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null, price: Number(r.order_amount ?? r.outfits?.price_inr ?? 0), discount: 0, measurements: r.measurementValues, notes: r.build_fabric || "" }, preorderAlternatives.data?.get(r.id));
   const [pdfReady, setPdfReady] = useState<{ blob: Blob; name: string } | null>(null);
   async function releaseFromOrder(rid: string) {
     const o = (orderList.data ?? []).find((x) => x.status !== "cancelled" && (x.items as unknown as OrderItem[]).some((i) => i.reservationId === rid));
@@ -275,16 +281,16 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
     try {
       const list = picked.size ? pickedRows : rows;
       const tab = FILTER_TABS.find(([k]) => k === filter)?.[1] ?? "All looks";
-      const blob = await buildPreorderPdf("Pre-Order", `${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => ({
+      const blob = await buildPreorderPdf("Pre-Order", `${tab}${picked.size ? " (selected)" : ""}`, list.map((r) => { const item = toItem(r); return ({
         wearer: r.guest_name || r.guest?.guest_name || "Guest", family: r.guest?.household || "", event: r.outfits?.events?.name || "",
-        title: r.outfits?.title || "Look", designer: r.outfits?.designer || "", sku: r.outfits?.source_sku || "",
+        title: item.alternative?.title || item.title, designer: item.alternative?.designer || item.designer, sku: item.alternative?.sku || item.sku,
         size: r.size_choice || r.build_size || "", suggested: r.suggested ?? "",
         status: [r.confirmed ? "Confirmed" : "Reserved", r.soldOut ? "size sold out" : "", inOrder.has(r.id) ? `in order ${inOrder.get(r.id)}` : ""].filter(Boolean).join(", "),
-        price: r.outfits?.price_inr != null ? `INR ${money(Number(r.outfits.price_inr), "INR")}` : r.outfits?.price_note || "Not supplied",
-        amount: r.outfits?.price_inr != null ? Number(r.outfits.price_inr) : null,
+        price: item.alternative || r.outfits?.price_inr != null ? `INR ${money(item.price, "INR")}` : r.outfits?.price_note || "Not supplied",
+        amount: item.alternative || r.outfits?.price_inr != null ? item.price : null,
         measurements: r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => `${k.replaceAll("_", " ")} ${v}`).join(", ") : "",
-        shop: r.outfits?.boutique_url || "", image: r.outfits?.image_url || "", notes: r.build_fabric || "",
-      })));
+        shop: item.alternative?.shop || item.shop, image: item.alternative?.image || item.image, notes: [r.build_fabric, item.alternative ? `Original selection: ${item.title} (${item.sku}), requested size ${item.size || "Not recorded"}. Replacement size: ${item.orderedSize || "Not recorded"}` : ""].filter(Boolean).join(". "),
+      }); }));
       setPdfReady({ blob, name: `pre-order-${tab.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf` });
     } catch (e) { console.error(e); toast.error("Couldn't create the PDF"); } finally { setPdfBusy(false); }
   }
@@ -372,7 +378,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
             Select all shown ({rows.length})
           </label>
           <span className="text-sm text-muted-foreground">
-            {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + Number(r.order_amount ?? r.outfits?.price_inr ?? 0), 0).toLocaleString(...nf())}
+            {picked.size} selected · value INR {pickedRows.reduce((s, r) => s + toItem(r).price, 0).toLocaleString(...nf())}
           </span>
           <div className="grid w-full grid-cols-1 gap-2 sm:ml-auto sm:flex sm:w-auto sm:flex-wrap">
             <Button size="sm" variant="outline" disabled={pdfBusy || (!picked.size && !rows.length)} onClick={() => void preorderPdf()}>
@@ -583,6 +589,8 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
 
                 <div className="mt-4 border-t border-border pt-3"><h3 className="text-sm font-medium">Wearer measurements</h3><dl className="mt-2 grid gap-2 text-xs sm:grid-cols-3 lg:grid-cols-5">{r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-muted-foreground">Not supplied</p>}</dl></div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {!inOrder.has(r.id) && !r.order_placed_at ? <OutfitSubstitution inviteId={inviteId} item={toItem(r)} onSaved={() => setPdfReady(null)} /> : null}
+                  {preorderAlternatives.data?.get(r.id) ? <p className="w-full text-sm text-primary">Replacement: {toItem(r).alternative?.title} · size {toItem(r).orderedSize} · INR {money(toItem(r).price)}</p> : null}
                   <OrderAlterations inviteId={inviteId} reservationId={r.id} wearer={r.guest_name || r.guest?.guest_name || "Guest"} measurements={r.measurementValues} />
                   {r.order_placed_at ? (
                     <Button size="sm" disabled={save.isPending} onClick={() => save.mutate({ r })}>
