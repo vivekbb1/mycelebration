@@ -76,6 +76,25 @@ export function FamilyWardrobeChoices({ people, events, choices, loading }: {
                           <p className="text-xs">Size: {choice?.size_choice ?? choice?.build_size ?? "Not selected"}</p>
                           <Badge variant="outline">{confirmed ? "Confirmed" : "Reserved"}</Badge>
                           {shop ? <Button asChild variant="link" size="sm" className="h-auto px-0 py-1"><a href={shop} target="_blank" rel="noopener noreferrer">View in shop <ExternalLink className="size-3" /></a></Button> : null}
+                          {(() => {
+                            const sub = choice ? subs.data?.get(choice.id) : undefined;
+                            if (!sub) return null;
+                            const r = sub.replacement;
+                            return (
+                              <div className="mt-2 border-t border-border pt-2">
+                                <p className="flex items-center gap-1 text-xs font-medium text-primary"><Repeat className="size-3" /> Substituted ({sub.order ? "order" : "pre-order"})</p>
+                                <div className="mt-1 flex items-start gap-2">
+                                  {r.image ? <img src={imageUrl(r.image)} alt={r.title ?? "Replacement"} loading="lazy" className="h-20 w-14 shrink-0 rounded object-cover" /> : null}
+                                  <div className="text-xs">
+                                    <p className="font-medium">{r.title || "Replacement look"}</p>
+                                    {r.sku ? <p className="text-muted-foreground">{r.sku}</p> : null}
+                                    <p>Size: {r.size || "Not recorded"}</p>
+                                    <p className="text-muted-foreground">{new Date(sub.at).toLocaleDateString("en-GB")}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     ) : <p className="text-xs text-muted-foreground">Not chosen</p>}
