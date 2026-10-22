@@ -96,12 +96,15 @@ function ConfirmPage() {
       const { data: auth } = await supabase.auth.getUser();
       const ids = new Set<string>(auth.user ? [auth.user.id] : []);
       let codeIds: string[] = [];
+      const familyCodes = await supabase.rpc("my_family_member_codes");
+      if (familyCodes.error) throw familyCodes.error;
+      codeIds = (familyCodes.data ?? []).map((c) => c.id);
       if (household) {
         const { data: fam } = await supabase
           .from("invite_codes")
           .select("id, claimed_by")
           .eq("household", household);
-        codeIds = (fam ?? []).map((f) => f.id);
+        codeIds = [...new Set([...codeIds, ...(fam ?? []).map((f) => f.id)])];
         for (const f of fam ?? []) if (f.claimed_by) ids.add(f.claimed_by);
       }
       if (ids.size === 0) return [] as Row[];

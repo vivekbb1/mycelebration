@@ -113,8 +113,8 @@ function InvitationPage() {
     queryFn: async () => {
       const ids = await myFamilyUserIds();
       if (!ids.length) return [];
-      const { data: house } = await supabase.rpc("my_household");
-      const { data: familyCodes } = house ? await supabase.from("invite_codes").select("id").eq("household", house) : { data: [] };
+      const { data: familyCodes, error: codeError } = await supabase.rpc("my_family_member_codes");
+      if (codeError) throw codeError;
       const codeIds = (familyCodes ?? []).map((c) => c.id);
       const { data, error } = await supabase
         .from("reservations")

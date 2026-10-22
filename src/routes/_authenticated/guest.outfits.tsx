@@ -195,7 +195,7 @@ function Lookbook() {
     enabled: Boolean(me.data?.household),
     queryFn: async () => {
       if (!me.data?.household) return [];
-      const { data, error } = await supabase.from("invite_codes").select("id, guest_name, invite_id").eq("household", me.data.household);
+      const { data, error } = await supabase.rpc("my_family_member_codes");
       if (error) throw error;
       const { data: invites, error: scopeError } = await supabase.rpc("my_guest_invite_ids");
       if (scopeError) throw scopeError;
