@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { addAddOn, familyOrderReport, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
+import { OutfitSubstitution } from "@/components/outfit-substitution";
 
 const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
@@ -40,6 +41,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const [docKind, setDocKind] = useState<DocKind>("proforma"); const [docNumber, setDocNumber] = useState(""); const [docAmount, setDocAmount] = useState("");
   const [search, setSearch] = useState(""); const [groupBy, setGroupBy] = useState("people"); const [adding, setAdding] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
+  const [orderVersion, setOrderVersion] = useState<string | null>(null);
 
   const used = new Set((orders.data ?? []).filter((o) => o.id !== id && o.status !== "cancelled").flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.reservationId)));
   const available = candidates.filter((c) => !used.has(c.reservationId) && !items.some((i) => i.reservationId === c.reservationId) && `${c.wearer} ${c.title} ${c.family}`.toLowerCase().includes(search.toLowerCase()));
@@ -50,6 +52,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const cancelled = status === "cancelled";
 
   function reset(start: OrderItem[] = []) {
+    setOrderVersion(null);
     setId(null); setReference(`ORDER-${new Date().toISOString().slice(0, 10)}`); setShop(""); setCurrency("INR"); setNotes("");
     setSellerRef(""); setStylist(""); setStylistMobile(""); setSellerTotal(""); setCourierCharges("0");
     setItems(start); setPayments([]); setDocs([]); setStatus("draft"); setCourier(""); setTracking(""); setAdding(start.length === 0); setSwapFor(null); setOpen(true);
@@ -57,6 +60,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   useEffect(() => { if (startWith?.length) { reset(startWith); onStarted?.(); } }, [startWith]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openOrder(o: NonNullable<typeof orders.data>[number]) {
+    setOrderVersion(o.updated_at);
     setId(o.id); setReference(o.reference); setShop(o.shop_name); setCurrency(o.currency); setNotes(o.notes);
     setSellerRef(o.seller_reference); setStylist(o.salesperson_name); setStylistMobile(o.salesperson_mobile);
     setSellerTotal(o.seller_total?.toString() ?? ""); setCourierCharges(String(o.courier_charges ?? 0));
@@ -76,9 +80,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       status: nextStatus, courier, tracking_number: tracking, ...extra,
     };
     const result = id
-      ? await supabase.from("wardrobe_orders").update(values).eq("id", id).eq("invite_id", inviteId).select("id").single()
-      : await supabase.from("wardrobe_orders").insert(values).select("id").single();
+      ? await supabase.from("wardrobe_orders").update(values).eq("id", id).eq("invite_id", inviteId).eq("updated_at", orderVersion ?? "").select("id,updated_at").maybeSingle()
+      : await supabase.from("wardrobe_orders").insert(values).select("id,updated_at").single();
     if (result.error) throw result.error;
+    if (!result.data) throw new Error("The order changed. Reopen it before saving to preserve the latest changes.");
+    setOrderVersion(result.data.updated_at);
     setId(result.data.id); setStatus(nextStatus);
     await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
     await qc.invalidateQueries({ queryKey: ["reservations"] });
@@ -111,6 +117,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     const saved = await supabase.from("wardrobe_orders").update({ items: next as unknown as Json }).eq("id", id).eq("invite_id", inviteId).eq("updated_at", current.data.updated_at).select("id").maybeSingle();
     if (saved.error) throw saved.error;
     if (!saved.data) throw new Error("The order changed while saving. Try again");
+    const version = await supabase.from("wardrobe_orders").select("updated_at").eq("id", id).single();
+    if (version.data) setOrderVersion(version.data.updated_at);
     await Promise.all(["wardrobe-orders", "reservations", "confirm-looks", "host-orders"].map((key) => qc.invalidateQueries({ queryKey: [key] })));
   }
 
@@ -220,10 +228,14 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}
           <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku}</p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""}</p> : null}{item.addOns?.length ? <p className="text-sm text-muted-foreground">+ {item.addOns.map((a) => a.label).join(", ")}</p> : null}</div>
           {!cancelled ? <div className="flex shrink-0 flex-col gap-1">
-            <Button variant="ghost" size="sm" title="Substitute another outfit" onClick={() => { setSwapFor(item.reservationId); setAdding(false); }}><Repeat className="size-4" /> Substitute</Button>
+            <Button variant="ghost" size="sm" title="Replace this order item with another person's pending look" onClick={() => { setSwapFor(item.reservationId); setAdding(false); }}><Repeat className="size-4" /> Replace order item</Button>
             <Button variant="ghost" size="sm" title="Remove from order" onClick={() => setItems((a) => a.filter((i) => i.reservationId !== item.reservationId))}><Trash2 className="size-4" /> Remove</Button>
           </div> : null}
         </div>
+        {id && !cancelled ? <OutfitSubstitution inviteId={inviteId} item={item} orderId={id} disabled={busy} onSaved={async () => {
+          const latest = await supabase.from("wardrobe_orders").select("items,updated_at").eq("id", id).eq("invite_id", inviteId).single();
+          if (latest.data) { const updated = (latest.data.items as unknown as OrderItem[]).find(i => i.reservationId === item.reservationId); if (updated) setItems(all => all.map(i => i.reservationId === updated.reservationId ? updated : i)); setOrderVersion(latest.data.updated_at); }
+        }} /> : null}
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="space-y-1">
             <label className="text-sm">Actual size ordered<div className="flex items-center gap-2"><Input aria-label={`Actual size ordered for ${item.wearer} — ${item.event}`} value={item.orderedSize ?? ""} disabled={busy || cancelled} placeholder={item.size ? `Guest selected: ${item.size}` : "Size / made to measure"} onChange={(e) => setItems((all) => setOrderedSize(all, item.reservationId, e.target.value))} />
@@ -239,7 +251,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         <dl className="grid gap-2 text-xs sm:grid-cols-3">{item.measurements ? Object.entries(item.measurements).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-destructive">No measurements supplied</p>}</dl>
         <div className="space-y-2 rounded-md border border-border p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-medium">Alternative for the shop order <span className="font-normal text-muted-foreground">(guest still sees their own choice)</span></h3>
+            <h3 className="text-sm font-medium">Alternative for the shop order <span className="font-normal text-muted-foreground">(original selection retained)</span></h3>
             {!cancelled ? (item.alternative
               ? <Button size="sm" variant="ghost" onClick={() => setItems((all) => setAlternative(all, item.reservationId, null))}>Remove alternative</Button>
               : <Button size="sm" variant="outline" onClick={() => setItems((all) => setAlternative(all, item.reservationId, { title: "", sku: "", designer: "", shop: "", image: "" }))}><Repeat className="size-4" /> Order an alternative</Button>) : null}
