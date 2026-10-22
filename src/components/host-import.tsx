@@ -98,6 +98,8 @@ export function HostImport() {
   const [singleBusy, setSingleBusy] = useState(false);
 
   const [category, setCategory] = useState("clothing/lehenga");
+  // A pasted shop listing link (with its own filters) replaces the pickers below.
+  const [listingUrl, setListingUrl] = useState("");
 
   // Choosing a menswear category also sets who the looks are for, so a host
   // never has to remember the "For" box.
@@ -200,6 +202,7 @@ export function HostImport() {
 
   const searchPayload = (p: number, per: number) => ({
     category,
+    listingUrl: listingUrl.trim() || null,
     minPrice: Number(minPrice) || 0,
     maxPrice: Number(maxPrice) || 30000,
     page: p,
@@ -507,6 +510,33 @@ export function HostImport() {
         <p className="mt-1 text-xs text-muted-foreground">
           Pick everything you like and add it in one go. Prices are in rupees.
         </p>
+        <div className="mt-4 space-y-2">
+          <Label htmlFor="listing-url">Or paste a shop listing link (keeps all its filters)</Label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="listing-url"
+              placeholder="https://www.perniaspopupshop.com/listing/…"
+              value={listingUrl}
+              onChange={(e) => {
+                setListingUrl(e.target.value);
+                setResults(null);
+                setPicked([]);
+                if (/bygender=men|mens-shop|mensshop/.test(e.target.value)) setGender("men");
+              }}
+            />
+            <Button type="button" disabled={!listingUrl.trim() || listBusy} onClick={() => void runSearch(1)}>
+              Show looks
+            </Button>
+            {listingUrl ? (
+              <Button type="button" variant="outline" onClick={() => { setListingUrl(""); setResults(null); setPicked([]); }}>
+                Clear
+              </Button>
+            ) : null}
+          </div>
+          {listingUrl ? (
+            <p className="text-xs text-muted-foreground">The link's own price, size and shipping filters are used; the pickers below are ignored.</p>
+          ) : null}
+        </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label>Category</Label>

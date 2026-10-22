@@ -203,6 +203,35 @@ export const PERNIA_SHIP_TIMES = [
   { value: "36_365", label: "More than 5 weeks" },
 ] as const;
 
+/** Reads a pasted Pernia's listing link (with all its shop filters) into the
+ *  shop feed's own filter shape. Returns null when no link is given. */
+export function parseListingUrl(input: string | null) {
+  if (!input) return null;
+  let u: URL;
+  try {
+    u = new URL(input.trim());
+  } catch {
+    throw new Error("That doesn't look like a Pernia's listing link");
+  }
+  if (!/(^|\.)perniaspopupshop\.com$/i.test(u.hostname)) {
+    throw new Error("That doesn't look like a Pernia's listing link");
+  }
+  const parts = u.pathname.split("/").filter(Boolean);
+  if (!parts.length || parts.length > 3 || parts.some((p) => !/^[a-z0-9\-]+$/i.test(p))) {
+    throw new Error("That doesn't look like a Pernia's listing link");
+  }
+  const filter: Record<string, string> = {};
+  parts.forEach((p, i) => {
+    filter[`dynamicParams${i + 1}`] = p;
+  });
+  const queryString: Record<string, string> = { currency: "INR" };
+  u.searchParams.forEach((v, k) => {
+    if (k === "page") return;
+    if (/^[a-z0-9_]{1,40}$/i.test(k) && /^[a-z0-9_\-.,]{0,300}$/i.test(v)) queryString[k] = v;
+  });
+  return { filter, queryString, men: u.searchParams.get("bygender") === "men" || parts.includes("mens-shop") };
+}
+
 /** A category page filtered by price, colour, ready-to-ship and shipping time. */
 export const searchPerniaCategory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -217,6 +246,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
       colour?: string | null;
       sort?: string;
       shipInDays?: string | string[] | null;
+      listingUrl?: string | null;
     }) => {
       const category = String(data?.category ?? "clothing/lehenga")
         .trim()
@@ -249,8 +279,13 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
         shipInDays = `${min}_${max}`;
       }
       const sortRaw = String(data?.sort ?? "listed") as SortKey;
+      const listingUrl = (data as { listingUrl?: unknown })?.listingUrl
+        ? String((data as { listingUrl?: unknown }).listingUrl).slice(0, 2000)
+        : null;
+      if (listingUrl) parseListingUrl(listingUrl);
       return {
         category,
+        listingUrl,
         minPrice: Math.max(0, Math.min(2_000_000, Math.round(Number(data?.minPrice) || 0))),
         maxPrice: Math.max(1, Math.min(2_000_000, Math.round(Number(data?.maxPrice) || 30000))),
         page: Math.max(1, Math.min(200, Math.round(Number(data?.page) || 1))),
@@ -265,19 +300,24 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertHost(context as unknown as Ctx);
 
-    const parts = data.category.split("/");
-    const filter: Record<string, string> = {};
-    parts.forEach((p, i) => {
-      filter[`dynamicParams${i + 1}`] = p;
-    });
-
-    const queryString: Record<string, string> = {
-      currency: "INR",
-      price: `${data.minPrice}-${data.maxPrice}`,
-    };
-    if (data.readyToShip) queryString['ready_to_ship'] = "ready_to_ship";
-    if (data.colour) queryString['colour_code'] = data.colour;
-    if (data.shipInDays) queryString['ship_in_days'] = data.shipInDays;
+    let filter: Record<string, string> = {};
+    let queryString: Record<string, string>;
+    const listing = parseListingUrl((data as { listingUrl?: string | null }).listingUrl ?? null);
+    if (listing) {
+      filter = listing.filter;
+      queryString = listing.queryString;
+    } else {
+      data.category.split("/").forEach((p, i) => {
+        filter[`dynamicParams${i + 1}`] = p;
+      });
+      queryString = {
+        currency: "INR",
+        price: `${data.minPrice}-${data.maxPrice}`,
+      };
+      if (data.readyToShip) queryString['ready_to_ship'] = "ready_to_ship";
+      if (data.colour) queryString['colour_code'] = data.colour;
+      if (data.shipInDays) queryString['ship_in_days'] = data.shipInDays;
+    }
 
     const shopPage = async (n: number) => {
       const queryData = encodeURIComponent(
