@@ -1,6 +1,5 @@
-import { ExternalLink, Minus, Repeat } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ExternalLink, Minus } from "lucide-react";
+import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { memberLook } from "@/lib/outfit-pick-progress";
@@ -9,7 +8,6 @@ import { wardrobeLabel } from "@/lib/wardrobe-options";
 type Person = { id: string; guest_name: string; household: string | null; claimed_by: string | null; gender: string | null };
 type Outfit = { title: string; designer: string | null; notes: string | null; image_url: string | null; images: unknown; boutique_url: string | null; event_id: string | null };
 type Choice = { id: string; guest_id: string; guest_name: string | null; member_code_id?: string | null; status: string; build_garment: string | null; build_size: string | null; size_choice: string | null; outfit: Outfit | null };
-type Snap = { title?: string; sku?: string; image?: string; size?: string };
 
 function imageUrl(src: string) {
   if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=240`;
@@ -23,18 +21,7 @@ export function FamilyWardrobeChoices({ people, events, choices, loading }: {
   choices: Choice[];
   loading: boolean;
 }) {
-  const ids = choices.map((c) => c.id).sort();
-  const subs = useQuery({
-    queryKey: ["family-substitutions", ids],
-    enabled: ids.length > 0,
-    queryFn: async () => {
-      const r = await supabase.from("wardrobe_substitution_history").select("reservation_id,replacement,created_at,order_id").in("reservation_id", ids).order("created_at", { ascending: false });
-      if (r.error) throw r.error;
-      const latest = new Map<string, { replacement: Snap; order: boolean; at: string }>();
-      for (const h of r.data) if (!latest.has(h.reservation_id)) latest.set(h.reservation_id, { replacement: h.replacement as Snap, order: Boolean(h.order_id), at: h.created_at });
-      return latest;
-    },
-  });
+  const subs = useLatestSubstitutions(choices.map((c) => c.id));
   const columns = events.filter((e) => e.outfit_selection !== false || choices.some((c) => c.outfit?.event_id === e.id));
   const looks = choices.map((c) => ({ ...c, outfits: c.outfit }));
   if (loading) return <p className="mt-4 text-sm text-muted-foreground">Loading…</p>;
@@ -76,25 +63,7 @@ export function FamilyWardrobeChoices({ people, events, choices, loading }: {
                           <p className="text-xs">Size: {choice?.size_choice ?? choice?.build_size ?? "Not selected"}</p>
                           <Badge variant="outline">{confirmed ? "Confirmed" : "Reserved"}</Badge>
                           {shop ? <Button asChild variant="link" size="sm" className="h-auto px-0 py-1"><a href={shop} target="_blank" rel="noopener noreferrer">View in shop <ExternalLink className="size-3" /></a></Button> : null}
-                          {(() => {
-                            const sub = choice ? subs.data?.get(choice.id) : undefined;
-                            if (!sub) return null;
-                            const r = sub.replacement;
-                            return (
-                              <div className="mt-2 border-t border-border pt-2">
-                                <p className="flex items-center gap-1 text-xs font-medium text-primary"><Repeat className="size-3" /> Substituted ({sub.order ? "order" : "pre-order"})</p>
-                                <div className="mt-1 flex items-start gap-2">
-                                  {r.image ? <img src={imageUrl(r.image)} alt={r.title ?? "Replacement"} loading="lazy" className="h-20 w-14 shrink-0 rounded object-cover" /> : null}
-                                  <div className="text-xs">
-                                    <p className="font-medium">{r.title || "Replacement look"}</p>
-                                    {r.sku ? <p className="text-muted-foreground">{r.sku}</p> : null}
-                                    <p>Size: {r.size || "Not recorded"}</p>
-                                    <p className="text-muted-foreground">{new Date(sub.at).toLocaleDateString("en-GB")}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
+                          <SubstitutionNote sub={choice ? subs.data?.get(choice.id) : undefined} />
                         </div>
                       </div>
                     ) : <p className="text-xs text-muted-foreground">Not chosen</p>}
