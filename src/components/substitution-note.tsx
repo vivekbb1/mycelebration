@@ -30,7 +30,7 @@ export function useLatestSubstitutions(reservationIds: string[]) {
 }
 
 /** Shows original vs substituted look side by side. */
-export function SubstitutionNote({ sub, showOriginal = false }: { sub?: LatestSub; showOriginal?: boolean }) {
+export function SubstitutionNote({ sub, showOriginal = false }: { sub?: LatestSub | undefined; showOriginal?: boolean }) {
   if (!sub) return null;
   const look = (s: SubSnap, label: string) => (
     <div className="flex min-w-0 items-start gap-2">

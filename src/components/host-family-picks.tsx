@@ -1,3 +1,4 @@
+import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -81,6 +82,7 @@ export function HostFamilyPicks({
     },
   });
 
+  const subs = useLatestSubstitutions((res.data ?? []).map((r) => r.id));
   const travel = useQuery({
     queryKey: ["family-picks-travel", inviteId],
     queryFn: async () => {
@@ -302,6 +304,7 @@ export function HostFamilyPicks({
                                       <Check className="size-3" />
                                       {confirmed ? "Confirmed" : "Reserved"}
                                     </p>
+                                    <SubstitutionNote sub={look ? subs.data?.get(look.id) : undefined} />
                                   </>
                                 ) : (
                                   <><p className="text-xs text-muted-foreground">Not chosen</p><Button size="sm" variant="outline" className="mt-1 h-auto whitespace-normal py-1 text-xs" onClick={() => setChoosing({ member: m, event: ev })}>Choose outfit</Button></>

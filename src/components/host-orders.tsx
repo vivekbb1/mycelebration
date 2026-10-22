@@ -142,7 +142,8 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
         })
         .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     },
-  });  const subs = useLatestSubstitutions((data.data ?? []).map((r) => r.id));
+  });
+  const subs = useLatestSubstitutions((data.data ?? []).map((r) => r.id));
 
 
   type Row = NonNullable<typeof data.data>[number];
