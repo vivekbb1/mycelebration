@@ -2,7 +2,7 @@ import { Repeat } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type SubSnap = { title?: string; sku?: string; image?: string; size?: string };
+export type SubSnap = { title?: string; sku?: string; image?: string; size?: string; shop?: string };
 export type LatestSub = { original: SubSnap; replacement: SubSnap; order: boolean; at: string };
 
 function thumb(src: string) {
@@ -32,17 +32,21 @@ export function useLatestSubstitutions(reservationIds: string[]) {
 /** Shows original vs substituted look side by side. */
 export function SubstitutionNote({ sub, showOriginal = false }: { sub?: LatestSub | undefined; showOriginal?: boolean }) {
   if (!sub) return null;
-  const look = (s: SubSnap, label: string) => (
-    <div className="flex min-w-0 items-start gap-2">
-      {s.image ? <img src={thumb(s.image)} alt={s.title ?? label} loading="lazy" className="h-20 w-14 shrink-0 rounded object-cover" /> : null}
-      <div className="min-w-0 text-xs">
-        <p className="text-muted-foreground">{label}</p>
-        <p className="font-medium">{s.title || "Look"}</p>
-        {s.sku ? <p className="text-muted-foreground">{s.sku}</p> : null}
-        <p>Size: {s.size || "Not recorded"}</p>
+  const look = (s: SubSnap, label: string) => {
+    const shop = s.shop && /^https?:\/\//i.test(s.shop) ? s.shop : null;
+    const img = s.image ? <img src={thumb(s.image)} alt={s.title ?? label} loading="lazy" className="h-20 w-14 shrink-0 rounded object-cover" /> : null;
+    return (
+      <div className="flex min-w-0 items-start gap-2">
+        {img && shop ? <a href={shop} target="_blank" rel="noopener noreferrer" aria-label={`Open ${s.title ?? label} in shop`} className="shrink-0">{img}</a> : img}
+        <div className="min-w-0 text-xs">
+          <p className="text-muted-foreground">{label}</p>
+          {shop ? <a href={shop} target="_blank" rel="noopener noreferrer" className="block font-medium hover:text-primary hover:underline">{s.title || "Look"}</a> : <p className="font-medium">{s.title || "Look"}</p>}
+          {s.sku ? <p className="text-muted-foreground">{s.sku}</p> : null}
+          <p>Size: {s.size || "Not recorded"}</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
   return (
     <div className="mt-2 w-full border-t border-border pt-2">
       <p className="flex items-center gap-1 text-xs font-medium text-primary"><Repeat className="size-3" /> Substituted at {sub.order ? "order" : "pre-order"} · {new Date(sub.at).toLocaleDateString("en-GB")}</p>
