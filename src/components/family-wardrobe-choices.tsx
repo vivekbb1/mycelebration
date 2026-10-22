@@ -1,4 +1,6 @@
-import { ExternalLink, Minus } from "lucide-react";
+import { ExternalLink, Minus, Repeat } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { memberLook } from "@/lib/outfit-pick-progress";
@@ -7,6 +9,7 @@ import { wardrobeLabel } from "@/lib/wardrobe-options";
 type Person = { id: string; guest_name: string; household: string | null; claimed_by: string | null; gender: string | null };
 type Outfit = { title: string; designer: string | null; notes: string | null; image_url: string | null; images: unknown; boutique_url: string | null; event_id: string | null };
 type Choice = { id: string; guest_id: string; guest_name: string | null; member_code_id?: string | null; status: string; build_garment: string | null; build_size: string | null; size_choice: string | null; outfit: Outfit | null };
+type Snap = { title?: string; sku?: string; image?: string; size?: string };
 
 function imageUrl(src: string) {
   if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=240`;
@@ -20,6 +23,18 @@ export function FamilyWardrobeChoices({ people, events, choices, loading }: {
   choices: Choice[];
   loading: boolean;
 }) {
+  const ids = choices.map((c) => c.id).sort();
+  const subs = useQuery({
+    queryKey: ["family-substitutions", ids],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const r = await supabase.from("wardrobe_substitution_history").select("reservation_id,replacement,created_at,order_id").in("reservation_id", ids).order("created_at", { ascending: false });
+      if (r.error) throw r.error;
+      const latest = new Map<string, { replacement: Snap; order: boolean; at: string }>();
+      for (const h of r.data) if (!latest.has(h.reservation_id)) latest.set(h.reservation_id, { replacement: h.replacement as Snap, order: Boolean(h.order_id), at: h.created_at });
+      return latest;
+    },
+  });
   const columns = events.filter((e) => e.outfit_selection !== false || choices.some((c) => c.outfit?.event_id === e.id));
   const looks = choices.map((c) => ({ ...c, outfits: c.outfit }));
   if (loading) return <p className="mt-4 text-sm text-muted-foreground">Loading…</p>;
