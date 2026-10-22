@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Mail, Repeat, History } from 'lucide-react';
+import { Mail, Repeat, History, Link2 } from 'lucide-react';
+import { fetchPerniaLook } from '@/lib/pernia.functions';
+import { fetchKoraLook } from '@/lib/kora.functions';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -19,6 +21,8 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
   const [alternative, setAlternative] = useState<OrderAlternative>({ title: '', sku: '', designer: '', shop: '', image: '' });
   const [size, setSize] = useState(''); const [price, setPrice] = useState(0); const [expected, setExpected] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [link, setLink] = useState('');
+  const pernia = useServerFn(fetchPerniaLook); const kora = useServerFn(fetchKoraLook);
   const [details, setDetails] = useState({ gender: 'women', color_family: '', garment_type: '', silhouette: '', notes: '' });
   const [emailPreview, setEmailPreview] = useState<Awaited<ReturnType<typeof previewSubstitutionEmail>> | null>(null);
   const preview = useServerFn(previewSubstitutionEmail); const sendEmail = useServerFn(emailOutfitSubstitution);
@@ -52,7 +56,30 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
       const original = await supabase.from('outfits').select('gender,color_family,garment_type,silhouette').eq('id', reservation.data.outfit_id).single();
       if (original.error) throw original.error;
       setDetails({ gender: original.data.gender, color_family: original.data.color_family ?? '', garment_type: original.data.garment_type ?? '', silhouette: original.data.silhouette ?? '', notes: '' });
-      setSize(current.orderedSize ?? ''); setPrice(current.price); setEmailPreview(null); setSearch(''); setOpen(true);
+      setSize(current.orderedSize ?? ''); setPrice(current.price); setEmailPreview(null); setSearch(''); setLink(''); setOpen(true);
+    } catch (e) { toast.error(errorMessage(e)); } finally { setBusy(false); }
+  }
+  async function fetchLink() {
+    const url = link.trim();
+    if (!/^https?:\/\//i.test(url)) { toast.error('Paste the full shop link, starting with https://'); return; }
+    setBusy(true);
+    try {
+      if (/perniaspopupshop\.com/i.test(url)) {
+        const l = await pernia({ data: { url } });
+        setAlternative({ outfitId: null, title: l.title, sku: l.sku, designer: l.designer, shop: l.url, image: l.images[0] ?? '' });
+        if (l.priceInr) setPrice(l.priceInr);
+        setDetails(d => ({ ...d, gender: l.gender, color_family: l.color ?? d.color_family, garment_type: l.garmentType ?? d.garment_type, silhouette: l.silhouette ?? d.silhouette, notes: l.description.slice(0, 500) }));
+      } else if (/koranm\.com/i.test(url)) {
+        const l = await kora({ data: { inviteId, url } });
+        setAlternative({ outfitId: null, title: l.title, sku: l.sku, designer: l.designer, shop: l.url, image: l.images[0] ?? '' });
+        if (l.priceInr) setPrice(l.priceInr);
+        setDetails(d => ({ ...d, color_family: l.colours[0] ?? d.color_family, garment_type: l.garmentType ?? d.garment_type, notes: l.description.slice(0, 500) }));
+      } else {
+        setAlternative(a => ({ ...a, outfitId: null, shop: url }));
+        toast.message('This shop can\'t be read automatically — link saved, please type the details below');
+        return;
+      }
+      toast.success('Outfit details filled in from the shop link');
     } catch (e) { toast.error(errorMessage(e)); } finally { setBusy(false); }
   }
   async function save() {
@@ -76,6 +103,7 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
       <DialogHeader><DialogTitle>Substitute outfit · {item.wearer}</DialogTitle></DialogHeader>
       <div className="border-b border-border pb-3"><p className="text-sm font-medium">Original selection · {item.event}</p><p className="text-sm">{item.title} · {item.sku} · size {item.size || 'Not recorded'}</p></div>
       <Input type="search" aria-label="Search replacement wardrobe" placeholder="Search replacement outfit or model number" value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="flex gap-2"><Input type="url" aria-label="Replacement shop link" placeholder="Or paste a shop link to fetch the outfit" value={link} onChange={e => setLink(e.target.value)} /><Button type="button" variant="outline" disabled={busy || !link.trim()} onClick={() => void fetchLink()}><Link2 className="size-4" /> Fetch</Button></div>
       <label className="text-sm">Replacement from wardrobe<select className="field-select w-full" aria-label="Replacement from wardrobe" value={alternative.outfitId ?? ''} onChange={e => {
         const o = wardrobe.data?.find(w => w.id === e.target.value);
         if (!o) { setAlternative(a => ({ ...a, outfitId: null })); return; }
