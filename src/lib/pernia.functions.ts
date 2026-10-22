@@ -246,6 +246,7 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
       colour?: string | null;
       sort?: string;
       shipInDays?: string | string[] | null;
+      listingUrl?: string | null;
     }) => {
       const category = String(data?.category ?? "clothing/lehenga")
         .trim()
