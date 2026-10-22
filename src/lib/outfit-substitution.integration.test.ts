@@ -15,13 +15,23 @@ it('pre-order and order substitutions retain original choice and append immutabl
   const invite = host.data.invite_id;
   const outfit = await c.from('outfits').insert({ invite_id: invite, title: 'Substitution test original', gender: 'men', price_inr: 30000 }).select('id').single();
   if (outfit.error) throw outfit.error;
-  let reservationId: string | undefined, orderId: string | undefined;
+  let reservationId: string | undefined, orderId: string | undefined, replacementId: string | undefined;
   try {
     const r = await c.from('reservations').insert({ invite_id: invite, outfit_id: outfit.data.id, guest_id: session.user.id, guest_name: 'Substitution verification', size_choice: 'M' }).select('id').single();
     if (r.error) throw r.error; reservationId = r.data.id;
-    const alternative = { title: 'Vendor proposal', sku: 'ALT1', designer: '', shop: '', image: '' };
-    const saved = await c.rpc('save_outfit_substitution', { _reservation_id: reservationId, _alternative: alternative, _size: 'L', _price: 35000 });
+    let alternative = { title: 'Vendor proposal', sku: 'ALT1', designer: '', shop: '', image: '' };
+    const saved = await c.rpc('save_collection_substitution', { _reservation_id: reservationId, _alternative: alternative, _size: 'L', _price: 35000, _details: { gender: 'men', color_family: 'Green', garment_type: 'Sherwani' } });
     if (saved.error) throw saved.error;
+    const collectionResult = saved.data as { alternative: typeof alternative; replacementOutfitId: string };
+    alternative = collectionResult.alternative; replacementId = collectionResult.replacementOutfitId;
+    const collection = await c.from('outfits').select('title,price_inr,color_family,garment_type,gender,size_note,invite_id,retired_at').eq('id', replacementId).single();
+    if (collection.error) throw collection.error;
+    strictEqual(collection.data.title, 'Vendor proposal'); strictEqual(collection.data.price_inr, 35000); strictEqual(collection.data.color_family, 'Green'); strictEqual(collection.data.garment_type, 'Sherwani'); strictEqual(collection.data.gender, 'men'); strictEqual(collection.data.size_note, 'L'); strictEqual(collection.data.invite_id, invite); strictEqual(collection.data.retired_at, null);
+    const retired = await c.from('outfits').select('retired_at').eq('id', outfit.data.id).single();
+    if (retired.error) throw retired.error;
+    ok(retired.data.retired_at, 'original must be retired from future selections');
+    const blocked = await c.from('reservations').insert({ invite_id: invite, outfit_id: outfit.data.id, guest_id: session.user.id, guest_name: 'Another wearer', size_choice: 'S' });
+    ok(blocked.error?.message.includes('retired'), 'retirement must block new selections at the database boundary');
     const pre = await c.from('wardrobe_preorder_alternatives').select('*').eq('reservation_id', reservationId).single();
     if (pre.error) throw pre.error;
     strictEqual(pre.data.ordered_size, 'L'); strictEqual(pre.data.revised_price, 35000);
@@ -52,6 +62,7 @@ it('pre-order and order substitutions retain original choice and append immutabl
   } finally {
     if (orderId) { const d = await c.from('wardrobe_orders').delete().eq('id', orderId); if (d.error) throw d.error; }
     if (reservationId) { const d = await c.from('reservations').delete().eq('id', reservationId); if (d.error) throw d.error; }
+    if (replacementId) { const d = await c.from('outfits').delete().eq('id', replacementId); if (d.error) throw d.error; }
     const d = await c.from('outfits').delete().eq('id', outfit.data.id); if (d.error) throw d.error;
   }
 });
