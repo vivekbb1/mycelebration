@@ -1,0 +1,3 @@
+CREATE OR REPLACE FUNCTION public.my_family_member_codes() RETURNS TABLE(id uuid,guest_name text,invite_id uuid) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT c.id,c.guest_name,c.invite_id FROM invite_codes c WHERE is_my_household(c.household,c.invite_id) $$;
+REVOKE ALL ON FUNCTION public.my_family_member_codes() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.my_family_member_codes() TO authenticated;

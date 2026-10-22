@@ -3388,6 +3388,14 @@ export type Database = {
           event_id: string
         }[]
       }
+      my_family_member_codes: {
+        Args: never
+        Returns: {
+          guest_name: string
+          id: string
+          invite_id: string
+        }[]
+      }
       my_family_needs_wardrobe: { Args: never; Returns: boolean }
       my_features: { Args: never; Returns: Json }
       my_fees_enabled: { Args: never; Returns: boolean }
