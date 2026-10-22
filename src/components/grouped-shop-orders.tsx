@@ -1,3 +1,4 @@
+import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, FileDown, FileUp, Plus, Repeat, Save, Trash2, Undo2 } from "lucide-react";
@@ -29,6 +30,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     const { data, error } = await supabase.from("outfits").select("id, title, designer, source_sku, boutique_url, image_url, price_inr, gender").eq("invite_id", inviteId).order("title");
     if (error) throw error; return data ?? [];
   } });
+  const subs = useLatestSubstitutions((orders.data ?? []).flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.reservationId)));
   const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false);
   const [id, setId] = useState<string | null>(null); const [reference, setReference] = useState("");
   const [shop, setShop] = useState(""); const [currency, setCurrency] = useState("INR"); const [notes, setNotes] = useState("");
@@ -226,7 +228,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       {items.map((item) => <div key={item.reservationId} className="space-y-3 border-t border-border pt-4">
         <div className="flex gap-3">
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}
-          <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku}</p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""}</p> : null}{item.addOns?.length ? <p className="text-sm text-muted-foreground">+ {item.addOns.map((a) => a.label).join(", ")}</p> : null}</div>
+          <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku}</p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""}</p> : null}{item.addOns?.length ? <p className="text-sm text-muted-foreground">+ {item.addOns.map((a) => a.label).join(", ")}</p> : null}<SubstitutionNote sub={subs.data?.get(item.reservationId)} showOriginal /></div>
           {!cancelled ? <div className="flex shrink-0 flex-col gap-1">
             <Button variant="ghost" size="sm" title="Replace this order item with another person's pending look" onClick={() => { setSwapFor(item.reservationId); setAdding(false); }}><Repeat className="size-4" /> Replace order item</Button>
             <Button variant="ghost" size="sm" title="Remove from order" onClick={() => setItems((a) => a.filter((i) => i.reservationId !== item.reservationId))}><Trash2 className="size-4" /> Remove</Button>

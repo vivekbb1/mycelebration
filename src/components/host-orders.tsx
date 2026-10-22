@@ -1,3 +1,4 @@
+import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ExternalLink, Package } from "lucide-react";
@@ -142,6 +143,8 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
         .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     },
   });
+  const subs = useLatestSubstitutions((data.data ?? []).map((r) => r.id));
+
 
   type Row = NonNullable<typeof data.data>[number];
 
@@ -591,6 +594,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {!inOrder.has(r.id) && !r.order_placed_at ? <OutfitSubstitution inviteId={inviteId} item={toItem(r)} onSaved={() => setPdfReady(null)} /> : null}
                   {preorderAlternatives.data?.get(r.id) ? <p className="w-full text-sm text-primary">Replacement: {toItem(r).alternative?.title} · size {toItem(r).orderedSize} · INR {money(toItem(r).price)}</p> : null}
+                  <SubstitutionNote sub={subs.data?.get(r.id)} showOriginal />
                   <OrderAlterations inviteId={inviteId} reservationId={r.id} wearer={r.guest_name || r.guest?.guest_name || "Guest"} measurements={r.measurementValues} />
                   {r.order_placed_at ? (
                     <Button size="sm" disabled={save.isPending} onClick={() => save.mutate({ r })}>

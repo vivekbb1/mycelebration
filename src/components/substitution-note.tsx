@@ -1,0 +1,55 @@
+import { Repeat } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+export type SubSnap = { title?: string; sku?: string; image?: string; size?: string };
+export type LatestSub = { original: SubSnap; replacement: SubSnap; order: boolean; at: string };
+
+function thumb(src: string) {
+  if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=240`;
+  if (/^https:\/\/[^/]*pernia/i.test(src)) return `/api/public/shop-image?w=240&u=${encodeURIComponent(src)}`;
+  return src;
+}
+
+/** Latest host substitution per reservation (host-only history). */
+export function useLatestSubstitutions(reservationIds: string[]) {
+  const ids = [...new Set(reservationIds)].sort();
+  return useQuery({
+    queryKey: ["outfit-substitution-history", "latest", ids],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const latest = new Map<string, LatestSub>();
+      for (let i = 0; i < ids.length; i += 200) {
+        const r = await supabase.from("wardrobe_substitution_history").select("reservation_id,original,replacement,created_at,order_id").in("reservation_id", ids.slice(i, i + 200)).order("created_at", { ascending: false });
+        if (r.error) throw r.error;
+        for (const h of r.data) if (!latest.has(h.reservation_id)) latest.set(h.reservation_id, { original: h.original as SubSnap, replacement: h.replacement as SubSnap, order: Boolean(h.order_id), at: h.created_at });
+      }
+      return latest;
+    },
+  });
+}
+
+/** Shows original vs substituted look side by side. */
+export function SubstitutionNote({ sub, showOriginal = false }: { sub?: LatestSub | undefined; showOriginal?: boolean }) {
+  if (!sub) return null;
+  const look = (s: SubSnap, label: string) => (
+    <div className="flex min-w-0 items-start gap-2">
+      {s.image ? <img src={thumb(s.image)} alt={s.title ?? label} loading="lazy" className="h-20 w-14 shrink-0 rounded object-cover" /> : null}
+      <div className="min-w-0 text-xs">
+        <p className="text-muted-foreground">{label}</p>
+        <p className="font-medium">{s.title || "Look"}</p>
+        {s.sku ? <p className="text-muted-foreground">{s.sku}</p> : null}
+        <p>Size: {s.size || "Not recorded"}</p>
+      </div>
+    </div>
+  );
+  return (
+    <div className="mt-2 w-full border-t border-border pt-2">
+      <p className="flex items-center gap-1 text-xs font-medium text-primary"><Repeat className="size-3" /> Substituted at {sub.order ? "order" : "pre-order"} · {new Date(sub.at).toLocaleDateString("en-GB")}</p>
+      <div className="mt-1 flex flex-wrap gap-4">
+        {showOriginal ? look(sub.original, "Original") : null}
+        {look(sub.replacement, "Replacement")}
+      </div>
+    </div>
+  );
+}
