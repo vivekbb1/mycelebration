@@ -2328,6 +2328,7 @@ export type Database = {
           notes: string | null
           price_inr: number | null
           price_note: string | null
+          retired_at: string | null
           silhouette: string | null
           size_note: string | null
           sizes: Json | null
@@ -2354,6 +2355,7 @@ export type Database = {
           notes?: string | null
           price_inr?: number | null
           price_note?: string | null
+          retired_at?: string | null
           silhouette?: string | null
           size_note?: string | null
           sizes?: Json | null
@@ -2380,6 +2382,7 @@ export type Database = {
           notes?: string | null
           price_inr?: number | null
           price_note?: string | null
+          retired_at?: string | null
           silhouette?: string | null
           size_note?: string | null
           sizes?: Json | null
@@ -3522,6 +3525,18 @@ export type Database = {
       resolve_member_code: {
         Args: { _account: string; _invite: string; _name: string }
         Returns: string
+      }
+      save_collection_substitution: {
+        Args: {
+          _alternative?: Json
+          _details?: Json
+          _expected?: string
+          _order_id?: string
+          _price?: number
+          _reservation_id: string
+          _size?: string
+        }
+        Returns: Json
       }
       save_outfit_substitution: {
         Args: {
