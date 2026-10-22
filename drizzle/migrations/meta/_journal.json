@@ -757,6 +757,13 @@
       "when": 1792603303638,
       "tag": "0107_order_addons_in_totals",
       "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1792673257483,
+      "tag": "0108_signup_link_outfit_limits_and_host_selection",
+      "breakpoints": true
     }
   ]
 }
