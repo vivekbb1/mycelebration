@@ -265,19 +265,24 @@ export const searchPerniaCategory = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertHost(context as unknown as Ctx);
 
-    const parts = data.category.split("/");
-    const filter: Record<string, string> = {};
-    parts.forEach((p, i) => {
-      filter[`dynamicParams${i + 1}`] = p;
-    });
-
-    const queryString: Record<string, string> = {
-      currency: "INR",
-      price: `${data.minPrice}-${data.maxPrice}`,
-    };
-    if (data.readyToShip) queryString['ready_to_ship'] = "ready_to_ship";
-    if (data.colour) queryString['colour_code'] = data.colour;
-    if (data.shipInDays) queryString['ship_in_days'] = data.shipInDays;
+    let filter: Record<string, string> = {};
+    let queryString: Record<string, string>;
+    const listing = parseListingUrl((data as { listingUrl?: string | null }).listingUrl ?? null);
+    if (listing) {
+      filter = listing.filter;
+      queryString = listing.queryString;
+    } else {
+      data.category.split("/").forEach((p, i) => {
+        filter[`dynamicParams${i + 1}`] = p;
+      });
+      queryString = {
+        currency: "INR",
+        price: `${data.minPrice}-${data.maxPrice}`,
+      };
+      if (data.readyToShip) queryString['ready_to_ship'] = "ready_to_ship";
+      if (data.colour) queryString['colour_code'] = data.colour;
+      if (data.shipInDays) queryString['ship_in_days'] = data.shipInDays;
+    }
 
     const shopPage = async (n: number) => {
       const queryData = encodeURIComponent(
