@@ -319,6 +319,8 @@ function HostDashboard() {
   const [fStatus, setFStatus] = useState("all");
   const [fSort, setFSort] = useState("pinned");
   const [bulkType, setBulkType] = useState("");
+  const [fMinPrice, setFMinPrice] = useState("");
+  const [fMaxPrice, setFMaxPrice] = useState("");
   const reservedIds = useMemo(
     () => new Set((reservations.data ?? []).map((r) => r.outfit_id)),
     [reservations.data],
@@ -338,6 +340,15 @@ function HostDashboard() {
       if (fStatus === "reserved" && !reservedIds.has(o.id)) return false;
       if (fStatus === "pinned" && !o.is_pinned) return false;
       if (fStatus === "available" && reservedIds.has(o.id)) return false;
+    }
+    const minP = fMinPrice.trim() === "" ? null : Number(fMinPrice);
+    const maxP = fMaxPrice.trim() === "" ? null : Number(fMaxPrice);
+    if (minP != null || maxP != null) {
+      // Looks without a price are hidden while a price range is set.
+      if (o.price_inr == null) return false;
+      const p = Number(o.price_inr);
+      if (minP != null && !Number.isNaN(minP) && p < minP) return false;
+      if (maxP != null && !Number.isNaN(maxP) && p > maxP) return false;
     }
     return true;
   };
@@ -360,7 +371,7 @@ function HostDashboard() {
     }
     return { ev, gen, typ: Array.from(typ).sort(), avail, res, pin };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outfitList, fq, fEvent, fGender, fType, fStatus, reservedIds]);
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fMinPrice, fMaxPrice, reservedIds]);
   const shownList = useMemo(() => {
     const filtered = outfitList.filter((o) => matchesFilters(o));
     const price = (o: (typeof outfitList)[number]) => (o.price_inr != null ? Number(o.price_inr) : null);
@@ -1107,6 +1118,22 @@ function HostDashboard() {
                   <SelectItem value="pinned">Pinned ({facets.pin})</SelectItem>
                 </SelectContent>
               </Select>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Price from ₹"
+                value={fMinPrice}
+                onChange={(e) => setFMinPrice(e.target.value)}
+              />
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                placeholder="Price to ₹"
+                value={fMaxPrice}
+                onChange={(e) => setFMaxPrice(e.target.value)}
+              />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <Checkbox
