@@ -45,6 +45,7 @@ export const Route = createFileRoute("/_authenticated/guest/outfits")({
 
 type Outfit = {
   id: string;
+  retired_at?: string | null;
   is_pinned?: boolean;
   event_id: string | null;
   title: string;
@@ -322,6 +323,7 @@ function Lookbook() {
 
   const selectable = (outfits.data ?? []).filter(
     (o) =>
+      !o.retired_at &&
       (!o.event_id || !ownOutfitIds.has(o.event_id)) &&
       (mineByOutfit.has(o.id) || offered.data?.has(o.id) === true) &&
       // Looks for an event this family isn't invited to stay hidden.

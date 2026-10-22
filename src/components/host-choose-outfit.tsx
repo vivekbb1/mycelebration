@@ -19,7 +19,7 @@ export function HostChooseOutfit({ member, event, inviteId, onClose }: {
     queryKey: ["host-choose-outfit", member.id, event.id],
     queryFn: async () => {
       const result = await supabase.from("outfits").select("id, title, source_sku, designer, image_url, price_inr, gender, sizes")
-        .eq("invite_id", inviteId).eq("event_id", event.id).eq("is_available", true).order("title");
+        .eq("invite_id", inviteId).eq("event_id", event.id).eq("is_available", true).is("retired_at", null).order("title");
       if (result.error) throw result.error;
       const allowed = await supabase.rpc("guest_outfit_ids", { _member: member.id });
       if (allowed.error) throw allowed.error;
