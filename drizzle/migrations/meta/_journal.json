@@ -764,6 +764,13 @@
       "when": 1792673257483,
       "tag": "0108_signup_link_outfit_limits_and_host_selection",
       "breakpoints": true
+    },
+    {
+      "idx": 109,
+      "version": "7",
+      "when": 1792673403456,
+      "tag": "0109_host_collection_visibility",
+      "breakpoints": true
     }
   ]
 }
