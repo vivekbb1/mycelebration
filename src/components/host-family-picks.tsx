@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { wardrobeLabel } from "@/lib/wardrobe-options";
+import { HostChooseOutfit } from "@/components/host-choose-outfit";
 
 type Ev = { id: string; name: string; event_date: string | null; outfit_selection: boolean | null };
 
@@ -34,6 +35,7 @@ export function HostFamilyPicks({
   const [filter, setFilter] = useState<"all" | "open" | "done">("all");
   const [eventFilter, setEventFilter] = useState("all");
   const [sizeFilter, setSizeFilter] = useState("all");
+  const [choosing, setChoosing] = useState<{ member: { id: string; guest_name: string; gender: string | null }; event: Ev } | null>(null);
   const fullMeasurements = useQuery({
     queryKey: ["family-picks-order-measurements", inviteId],
     enabled: Boolean(inviteId),
@@ -119,7 +121,8 @@ export function HostFamilyPicks({
         ? pickable.filter((e) => rows.some((r) => r.event_id === e.id && r.outfit_selection !== false))
         : pickable;
       const ids = new Set(members.map((m) => m.claimed_by).filter(Boolean) as string[]);
-      const looks = (res.data ?? []).filter((r) => ids.has(r.guest_id));
+      const memberIds = new Set(members.map((m) => m.id));
+      const looks = (res.data ?? []).filter((r) => r.member_code_id ? memberIds.has(r.member_code_id) : ids.has(r.guest_id));
       const names = members.map((m) => norm(m.guest_name));
       let chosen = 0;
       let total = 0;
@@ -202,6 +205,7 @@ export function HostFamilyPicks({
 
   return (
     <div className="space-y-6">
+      {choosing && inviteId ? <HostChooseOutfit member={choosing.member} event={choosing.event} inviteId={inviteId} onClose={() => setChoosing(null)} /> : null}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard title="All events" sub="Whole celebration" c={allC} t={allT} />
         {eventStats.map(({ ev, c, t }) => (
@@ -300,7 +304,7 @@ export function HostFamilyPicks({
                                     </p>
                                   </>
                                 ) : (
-                                  <p className="text-xs text-muted-foreground">Not chosen</p>
+                                  <><p className="text-xs text-muted-foreground">Not chosen</p><Button size="sm" variant="outline" className="mt-1 h-auto whitespace-normal py-1 text-xs" onClick={() => setChoosing({ member: m, event: ev })}>Choose outfit</Button></>
                                 )}
                                 <p className="text-[0.65rem] text-muted-foreground">{gap(arrival, ev.event_date)}</p>
                               </div>
