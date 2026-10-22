@@ -1,3 +1,4 @@
+import { OutfitSubstitution } from "@/components/outfit-substitution";
 import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -305,6 +306,7 @@ export function HostFamilyPicks({
                                       {confirmed ? "Confirmed" : "Reserved"}
                                     </p>
                                     <SubstitutionNote sub={look ? subs.data?.get(look.id) : undefined} />
+                                    {inviteId && look ? <div className="mt-1"><OutfitSubstitution inviteId={inviteId} item={{ reservationId: look.id, wearer: m.guest_name, family: f.name ?? "", event: ev.name, title: o?.title ?? "", designer: (look.outfits as { designer?: string | null } | null)?.designer ?? "", sku: (look.outfits as { source_sku?: string | null } | null)?.source_sku ?? "", size: look.size_choice || look.build_size || "", shop: o?.boutique_url ?? "", image: o?.image_url ?? "", price: Number((look.outfits as { price_inr?: number | null } | null)?.price_inr ?? 0), discount: 0, measurements: null, notes: "" }} /></div> : null}
                                   </>
                                 ) : (
                                   <><p className="text-xs text-muted-foreground">Not chosen</p><Button size="sm" variant="outline" className="mt-1 h-auto whitespace-normal py-1 text-xs" onClick={() => setChoosing({ member: m, event: ev })}>Choose outfit</Button></>
