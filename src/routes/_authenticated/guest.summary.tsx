@@ -95,12 +95,13 @@ function ConfirmPage() {
       // Only this family's looks — hosts can read every reservation, so filter explicitly.
       const { data: auth } = await supabase.auth.getUser();
       const ids = new Set<string>(auth.user ? [auth.user.id] : []);
+      let codeIds: string[] = [];
       if (household) {
         const { data: fam } = await supabase
           .from("invite_codes")
-          .select("claimed_by")
-          .eq("household", household)
-          .not("claimed_by", "is", null);
+          .select("id, claimed_by")
+          .eq("household", household);
+        codeIds = (fam ?? []).map((f) => f.id);
         for (const f of fam ?? []) if (f.claimed_by) ids.add(f.claimed_by);
       }
       if (ids.size === 0) return [] as Row[];
@@ -109,7 +110,7 @@ function ConfirmPage() {
         .select(
           "id, status, size_choice, ordered_size, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
         )
-        .in("guest_id", [...ids])
+        .or(`guest_id.in.(${[...ids].join(",")})${codeIds.length ? `,member_code_id.in.(${codeIds.join(",")})` : ""}`)
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as unknown as Row[];

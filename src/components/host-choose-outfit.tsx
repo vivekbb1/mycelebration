@@ -28,7 +28,7 @@ export function HostChooseOutfit({ member, event, inviteId, onClose }: {
   const save = async () => {
     if (!chosen) return;
     setSaving(true);
-    const { error } = await supabase.rpc("host_choose_outfit", { _member: member.id, _outfit: chosen.id, _size: size.trim() || undefined });
+    const { error } = await supabase.rpc("host_choose_outfit", { _member: member.id, _outfit: chosen.id, ...(size.trim() ? { _size: size.trim() } : {}) });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries();
