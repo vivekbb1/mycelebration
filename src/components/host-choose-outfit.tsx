@@ -21,7 +21,10 @@ export function HostChooseOutfit({ member, event, inviteId, onClose }: {
       const result = await supabase.from("outfits").select("id, title, source_sku, designer, image_url, price_inr, gender, sizes")
         .eq("invite_id", inviteId).eq("event_id", event.id).eq("is_available", true).order("title");
       if (result.error) throw result.error;
-      return (result.data ?? []).filter((o) => !member.gender || member.gender === o.gender);
+      const allowed = await supabase.rpc("guest_outfit_ids", { _member: member.id });
+      if (allowed.error) throw allowed.error;
+      const ids = new Set(allowed.data ?? []);
+      return (result.data ?? []).filter((o) => ids.has(o.id) && (!member.gender || member.gender === o.gender));
     },
   });
   const chosen = looks.data?.find((o) => o.id === picked);
