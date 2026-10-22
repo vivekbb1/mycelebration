@@ -46,7 +46,7 @@ export function HostChooseOutfit({ member, event, inviteId, onClose }: {
       {looks.isError ? <p className="text-sm text-destructive">Could not load outfits.</p> : looks.isLoading ? <p>Loading…</p> : <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {looks.data?.filter((o) => !q || [o.title, o.source_sku, o.designer].some((v) => v?.toLowerCase().includes(q))).map((o) => <Button
           key={o.id} variant="outline" aria-pressed={picked === o.id} onClick={() => { setPicked(o.id); setSize(""); }}
-          className={`h-auto min-w-0 flex-col items-start whitespace-normal p-2 ${picked === o.id ? "border-primary bg-accent" : ""}`}>
+          className={`h-auto min-w-0 flex-col items-start justify-start overflow-hidden whitespace-normal p-2 sm:h-auto ${picked === o.id ? "border-primary bg-accent" : ""}`}>
           {o.image_url ? <img src={o.image_url} alt={o.title} className="aspect-[3/4] w-full rounded object-cover" loading="lazy" /> : null}
           <span className="line-clamp-2 text-left text-xs">{o.title}</span><span className="text-xs text-muted-foreground">{o.source_sku}</span>
           <span className="text-xs">{o.price_inr == null ? "Price not recorded" : `₹${o.price_inr.toLocaleString("en-IN")}`}</span>

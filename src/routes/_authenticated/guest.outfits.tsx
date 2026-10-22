@@ -443,6 +443,7 @@ function Lookbook() {
       outfit_id: outfit.id,
       guest_id: user.id,
       guest_name: forName,
+      ...(activeCode ? { member_code_id: activeCode.id, invite_id: activeCode.invite_id } : {}),
       size_choice: size,
     });
     if (error) {
