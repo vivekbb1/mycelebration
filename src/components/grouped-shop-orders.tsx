@@ -130,8 +130,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       const path = `${inviteId}/orders/${orderId}/${Date.now()}-${file.name.replace(/[^a-z0-9.-]/gi, "_")}`;
       const up = await supabase.storage.from(BUCKET).upload(path, file); if (up.error) throw up.error;
       const next = [...docs, { kind: docKind, path, name: file.name, number: docNumber, amount: docAmount ? Number(docAmount) : null, date }];
-      const r = await supabase.from("wardrobe_orders").update({ documents: next as unknown as Json }).eq("id", orderId).eq("invite_id", inviteId);
+      const r = await supabase.from("wardrobe_orders").update({ documents: next as unknown as Json }).eq("id", orderId).eq("invite_id", inviteId).select("updated_at").maybeSingle();
       if (r.error) { await supabase.storage.from(BUCKET).remove([path]); throw r.error; }
+      // Keep the save check in step with the document change so the next save isn't rejected.
+      if (r.data) setOrderVersion(r.data.updated_at);
       setDocs(next); setDocNumber(""); setDocAmount("");
       await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
     }, `${DOC_LABEL[docKind]} attached`, false);
@@ -143,7 +145,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   async function removeDoc(path: string) {
     await run(async () => {
       const next = docs.filter((d) => d.path !== path);
-      if (id) { const r = await supabase.from("wardrobe_orders").update({ documents: next as unknown as Json }).eq("id", id).eq("invite_id", inviteId); if (r.error) throw r.error; }
+      if (id) {
+        const r = await supabase.from("wardrobe_orders").update({ documents: next as unknown as Json }).eq("id", id).eq("invite_id", inviteId).select("updated_at").maybeSingle();
+        if (r.error) throw r.error;
+        if (r.data) setOrderVersion(r.data.updated_at);
+      }
       await supabase.storage.from(BUCKET).remove([path]); setDocs(next);
     }, "Document removed", false);
   }
