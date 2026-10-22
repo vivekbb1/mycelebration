@@ -349,6 +349,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
                   {a?.photos ? <Badge variant="outline">{a.photos} photo{a.photos === 1 ? "" : "s"}</Badge> : null}
                   <Badge variant="outline">{r.measured ? "Measurements in" : "No measurements"}</Badge>
                 </div>
+                <SubstitutionNote sub={subs.data?.get(r.id)} showOriginal />
               </div>
               <div className="col-span-2 sm:col-span-1 sm:shrink-0">
                 <OrderAlterations inviteId={inviteId!} reservationId={r.id} wearer={wearerOf(r)} measurements={r.measurementValues} label={a ? "Open alteration" : "Record alteration"} />
