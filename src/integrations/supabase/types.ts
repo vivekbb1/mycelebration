@@ -2676,6 +2676,8 @@ export type Database = {
           order_reference: string | null
           order_status: string
           order_status_updated_at: string
+          ordered_look_image: string | null
+          ordered_look_title: string | null
           ordered_size: string | null
           outfit_id: string
           payment_status: string
@@ -2705,6 +2707,8 @@ export type Database = {
           order_reference?: string | null
           order_status?: string
           order_status_updated_at?: string
+          ordered_look_image?: string | null
+          ordered_look_title?: string | null
           ordered_size?: string | null
           outfit_id: string
           payment_status?: string
@@ -2734,6 +2738,8 @@ export type Database = {
           order_reference?: string | null
           order_status?: string
           order_status_updated_at?: string
+          ordered_look_image?: string | null
+          ordered_look_title?: string | null
           ordered_size?: string | null
           outfit_id?: string
           payment_status?: string
@@ -3560,6 +3566,10 @@ export type Database = {
       my_pay_instructions: { Args: never; Returns: string }
       my_room: { Args: never; Returns: Json }
       my_travel_settings: { Args: never; Returns: Json }
+      order_alt_look: {
+        Args: { _invite: string; _item: Json }
+        Returns: Record<string, unknown>
+      }
       record_outfit_substitution: {
         Args: {
           _order: string
