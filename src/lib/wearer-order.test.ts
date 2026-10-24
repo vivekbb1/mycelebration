@@ -8,8 +8,8 @@ describe("wearer notes", () => {
   it("changes only the targeted look's note", () => {
     const other = { ...base, reservationId: "r2", wearerNote: "Keep" };
     const next = setWearerNote([base, other], "r1", "  Please carry your white shirt ");
-    expect(next[0].wearerNote).toBe("Please carry your white shirt");
-    expect(next[0].price).toBe(50000);
+    expect(next[0]?.wearerNote).toBe("Please carry your white shirt");
+    expect(next[0]?.price).toBe(50000);
     expect(next[1]).toBe(other);
   });
   it("refuses to save a note for a look no longer in the order", () => {

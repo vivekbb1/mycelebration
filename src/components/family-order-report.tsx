@@ -28,7 +28,7 @@ export function useCelebrationName(inviteId: string) {
 
 export function FamilyOrderReport({ inviteId, wardrobeSkus = null, orders, candidates, substitutions, onOpen, matches, seq = alphabetical, phones }: {
   inviteId: string; wardrobeSkus?: Set<string> | null; orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
-  seq?: Sequencer; phones?: Map<string, string>;
+  seq?: Sequencer; phones?: Map<string, string> | undefined;
 }) {
   const families = familyOrderLooks(orders, candidates, matches).map((f) => ({ ...f, rows: [...f.rows].sort((a, b) => seq.compare({ wearer: a.wearer, event: a.item.event }, { wearer: b.wearer, event: b.item.event })) }));
   const celebrationName = useCelebrationName(inviteId);

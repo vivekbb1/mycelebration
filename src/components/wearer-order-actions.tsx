@@ -44,7 +44,7 @@ export async function sharePdfOnWhatsApp(makeBlob: () => Promise<Blob>, fileName
 }
 
 /** One person's outfits (all events) as a PDF, plus WhatsApp sharing. */
-export function IndividualShare({ wearer, celebration, lines, phone }: { wearer: string; celebration: string; lines: FamilyLookLine[]; phone?: string }) {
+export function IndividualShare({ wearer, celebration, lines, phone }: { wearer: string; celebration: string; lines: FamilyLookLine[]; phone?: string | undefined }) {
   const [busy, setBusy] = useState(false);
   const make = () => buildFamilyLooksPdf(wearer, celebration, lines);
   const text = `Hello ${wearer}, please find attached the outfits ordered for you for ${celebration}, with notes on anything to carry. Kindly check each look and size and let us know of any last-minute changes.`;
