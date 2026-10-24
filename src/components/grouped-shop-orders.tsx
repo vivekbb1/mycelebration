@@ -275,7 +275,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             <p className="truncate text-xs text-muted-foreground">{cur?.family ?? i.family} · {i.event}</p>
             <p className="line-clamp-2 text-sm">{look.title}{i.alternative?.title ? <span className="text-primary"> · substitute</span> : null}</p>
             <p className="text-xs"><WardrobeFlag sku={look.sku} skus={wardrobeSkus} />{i.alternative ? <span className="text-muted-foreground"> · original <WardrobeFlag sku={i.sku} skus={wardrobeSkus} /></span> : null}</p>
-            <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}{i.addOns?.length ? ` · +${i.addOns.length} extra` : ""}</p>
+            <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}</p>
+            {(i.addOns ?? []).map((a) => <p key={a.id} className="truncate text-xs">Extra: {a.label || a.sku || "item"}{a.sku ? <> · <WardrobeFlag sku={a.sku} skus={wardrobeSkus} /></> : null}</p>)}
             <div className="flex items-center justify-between gap-2 pt-1"><span className="truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="outline" onClick={() => openOrder(o)}>Open</Button></div>
           </div>
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
