@@ -13,7 +13,9 @@ it('pre-order and order substitutions retain original choice and append immutabl
   const host = await c.from('celebration_hosts').select('invite_id').eq('user_id', session.user.id).limit(1).single();
   if (host.error) throw host.error;
   const invite = host.data.invite_id;
-  const outfit = await c.from('outfits').insert({ invite_id: invite, title: 'Substitution test original', gender: 'men', price_inr: 30000 }).select('id').single();
+  const event = await c.from('events').insert({ invite_id: invite, name: `Substitution verification ${crypto.randomUUID()}` }).select('id').single();
+  if (event.error) throw event.error;
+  const outfit = await c.from('outfits').insert({ invite_id: invite, event_id: event.data.id, title: 'Substitution test original', gender: 'men', garment_type: 'Sherwani', price_inr: 30000 }).select('id').single();
   if (outfit.error) throw outfit.error;
   let reservationId: string | undefined, orderId: string | undefined, replacementId: string | undefined;
   try {
@@ -56,7 +58,7 @@ it('pre-order and order substitutions retain original choice and append immutabl
     if (!newAlternative) throw new Error('Missing collected alternative');
     const added = await c.from('outfits').select('event_id,gender,garment_type,image_url').eq('id', newAlternative.outfitId).single();
     if (added.error) throw added.error;
-    strictEqual(added.data.event_id, null); strictEqual(added.data.gender, 'men'); strictEqual(added.data.image_url, '/test-photo.jpg');
+    strictEqual(added.data.event_id, event.data.id); strictEqual(added.data.gender, 'men'); strictEqual(added.data.garment_type, 'Sherwani'); strictEqual(added.data.image_url, '/test-photo.jpg');
     await c.from('outfits').delete().eq('id', newAlternative.outfitId);
     const final = await c.from('reservations').select('outfit_id,size_choice,ordered_size,status').eq('id', reservationId).single();
     if (final.error) throw final.error;
@@ -70,5 +72,6 @@ it('pre-order and order substitutions retain original choice and append immutabl
     if (reservationId) { const d = await c.from('reservations').delete().eq('id', reservationId); if (d.error) throw d.error; }
     if (replacementId) { const d = await c.from('outfits').delete().eq('id', replacementId); if (d.error) throw d.error; }
     const d = await c.from('outfits').delete().eq('id', outfit.data.id); if (d.error) throw d.error;
+    await c.from('events').delete().eq('id', event.data.id);
   }
 });

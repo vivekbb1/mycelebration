@@ -99,11 +99,18 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   async function persist(nextStatus: string, extra: Record<string, unknown> = {}) {
     if (nextStatus !== "cancelled") validateOrder(items, payments, courierNum);
     if (!reference.trim()) throw new Error("Enter an order reference");
+    const collectedItems = await Promise.all(items.map(async item => {
+      const alt = item.alternative;
+      if (!alt || alt.outfitId || alt.image || !alt.shop || nextStatus === "cancelled") return item;
+      const host = new URL(alt.shop).hostname;
+      const look = host === "perniaspopupshop.com" || host === "www.perniaspopupshop.com" ? await pernia({ data: { url: alt.shop } }) : host === "koranm.com" || host === "www.koranm.com" ? await kora({ data: { inviteId, url: alt.shop } }) : null;
+      return look ? { ...item, alternative: { ...alt, image: look.images[0] ?? "", sku: alt.sku || look.sku, designer: alt.designer || look.designer } } : item;
+    }));
     const values = {
       invite_id: inviteId, reference: reference.trim(), shop_name: shop, currency: currency.toUpperCase(), notes,
       seller_reference: sellerRef, salesperson_name: stylist, salesperson_mobile: stylistMobile,
       seller_total: sellerTotal.trim() === "" ? null : Number(sellerTotal), courier_charges: courierNum,
-      items: items as unknown as Json, payments: payments as unknown as Json, documents: docs as unknown as Json,
+      items: collectedItems as unknown as Json, payments: payments as unknown as Json, documents: docs as unknown as Json,
       status: nextStatus, courier, tracking_number: tracking, ...extra,
     };
     const result = id
