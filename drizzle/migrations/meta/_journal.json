@@ -806,6 +806,13 @@
       "when": 1792839077127,
       "tag": "0114_order_alternatives_collection",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1792841291133,
+      "tag": "0115_invoice_drafts",
+      "breakpoints": true
     }
   ]
 }
