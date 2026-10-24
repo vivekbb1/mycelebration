@@ -9,11 +9,11 @@ function ShopLook({ title, image, shop, sku }: { title: string; image?: string; 
   return url ? <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 hover:text-primary">{content}</a> : <div className="flex items-start gap-3">{content}</div>;
 }
 
-export function FamilyOrderReport({ orders, candidates, substitutions, onOpen }: {
-  orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void;
+export function FamilyOrderReport({ orders, candidates, substitutions, onOpen, matches }: {
+  orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
 }) {
-  const families = familyOrderLooks(orders, candidates);
-  const active = orders.filter((o) => o.status !== "cancelled");
+  const families = familyOrderLooks(orders, candidates, matches);
+  const active = [...new Map(families.flatMap((family) => family.rows.map(({ order }) => [order.id, order] as const))).values()];
   const currencies = [...new Set(active.map((o) => o.currency))];
   return <div className="space-y-5" aria-label="Orders by family">
     <h3 className="text-lg font-medium">Orders by family</h3>

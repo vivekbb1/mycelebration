@@ -7,12 +7,13 @@ export type ReportOrder = {
 };
 
 /** Payments belong to whole orders, never implicitly to one wearer or family. */
-export function familyOrderLooks(orders: ReportOrder[], candidates: OrderItem[]) {
+export function familyOrderLooks(orders: ReportOrder[], candidates: OrderItem[], matches?: (item: OrderItem, order: ReportOrder) => boolean) {
   const current = new Map(candidates.map((item) => [item.reservationId, item]));
   const families = new Map<string, { family: string; rows: { order: ReportOrder; item: OrderItem; wearer: string }[]; amounts: Map<string, number> }>();
   for (const order of orders) {
     if (order.status === "cancelled") continue;
     for (const item of order.items) {
+      if (matches && !matches(item, order)) continue;
       const person = current.get(item.reservationId);
       const family = (person?.family ?? item.family)?.trim() || "No family";
       const row = families.get(family) ?? { family, rows: [], amounts: new Map<string, number>() };

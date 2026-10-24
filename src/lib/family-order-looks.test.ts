@@ -33,3 +33,15 @@ it("excludes cancelled orders and keeps currencies separate", () => {
   strictEqual(family?.amounts.get("INR"), 11500);
   strictEqual(family?.amounts.get("AED"), 11500);
 });
+it("filters family look rows without splitting whole-order payments or balances", () => {
+  const report = familyOrderLooks([order], [], (look) => look.reservationId === "a");
+  strictEqual(report.length, 1);
+  strictEqual(report[0]?.rows.length, 1);
+  strictEqual(report[0]?.amounts.get("INR"), 11500);
+  const linked = report[0]?.rows[0]?.order;
+  if (!linked) throw new Error("Missing order");
+  strictEqual(linked.items.length, 2);
+  strictEqual(orderTotals(linked.items, linked.payments, linked.courier_charges).paid, 5000);
+  strictEqual(orderTotals(linked.items, linked.payments, linked.courier_charges).balance, 16000);
+  strictEqual(familyOrderLooks([order], [], () => false).length, 0);
+});
