@@ -9,7 +9,7 @@ import type { InvoiceMember, InvoiceEvent } from "@/lib/invoice-wearers";
 import type { InvoiceLine } from "@/lib/vendor-invoice";
 import type { OrderItem } from "@/lib/shop-order";
 
-export function InvoiceAssignLook({ inviteId, member, event, line, fetched, onAssigned }: { inviteId: string; member: InvoiceMember; event: InvoiceEvent; line: InvoiceLine; fetched?: PerniaLook; onAssigned: (item: OrderItem) => void }) {
+export function InvoiceAssignLook({ inviteId, member, event, line, fetched, onAssigned }: { inviteId: string; member: InvoiceMember; event: InvoiceEvent; line: InvoiceLine; fetched: PerniaLook | undefined; onAssigned: (item: OrderItem) => void }) {
   const [busy, setBusy] = useState(false);
   const importLooks = useServerFn(importPerniaLooks);
   const qc = useQueryClient();
