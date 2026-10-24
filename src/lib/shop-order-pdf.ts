@@ -179,12 +179,8 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
     ];
     const h = Math.max(130, body.length * 14 + 10);
     if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
-    if (l.image) { try {
-      const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
-      const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
-      const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
-      const s = img.scaleToFit(85, 120); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
-    } catch { /* photo optional */ } }
+    const img = l.image ? await embedLookPhoto(pdf, l.image) : null;
+    if (img) { const sc = img.scaleToFit(85, 120); page.drawImage(img, { x: 40, y: y - sc.height, width: sc.width, height: sc.height }); }
     let ty = y - 12;
     for (const b of body) { page.drawText(b.t, { x: 140, y: ty, size: b.size, font: b.font, color: b.t.startsWith("Updated") ? accent : rgb(.12, .12, .12) }); ty -= 14; }
     y -= h + 6;
@@ -193,4 +189,35 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
   const pages = pdf.getPages();
   pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); });
   return new Blob([new Uint8Array(await pdf.save())], { type: "application/pdf" });
+}
+
+/** Same-origin copy of a look photo (our stored copies, cached shop photos) so the browser can read it. */
+export function pdfPhotoUrl(src: string) {
+  if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=400`;
+  if (/^https:\/\/[^/]*perniaspopupshop\.com\//i.test(src)) return `/api/public/shop-image?w=400&u=${encodeURIComponent(src)}`;
+  return src;
+}
+
+/** Loads any photo format (JPG/PNG/WebP/AVIF) and re-encodes it as JPEG for the PDF; null if unreadable. */
+async function embedLookPhoto(pdf: PDFDocument, src: string) {
+  const tries = [...new Set([pdfPhotoUrl(src), src])];
+  for (const url of tries) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      if (!blob.type.startsWith("image/") && blob.size < 100) continue;
+      const bitmap = await createImageBitmap(blob);
+      const scale = Math.min(1, 600 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+      const ctx = canvas.getContext("2d"); if (!ctx) continue;
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const jpg = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+      if (!jpg) continue;
+      return await pdf.embedJpg(await jpg.arrayBuffer());
+    } catch { /* try next source */ }
+  }
+  return null;
 }

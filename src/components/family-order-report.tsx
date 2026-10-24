@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { buildFamilyLooksPdf, saveBlob, type FamilyLookLine } from "@/lib/shop-order-pdf";
 import { SubstitutionNote, type LatestSub } from "@/components/substitution-note";
 import { familyOrderLooks, type ReportOrder } from "@/lib/family-order-looks";
+import { useInvites } from "@/components/host-invites";
 import { money, orderTotals, type OrderItem } from "@/lib/shop-order";
 
 function ShopLook({ title, image, shop, sku }: { title: string; image?: string; shop?: string; sku?: string }) {
@@ -12,10 +13,12 @@ function ShopLook({ title, image, shop, sku }: { title: string; image?: string; 
   return url ? <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 hover:text-primary">{content}</a> : <div className="flex items-start gap-3">{content}</div>;
 }
 
-export function FamilyOrderReport({ orders, candidates, substitutions, onOpen, matches }: {
-  orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
+export function FamilyOrderReport({ inviteId, orders, candidates, substitutions, onOpen, matches }: {
+  inviteId: string; orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
 }) {
   const families = familyOrderLooks(orders, candidates, matches);
+  const invites = useInvites();
+  const celebrationName = invites.data?.find((i) => i.id === inviteId)?.name?.trim() || "Our Wedding";
   async function familyPdf(name: string, rows: typeof families[number]["rows"]) {
     try {
       const lines: FamilyLookLine[] = rows.map(({ item, wearer }) => {
@@ -23,7 +26,7 @@ export function FamilyOrderReport({ orders, candidates, substitutions, onOpen, m
         const alt = item.alternative ?? (sub ? { title: sub.replacement.title ?? "", image: sub.replacement.image ?? "" } : null);
         return { wearer, event: item.event, title: alt?.title || item.title, image: alt?.image || item.image, size: item.size, orderedSize: item.orderedSize ?? "", substituted: Boolean(alt), extras: (item.addOns ?? []).map((a) => ({ label: a.label, size: a.size })), note: item.wearerNote ?? "" };
       });
-      saveBlob(await buildFamilyLooksPdf(name, "Our Wedding", lines), `${name.replace(/[^a-z0-9-]/gi, "-")}-looks.pdf`);
+      saveBlob(await buildFamilyLooksPdf(name, celebrationName, lines), `${name.replace(/[^a-z0-9-]/gi, "-")}-looks.pdf`);
     } catch { toast.error("Couldn't create the family PDF"); }
   }
   const active = [...new Map(families.flatMap((family) => family.rows.map(({ order }) => [order.id, order] as const))).values()];
