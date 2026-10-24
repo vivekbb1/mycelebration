@@ -113,12 +113,12 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
           .map((c) => [c.claimed_by as string, c]),
       );
       return (res.data ?? [])
-        .filter((r) => guests.has(r.guest_id))
+        .filter((r) => guests.has(r.guest_id) || (r.member_code_id && codes.data.some(c => c.id === r.member_code_id)))
         .map((r) => {
           const key = (r.guest_name ?? "").trim().toLowerCase();
           const guest = guests.get(r.guest_id);
-          const family = (codes.data ?? []).filter((c) => c.household === guest?.household);
           const coded = r.member_code_id ? (codes.data ?? []).find((c) => c.id === r.member_code_id) : undefined;
+          const family = (codes.data ?? []).filter((c) => c.household === (coded?.household ?? guest?.household));
           const member = coded ?? family.find((c) => c.guest_name.trim().toLowerCase() === key) ?? guest;
           const m = member ? memberMeasurements(member, family, meas.data ?? []) : undefined;
           const measurementValues: Record<string, string | number> = {};
