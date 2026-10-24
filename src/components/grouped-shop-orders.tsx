@@ -337,7 +337,14 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             {!cancelled ? <Button className="self-end" variant="ghost" size="sm" onClick={() => setItems((all) => removeAddOn(all, item.reservationId, a.id))}><Trash2 className="size-4" /> Remove</Button> : null}
           </div>; })}
         </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <p className="text-sm">Original size<br /><strong>{item.size || "Not recorded"}</strong></p>
+          <label className="text-sm">Estimated delivery<Input type="date" aria-label={`Estimated delivery for ${item.wearer} — ${item.event}`} value={item.expectedDelivery ?? ""} onChange={(e) => changeItem(item.reservationId, { expectedDelivery: e.target.value })} /></label>
+          <label className="text-sm">Arrived on<Input type="date" aria-label={`Arrival date for ${item.wearer} — ${item.event}`} value={item.arrivedOn ?? ""} onChange={(e) => changeItem(item.reservationId, { arrivedOn: e.target.value })} /></label>
+          <label className="text-sm">Tracking details<Input aria-label={`Tracking for ${item.wearer} — ${item.event}`} value={item.tracking ?? ""} placeholder="Courier · AWB / link" onChange={(e) => changeItem(item.reservationId, { tracking: e.target.value })} /></label>
+        </div>
         <label className="block text-sm">Customisations / availability questions<Textarea value={item.notes} onChange={(e) => changeItem(item.reservationId, { notes: e.target.value })} /></label>
+        <label className="block text-sm">Note for {item.wearer} (shown to them)<Textarea aria-label={`Note for ${item.wearer} — ${item.event}`} value={item.wearerNote ?? ""} placeholder="e.g. Carry the matching mojaris and pocket square; pair with gold studs" onChange={(e) => changeItem(item.reservationId, { wearerNote: e.target.value })} /></label>
       </div>)}
 
       <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-3">

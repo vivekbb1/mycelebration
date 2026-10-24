@@ -2,7 +2,11 @@
 export type OrderAlternative = { title: string; sku: string; designer: string; shop: string; image: string; outfitId?: string | null };
 /** Extra piece ordered for a wearer's look (e.g. trousers for a kurta sold without them). Host-only. */
 export type OrderAddOn = { id: string; label: string; sku: string; size: string; shop: string; price: number; discount: number; notes: string };
-export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string; alternative?: OrderAlternative | null; addOns?: OrderAddOn[] };
+export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string; alternative?: OrderAlternative | null; addOns?: OrderAddOn[];
+  /** Per-look delivery tracking (host-only). */
+  expectedDelivery?: string; arrivedOn?: string; tracking?: string;
+  /** Note shown to the wearer: accessories to carry, styling tips. Mirrored to their look once placed. */
+  wearerNote?: string };
 
 /** Revised vendor price changes never replace the original upload snapshot. */
 export function setRevisedPrice(items: OrderItem[], reservationId: string, price: number) {

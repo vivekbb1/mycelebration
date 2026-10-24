@@ -174,7 +174,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, member_code_id, status, size_choice, ordered_size");
+        .select("id, outfit_id, guest_id, guest_name, member_code_id, status, size_choice, ordered_size, wearer_note");
       if (error) throw error;
       return data;
     },
@@ -799,6 +799,7 @@ function Lookbook() {
                 <h2 className="mt-1 text-xl">{held?.title}</h2>
                 {res?.size_choice ? <p className="mt-1 text-sm text-muted-foreground">Size: {res.size_choice}</p> : null}
                 {res?.ordered_size ? <p className="mt-1 text-sm font-medium">Size ordered: {res.ordered_size}</p> : null}
+                {res?.wearer_note ? <p className="mt-1 whitespace-pre-line text-sm"><span className="font-medium">Note from your hosts:</span> {res.wearer_note}</p> : null}
                 <p className="mt-2 text-sm text-muted-foreground">
                   {locked
                     ? "Your hosts have confirmed this look, so it can't be changed here. Contact them to change it."

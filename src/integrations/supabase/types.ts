@@ -2685,6 +2685,7 @@ export type Database = {
           status: string
           tracking_number: string | null
           tracking_url: string | null
+          wearer_note: string | null
         }
         Insert: {
           amount_paid?: number
@@ -2713,6 +2714,7 @@ export type Database = {
           status?: string
           tracking_number?: string | null
           tracking_url?: string | null
+          wearer_note?: string | null
         }
         Update: {
           amount_paid?: number
@@ -2741,6 +2743,7 @@ export type Database = {
           status?: string
           tracking_number?: string | null
           tracking_url?: string | null
+          wearer_note?: string | null
         }
         Relationships: [
           {
