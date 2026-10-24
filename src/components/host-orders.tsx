@@ -364,8 +364,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   );
   if (view === "orders") return (
     <div className="space-y-5">
-      <GroupedShopOrders inviteId={inviteId} candidates={candidates} preorder={pending.map(toItem)} />
-      {invoiceUpload}
+      <GroupedShopOrders inviteId={inviteId} candidates={candidates} preorder={pending.map(toItem)} actions={invoiceUpload} />
     </div>
   );
   return (
