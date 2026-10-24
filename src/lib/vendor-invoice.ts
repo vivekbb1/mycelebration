@@ -32,6 +32,11 @@ export function invoiceMatches(line: InvoiceLine, candidates: OrderItem[]) {
   return candidates.filter((item) => item.sku.trim().toUpperCase().replace(/-BO-.*$/, "") === line.sku.toUpperCase());
 }
 
+/** Never attach a fetched product to a different model on the vendor invoice. */
+export function validateInvoiceShopModel(invoiceSku: string, fetchedSku: string) {
+  if (!fetchedSku.trim() || invoiceSku.trim().toUpperCase() !== fetchedSku.trim().toUpperCase()) throw new Error(`The shop model ${fetchedSku || "(missing)"} does not match invoice model ${invoiceSku}. Check the product link.`);
+}
+
 /** How an invoice line relates to a person: their own look, an order-only alternative to it, or an extra piece (e.g. trousers) for a look on this invoice. */
 export type SlotMode = "look" | "alternative" | "addon";
 
@@ -42,7 +47,11 @@ export function defaultSlotMode(line: InvoiceLine, candidates: OrderItem[]): Slo
 export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = []): OrderItem[] {
   const used = new Set<string>();
   const items: OrderItem[] = [];
-  const modeOf = (index: number, slot: number) => modes[index]?.[slot] ?? defaultSlotMode(invoice.lines[index]!, candidates);
+  const modeOf = (index: number, slot: number) => {
+    const line = invoice.lines[index];
+    if (!line) throw new Error("Missing invoice line");
+    return modes[index]?.[slot] ?? defaultSlotMode(line, candidates);
+  };
   invoice.lines.forEach((line, index) => {
     const ids = matches[index] ?? [];
     if (ids.length !== line.quantity || ids.some((id) => !id)) throw new Error(`Match all ${line.quantity} wearer(s) for ${line.sku}`);
