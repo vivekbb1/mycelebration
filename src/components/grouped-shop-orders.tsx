@@ -274,12 +274,13 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             {o.status !== "cancelled" && isDupe(cur?.wearer ?? i.wearer, i.event) ? <p className="text-xs font-medium text-destructive">Duplicate: another main outfit for this event</p> : null}
             <p className="truncate text-xs text-muted-foreground">{cur?.family ?? i.family} · {i.event}</p>
             <p className="line-clamp-2 text-sm">{look.title}{i.alternative?.title ? <span className="text-primary"> · substitute</span> : null}</p>
+            <p className="text-xs"><WardrobeFlag sku={look.sku} skus={wardrobeSkus} />{i.alternative ? <span className="text-muted-foreground"> · original <WardrobeFlag sku={i.sku} skus={wardrobeSkus} /></span> : null}</p>
             <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}{i.addOns?.length ? ` · +${i.addOns.length} extra` : ""}</p>
             <div className="flex items-center justify-between gap-2 pt-1"><span className="truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="outline" onClick={() => openOrder(o)}>Open</Button></div>
           </div>
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
     })() : null}
-    {showLooks ? <FamilyOrderReport inviteId={inviteId} orders={shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }))} candidates={candidates} substitutions={subs.data} matches={(item, order) => !q || `${order.reference} ${order.seller_reference} ${order.shop_name}`.toLowerCase().includes(q) || itemHit(item)} onOpen={(orderId) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); }} /> : null}
+    {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} orders={shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }))} candidates={candidates} substitutions={subs.data} matches={(item, order) => !q || `${order.reference} ${order.seller_reference} ${order.shop_name}`.toLowerCase().includes(q) || itemHit(item)} onOpen={(orderId) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); }} /> : null}
     {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-md border border-border p-3 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
       <p className="text-xs text-muted-foreground">{f.people.join(", ")}</p>
@@ -466,7 +467,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 }
 
 /** ✓ when the model number exists in this celebration's wardrobe, ✗ when it needs adding. */
-function WardrobeFlag({ sku, skus }: { sku?: string | null; skus: Set<string> | null }) {
+export function WardrobeFlag({ sku, skus }: { sku?: string | null; skus: Set<string> | null }) {
   if (!skus || !sku?.trim()) return null;
   return skus.has(sku.trim().toUpperCase())
     ? <span className="whitespace-nowrap text-xs text-primary">✓ In wardrobe</span>
