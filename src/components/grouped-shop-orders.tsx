@@ -220,6 +220,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const seq = peopleInfo.data?.seq ?? alphabetical; const phones = peopleInfo.data?.phones;
   const celebrationName = useCelebrationName(inviteId);
   const q = orderSearch.trim().toLowerCase();
+  const openById = (orderId: string) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); };
   const itemHit = (i: OrderItem) => {
     const current = candidates.find((c) => c.reservationId === i.reservationId);
     return !q || `${current?.wearer ?? i.wearer} ${current?.family ?? i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""} ${(i.addOns ?? []).map((a) => `${a.label} ${a.sku}`).join(" ")}`.toLowerCase().includes(q);
