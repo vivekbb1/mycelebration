@@ -14,6 +14,7 @@ import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
 import { FamilyOrderReport } from "@/components/family-order-report";
+import { OrderFamilyView } from "@/components/order-family-view";
 import { AssignGuestLook } from "@/components/assign-guest-look";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchPerniaLook } from "@/lib/pernia.functions";
@@ -69,6 +70,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const [search, setSearch] = useState(""); const [groupBy, setGroupBy] = useState("people"); const [adding, setAdding] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [orderVersion, setOrderVersion] = useState<string | null>(null);
+  const [familyView, setFamilyView] = useState(false);
 
   const used = new Set((orders.data ?? []).filter((o) => o.id !== id && o.status !== "cancelled").flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.reservationId)));
   const available = candidates.filter((c) => !used.has(c.reservationId) && !items.some((i) => i.reservationId === c.reservationId) && `${c.wearer} ${c.title} ${c.family}`.toLowerCase().includes(search.toLowerCase()));
@@ -250,7 +252,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-        <h3 className="font-medium">Outfits in this order ({items.length})</h3>
+        <div className="flex flex-wrap items-center gap-2"><h3 className="font-medium">Outfits in this order ({items.length})</h3><Button size="sm" variant={familyView ? "default" : "outline"} onClick={() => setFamilyView((v) => !v)}>{familyView ? "Edit view" : "Family view"}</Button></div>
         {!cancelled ? <div className="flex flex-wrap gap-2"><AssignGuestLook inviteId={inviteId} onAssigned={setAssignedId} /><Button size="sm" variant="outline" onClick={() => { setAdding((v) => !v); setSwapFor(null); }}><Plus className="size-4" /> Add outfits</Button></div> : null}
       </div>
       {adding || swapFor ? <div className="space-y-3 rounded-md border border-border p-3">
@@ -269,7 +271,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
       </div> : null}
 
-      {items.map((item) => <div key={item.reservationId} className="space-y-3 border-t border-border pt-4">
+      {familyView ? <OrderFamilyView items={items} currency={currency} subs={subs.data} /> : null}
+      {familyView ? null : items.map((item) => <div key={item.reservationId} className="space-y-3 border-t border-border pt-4">
         <div className="flex gap-3">
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}
           <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku}</p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""}</p> : null}{item.addOns?.length ? <p className="text-sm text-muted-foreground">+ {item.addOns.map((a) => a.label).join(", ")}</p> : null}<SubstitutionNote sub={subs.data?.get(item.reservationId)} showOriginal /></div>
