@@ -44,6 +44,7 @@ type Row = {
   status: string;
   size_choice: string | null;
   ordered_size: string | null;
+  wearer_note: string | null;
   outfit_id: string;
   guest_name: string | null;
   build_garment: string | null;
@@ -111,7 +112,7 @@ function ConfirmPage() {
       const { data, error } = await supabase
         .from("reservations")
         .select(
-          "id, status, size_choice, ordered_size, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
+          "id, status, size_choice, ordered_size, wearer_note, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
         )
         .or(`guest_id.in.(${[...ids].join(",")})${codeIds.length ? `,member_code_id.in.(${codeIds.join(",")})` : ""}`)
         .order("created_at");
@@ -264,6 +265,7 @@ function ConfirmPage() {
                         </p>
                       ) : null}
                       {row.ordered_size ? <p className="mt-2 text-sm font-medium">Size ordered: {row.ordered_size}</p> : null}
+                      {row.wearer_note ? <p className="mt-1 whitespace-pre-line text-sm"><span className="font-medium">Note from your hosts:</span> {row.wearer_note}</p> : null}
                       {row.size_choice ? <p className="mt-1 text-sm text-muted-foreground">Size selected: {row.size_choice}</p> : null}
                     </div>
                   </div>
