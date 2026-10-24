@@ -45,6 +45,8 @@ type Row = {
   size_choice: string | null;
   ordered_size: string | null;
   wearer_note: string | null;
+  ordered_look_title: string | null;
+  ordered_look_image: string | null;
   outfit_id: string;
   guest_name: string | null;
   build_garment: string | null;
@@ -112,7 +114,7 @@ function ConfirmPage() {
       const { data, error } = await supabase
         .from("reservations")
         .select(
-          "id, status, size_choice, ordered_size, wearer_note, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
+          "id, status, size_choice, ordered_size, wearer_note, ordered_look_title, ordered_look_image, outfit_id, guest_name, build_garment, build_size, build_fabric, order_status, outfits(title, designer, garment_type, size_note, image_url, event_id)",
         )
         .or(`guest_id.in.(${[...ids].join(",")})${codeIds.length ? `,member_code_id.in.(${codeIds.join(",")})` : ""}`)
         .order("created_at");
@@ -232,9 +234,9 @@ function ConfirmPage() {
               return (
                 <li key={row.id} className="panel p-5 sm:p-6">
                   <div className="flex flex-wrap items-start gap-4">
-                    {row.outfits?.image_url ? (
+                    {row.ordered_look_image || row.outfits?.image_url ? (
                       <img
-                        src={row.outfits.image_url}
+                        src={row.ordered_look_image || row.outfits?.image_url || ""}
                         referrerPolicy="no-referrer"
                         alt=""
                         loading="lazy"
@@ -243,7 +245,8 @@ function ConfirmPage() {
                     ) : null}
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-2xl">{row.outfits?.title ?? "Look"}</h2>
+                        <h2 className="text-2xl">{row.ordered_look_title || row.outfits?.title || "Look"}</h2>
+                        {row.ordered_look_title ? <Badge variant="secondary">Updated look</Badge> : null}
                         <Badge variant={orderStatusVariant(row.order_status)}>
                           {orderStatusLabel(row.order_status)}
                         </Badge>
@@ -254,7 +257,7 @@ function ConfirmPage() {
                         ) : null}
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {row.outfits?.designer
+                        {row.ordered_look_title ? `Replaces your original choice: ${row.outfits?.title ?? "look"}` : row.outfits?.designer
                           ? `Designer: ${row.outfits.designer}`
                           : "Designer to be confirmed"}
                         {row.guest_name ? ` · for ${row.guest_name}` : ""}
