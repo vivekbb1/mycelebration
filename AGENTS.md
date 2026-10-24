@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Live feeds per event: shop filters per audience, guests claim live, host hide. Why: no bulk importing needed.
-- Grouped shop orders snapshot wearer details, prices and measurements in celebration-scoped host-only records, with database validation of discounts and manual payments. Why: offline shop negotiation must remain auditable without changing guest choices.
+- Host-only orders snapshot wearer/prices/measurements with database-validated discounts/payments; family reports use current reservation-linked people and currency-separated totals, showing payments/courier only per whole order. Why: preserve auditability without inventing shared-order payment allocations.
 - Store optional orderedSize separately from requested size; save size-only edits from latest items with an updated_at concurrency check. Why: preserve guest choices and concurrent order/payment edits without inferring legacy sizes.
 - Store the uploaded numeric outfit price in each new order item's optional originalPrice snapshot; price remains the revised vendor amount used for discounts and totals, and legacy missing snapshots stay unknown. Why: size-based price changes must not destroy the price comparison or imply payments.
 - Placed host orders atomically confirm reservation status and mirror only ordered size onto guest-readable reservations; order documents, prices and payments stay host-only. Why: guests see fulfilment details without access to private shop orders or alteration of selected sizes.

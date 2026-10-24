@@ -10,7 +10,7 @@ function ShopLook({ title, image, shop, sku }: { title: string; image?: string; 
 }
 
 export function FamilyOrderReport({ orders, candidates, substitutions, onOpen }: {
-  orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub>; onOpen: (id: string) => void;
+  orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void;
 }) {
   const families = familyOrderLooks(orders, candidates);
   const active = orders.filter((o) => o.status !== "cancelled");
@@ -25,7 +25,7 @@ export function FamilyOrderReport({ orders, candidates, substitutions, onOpen }:
       <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="text-lg font-medium">{family.family}</h4><p className="text-sm">Outfits & extras: {[...family.amounts].map(([currency, amount]) => `${currency} ${money(amount, currency)}`).join(" · ")}</p></div>
       {family.rows.map(({ order, item, wearer }) => {
         const sub = substitutions?.get(item.reservationId);
-        const comparison = sub ? { ...sub, replacement: { ...sub.replacement, ...(item.alternative ?? {}), size: item.orderedSize ?? sub.replacement.size } } : item.alternative ? { original: { title: item.title, sku: item.sku, image: item.image, shop: item.shop, size: item.size }, replacement: { ...item.alternative, size: item.orderedSize }, order: true, at: "" } : undefined;
+        const comparison = sub ? { ...sub, replacement: { ...sub.replacement, ...(item.alternative ?? {}), size: item.orderedSize ?? sub.replacement.size ?? "" } } : item.alternative ? { original: { title: item.title, sku: item.sku, image: item.image, shop: item.shop, size: item.size }, replacement: { ...item.alternative, size: item.orderedSize ?? "" }, order: true, at: "" } : undefined;
         return <article key={`${order.id}-${item.reservationId}`} className="space-y-3 border-b border-border pb-4">
           <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-medium">{wearer} · {item.event}</p><p className="text-xs text-muted-foreground">{order.reference}{order.seller_reference ? ` · ${order.seller_reference}` : ""} · {order.status}</p></div><Button size="sm" variant="outline" onClick={() => onOpen(order.id)}>Open order</Button></div>
           <div className="grid gap-4 sm:grid-cols-2"><div className="min-w-0 space-y-2"><p className="text-xs text-muted-foreground">Original selection</p><ShopLook title={item.title} image={item.image} shop={item.shop} sku={item.sku} /><p className="text-xs">Guest requested size: {item.size || "Not recorded"} · Actual ordered size: {item.orderedSize || "Not recorded"}</p>
