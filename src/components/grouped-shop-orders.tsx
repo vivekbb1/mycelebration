@@ -159,6 +159,21 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     await Promise.all(["wardrobe-orders", "reservations", "confirm-looks", "host-orders"].map((key) => qc.invalidateQueries({ queryKey: [key] })));
   }
 
+  /** Save one outfit's designer delivery/arrival dates without touching the rest of the order. */
+  async function saveDelivery(item: OrderItem) {
+    if (!id) throw new Error("Save the order first");
+    const current = await supabase.from("wardrobe_orders").select("items, updated_at").eq("id", id).eq("invite_id", inviteId).single();
+    if (current.error) throw current.error;
+    const latest = current.data.items as unknown as OrderItem[];
+    if (!latest.some((i) => i.reservationId === item.reservationId)) throw new Error("This look is no longer in the order. Reopen it to continue");
+    const next = latest.map((i) => i.reservationId === item.reservationId ? { ...i, expectedDelivery: item.expectedDelivery ?? "", arrivedOn: item.arrivedOn ?? "", tracking: (item.tracking ?? "").trim() } : i);
+    const saved = await supabase.from("wardrobe_orders").update({ items: next as unknown as Json }).eq("id", id).eq("invite_id", inviteId).eq("updated_at", current.data.updated_at).select("updated_at").maybeSingle();
+    if (saved.error) throw saved.error;
+    if (!saved.data) throw new Error("The order changed while saving. Try again");
+    setOrderVersion(saved.data.updated_at);
+    await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
+  }
+
   async function uploadDoc(file: File) {
     await run(async () => {
       const orderId = id ?? (await persist(status));
@@ -342,6 +357,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           <label className="text-sm">Estimated delivery<Input type="date" aria-label={`Estimated delivery for ${item.wearer} — ${item.event}`} value={item.expectedDelivery ?? ""} onChange={(e) => changeItem(item.reservationId, { expectedDelivery: e.target.value })} /></label>
           <label className="text-sm">Arrived on<Input type="date" aria-label={`Arrival date for ${item.wearer} — ${item.event}`} value={item.arrivedOn ?? ""} onChange={(e) => changeItem(item.reservationId, { arrivedOn: e.target.value })} /></label>
           <label className="text-sm">Tracking details<Input aria-label={`Tracking for ${item.wearer} — ${item.event}`} value={item.tracking ?? ""} placeholder="Courier · AWB / link" onChange={(e) => changeItem(item.reservationId, { tracking: e.target.value })} /></label>
+          {id ? <Button type="button" size="sm" variant="outline" className="sm:col-span-4 sm:w-fit" disabled={busy} onClick={() => void run(() => saveDelivery(item), `Delivery dates saved for ${item.wearer} · ${item.event}`, false)}><Save className="size-4" /> Save dates for this outfit</Button> : null}
         </div>
         <label className="block text-sm">Customisations / availability questions<Textarea value={item.notes} onChange={(e) => changeItem(item.reservationId, { notes: e.target.value })} /></label>
         <label className="block text-sm">Note for {item.wearer} (shown to them)<Textarea aria-label={`Note for ${item.wearer} — ${item.event}`} value={item.wearerNote ?? ""} placeholder="e.g. Carry the matching mojaris and pocket square; pair with gold studs" onChange={(e) => changeItem(item.reservationId, { wearerNote: e.target.value })} /></label>
