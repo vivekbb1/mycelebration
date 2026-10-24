@@ -231,3 +231,10 @@
     height: 2.25rem;
   }
 }
+
+/* Card style shared by host family picks, pre-orders, orders and alterations. */
+@utility panel-wrap {
+  border-radius: var(--radius-xl, 0.75rem);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-card);
+}

@@ -267,7 +267,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       const rows = shownOrders.flatMap((o) => (o.items as unknown as OrderItem[]).filter(itemHit).map((i) => ({ o, i, cur: candidates.find((c) => c.reservationId === i.reservationId) })))
         .sort((a, b) => `${a.cur?.wearer ?? a.i.wearer}${a.i.event}`.localeCompare(`${b.cur?.wearer ?? b.i.wearer}${b.i.event}`));
       return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; return (
-        <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 gap-3 rounded-md border border-border p-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
+        <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 gap-3 rounded-xl border border-border p-4 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
           {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="h-24 w-16 shrink-0 rounded object-cover" /> : null}
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="truncate font-medium">{cur?.wearer ?? i.wearer}</p>
@@ -281,7 +281,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
     })() : null}
     {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} orders={shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }))} candidates={candidates} substitutions={subs.data} matches={(item, order) => !q || `${order.reference} ${order.seller_reference} ${order.shop_name}`.toLowerCase().includes(q) || itemHit(item)} onOpen={(orderId) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); }} /> : null}
-    {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-md border border-border p-3 text-sm">
+    {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-xl border border-border p-4 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
       <p className="text-xs text-muted-foreground">{f.people.join(", ")}</p>
       <p className="mt-1 text-xs">{f.looks} looks · {f.extras} extras · ordered {f.amount.toLocaleString(...nf(currency))} · pre-order {f.preAmount.toLocaleString(...nf(currency))}{f.preLooks ? ` (${f.preLooks})` : ""}</p>
@@ -292,7 +292,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <tr className="border-t border-border font-medium"><td className="p-2" colSpan={4}>Total (excludes courier charges)</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.preAmount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount + f.preAmount, 0).toLocaleString(...nf(currency))}</td></tr></tbody>
     </table><p className="p-2 text-xs text-muted-foreground">Amount ordered = active orders after discounts. Still in pre-order = looks not yet in an order, at shop price (number of looks in brackets). To move a person into another family, open their family page and use the move-members button beside Add member; new orders then show the new family.</p></div> : null}
     {listView === "order" ? <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">{shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
-      <div key={o.id} className={`flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-start sm:justify-between ${o.status === "cancelled" ? "opacity-60" : ""}`}>
+      <div key={o.id} className={`flex flex-col gap-2 rounded-xl border border-border p-4 sm:flex-row sm:items-start sm:justify-between ${o.status === "cancelled" ? "opacity-60" : ""}`}>
         <div className="min-w-0 break-words">
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
           <p className="text-sm">{[...new Set((o.items as unknown as OrderItem[]).map((i) => i.wearer))].join(" · ")}</p>
@@ -321,7 +321,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         <div className="flex flex-wrap items-center gap-2"><h3 className="font-medium">Outfits in this order ({items.length})</h3><Button size="sm" variant={familyView ? "default" : "outline"} onClick={() => setFamilyView((v) => !v)}>{familyView ? "Edit view" : "Family view"}</Button></div>
         {!cancelled ? <div className="flex flex-wrap gap-2"><AssignGuestLook inviteId={inviteId} onAssigned={setAssignedId} /><Button size="sm" variant="outline" onClick={() => { setAdding((v) => !v); setSwapFor(null); }}><Plus className="size-4" /> Add outfits</Button></div> : null}
       </div>
-      {adding || swapFor ? <div className="space-y-3 rounded-md border border-border p-3">
+      {adding || swapFor ? <div className="space-y-3 rounded-xl border border-border p-4">
         <p className="text-sm">{swapFor ? `Choose the substitute for ${items.find((i) => i.reservationId === swapFor)?.title ?? "this outfit"}` : "Tick outfits to add"}</p>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant={groupBy === "people" ? "default" : "outline"} onClick={() => setGroupBy("people")}>Group by people</Button>
@@ -338,7 +338,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       </div> : null}
 
       {familyView ? <OrderFamilyView items={items} currency={currency} subs={subs.data} /> : null}
-      {familyView ? null : items.map((item) => <div key={item.reservationId} className="space-y-3 border-t border-border pt-4">
+      {familyView ? null : items.map((item) => <div key={item.reservationId} className="space-y-3 rounded-xl border border-border p-4">
         <div className="flex gap-3">
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}
           <div className="min-w-0 flex-1"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku} <WardrobeFlag sku={item.sku} skus={wardrobeSkus} /></p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""} {id && !cancelled && wardrobeSkus && !(item.alternative.outfitId) && (!item.alternative.sku?.trim() || !wardrobeSkus.has(item.alternative.sku.trim().toUpperCase())) ? <OutfitSubstitution inviteId={inviteId} item={item} orderId={id} disabled={busy} trigger={(go, off) => <button type="button" disabled={off} onClick={go} title="Paste the shop link to fetch it, add it to the wardrobe and link it to this person" className="whitespace-nowrap text-xs text-destructive underline underline-offset-2 hover:opacity-80">✗ Not in wardrobe · paste link to add</button>} onSaved={async () => {
@@ -368,7 +368,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
         <h3 className="text-sm font-medium">Wearer measurements</h3>
         <dl className="grid gap-2 text-xs sm:grid-cols-3">{item.measurements ? Object.entries(item.measurements).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-destructive">No measurements supplied</p>}</dl>
-        <div className="space-y-2 rounded-md border border-border p-3">
+        <div className="space-y-2 rounded-lg bg-surface p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-medium">Alternative for the shop order <span className="font-normal text-muted-foreground">(original selection retained)</span></h3>
             {!cancelled ? (item.alternative
@@ -390,7 +390,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             <p className="text-xs text-muted-foreground sm:col-span-2">Set the alternative's price in "Revised price" above.</p>
           </div> : null}
         </div>
-        <div className="space-y-2 rounded-md border border-border p-3">
+        <div className="space-y-2 rounded-lg bg-surface p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-medium">Extra items for this look <span className="font-normal text-muted-foreground">(e.g. trousers · hosts only)</span></h3>
             {!cancelled ? <Button size="sm" variant="outline" onClick={() => setItems((all) => addAddOn(all, item.reservationId, { id: crypto.randomUUID(), label: "Trousers", sku: "", size: "", shop: "", price: 0, discount: 0, notes: "" }))}><Plus className="size-4" /> Add extra item</Button> : null}
