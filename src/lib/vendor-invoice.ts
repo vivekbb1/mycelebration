@@ -1,4 +1,4 @@
-import type { OrderItem } from "./shop-order";
+import type { OrderItem, OrderAlternative } from "./shop-order";
 
 export type InvoiceLine = { sku: string; orderedSize: string; quantity: number; price: number; discount: number; net: number };
 export type VendorInvoice = { reference: string; date: string; stylist: string; total: number; paid: number; due: number; lines: InvoiceLine[] };
@@ -44,7 +44,7 @@ export function defaultSlotMode(line: InvoiceLine, candidates: OrderItem[]): Slo
   return invoiceMatches(line, candidates).length ? "look" : "alternative";
 }
 
-export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = []): OrderItem[] {
+export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = [], details: Record<number, OrderAlternative> = {}): OrderItem[] {
   const used = new Set<string>();
   const items: OrderItem[] = [];
   const modeOf = (index: number, slot: number) => {
@@ -63,14 +63,14 @@ export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[
       used.add(id);
       const sameModel = invoiceMatches(line, [item]).length > 0;
       items.push({ ...item, originalPrice: item.originalPrice ?? null, orderedSize: line.orderedSize, price: line.price, discount: line.discount,
-        alternative: mode === "alternative" && !sameModel ? { title: `Alternative ${line.sku}`, sku: line.sku, designer: "", shop: "", image: "" } : item.alternative ?? null });
+        alternative: mode === "alternative" && !sameModel ? details[index] ?? { title: `Alternative ${line.sku}`, sku: line.sku, designer: "", shop: "", image: "" } : item.alternative ?? null });
     });
   });
   invoice.lines.forEach((line, index) => (matches[index] ?? []).forEach((id, slot) => {
     if (modeOf(index, slot) !== "addon") return;
     const target = items.find((i) => i.reservationId === id);
     if (!target) throw new Error(`Extra item ${line.sku} must go with a look on this invoice`);
-    target.addOns = [...(target.addOns ?? []), { id: `${line.sku}-${index}-${slot}`, label: "Extra item", sku: line.sku, size: line.orderedSize, shop: "", price: line.price, discount: line.discount, notes: "From vendor invoice" }];
+    target.addOns = [...(target.addOns ?? []), { id: `${line.sku}-${index}-${slot}`, label: details[index]?.title ?? "Extra item", sku: line.sku, size: line.orderedSize, shop: details[index]?.shop ?? "", price: line.price, discount: line.discount, notes: "From vendor invoice" }];
   }));
   return items;
 }

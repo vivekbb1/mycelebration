@@ -16,6 +16,17 @@ it("a newly host-assigned reservation can be matched to an invoice without chang
   strictEqual(result[0]?.size, "L");
   strictEqual(result[0]?.orderedSize, "S");
 });
+it("fetched replacement details preserve invoice price, discount and ordered size", () => {
+  const candidate = { reservationId: "r", sku: "OTHER", size: "M", price: 9000, title: "Original" } as OrderItem;
+  const replacement = { title: "Pernia outfit", sku: "ROPK112508", shop: "https://www.perniaspopupshop.com/product.html", image: "photo", designer: "Designer" };
+  const result = invoiceOrderItems(parseVendorInvoice(text), [candidate], [["r"]], [["alternative"]], { 0: replacement });
+  strictEqual(result[0]?.alternative?.shop, replacement.shop);
+  strictEqual(result[0]?.alternative?.title, "Pernia outfit");
+  strictEqual(result[0]?.price, 33000);
+  strictEqual(result[0]?.discount, 8250);
+  strictEqual(result[0]?.orderedSize, "S");
+  strictEqual(result[0]?.title, "Original");
+});
 it("reconciles invoice 100582304 including both size suffixes without BO and partial payment", () => {
   const invoiceText = `ORDER NO : 100582304 DATE : 24-10-2026
 SUPA062236-BO-L Suruchi Parakh 1 ₹34,500.00 ₹3,450.00 ₹31,050.00
