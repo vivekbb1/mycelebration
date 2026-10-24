@@ -306,7 +306,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
     </>}
 
-    <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-[min(56rem,calc(100vw-2rem))]">
+    <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
       <DialogHeader><DialogTitle>{id ? `Order ${reference}` : "New order"}{cancelled ? " (cancelled)" : ""}</DialogTitle></DialogHeader>
 
       <div className="grid gap-3 sm:grid-cols-3">
