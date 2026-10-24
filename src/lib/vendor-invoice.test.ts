@@ -4,6 +4,36 @@ import { invoiceMatches, invoiceOrderItems, parseVendorInvoice, pendingOrderLook
 import type { OrderItem } from "./shop-order";
 
 const text = "ORDER NO : 100581221 DATE : 20-10-2026 ROPK112508-BO-S ROSA by Priyanka kar 1 ₹33,000.00 ₹8,250.00 ₹24,750.00 ORDER TAKEN BY Muskaan Oberoi TOTAL AMOUNT ₹33,000.00 TOTAL PAYABLE ₹24,750.00 TOTAL PAID ₹20,000.00 AMOUNT DUE ₹4,750.00";
+it("reconciles invoice 100582304 including both size suffixes without BO and partial payment", () => {
+  const invoiceText = `ORDER NO : 100582304 DATE : 24-10-2026
+SUPA062236-BO-L Suruchi Parakh 1 ₹34,500.00 ₹3,450.00 ₹31,050.00
+SUPA022446-BO-L Suruchi Parakh 1 ₹29,500.00 ₹2,950.00 ₹26,550.00
+SPBC052618-BO-XXL Spring Break Men 1 ₹24,990.00 ₹3,748.00 ₹21,242.00
+ZOOP102480-BO-M Zoop Men 1 ₹20,990.00 ₹2,099.00 ₹18,891.00
+KASB052607-BO-XXL Kasbah Clothing 1 ₹24,400.00 ₹3,660.00 ₹20,740.00
+KASB082443-BO-XXL Kasbah Clothing 1 ₹4,840.00 ₹242.00 ₹4,598.00
+SPBC052615-BO-XXL Spring Break Men 1 ₹24,990.00 ₹3,748.00 ₹21,242.00
+SPBC102657-XXL Spring Break Men 1 ₹6,000.00 ₹300.00 ₹5,700.00
+SPBC102658-XXL Spring Break Men 1 ₹6,000.00 ₹300.00 ₹5,700.00
+SABH072636-BO-3XL SALIL BHATIA 1 ₹43,200.00 ₹6,480.00 ₹36,720.00
+SABH092505-BO-3XL SALIL BHATIA 1 ₹42,000.00 ₹6,300.00 ₹35,700.00
+ORDER TAKEN BY Muskaan Oberoi TOTAL AMOUNT ₹261,410.00
+TOTAL DISCOUNT -₹33,277.00 TOTAL PAYABLE ₹228,133.00
+TOTAL PAID ₹182,500.00 AMOUNT DUE ₹45,633.00`;
+  const invoice = parseVendorInvoice(invoiceText);
+  strictEqual(invoice.lines.length, 11);
+  strictEqual(invoice.lines[7]?.sku, "SPBC102657");
+  strictEqual(invoice.lines[8]?.sku, "SPBC102658");
+  strictEqual(invoice.lines[7]?.orderedSize, "XXL");
+  strictEqual(invoice.lines[8]?.orderedSize, "XXL");
+  strictEqual(invoice.lines[7]?.net, 5700);
+  strictEqual(invoice.lines[8]?.net, 5700);
+  strictEqual(invoice.total, 228133);
+  strictEqual(invoice.paid, 182500);
+  strictEqual(invoice.due, 45633);
+  strictEqual(invoice.stylist, "Muskaan Oberoi");
+  throws(() => parseVendorInvoice(invoiceText.replace("₹45,633.00", "₹45,634.00")));
+});
 it("reads vendor reference, ordered size, discounts and stated partial payment", () => {
   const i = parseVendorInvoice(text);
   strictEqual(i.reference, "100581221"); strictEqual(i.date, "2026-10-20"); strictEqual(i.stylist, "Muskaan Oberoi");
