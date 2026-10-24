@@ -57,7 +57,7 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
       const original = await supabase.from('outfits').select('gender,color_family,garment_type,silhouette').eq('id', reservation.data.outfit_id).single();
       if (original.error) throw original.error;
       setDetails({ gender: original.data.gender, color_family: original.data.color_family ?? '', garment_type: original.data.garment_type ?? '', silhouette: original.data.silhouette ?? '', notes: '' });
-      setSize(current.orderedSize ?? ''); setPrice(current.price); setEmailPreview(null); setSearch(''); setLink(trigger ? (current.alternative?.shop ?? '') : ''); setOpen(true);
+      setSize(current.orderedSize ?? ''); setPrice(current.price); setEmailPreview(null); setSearch(''); setLink(trigger ? (current.alternative?.shop || item.alternative?.shop || '') : ''); setOpen(true);
     } catch (e) { toast.error(errorMessage(e)); } finally { setBusy(false); }
   }
   async function fetchLink() {
