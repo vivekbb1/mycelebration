@@ -388,3 +388,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     </DialogContent></Dialog>
   </section>;
 }
+
+/** ✓ when the model number exists in this celebration's wardrobe, ✗ when it needs adding. */
+function WardrobeFlag({ sku, skus }: { sku?: string | null; skus: Set<string> | null }) {
+  if (!skus || !sku?.trim()) return null;
+  return skus.has(sku.trim().toUpperCase())
+    ? <span className="whitespace-nowrap text-xs text-primary">✓ In wardrobe</span>
+    : <span className="whitespace-nowrap text-xs text-destructive">✗ Not in wardrobe</span>;
+}
