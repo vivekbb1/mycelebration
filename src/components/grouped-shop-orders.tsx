@@ -19,6 +19,7 @@ import { AssignGuestLook } from "@/components/assign-guest-look";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchPerniaLook } from "@/lib/pernia.functions";
 import { fetchKoraLook } from "@/lib/kora.functions";
+import { TrouserPairingReview } from "@/components/trouser-pairing-review";
 
 const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
@@ -55,7 +56,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     return data ?? [];
   } });
   const wardrobe = useQuery({ queryKey: ["order-wardrobe", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
-    const { data, error } = await supabase.from("outfits").select("id, title, designer, source_sku, boutique_url, image_url, price_inr, gender").eq("invite_id", inviteId).order("title");
+    const { data, error } = await supabase.from("outfits").select("id, title, designer, source_sku, boutique_url, image_url, price_inr, gender, garment_type, notes").eq("invite_id", inviteId).order("title");
     if (error) throw error; return data ?? [];
   } });
   const subs = useLatestSubstitutions((orders.data ?? []).flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.reservationId)));
@@ -263,6 +264,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         {["", ...statuses].map((st) => <Button key={st || "all"} size="sm" className="shrink-0 capitalize" variant={statusFilter === st ? "default" : "outline"} onClick={() => setStatusFilter(st)}>{st || "All"} ({st ? (orders.data ?? []).filter((o) => o.status === st).length : (orders.data ?? []).length})</Button>)}
       </div> : null}
     </div>
+    <TrouserPairingReview inviteId={inviteId} orders={shownOrders} wardrobe={wardrobe.data ?? []} candidates={candidates} />
     {listView === "person" ? (() => {
       const rows = shownOrders.flatMap((o) => (o.items as unknown as OrderItem[]).filter(itemHit).map((i) => ({ o, i, cur: candidates.find((c) => c.reservationId === i.reservationId) })))
         .sort((a, b) => `${a.cur?.wearer ?? a.i.wearer}${a.i.event}`.localeCompare(`${b.cur?.wearer ?? b.i.wearer}${b.i.event}`));
@@ -471,6 +473,6 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 export function WardrobeFlag({ sku, skus }: { sku?: string | null | undefined; skus: Set<string> | null }) {
   if (!skus || !sku?.trim()) return null;
   return skus.has(sku.trim().toUpperCase())
-    ? <span className="whitespace-nowrap text-xs text-primary">✓ In wardrobe</span>
+    ? <span className="whitespace-nowrap text-xs text-emerald">✓ In wardrobe</span>
     : <span className="whitespace-nowrap text-xs text-destructive">✗ Not in wardrobe</span>;
 }
