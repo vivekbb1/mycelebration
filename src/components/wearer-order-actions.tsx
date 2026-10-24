@@ -74,8 +74,8 @@ export function WearerNoteButton({ inviteId, orderId, item, wearer, disabled }: 
   return <>
     <Button size="sm" variant="outline" disabled={disabled} aria-label={`${item.wearerNote ? "Edit wearer note" : "Add wearer note"} for ${wearer} — ${item.event}`} onClick={() => { setNote(item.wearerNote ?? ""); setOpen(true); }}><StickyNote className="size-4" /> {item.wearerNote ? "Edit note" : "Add note"}</Button>
     <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="sm:max-w-md">
-      <DialogHeader><DialogTitle>Note for {wearer} · {item.event}</DialogTitle></DialogHeader>
-      <p className="text-sm text-muted-foreground">{item.alternative?.title || item.title}. Shown to {wearer} and printed in the family and individual PDFs.</p>
+      <DialogHeader><DialogTitle>Wearer note — shown to guest and printed in PDFs</DialogTitle></DialogHeader>
+      <p className="text-sm text-muted-foreground">{wearer} · {item.event} · {item.alternative?.title || item.title}</p>
       <Textarea aria-label={`Wearer note for ${wearer} — ${item.event}`} rows={4} value={note} placeholder="e.g. It's a suit — please carry your own white shirt" onChange={(e) => setNote(e.target.value)} />
       <div className="flex flex-wrap justify-end gap-2"><Button variant="ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save note"}</Button></div>
     </DialogContent></Dialog>
