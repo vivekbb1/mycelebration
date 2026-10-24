@@ -247,8 +247,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     {listView === "person" ? (() => {
       const rows = shownOrders.flatMap((o) => (o.items as unknown as OrderItem[]).filter(itemHit).map((i) => ({ o, i, cur: candidates.find((c) => c.reservationId === i.reservationId) })))
         .sort((a, b) => `${a.cur?.wearer ?? a.i.wearer}${a.i.event}`.localeCompare(`${b.cur?.wearer ?? b.i.wearer}${b.i.event}`));
-      return <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; return (
-        <li key={`${o.id}-${i.reservationId}`} className={`flex gap-3 rounded-md border border-border p-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
+      return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; return (
+        <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 gap-3 rounded-md border border-border p-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
           {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="h-24 w-16 shrink-0 rounded object-cover" /> : null}
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="truncate font-medium">{cur?.wearer ?? i.wearer}</p>
@@ -265,7 +265,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <tbody>{familyReport.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.extras}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{f.preAmount.toLocaleString(...nf(currency))}{f.preLooks ? ` (${f.preLooks})` : ""}</td><td className="p-2 text-right font-medium">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</td></tr>)}
       <tr className="border-t border-border font-medium"><td className="p-2" colSpan={4}>Total (excludes courier charges)</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.preAmount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount + f.preAmount, 0).toLocaleString(...nf(currency))}</td></tr></tbody>
     </table><p className="p-2 text-xs text-muted-foreground">Amount ordered = active orders after discounts. Still in pre-order = looks not yet in an order, at shop price (number of looks in brackets). To move a person into another family, open their family page and use the move-members button beside Add member; new orders then show the new family.</p></div> : null}
-    {listView === "order" ? <div className="grid gap-2 lg:grid-cols-2">{shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
+    {listView === "order" ? <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">{shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
       <div key={o.id} className={`flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-start sm:justify-between ${o.status === "cancelled" ? "opacity-60" : ""}`}>
         <div className="min-w-0 break-words">
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
