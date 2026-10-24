@@ -74,8 +74,8 @@ export function WearerNoteButton({ inviteId, orderId, item, wearer, disabled }: 
   return <>
     <Button size="sm" variant="outline" disabled={disabled} aria-label={`${item.wearerNote ? "Edit wearer note" : "Add wearer note"} for ${wearer} — ${item.event}`} onClick={() => { setNote(item.wearerNote ?? ""); setOpen(true); }}><StickyNote className="size-4" /> {item.wearerNote ? "Edit note" : "Add note"}</Button>
     <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="sm:max-w-md">
-      <DialogHeader><DialogTitle>Wearer note — shown to guest and printed in PDFs</DialogTitle></DialogHeader>
-      <p className="text-sm text-muted-foreground">{wearer} · {item.event} · {item.alternative?.title || item.title}</p>
+      <DialogHeader><DialogTitle className="pr-8 text-base leading-snug sm:text-lg">Wearer note<span className="block text-sm font-normal text-muted-foreground">Shown to guest and printed in PDFs</span></DialogTitle></DialogHeader>
+      <div className="min-w-0 space-y-0.5 rounded-md bg-muted/50 p-2 text-sm"><p className="break-words font-medium">{wearer}</p><p className="break-words text-xs text-muted-foreground">{item.event} · {item.alternative?.title || item.title}</p></div>
       <Textarea aria-label={`Wearer note for ${wearer} — ${item.event}`} rows={4} value={note} placeholder="e.g. It's a suit — please carry your own white shirt" onChange={(e) => setNote(e.target.value)} />
       <div className="flex flex-wrap justify-end gap-2"><Button variant="ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save note"}</Button></div>
     </DialogContent></Dialog>
