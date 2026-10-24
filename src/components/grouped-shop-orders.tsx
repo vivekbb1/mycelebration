@@ -261,8 +261,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <p className="mt-1 text-xs text-muted-foreground">Extra items like trousers don't count. Tap a name to see their outfits.</p>
     </div> : null}
     <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 py-2 backdrop-blur">
-      <div role="tablist" aria-label="View orders" className="grid grid-cols-4 gap-1 rounded-lg border border-border p-1">
-        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
+      <div role="tablist" aria-label="View orders" className="grid grid-cols-3 gap-1 rounded-lg border border-border p-1 sm:grid-cols-5">
+        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
       </div>
       <Input placeholder="Search name, family, event, outfit, ref" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
       {statuses.length > 1 ? <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
@@ -272,23 +272,29 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     <TrouserPairingReview inviteId={inviteId} orders={shownOrders} wardrobe={wardrobe.data ?? []} candidates={candidates} />
     {listView === "person" ? (() => {
       const rows = shownOrders.flatMap((o) => (o.items as unknown as OrderItem[]).filter(itemHit).map((i) => ({ o, i, cur: candidates.find((c) => c.reservationId === i.reservationId) })))
-        .sort((a, b) => `${a.cur?.wearer ?? a.i.wearer}${a.i.event}`.localeCompare(`${b.cur?.wearer ?? b.i.wearer}${b.i.event}`));
-      return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; return (
+        .sort((a, b) => (a.cur?.family ?? a.i.family).localeCompare(b.cur?.family ?? b.i.family) || seq.compare({ wearer: a.cur?.wearer ?? a.i.wearer, event: a.i.event }, { wearer: b.cur?.wearer ?? b.i.wearer, event: b.i.event }));
+      // Individual PDFs cover every active look of that person, not only the search hits.
+      const allActive = active.flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => { const cur = candidates.find((c) => c.reservationId === i.reservationId); return { i, wearer: cur?.wearer ?? i.wearer, family: cur?.family ?? i.family }; }));
+      const linesFor = (wearer: string, family: string) => allActive.filter((r) => sameWearer(r, { wearer, family })).sort((a, b) => seq.event(a.i.event) - seq.event(b.i.event)).map((r) => wearerLookLine(r.i, r.wearer, subs.data?.get(r.i.reservationId)));
+      return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; const wearer = cur?.wearer ?? i.wearer; const family = cur?.family ?? i.family; return (
         <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 gap-3 rounded-xl border border-border p-4 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
           {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="h-24 w-16 shrink-0 rounded object-cover" /> : null}
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="truncate font-medium">{cur?.wearer ?? i.wearer}</p>
-            {o.status !== "cancelled" && isDupe(cur?.wearer ?? i.wearer, i.event) ? <p className="text-xs font-medium text-destructive">Duplicate: another main outfit for this event</p> : null}
-            <p className="truncate text-xs text-muted-foreground">{cur?.family ?? i.family} · {i.event}</p>
+            <p className="truncate font-medium">{wearer}</p>
+            {o.status !== "cancelled" && isDupe(wearer, i.event) ? <p className="text-xs font-medium text-destructive">Duplicate: another main outfit for this event</p> : null}
+            <p className="truncate text-xs text-muted-foreground">{family} · {i.event}</p>
             <p className="line-clamp-2 text-sm">{look.title}{i.alternative?.title ? <span className="text-primary"> · substitute</span> : null}</p>
             <p className="text-xs"><WardrobeFlag sku={look.sku} skus={wardrobeSkus} />{i.alternative ? <span className="text-muted-foreground"> · original <WardrobeFlag sku={i.sku} skus={wardrobeSkus} /></span> : null}</p>
             <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}</p>
             {(i.addOns ?? []).map((a) => <p key={a.id} className="truncate text-xs">Extra: {a.label || a.sku || "item"}{a.sku ? <> · <WardrobeFlag sku={a.sku} skus={wardrobeSkus} /></> : null}</p>)}
+            {i.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{i.wearerNote}</p> : null}
             <div className="flex items-center justify-between gap-2 pt-1"><span className="truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="outline" onClick={() => openOrder(o)}>Open</Button></div>
+            {o.status !== "cancelled" ? <div className="flex flex-wrap gap-1.5 pt-1"><WearerNoteButton inviteId={inviteId} orderId={o.id} item={i} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={linesFor(wearer, family)} phone={phones?.get(wearer.trim().toLowerCase())} /></div> : null}
           </div>
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
     })() : null}
-    {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} orders={shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }))} candidates={candidates} substitutions={subs.data} matches={(item, order) => !q || `${order.reference} ${order.seller_reference} ${order.shop_name}`.toLowerCase().includes(q) || itemHit(item)} onOpen={(orderId) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); }} /> : null}
+    {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} seq={seq} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} onOpen={openById} /> : null}
+    {listView === "event" ? <OrderEventView orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} events={peopleInfo.data?.events ?? []} seq={seq} onOpen={openById} /> : null}
     {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-xl border border-border p-4 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
       <p className="text-xs text-muted-foreground">{f.people.join(", ")}</p>
