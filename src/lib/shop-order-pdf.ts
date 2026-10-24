@@ -98,93 +98,8 @@ export async function buildPreorderPdf(title: string, subtitle: string, lines: P
     const h = Math.max(96, head.length * 13 + (nameLines.length + body.length + (l.shop ? 1 : 0)) * 11 + 8);
     if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
-    if (l.image) { try {
-      const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
-      const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
-      const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
-      const s = img.scaleToFit(64, 90); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
-    } catch { /* photo optional */ } }
-    // Highlighted price, right aligned
-    const priceText = clean(l.price); const pw = bold.widthOfTextAtSize(priceText, 11);
-    page.drawRectangle({ x: 555 - pw - 8, y: y - 15, width: pw + 8, height: 16, color: rgb(.98, .93, .86) });
-    right(page, priceText, y - 11, 11, bold, accent);
-    for (const t of head) { page.drawText(t, { x: 120, y: ty - 10, size: 10, font: bold }); ty -= 13; }
-    for (const b of [...nameLines, ...body]) { page.drawText(b.t, { x: 120, y: ty - 9, size: b.size, font: b.font, color: rgb(.15, .15, .15) }); ty -= 11; }
-    if (l.shop && /^https?:\/\//i.test(l.shop)) {
-      const label = "Open in shop >"; const lw = regular.widthOfTextAtSize(label, 8.5); const ly = ty - 9;
-      const blue = rgb(.1, .3, .75);
-      page.drawText(label, { x: 120, y: ly, size: 8.5, font: regular, color: blue });
-      page.drawLine({ start: { x: 120, y: ly - 1.5 }, end: { x: 120 + lw, y: ly - 1.5 }, thickness: .5, color: blue });
-      const annot = pdf.context.register(pdf.context.obj({
-        Type: "Annot", Subtype: "Link", Rect: [118, ly - 3, 122 + lw, ly + 9], Border: [0, 0, 0],
-        A: { Type: "Action", S: "URI", URI: PDFString.of(l.shop) },
-      }));
-      page.node.addAnnot(annot);
-      ty -= 11;
-    }
-    y -= h + 6;
-    page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
-  }
-  if (y < 100) { page = pdf.addPage([595, 842]); y = 800; }
-  y -= 14;
-  page.drawLine({ start: { x: 330, y: y + 16 }, end: { x: 555, y: y + 16 }, thickness: 1, color: accent });
-  page.drawText(`Total (${lines.length} outfits)`, { x: 330, y, size: 12, font: bold });
-  right(page, `INR ${money(total, "INR")}`, y, 12);
-  if (unpriced) { y -= 14; right(page, `${unpriced} outfit${unpriced > 1 ? "s" : ""} without a price not included`, y, 8, regular, rgb(.4, .4, .4)); }
-  const pages = pdf.getPages();
-  pages.forEach((p, n) => {
-    p.drawLine({ start: { x: 40, y: 34 }, end: { x: 555, y: 34 }, thickness: .5, color: rgb(.85, .85, .85) });
-    p.drawText("mycelebration.app", { x: 40, y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) });
-    const pt = `Page ${n + 1} of ${pages.length}`;
-    p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) });
-  });
-  const bytes = await pdf.save();
-  return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
-}
-
-export function saveBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 30_000);
-}
-
-export type FamilyLookLine = { wearer: string; event: string; title: string; image: string; size: string; orderedSize: string; substituted: boolean; extras: { label: string; size: string }[]; note: string };
-
-/** Family reconfirmation sheet: photos, look names and sizes only — never prices, model numbers or shop details. */
-export async function buildFamilyLooksPdf(family: string, celebration: string, lines: FamilyLookLine[]) {
-  const pdf = await PDFDocument.create();
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const clean = (s: string) => s.replace(/[–—]/g, "-").replace(/[·]/g, "|").replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
-  const accent = rgb(.55, .27, .12);
-  const wrap = (value: string, size: number, font = regular, width = 360) => {
-    const out: string[] = []; let line = "";
-    for (const word of clean(value).split(/\s+/)) { if (font.widthOfTextAtSize(`${line} ${word}`, size) > width && line) { out.push(line); line = word; } else line += `${line ? " " : ""}${word}`; }
-    if (line) out.push(line); return out;
-  };
-  let page = pdf.addPage([595, 842]); let y = 800;
-  page.drawText(clean(`${family} - outfits to reconfirm`), { x: 40, y, size: 18, font: bold }); y -= 18;
-  page.drawText(clean(`${celebration} | ${lines.length} looks | ${new Date().toLocaleDateString("en-GB")}`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 16;
-  for (const t of wrap("Please check each look and size below and tell your hosts about any last-minute changes.", 9.5, regular, 515)) { page.drawText(t, { x: 40, y, size: 9.5, font: regular }); y -= 13; }
-  y -= 10;
-  for (const l of lines) {
-    const body = [
-      { t: `${l.wearer} | ${l.event}`, font: bold, size: 11 },
-      ...wrap(l.title, 10).map((t) => ({ t, font: regular, size: 10 })),
-      ...(l.substituted ? [{ t: "Updated look (replaces the original choice)", font: bold, size: 8.5 }] : []),
-      { t: `Size you chose: ${l.size || "Not recorded"}   |   Size ordered: ${l.orderedSize || "To be confirmed"}`, font: regular, size: 9.5 },
-      ...l.extras.flatMap((e) => wrap(`Also included: ${e.label}${e.size ? ` (size ${e.size})` : ""}`, 9.5)).map((t) => ({ t, font: regular, size: 9.5 })),
-      ...(l.note ? wrap(`Note: ${l.note}`, 9.5).map((t) => ({ t, font: regular, size: 9.5 })) : []),
-    ];
-    const h = Math.max(130, body.length * 14 + 10);
-    if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
-    if (l.image) { try {
-      const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
-      const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
-      const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
-      const s = img.scaleToFit(85, 120); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
-    } catch { /* photo optional */ } }
+    const img = l.image ? await embedLookPhoto(pdf, l.image) : null;
+    if (img) { const s = img.scaleToFit(85, 120); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height }); }
     let ty = y - 12;
     for (const b of body) { page.drawText(b.t, { x: 140, y: ty, size: b.size, font: b.font, color: b.t.startsWith("Updated") ? accent : rgb(.12, .12, .12) }); ty -= 14; }
     y -= h + 6;
@@ -193,4 +108,35 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
   const pages = pdf.getPages();
   pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); });
   return new Blob([new Uint8Array(await pdf.save())], { type: "application/pdf" });
+}
+
+/** Same-origin copy of a look photo (our stored copies, cached shop photos) so the browser can read it. */
+export function pdfPhotoUrl(src: string) {
+  if (src.startsWith("/api/public/outfit-image/")) return `${src.split("?")[0]}?w=400`;
+  if (/^https:\/\/[^/]*perniaspopupshop\.com\//i.test(src)) return `/api/public/shop-image?w=400&u=${encodeURIComponent(src)}`;
+  return src;
+}
+
+/** Loads any photo format (JPG/PNG/WebP/AVIF) and re-encodes it as JPEG for the PDF; null if unreadable. */
+async function embedLookPhoto(pdf: PDFDocument, src: string) {
+  const tries = [...new Set([pdfPhotoUrl(src), src])];
+  for (const url of tries) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      if (!blob.type.startsWith("image/") && blob.size < 100) continue;
+      const bitmap = await createImageBitmap(blob);
+      const scale = Math.min(1, 600 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+      const ctx = canvas.getContext("2d"); if (!ctx) continue;
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const jpg = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+      if (!jpg) continue;
+      return await pdf.embedJpg(await jpg.arrayBuffer());
+    } catch { /* try next source */ }
+  }
+  return null;
 }
