@@ -390,7 +390,7 @@ function HostDashboard() {
     else sorted.sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned));
     return sorted;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fSort, reservedIds]);
+  }, [outfitList, fq, fEvent, fGender, fType, fStatus, fMinPrice, fMaxPrice, fSort, reservedIds]);
 
   const eventName = (id: string | null) =>
     eventList.find((e) => e.id === id)?.name ?? "No event";
