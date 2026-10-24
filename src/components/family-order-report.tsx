@@ -1,4 +1,7 @@
+import { FileDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { buildFamilyLooksPdf, saveBlob, type FamilyLookLine } from "@/lib/shop-order-pdf";
 import { SubstitutionNote, type LatestSub } from "@/components/substitution-note";
 import { familyOrderLooks, type ReportOrder } from "@/lib/family-order-looks";
 import { money, orderTotals, type OrderItem } from "@/lib/shop-order";
@@ -13,6 +16,16 @@ export function FamilyOrderReport({ orders, candidates, substitutions, onOpen, m
   orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
 }) {
   const families = familyOrderLooks(orders, candidates, matches);
+  async function familyPdf(name: string, rows: typeof families[number]["rows"]) {
+    try {
+      const lines: FamilyLookLine[] = rows.map(({ item, wearer }) => {
+        const sub = substitutions?.get(item.reservationId);
+        const alt = item.alternative ?? (sub ? { title: sub.replacement.title ?? "", image: sub.replacement.image ?? "" } : null);
+        return { wearer, event: item.event, title: alt?.title || item.title, image: alt?.image || item.image, size: item.size, orderedSize: item.orderedSize ?? "", substituted: Boolean(alt), extras: (item.addOns ?? []).map((a) => ({ label: a.label, size: a.size })), note: item.wearerNote ?? "" };
+      });
+      saveBlob(await buildFamilyLooksPdf(name, "Our Wedding", lines), `${name.replace(/[^a-z0-9-]/gi, "-")}-looks.pdf`);
+    } catch { toast.error("Couldn't create the family PDF"); }
+  }
   const active = [...new Map(families.flatMap((family) => family.rows.map(({ order }) => [order.id, order] as const))).values()];
   const currencies = [...new Set(active.map((o) => o.currency))];
   return <div className="space-y-5" aria-label="Orders by family">
@@ -22,7 +35,7 @@ export function FamilyOrderReport({ orders, candidates, substitutions, onOpen, m
       return <p key={currency} className="text-sm"><strong>{currency} {money(total.value, currency)}</strong> · Amount paid {money(total.paid, currency)} · Balance to pay {money(total.balance, currency)}</p>;
     })}</div>
     {families.map((family) => <section key={family.family} className="space-y-3 border-t border-border pt-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="text-lg font-medium">{family.family}</h4><p className="text-sm">Outfits & extras: {[...family.amounts].map(([currency, amount]) => `${currency} ${money(amount, currency)}`).join(" · ")}</p></div>
+      <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="text-lg font-medium">{family.family}</h4><div className="flex flex-wrap items-center gap-2"><p className="text-sm">Outfits & extras: {[...family.amounts].map(([currency, amount]) => `${currency} ${money(amount, currency)}`).join(" · ")}</p><Button size="sm" variant="outline" onClick={() => void familyPdf(family.family, family.rows)}><FileDown className="size-4" /> Family PDF</Button></div></div>
       {family.rows.map(({ order, item, wearer }) => {
         const sub = substitutions?.get(item.reservationId);
         const comparison = sub ? { ...sub, replacement: { ...sub.replacement, ...(item.alternative ?? {}), size: item.orderedSize ?? sub.replacement.size ?? "" } } : item.alternative ? { original: { title: item.title, sku: item.sku, image: item.image, shop: item.shop, size: item.size }, replacement: { ...item.alternative, size: item.orderedSize ?? "" }, order: true, at: "" } : undefined;
