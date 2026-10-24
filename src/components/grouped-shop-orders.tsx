@@ -216,6 +216,18 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     const current = candidates.find((c) => c.reservationId === i.reservationId);
     return !q || `${current?.wearer ?? i.wearer} ${current?.family ?? i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""} ${(i.addOns ?? []).map((a) => `${a.label} ${a.sku}`).join(" ")}`.toLowerCase().includes(q);
   };
+  const dupes = (() => {
+    const m = new Map<string, { wearer: string; event: string; refs: string[]; titles: string[] }>();
+    for (const o of active) for (const i of o.items as unknown as OrderItem[]) {
+      const cur = candidates.find((c) => c.reservationId === i.reservationId);
+      const wearer = (cur?.wearer ?? i.wearer).trim(); const key = `${wearer.toLowerCase()}|${i.event.toLowerCase()}`;
+      const e = m.get(key) ?? { wearer, event: i.event, refs: [], titles: [] };
+      e.refs.push(o.reference); e.titles.push(i.alternative?.title || i.title); m.set(key, e);
+    }
+    return [...m.entries()].filter(([, e]) => e.refs.length > 1);
+  })();
+  const dupeKeys = new Set(dupes.map(([k]) => k));
+  const isDupe = (wearer: string, event: string) => dupeKeys.has(`${wearer.trim().toLowerCase()}|${event.toLowerCase()}`);
   const statuses = [...new Set((orders.data ?? []).map((o) => o.status))];
   const shownOrders = (orders.data ?? []).filter((o) => !statusFilter || o.status === statusFilter).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
   const currentFamily = new Map(candidates.map((c) => [c.reservationId, c.family]));
@@ -235,6 +247,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       </div> : null}</div>
       <Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button>
     </div>
+    {dupes.length ? <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+      <p className="font-medium text-destructive">Possible duplicate orders: {dupes.length} {dupes.length === 1 ? "person has" : "people have"} more than one main outfit for the same event</p>
+      <ul className="mt-1 space-y-0.5 text-xs">{dupes.map(([k, e]) => <li key={k}><button className="text-left underline-offset-2 hover:underline" onClick={() => { setOrderSearch(e.wearer); setListView("person"); }}><strong>{e.wearer}</strong> · {e.event}: {e.titles.map((t, n) => `${t} (${e.refs[n]})`).join(" + ")}</button></li>)}</ul>
+      <p className="mt-1 text-xs text-muted-foreground">Extra items like trousers don't count. Tap a name to see their outfits.</p>
+    </div> : null}
     <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 py-2 backdrop-blur">
       <div role="tablist" aria-label="View orders" className="grid grid-cols-4 gap-1 rounded-lg border border-border p-1">
         {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
@@ -252,6 +269,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="h-24 w-16 shrink-0 rounded object-cover" /> : null}
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="truncate font-medium">{cur?.wearer ?? i.wearer}</p>
+            {o.status !== "cancelled" && isDupe(cur?.wearer ?? i.wearer, i.event) ? <p className="text-xs font-medium text-destructive">Duplicate: another main outfit for this event</p> : null}
             <p className="truncate text-xs text-muted-foreground">{cur?.family ?? i.family} · {i.event}</p>
             <p className="line-clamp-2 text-sm">{look.title}{i.alternative?.title ? <span className="text-primary"> · substitute</span> : null}</p>
             <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}{i.addOns?.length ? ` · +${i.addOns.length} extra` : ""}</p>
