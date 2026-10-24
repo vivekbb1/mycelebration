@@ -13,6 +13,7 @@ import { addAddOn, familyOrderReport, nf, orderTotals, removeAddOn, setAlternati
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
+import { FamilyOrderReport } from "@/components/family-order-report";
 
 const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
@@ -158,8 +159,12 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const [orderSearch, setOrderSearch] = useState(""); const [showReport, setShowReport] = useState(false);
+  const [showLooks, setShowLooks] = useState(false);
   const q = orderSearch.trim().toLowerCase();
-  const itemHit = (i: OrderItem) => !q || `${i.wearer} ${i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""}`.toLowerCase().includes(q);
+  const itemHit = (i: OrderItem) => {
+    const current = candidates.find((c) => c.reservationId === i.reservationId);
+    return !q || `${current?.wearer ?? i.wearer} ${current?.family ?? i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""} ${(i.addOns ?? []).map((a) => `${a.label} ${a.sku}`).join(" ")}`.toLowerCase().includes(q);
+  };
   const shownOrders = (orders.data ?? []).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
   const currentFamily = new Map(candidates.map((c) => [c.reservationId, c.family]));
   const orderedReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]), (i) => currentFamily.get(i.reservationId) || undefined);
@@ -179,7 +184,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     <div className="flex flex-wrap items-center gap-2">
       <Input className="sm:max-w-sm" placeholder="Search orders by person, family, event, outfit or reference" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
       <Button size="sm" variant="outline" onClick={() => setShowReport((v) => !v)}>{showReport ? "Hide" : "Show"} amount by family</Button>
+      <Button size="sm" variant={showLooks ? "default" : "outline"} onClick={() => setShowLooks((v) => !v)}>{showLooks ? "Hide" : "Show"} outfits by family</Button>
     </div>
+    {showLooks ? <FamilyOrderReport orders={shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }))} candidates={candidates} substitutions={subs.data} onOpen={(orderId) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); }} /> : null}
     {showReport ? <div className="overflow-x-auto rounded-md border border-border"><table className="w-full text-sm">
       <thead><tr className="text-left text-muted-foreground"><th className="p-2">Family</th><th className="p-2">People</th><th className="p-2 text-right">Looks</th><th className="p-2 text-right">Extra items</th><th className="p-2 text-right">Amount ordered</th><th className="p-2 text-right">Still in pre-order</th><th className="p-2 text-right">Family total</th></tr></thead>
       <tbody>{familyReport.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.extras}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{f.preAmount.toLocaleString(...nf(currency))}{f.preLooks ? ` (${f.preLooks})` : ""}</td><td className="p-2 text-right font-medium">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</td></tr>)}
