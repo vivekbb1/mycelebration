@@ -46,8 +46,8 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
       if (existing.error) throw existing.error;
       if (existing.data.length) throw new Error(`Invoice ${parsed.reference} is already recorded`);
       setFile(file); setInvoice(parsed); setDetails({}); setFetched({}); setAssigned([]);
-      setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, candidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : Array.from({ length: line.quantity }, () => ""); }));
-      setModes(parsed.lines.map((line) => Array.from({ length: line.quantity }, () => defaultSlotMode(line, candidates))));
+      setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, pendingCandidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : Array.from({ length: line.quantity }, () => ""); }));
+      setModes(parsed.lines.map((line) => Array.from({ length: line.quantity }, () => defaultSlotMode(line, pendingCandidates))));
     } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't read invoice"); }
     finally { setBusy(false); }
   }

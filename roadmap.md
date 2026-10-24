@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [x] Audited all invoice ingestion entry points (Pre-orders and Orders); share one uploader and pending predicate, event-labelled candidates and eligible missing member/event pairs. Assignment and substitution saved/read back from both screens with temporary records cleaned; 15 tests passed. Attach file remains document-only.
 - [x] Invoice dropdown lists missing-selection guests beside pending looks; verified Oscar Bollywood is present, temporary direct assignment saved/read back with payments and removed; 25 tests passed.
 - [x] Invoice review: shared guest assignment and Pernia fetch/import in both upload entry points; temporary invoice assigned/saved/read back and removed, real Pernia model/photo fetched and event duplicate skipped; 25 tests passed.
 - [x] Add missing order replacements with photos to the original event/category; assign and confirm unselected guest looks from Orders and Selection; collection integration tests and temporary guest assignment in Orders verified.
