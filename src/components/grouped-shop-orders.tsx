@@ -31,7 +31,7 @@ const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Inv
 
 /** Orders built from pre-order selections. `startWith` opens a new order prefilled with looks. */
 export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden, preorder = [], actions }: {
-  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean; actions?: React.ReactNode;
+  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean; actions?: import("react").ReactNode;
 }) {
   const qc = useQueryClient();
   const pernia = useServerFn(fetchPerniaLook); const kora = useServerFn(fetchKoraLook);
