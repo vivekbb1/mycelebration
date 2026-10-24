@@ -410,7 +410,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
         {totals.length ? (
           <div className="mt-4 flex flex-wrap gap-3">
             {totals.map(([cur, t]) => (
-              <div key={cur} className="rounded-md border border-border px-3 py-2 text-sm">
+              <div key={cur} className="rounded-xl border border-border px-3 py-2 text-sm">
                 <span className="font-medium">
                   {cur} {t.due.toLocaleString(...nf(cur))}
                 </span>{" "}

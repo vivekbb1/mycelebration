@@ -27,9 +27,9 @@ export function OrderFamilyView({ items, currency, subs }: { items: OrderItem[];
   }
   if (!items.length) return <p className="text-sm text-muted-foreground">No outfits in this order yet.</p>;
   return <div className="space-y-5" aria-label="Order by family">
-    {[...families].sort(([a], [b]) => a.localeCompare(b)).map(([family, people]) => <section key={family} className="space-y-3 rounded-md border border-border p-3">
+    {[...families].sort(([a], [b]) => a.localeCompare(b)).map(([family, people]) => <section key={family} className="space-y-3 rounded-xl border border-border p-4">
       <h3 className="font-medium">{family} <span className="text-sm font-normal text-muted-foreground">· {people.size} {people.size === 1 ? "person" : "people"}</span></h3>
-      {[...people].map(([wearer, looks]) => <div key={wearer} className="space-y-3 border-t border-border pt-3">
+      {[...people].map(([wearer, looks]) => <div key={wearer} className="space-y-3 rounded-lg bg-surface p-3">
         <p className="font-medium">{wearer}</p>
         {looks.map((item) => {
           const sub = subs?.get(item.reservationId);
