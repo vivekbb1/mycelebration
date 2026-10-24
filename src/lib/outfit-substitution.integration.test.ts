@@ -50,8 +50,14 @@ it('pre-order and order substitutions retain original choice and append immutabl
     strictEqual((immutable.data.replacement as { size: string }).size, 'L', 'hosts cannot rewrite audit history');
     const ordered = await c.from('wardrobe_orders').insert({ invite_id: invite, reference: `substitution-test-${crypto.randomUUID()}`, status: 'placed', items: [{ reservationId, title: 'Substitution test original', sku: '', size: 'M', orderedSize: 'L', alternative, price: 35000, discount: 0, measurements: { height: 170 } }] }).select('id,updated_at').single();
     if (ordered.error) throw ordered.error; orderId = ordered.data.id;
-    const changed = await c.rpc('save_outfit_substitution', { _reservation_id: reservationId, _order_id: orderId, _alternative: { ...alternative, title: 'Second vendor proposal' }, _size: 'XL', _price: 36000, _expected: ordered.data.updated_at });
+    const changed = await c.from('wardrobe_orders').update({ items: [{ reservationId, title: 'Substitution test original', sku: '', size: 'M', orderedSize: 'XL', alternative: { title: 'Second vendor proposal', sku: 'ALT2', image: '/test-photo.jpg' }, price: 36000, discount: 0, measurements: { height: 170 } }] }).eq('id', orderId).eq('updated_at', ordered.data.updated_at).select('items').single();
     if (changed.error) throw changed.error;
+    const newAlternative = (changed.data.items as { alternative: { outfitId: string } }[])[0]?.alternative;
+    if (!newAlternative) throw new Error('Missing collected alternative');
+    const added = await c.from('outfits').select('event_id,gender,garment_type,image_url').eq('id', newAlternative.outfitId).single();
+    if (added.error) throw added.error;
+    strictEqual(added.data.event_id, null); strictEqual(added.data.gender, 'men'); strictEqual(added.data.image_url, '/test-photo.jpg');
+    await c.from('outfits').delete().eq('id', newAlternative.outfitId);
     const final = await c.from('reservations').select('outfit_id,size_choice,ordered_size,status').eq('id', reservationId).single();
     if (final.error) throw final.error;
     strictEqual(final.data.outfit_id, outfit.data.id); strictEqual(final.data.size_choice, 'M'); strictEqual(final.data.ordered_size, 'XL'); strictEqual(final.data.status, 'confirmed');
