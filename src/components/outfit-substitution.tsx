@@ -1,3 +1,4 @@
+import type React from "react";
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
@@ -15,7 +16,7 @@ import type { SubstitutionSnapshot } from '@/lib/outfit-substitution';
 import { previewSubstitutionEmail, emailOutfitSubstitution } from '@/lib/outfit-substitution.functions';
 import { WARDROBES } from '@/lib/wardrobe-options';
 
-export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled = false }: { inviteId: string; item: OrderItem; orderId?: string; onSaved?: (item: OrderItem) => void; disabled?: boolean }) {
+export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled = false, trigger }: { inviteId: string; item: OrderItem; orderId?: string; onSaved?: (item: OrderItem) => void; disabled?: boolean; trigger?: (open: () => void, busy: boolean) => React.ReactNode }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false);
   const [alternative, setAlternative] = useState<OrderAlternative>({ title: '', sku: '', designer: '', shop: '', image: '' });
@@ -56,7 +57,7 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
       const original = await supabase.from('outfits').select('gender,color_family,garment_type,silhouette').eq('id', reservation.data.outfit_id).single();
       if (original.error) throw original.error;
       setDetails({ gender: original.data.gender, color_family: original.data.color_family ?? '', garment_type: original.data.garment_type ?? '', silhouette: original.data.silhouette ?? '', notes: '' });
-      setSize(current.orderedSize ?? ''); setPrice(current.price); setEmailPreview(null); setSearch(''); setLink(''); setOpen(true);
+      setSize(current.orderedSize ?? ''); setPrice(current.price); setEmailPreview(null); setSearch(''); setLink(trigger ? (current.alternative?.shop ?? '') : ''); setOpen(true);
     } catch (e) { toast.error(errorMessage(e)); } finally { setBusy(false); }
   }
   async function fetchLink() {
@@ -98,7 +99,7 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
     } catch (e) { toast.error(errorMessage(e)); } finally { setBusy(false); }
   }
   return <>
-    <Button size="sm" variant="outline" disabled={disabled || busy} onClick={() => void begin()}><Repeat className="size-4" /> Substitute outfit</Button>
+    {trigger ? trigger(() => void begin(), disabled || busy) : <Button size="sm" variant="outline" disabled={disabled || busy} onClick={() => void begin()}><Repeat className="size-4" /> Substitute outfit</Button>}
     <Dialog open={open} onOpenChange={v => !busy && setOpen(v)}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
       <DialogHeader><DialogTitle>Substitute outfit · {item.wearer}</DialogTitle></DialogHeader>
       <div className="border-b border-border pb-3"><p className="text-sm font-medium">Original selection · {item.event}</p><p className="text-sm">{item.title} · {item.sku} · size {item.size || 'Not recorded'}</p></div>
