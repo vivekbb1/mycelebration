@@ -369,8 +369,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   );
   return (
     <div className="space-y-5">
-      <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} />
-      {invoiceUpload}
+      <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} actions={invoiceUpload} />
       {rows.length ? <PreorderFamilyTotals items={rows.map(toItem)} /> : null}
       {rows.length ? (
         <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
