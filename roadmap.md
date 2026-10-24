@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [ ] List missing-selection guests inline beside pending looks in invoice review; direct model assignment and save verification.
 - [x] Invoice review: shared guest assignment and Pernia fetch/import in both upload entry points; temporary invoice assigned/saved/read back and removed, real Pernia model/photo fetched and event duplicate skipped; 25 tests passed.
 - [x] Add missing order replacements with photos to the original event/category; assign and confirm unselected guest looks from Orders and Selection; collection integration tests and temporary guest assignment in Orders verified.
 - [x] Orders family-view report: original looks, substitutions and person-linked extras; actual whole-order payments/balances; verified with real orders, photos, substitution and open-order flow on desktop/mobile; 14 tests passed
