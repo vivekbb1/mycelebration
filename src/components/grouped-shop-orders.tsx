@@ -239,6 +239,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const isDupe = (wearer: string, event: string) => dupeKeys.has(`${wearer.trim().toLowerCase()}|${event.toLowerCase()}`);
   const statuses = [...new Set((orders.data ?? []).map((o) => o.status))];
   const shownOrders = (orders.data ?? []).filter((o) => !statusFilter || o.status === statusFilter).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
+  const reportOrders = shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }));
+  const reportMatches = (item: OrderItem, order: { reference: string; seller_reference: string; shop_name: string }) => !q || `${order.reference} ${order.seller_reference} ${order.shop_name}`.toLowerCase().includes(q) || itemHit(item);
   const currentFamily = new Map(candidates.map((c) => [c.reservationId, c.family]));
   const orderedReport = familyOrderReport(shownOrders.filter((o) => o.status !== "cancelled").map((o) => (o.items as unknown as OrderItem[]).filter((i) => !q || itemHit(i) || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q))), (i) => currentFamily.get(i.reservationId) || undefined);
   const preReport = new Map(familyOrderReport([statusFilter ? [] : preorder.filter(itemHit)]).map((f) => [f.family, f]));
@@ -352,7 +354,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
       </div> : null}
 
-      {familyView ? <OrderFamilyView items={items} currency={currency} subs={subs.data} /> : null}
+      {familyView ? <OrderFamilyView items={items} currency={currency} subs={subs.data} seq={seq} /> : null}
       {familyView ? null : items.map((item) => <div key={item.reservationId} className="space-y-3 rounded-xl border border-border p-4">
         <div className="flex flex-wrap gap-3 sm:flex-nowrap">
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}

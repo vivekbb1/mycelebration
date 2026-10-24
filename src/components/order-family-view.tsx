@@ -1,5 +1,6 @@
 import type { LatestSub } from "@/components/substitution-note";
 import { money, type OrderItem } from "@/lib/shop-order";
+import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 
 type Look = { label: string; title?: string; sku?: string; designer?: string; image?: string; shop?: string; sizes: string[] };
 
@@ -17,10 +18,10 @@ function LookCard({ look, accent }: { look: Look; accent?: boolean }) {
   </div>;
 }
 
-/** Order items grouped by family → wearer, with original, substitute and extra items. */
-export function OrderFamilyView({ items, currency, subs }: { items: OrderItem[]; currency: string; subs?: Map<string, LatestSub> | undefined }) {
+/** Order items grouped by family → wearer (invitation order), each wearer's looks in event order. */
+export function OrderFamilyView({ items, currency, subs, seq = alphabetical }: { items: OrderItem[]; currency: string; subs?: Map<string, LatestSub> | undefined; seq?: Sequencer }) {
   const families = new Map<string, Map<string, OrderItem[]>>();
-  for (const i of items) {
+  for (const i of [...items].sort(seq.compare)) {
     const f = families.get(i.family || "No family") ?? new Map<string, OrderItem[]>();
     f.set(i.wearer, [...(f.get(i.wearer) ?? []), i]);
     families.set(i.family || "No family", f);
