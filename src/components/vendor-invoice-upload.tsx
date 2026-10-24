@@ -25,6 +25,51 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
   const [details, setDetails] = useState<Record<number, OrderAlternative>>({});
   const [fetched, setFetched] = useState<Record<number, PerniaLook>>({});
   const [assigned, setAssigned] = useState<OrderItem[]>([]);
+  const [draft, setDraft] = useState<{ id: string; path: string } | null>(null);
+  const drafts = useQuery({ queryKey: ["invoice-drafts", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
+    const r = await supabase.from("invoice_drafts").select("id,reference,file_path,file_name,state,updated_at").eq("invite_id", inviteId).order("updated_at", { ascending: false });
+    if (r.error) throw r.error; return r.data;
+  }});
+  type DraftState = { invoice: VendorInvoice; matches: string[][]; modes: SlotMode[][]; details: Record<number, OrderAlternative>; fetched: Record<number, PerniaLook>; assigned: OrderItem[] };
+  async function resume(d: { id: string; file_path: string; file_name: string; state: Json }) {
+    setBusy(true);
+    try {
+      const dl = await supabase.storage.from("alteration-photos").download(d.file_path);
+      if (dl.error) throw dl.error;
+      const s = d.state as unknown as DraftState;
+      setFile(new File([dl.data], d.file_name, { type: "application/pdf" }));
+      setDraft({ id: d.id, path: d.file_path });
+      setDetails(s.details ?? {}); setFetched(s.fetched ?? {}); setAssigned(s.assigned ?? []);
+      setMatches(s.matches); setModes(s.modes); setInvoice(s.invoice);
+    } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't open draft"); }
+    finally { setBusy(false); }
+  }
+  async function saveDraft() {
+    if (!invoice || !file) return;
+    setBusy(true);
+    try {
+      const id = draft?.id ?? crypto.randomUUID();
+      let path = draft?.path;
+      if (!path) {
+        path = `${inviteId}/invoice-drafts/${id}/${file.name.replace(/[^a-z0-9.-]/gi, "_")}`;
+        const up = await supabase.storage.from("alteration-photos").upload(path, file, { contentType: "application/pdf", upsert: true });
+        if (up.error) throw up.error;
+      }
+      const state: DraftState = { invoice, matches, modes, details, fetched, assigned };
+      const r = await supabase.from("invoice_drafts").upsert({ id, invite_id: inviteId, reference: invoice.reference, file_path: path, file_name: file.name, state: state as unknown as Json });
+      if (r.error) throw r.error;
+      setDraft({ id, path });
+      await qc.invalidateQueries({ queryKey: ["invoice-drafts", inviteId] });
+      toast.success(`Draft saved for invoice ${invoice.reference}`);
+    } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't save draft"); }
+    finally { setBusy(false); }
+  }
+  async function deleteDraft(d: { id: string; file_path: string }) {
+    const r = await supabase.from("invoice_drafts").delete().eq("id", d.id);
+    if (r.error) { toast.error(r.error.message); return; }
+    await supabase.storage.from("alteration-photos").remove([d.file_path]);
+    await qc.invalidateQueries({ queryKey: ["invoice-drafts", inviteId] });
+  }
   const candidates = [...pendingCandidates, ...assigned.filter(a => !pendingCandidates.some(c => c.reservationId === a.reservationId))];
   const missing = useQuery({ queryKey: ["invoice-missing-wearers", inviteId], enabled: Boolean(invoice), queryFn: async () => {
     const [members, events, access, looks, outfits] = await Promise.all([
@@ -50,6 +95,9 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
       const existing = await supabase.from("wardrobe_orders").select("id").eq("invite_id", inviteId).eq("seller_reference", parsed.reference);
       if (existing.error) throw existing.error;
       if (existing.data.length) throw new Error(`Invoice ${parsed.reference} is already recorded`);
+      const saved = drafts.data?.find(d => d.reference === parsed.reference);
+      if (saved) { toast.info(`Opening your saved draft for invoice ${parsed.reference}`); setBusy(false); await resume(saved); return; }
+      setDraft(null);
       setFile(file); setInvoice(parsed); setDetails({}); setFetched({}); setAssigned([]);
       setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, pendingCandidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : Array.from({ length: line.quantity }, () => ""); }));
       setModes(parsed.lines.map((line) => Array.from({ length: line.quantity }, () => defaultSlotMode(line, pendingCandidates))));
