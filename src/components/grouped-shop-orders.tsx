@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { addAddOn, familyOrderReport, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
+import { addAddOn, enrichOrderAlternative, familyOrderReport, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
@@ -105,13 +105,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   async function persist(nextStatus: string, extra: Record<string, unknown> = {}) {
     if (nextStatus !== "cancelled") validateOrder(items, payments, courierNum);
     if (!reference.trim()) throw new Error("Enter an order reference");
-    const collectedItems = await Promise.all(items.map(async item => {
-      const alt = item.alternative;
-      if (!alt || alt.outfitId || alt.image || !alt.shop || nextStatus === "cancelled") return item;
-      const host = new URL(alt.shop).hostname;
-      const look = host === "perniaspopupshop.com" || host === "www.perniaspopupshop.com" ? await pernia({ data: { url: alt.shop } }) : host === "koranm.com" || host === "www.koranm.com" ? await kora({ data: { inviteId, url: alt.shop } }) : null;
-      return look ? { ...item, alternative: { ...alt, image: look.images[0] ?? "", sku: alt.sku || look.sku, designer: alt.designer || look.designer } } : item;
-    }));
+    const collectedItems = nextStatus === "cancelled" ? items : await Promise.all(items.map(item => enrichOrderAlternative(item, async url => {
+      const host = url.hostname;
+      return host === "perniaspopupshop.com" || host === "www.perniaspopupshop.com" ? await pernia({ data: { url: url.href } }) : host === "koranm.com" || host === "www.koranm.com" ? await kora({ data: { inviteId, url: url.href } }) : null;
+    })));
     const values = {
       invite_id: inviteId, reference: reference.trim(), shop_name: shop, currency: currency.toUpperCase(), notes,
       seller_reference: sellerRef, salesperson_name: stylist, salesperson_mobile: stylistMobile,
