@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [x] Add missing order replacements with photos to the original event/category; assign and confirm unselected guest looks from Orders and Selection; collection integration tests and temporary guest assignment in Orders verified.
 - [x] Orders family-view report: original looks, substitutions and person-linked extras; actual whole-order payments/balances; verified with real orders, photos, substitution and open-order flow on desktop/mobile; 14 tests passed
 - [x] Add missing vendor replacements to the collection and retire originals from future selections while preserving choices; host screen and database tests verified with temporary records.
 - [x] Pre-order and order substitutions without invoices; immutable original outfit/size history and guest comparison email preview verified with temporary records; no emails sent during verification

@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export function HostChooseOutfit({ member, event, inviteId, onClose }: {
+export function HostChooseOutfit({ member, event, inviteId, onClose, onAssigned }: {
   member: { id: string; guest_name: string; gender: string | null };
-  event: { id: string; name: string }; inviteId: string; onClose: () => void;
+  event: { id: string; name: string }; inviteId: string; onClose: () => void; onAssigned?: (id: string) => void;
 }) {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -31,10 +31,11 @@ export function HostChooseOutfit({ member, event, inviteId, onClose }: {
   const save = async () => {
     if (!chosen) return;
     setSaving(true);
-    const { error } = await supabase.rpc("host_choose_outfit", { _member: member.id, _outfit: chosen.id, ...(size.trim() ? { _size: size.trim() } : {}) });
+    const { error, data } = await supabase.rpc("host_choose_outfit", { _member: member.id, _outfit: chosen.id, ...(size.trim() ? { _size: size.trim() } : {}) });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries();
+    if (data) onAssigned?.(data);
     toast.success(`Outfit confirmed for ${member.guest_name}`);
     onClose();
   };
