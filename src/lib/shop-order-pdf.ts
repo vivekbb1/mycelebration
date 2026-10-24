@@ -173,7 +173,7 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
     const body = [
       { t: `${l.wearer} | ${l.event}`, font: bold, size: 11 },
       ...wrap(l.title, 10).map((t) => ({ t, font: regular, size: 10 })),
-      ...(l.substituted ? wrap(l.originalTitle ? `Updated look - replaces: ${l.originalTitle}` : "Updated look (replaces the original choice)", 8.5).map((t) => ({ t, font: bold, size: 8.5 })) : []),
+      ...(l.substituted ? wrap(l.originalTitle ? `Updated look - replaces: ${l.originalTitle}` : "Updated look (replaces the original choice)", 8.5, bold).map((t) => ({ t, font: bold, size: 8.5 })) : []),
       { t: `Size you chose: ${l.size || "Not recorded"}   |   Size ordered: ${l.orderedSize || "To be confirmed"}`, font: regular, size: 9.5 },
       ...l.extras.flatMap((e) => wrap(`Also included: ${e.label}${e.size ? ` (size ${e.size})` : ""}`, 9.5)).map((t) => ({ t, font: regular, size: 9.5 })),
       ...(l.note ? wrap(`Note: ${l.note}`, 9.5).map((t) => ({ t, font: regular, size: 9.5 })) : []),
