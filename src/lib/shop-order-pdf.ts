@@ -149,7 +149,7 @@ export function saveBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
-export type FamilyLookLine = { wearer: string; event: string; title: string; image: string; size: string; orderedSize: string; substituted: boolean; extras: { label: string; size: string }[]; note: string };
+export type FamilyLookLine = { wearer: string; event: string; title: string; image: string; size: string; orderedSize: string; substituted: boolean; originalTitle?: string; extras: { label: string; size: string }[]; note: string };
 
 /** Family reconfirmation sheet: photos, look names and sizes only — never prices, model numbers or shop details. */
 export async function buildFamilyLooksPdf(family: string, celebration: string, lines: FamilyLookLine[]) {
