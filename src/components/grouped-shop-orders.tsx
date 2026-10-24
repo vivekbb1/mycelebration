@@ -297,7 +297,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
     })() : null}
     {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} seq={seq} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} onOpen={openById} /> : null}
-    {listView === "event" ? <OrderEventView orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} events={peopleInfo.data?.events ?? []} seq={seq} onOpen={openById} /> : null}
+    {listView === "event" ? <OrderEventView inviteId={inviteId} celebrationName={celebrationName} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} events={peopleInfo.data?.events ?? []} seq={seq} onOpen={openById} /> : null}
     {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-xl border border-border p-4 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
       <p className="text-xs text-muted-foreground">{f.people.join(", ")}</p>
