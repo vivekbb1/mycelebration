@@ -207,14 +207,17 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   async function pdf() { setBusy(true); try { validateOrder(items, payments, courierNum); await downloadShopOrderPdf(reference || "enquiry", shop, currency, items, payments, notes); } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't generate PDF"); } finally { setBusy(false); } }
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
-  const [orderSearch, setOrderSearch] = useState(""); const [showReport, setShowReport] = useState(false);
-  const [showLooks, setShowLooks] = useState(false);
+  const [orderSearch, setOrderSearch] = useState("");
+  const [listView, setListView] = useState<"order" | "person" | "family" | "amounts">("order");
+  const [statusFilter, setStatusFilter] = useState("");
+  const showReport = listView === "amounts"; const showLooks = listView === "family";
   const q = orderSearch.trim().toLowerCase();
   const itemHit = (i: OrderItem) => {
     const current = candidates.find((c) => c.reservationId === i.reservationId);
     return !q || `${current?.wearer ?? i.wearer} ${current?.family ?? i.family} ${i.event} ${i.title} ${i.sku} ${i.alternative?.title ?? ""} ${i.alternative?.sku ?? ""} ${(i.addOns ?? []).map((a) => `${a.label} ${a.sku}`).join(" ")}`.toLowerCase().includes(q);
   };
-  const shownOrders = (orders.data ?? []).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
+  const statuses = [...new Set((orders.data ?? []).map((o) => o.status))];
+  const shownOrders = (orders.data ?? []).filter((o) => !statusFilter || o.status === statusFilter).filter((o) => !q || `${o.reference} ${o.seller_reference} ${o.shop_name}`.toLowerCase().includes(q) || (o.items as unknown as OrderItem[]).some(itemHit));
   const currentFamily = new Map(candidates.map((c) => [c.reservationId, c.family]));
   const orderedReport = familyOrderReport(active.map((o) => o.items as unknown as OrderItem[]), (i) => currentFamily.get(i.reservationId) || undefined);
   const preReport = new Map(familyOrderReport([preorder]).map((f) => [f.family, f]));
@@ -226,31 +229,52 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
   return <section className={listHidden ? "contents" : "space-y-3"}>
     {listHidden ? null : <>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div><h2 className="text-xl">Shop orders</h2>{active.length ? <p className="text-sm text-muted-foreground">{active.length} active · total {sum.total.toLocaleString(...nf(currency))} · paid {sum.paid.toLocaleString(...nf(currency))} · balance {(sum.total - sum.paid).toLocaleString(...nf(currency))}</p> : null}</div>
-      <Button onClick={() => reset()} disabled={!inviteId}><Plus className="size-4" /> New order</Button>
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0"><h2 className="text-xl">Shop orders</h2>{active.length ? <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
+        {([["Active orders", String(active.length)], ["Total", sum.total.toLocaleString(...nf(currency))], ["Paid", sum.paid.toLocaleString(...nf(currency))], ["Balance", (sum.total - sum.paid).toLocaleString(...nf(currency))]] as const).map(([l, v]) => <div key={l} className="rounded-md border border-border px-3 py-1.5"><p className="text-xs text-muted-foreground">{l}</p><p className="font-medium tabular-nums">{v}</p></div>)}
+      </div> : null}</div>
+      <Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button>
     </div>
-    <div className="flex flex-wrap items-center gap-2">
-      <Input className="sm:max-w-sm" placeholder="Search orders by person, family, event, outfit or reference" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
-      <Button size="sm" variant="outline" onClick={() => setShowReport((v) => !v)}>{showReport ? "Hide" : "Show"} amount by family</Button>
-      <Button size="sm" variant={showLooks ? "default" : "outline"} onClick={() => setShowLooks((v) => !v)}>{showLooks ? "Hide" : "Show"} outfits by family</Button>
+    <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 py-2 backdrop-blur">
+      <div role="tablist" aria-label="View orders" className="grid grid-cols-4 gap-1 rounded-lg border border-border p-1">
+        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
+      </div>
+      <Input placeholder="Search person, family, event, outfit or reference" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
+      {statuses.length > 1 ? <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {["", ...statuses].map((st) => <Button key={st || "all"} size="sm" className="shrink-0 capitalize" variant={statusFilter === st ? "default" : "outline"} onClick={() => setStatusFilter(st)}>{st || "All"} ({st ? (orders.data ?? []).filter((o) => o.status === st).length : (orders.data ?? []).length})</Button>)}
+      </div> : null}
     </div>
+    {listView === "person" ? (() => {
+      const rows = shownOrders.flatMap((o) => (o.items as unknown as OrderItem[]).filter(itemHit).map((i) => ({ o, i, cur: candidates.find((c) => c.reservationId === i.reservationId) })))
+        .sort((a, b) => `${a.cur?.wearer ?? a.i.wearer}${a.i.event}`.localeCompare(`${b.cur?.wearer ?? b.i.wearer}${b.i.event}`));
+      return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; return (
+        <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 gap-3 rounded-md border border-border p-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
+          {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="h-24 w-16 shrink-0 rounded object-cover" /> : null}
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <p className="truncate font-medium">{cur?.wearer ?? i.wearer}</p>
+            <p className="truncate text-xs text-muted-foreground">{cur?.family ?? i.family} · {i.event}</p>
+            <p className="line-clamp-2 text-sm">{look.title}{i.alternative?.title ? <span className="text-primary"> · substitute</span> : null}</p>
+            <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}{i.addOns?.length ? ` · +${i.addOns.length} extra` : ""}</p>
+            <div className="flex items-center justify-between gap-2 pt-1"><span className="truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="outline" onClick={() => openOrder(o)}>Open</Button></div>
+          </div>
+        </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
+    })() : null}
     {showLooks ? <FamilyOrderReport inviteId={inviteId} orders={shownOrders.map((o) => ({ ...o, courier_charges: Number(o.courier_charges ?? 0), items: o.items as unknown as OrderItem[], payments: o.payments as unknown as OrderPayment[] }))} candidates={candidates} substitutions={subs.data} matches={(item, order) => !q || `${order.reference} ${order.seller_reference} ${order.shop_name}`.toLowerCase().includes(q) || itemHit(item)} onOpen={(orderId) => { const order = orders.data?.find((o) => o.id === orderId); if (order) openOrder(order); }} /> : null}
     {showReport ? <div className="overflow-x-auto rounded-md border border-border"><table className="w-full text-sm">
       <thead><tr className="text-left text-muted-foreground"><th className="p-2">Family</th><th className="p-2">People</th><th className="p-2 text-right">Looks</th><th className="p-2 text-right">Extra items</th><th className="p-2 text-right">Amount ordered</th><th className="p-2 text-right">Still in pre-order</th><th className="p-2 text-right">Family total</th></tr></thead>
       <tbody>{familyReport.map((f) => <tr key={f.family} className="border-t border-border"><td className="p-2 font-medium">{f.family}</td><td className="p-2">{f.people.join(", ")}</td><td className="p-2 text-right">{f.looks}</td><td className="p-2 text-right">{f.extras}</td><td className="p-2 text-right">{f.amount.toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{f.preAmount.toLocaleString(...nf(currency))}{f.preLooks ? ` (${f.preLooks})` : ""}</td><td className="p-2 text-right font-medium">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</td></tr>)}
       <tr className="border-t border-border font-medium"><td className="p-2" colSpan={4}>Total (excludes courier charges)</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.preAmount, 0).toLocaleString(...nf(currency))}</td><td className="p-2 text-right">{familyReport.reduce((s, f) => s + f.amount + f.preAmount, 0).toLocaleString(...nf(currency))}</td></tr></tbody>
     </table><p className="p-2 text-xs text-muted-foreground">Amount ordered = active orders after discounts. Still in pre-order = looks not yet in an order, at shop price (number of looks in brackets). To move a person into another family, open their family page and use the move-members button beside Add member; new orders then show the new family.</p></div> : null}
-    {shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
-      <div key={o.id} className={`flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
-        <div>
+    {listView === "order" ? <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">{shownOrders.map((o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); return (
+      <div key={o.id} className={`flex flex-col gap-2 rounded-md border border-border p-3 sm:flex-row sm:items-start sm:justify-between ${o.status === "cancelled" ? "opacity-60" : ""}`}>
+        <div className="min-w-0 break-words">
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
           <p className="text-sm">{[...new Set((o.items as unknown as OrderItem[]).map((i) => i.wearer))].join(" · ")}</p>
           {q ? <p className="text-xs text-primary">{(o.items as unknown as OrderItem[]).filter(itemHit).map((i) => `${i.wearer} · ${i.event} · ${i.alternative?.title || i.title}`).join(" | ")}</p> : null}
           <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · balance {t.balance.toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => openOrder(o)}>Open order</Button>
-      </div>); })}
+        <Button variant="outline" size="sm" className="w-full shrink-0 sm:w-auto" onClick={() => openOrder(o)}>Open order</Button>
+      </div>); })}</div> : null}
     {orders.isSuccess && !(orders.data ?? []).length ? <p className="text-sm text-muted-foreground">No shop orders yet. Tick looks in Pre-orders and choose "Convert to one order", or start a new order here.</p> : null}
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
     </>}
