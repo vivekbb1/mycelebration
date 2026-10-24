@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -6,16 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
-import { money, type OrderItem } from "@/lib/shop-order";
+import { money, type OrderItem, type OrderAlternative } from "@/lib/shop-order";
+import { AssignGuestLook } from "@/components/assign-guest-look";
+import { InvoiceShopLook } from "@/components/invoice-shop-look";
 import { defaultSlotMode, invoiceMatches, invoiceOrderItems, parseVendorInvoice, type SlotMode, type VendorInvoice } from "@/lib/vendor-invoice";
 
 export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string; candidates: OrderItem[] }) {
   const qc = useQueryClient();
+  const fileId = useId();
   const [busy, setBusy] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [invoice, setInvoice] = useState<VendorInvoice | null>(null);
   const [matches, setMatches] = useState<string[][]>([]);
   const [modes, setModes] = useState<SlotMode[][]>([]);
+  const [details, setDetails] = useState<Record<number, OrderAlternative>>({});
   async function read(file: File) {
     setBusy(true);
     try {
@@ -24,7 +28,7 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
       const existing = await supabase.from("wardrobe_orders").select("id").eq("invite_id", inviteId).eq("seller_reference", parsed.reference);
       if (existing.error) throw existing.error;
       if (existing.data.length) throw new Error(`Invoice ${parsed.reference} is already recorded`);
-      setFile(file); setInvoice(parsed);
+      setFile(file); setInvoice(parsed); setDetails({});
       setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, candidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : Array.from({ length: line.quantity }, () => ""); }));
       setModes(parsed.lines.map((line) => Array.from({ length: line.quantity }, () => defaultSlotMode(line, candidates))));
     } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't read invoice"); }
@@ -39,7 +43,7 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
     const path = `${inviteId}/orders/${id}/${file.name.replace(/[^a-z0-9.-]/gi, "_")}`;
     let uploaded = false;
     try {
-      const items = invoiceOrderItems(invoice, candidates, matches, modes);
+      const items = invoiceOrderItems(invoice, candidates, matches, modes, details);
       const up = await supabase.storage.from("alteration-photos").upload(path, file, { contentType: "application/pdf" });
       if (up.error) throw up.error;
       uploaded = true;
@@ -66,18 +70,20 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
     } finally { setBusy(false); }
   }
   return <>
-    <Button variant="outline" disabled={busy || !inviteId} onClick={() => document.getElementById("vendor-invoice-file")?.click()}><Upload className="size-4" />{busy ? "Reading invoice…" : "Upload vendor invoice"}</Button>
-    <input id="vendor-invoice-file" type="file" accept="application/pdf" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void read(f); }} />
+    <Button variant="outline" disabled={busy || !inviteId} onClick={() => document.getElementById(fileId)?.click()}><Upload className="size-4" />{busy ? "Reading invoice…" : "Upload vendor invoice"}</Button>
+    <input id={fileId} type="file" accept="application/pdf" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void read(f); }} />
     <Dialog open={Boolean(invoice)} onOpenChange={(open) => { if (!open && !busy) { setInvoice(null); setFile(null); } }}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader><DialogTitle>Review invoice {invoice?.reference}</DialogTitle></DialogHeader>
         {invoice ? <>
           <p className="text-sm">{invoice.date} · {invoice.stylist} · {invoice.lines.length} invoice lines</p>
           <div className="grid grid-cols-3 gap-2 text-sm"><p>Total<br /><strong>INR {money(invoice.total)}</strong></p><p>Stated paid<br /><strong>INR {money(invoice.paid)}</strong></p><p>Due<br /><strong>INR {money(invoice.due)}</strong></p></div>
+          <AssignGuestLook inviteId={inviteId} onAssigned={() => { toast.success("Guest's confirmed look is now available for invoice matching"); }} />
           {invoice.lines.map((line, index) => { const exact = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
             <p className="font-medium">{line.sku} · ordered size {line.orderedSize}</p>
             <p className="text-sm text-muted-foreground">Revised price INR {money(line.price)} − discount {money(line.discount)} = discounted price INR {money(line.net)}</p>
-            {!exact.length ? <p className="text-xs text-muted-foreground">No guest chose this model number. Assign it to a person as an alternative to their look, or as an extra item such as trousers.</p> : null}
+            <InvoiceShopLook inviteId={inviteId} sku={line.sku} onFetched={look => setDetails(all => ({ ...all, [index]: { title: look.title, sku: look.sku, designer: look.designer, shop: look.url, image: look.images[0] ?? "" } }))} />
+            {!exact.length ? <p className="text-xs text-muted-foreground">No pending look matches this model. Assign a guest's look, use an alternative, or add an extra item.</p> : null}
             {Array.from({ length: line.quantity }, (_, slot) => {
               const mode = modes[index]?.[slot] ?? defaultSlotMode(line, candidates);
               const lookIds = new Set(invoice.lines.flatMap((l, i) => (matches[i] ?? []).filter((id, s) => id && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon")));

@@ -1,9 +1,32 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { invoiceMatches, invoiceOrderItems, parseVendorInvoice, pendingOrderLook } from "./vendor-invoice";
+import { invoiceMatches, invoiceOrderItems, parseVendorInvoice, pendingOrderLook, validateInvoiceShopModel } from "./vendor-invoice";
 import type { OrderItem } from "./shop-order";
 
 const text = "ORDER NO : 100581221 DATE : 20-10-2026 ROPK112508-BO-S ROSA by Priyanka kar 1 ₹33,000.00 ₹8,250.00 ₹24,750.00 ORDER TAKEN BY Muskaan Oberoi TOTAL AMOUNT ₹33,000.00 TOTAL PAYABLE ₹24,750.00 TOTAL PAID ₹20,000.00 AMOUNT DUE ₹4,750.00";
+it("only attaches fetched Pernia details to the invoice's exact model", () => {
+  validateInvoiceShopModel("ROPK112508", "ropk112508");
+  throws(() => validateInvoiceShopModel("ROPK112508", "ROPK1125080"));
+  throws(() => validateInvoiceShopModel("ROPK112508", ""));
+});
+it("a newly host-assigned reservation can be matched to an invoice without changing its requested size", () => {
+  const item = { reservationId: "new-host-assignment", wearer: "New guest", event: "Wedding", sku: "ROPK112508", size: "L", price: 30000, originalPrice: 30000 } as OrderItem;
+  const result = invoiceOrderItems(parseVendorInvoice(text), [item], [[item.reservationId]], [["look"]]);
+  strictEqual(result[0]?.reservationId, "new-host-assignment");
+  strictEqual(result[0]?.size, "L");
+  strictEqual(result[0]?.orderedSize, "S");
+});
+it("fetched replacement details preserve invoice price, discount and ordered size", () => {
+  const candidate = { reservationId: "r", sku: "OTHER", size: "M", price: 9000, title: "Original" } as OrderItem;
+  const replacement = { title: "Pernia outfit", sku: "ROPK112508", shop: "https://www.perniaspopupshop.com/product.html", image: "photo", designer: "Designer" };
+  const result = invoiceOrderItems(parseVendorInvoice(text), [candidate], [["r"]], [["alternative"]], { 0: replacement });
+  strictEqual(result[0]?.alternative?.shop, replacement.shop);
+  strictEqual(result[0]?.alternative?.title, "Pernia outfit");
+  strictEqual(result[0]?.price, 33000);
+  strictEqual(result[0]?.discount, 8250);
+  strictEqual(result[0]?.orderedSize, "S");
+  strictEqual(result[0]?.title, "Original");
+});
 it("reconciles invoice 100582304 including both size suffixes without BO and partial payment", () => {
   const invoiceText = `ORDER NO : 100582304 DATE : 24-10-2026
 SUPA062236-BO-L Suruchi Parakh 1 ₹34,500.00 ₹3,450.00 ₹31,050.00
