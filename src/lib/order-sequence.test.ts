@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import { deepStrictEqual, ok, strictEqual, throws } from "node:assert";
 import { makeSequencer } from "./order-sequence";
 
 const seq = makeSequencer(
@@ -9,10 +10,10 @@ const seq = makeSequencer(
 describe("order sequencing", () => {
   it("groups each person together in invitation order, then their events in schedule order", () => {
     const rows = [{ wearer: "Dennis", event: "Mehendi" }, { wearer: "Tobias", event: "Wedding" }, { wearer: "Tobias", event: "Mehendi" }, { wearer: "Dennis", event: "Wedding" }];
-    expect([...rows].sort(seq.compare).map((r) => `${r.wearer}/${r.event}`)).toEqual(["Tobias/Mehendi", "Tobias/Wedding", "Dennis/Mehendi", "Dennis/Wedding"]);
+    deepStrictEqual([...rows].sort(seq.compare).map((r) => `${r.wearer}/${r.event}`), ["Tobias/Mehendi", "Tobias/Wedding", "Dennis/Mehendi", "Dennis/Wedding"]);
   });
   it("matches names regardless of case or spacing and puts unknown people last", () => {
-    expect(seq.person(" tobias ")).toBe(0);
-    expect(seq.compare({ wearer: "Zed", event: "Mehendi" }, { wearer: "Dennis", event: "Wedding" })).toBeGreaterThan(0);
+    strictEqual(seq.person(" tobias "), 0);
+    ok(seq.compare({ wearer: "Zed", event: "Mehendi" }, { wearer: "Dennis", event: "Wedding" }) > 0);
   });
 });

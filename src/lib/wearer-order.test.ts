@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import { deepStrictEqual, ok, strictEqual, throws } from "node:assert";
 import { sameWearer, setWearerNote, wearerLookLine } from "./wearer-order";
 import type { OrderItem } from "./shop-order";
 
@@ -8,20 +9,20 @@ describe("wearer notes", () => {
   it("changes only the targeted look's note", () => {
     const other = { ...base, reservationId: "r2", wearerNote: "Keep" };
     const next = setWearerNote([base, other], "r1", "  Please carry your white shirt ");
-    expect(next[0]?.wearerNote).toBe("Please carry your white shirt");
-    expect(next[0]?.price).toBe(50000);
-    expect(next[1]).toBe(other);
+    strictEqual(next[0]?.wearerNote, "Please carry your white shirt");
+    strictEqual(next[0]?.price, 50000);
+    strictEqual(next[1], other);
   });
   it("refuses to save a note for a look no longer in the order", () => {
-    expect(() => setWearerNote([base], "gone", "x")).toThrow();
+    throws(() => setWearerNote([base], "gone", "x"));
   });
   it("puts the note in the PDF line without price, model number or shop", () => {
     const line = wearerLookLine({ ...base, wearerNote: "Carry your shirt" }, "Tobias");
-    expect(line.note).toBe("Carry your shirt");
-    expect(JSON.stringify(line)).not.toMatch(/SKU1|50000|shop\/x/);
+    strictEqual(line.note, "Carry your shirt");
+    ok(!/SKU1|50000|shop\/x/.test(JSON.stringify(line)));
   });
   it("treats the same name in another family as a different person", () => {
-    expect(sameWearer({ wearer: "Tobias", family: "Heckh" }, { wearer: " tobias", family: "heckh" })).toBe(true);
-    expect(sameWearer({ wearer: "Tobias", family: "Heckh" }, { wearer: "Tobias", family: "Ruf" })).toBe(false);
+    strictEqual(sameWearer({ wearer: "Tobias", family: "Heckh" }, { wearer: " tobias", family: "heckh" }), true);
+    strictEqual(sameWearer({ wearer: "Tobias", family: "Heckh" }, { wearer: "Tobias", family: "Ruf" }), false);
   });
 });
