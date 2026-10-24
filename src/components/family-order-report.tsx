@@ -24,7 +24,7 @@ export function FamilyOrderReport({ inviteId, orders, candidates, substitutions,
       const lines: FamilyLookLine[] = rows.map(({ item, wearer }) => {
         const sub = substitutions?.get(item.reservationId);
         const alt = item.alternative ?? (sub ? { title: sub.replacement.title ?? "", image: sub.replacement.image ?? "" } : null);
-        return { wearer, event: item.event, title: alt?.title || item.title, image: alt?.image || item.image, size: item.size, orderedSize: item.orderedSize ?? "", substituted: Boolean(alt), extras: (item.addOns ?? []).map((a) => ({ label: a.label, size: a.size })), note: item.wearerNote ?? "" };
+        return { wearer, event: item.event, title: alt?.title || item.title, image: alt ? alt.image ?? "" : item.image, size: item.size, orderedSize: item.orderedSize ?? "", substituted: Boolean(alt), extras: (item.addOns ?? []).map((a) => ({ label: a.label, size: a.size })), note: item.wearerNote ?? "" };
       });
       saveBlob(await buildFamilyLooksPdf(name, celebrationName, lines), `${name.replace(/[^a-z0-9-]/gi, "-")}-looks.pdf`);
     } catch { toast.error("Couldn't create the family PDF"); }
