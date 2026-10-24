@@ -9,6 +9,9 @@ it("only attaches fetched Pernia details to the invoice's exact model", () => {
   throws(() => validateInvoiceShopModel("ROPK112508", "ROPK1125080"));
   throws(() => validateInvoiceShopModel("ROPK112508", ""));
 });
+it("rejects an unassigned member/event placeholder instead of storing an invented reservation", () => {
+  throws(() => invoiceOrderItems(parseVendorInvoice(text), [], [["member:oscar:bollywood"]], [["assign"]]));
+});
 it("a newly host-assigned reservation can be matched to an invoice without changing its requested size", () => {
   const item = { reservationId: "new-host-assignment", wearer: "New guest", event: "Wedding", sku: "ROPK112508", size: "L", price: 30000, originalPrice: 30000 } as OrderItem;
   const result = invoiceOrderItems(parseVendorInvoice(text), [item], [[item.reservationId]], [["look"]]);
