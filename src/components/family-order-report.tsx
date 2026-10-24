@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { buildFamilyLooksPdf, saveBlob, type FamilyLookLine } from "@/lib/shop-order-pdf";
 import { SubstitutionNote, type LatestSub } from "@/components/substitution-note";
 import { familyOrderLooks, type ReportOrder } from "@/lib/family-order-looks";
+import { WardrobeFlag } from "@/components/grouped-shop-orders";
 import { useInvites } from "@/components/host-invites";
 import { money, orderTotals, type OrderItem } from "@/lib/shop-order";
 
@@ -13,8 +14,8 @@ function ShopLook({ title, image, shop, sku }: { title: string; image?: string; 
   return url ? <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 hover:text-primary">{content}</a> : <div className="flex items-start gap-3">{content}</div>;
 }
 
-export function FamilyOrderReport({ inviteId, orders, candidates, substitutions, onOpen, matches }: {
-  inviteId: string; orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
+export function FamilyOrderReport({ inviteId, wardrobeSkus = null, orders, candidates, substitutions, onOpen, matches }: {
+  inviteId: string; wardrobeSkus?: Set<string> | null; orders: ReportOrder[]; candidates: OrderItem[]; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void; matches?: (item: OrderItem, order: ReportOrder) => boolean;
 }) {
   const families = familyOrderLooks(orders, candidates, matches);
   const invites = useInvites();
@@ -44,10 +45,10 @@ export function FamilyOrderReport({ inviteId, orders, candidates, substitutions,
         const comparison = sub ? { ...sub, replacement: { ...sub.replacement, ...(item.alternative ?? {}), size: item.orderedSize ?? sub.replacement.size ?? "" } } : item.alternative ? { original: { title: item.title, sku: item.sku, image: item.image, shop: item.shop, size: item.size }, replacement: { ...item.alternative, size: item.orderedSize ?? "" }, order: true, at: "" } : undefined;
         return <article key={`${order.id}-${item.reservationId}`} className="space-y-3 border-b border-border pb-4">
           <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-medium">{wearer} · {item.event}</p><p className="text-xs text-muted-foreground">{order.reference}{order.seller_reference ? ` · ${order.seller_reference}` : ""} · {order.status}</p></div><Button size="sm" variant="outline" onClick={() => onOpen(order.id)}>Open order</Button></div>
-          <div className="grid gap-4 sm:grid-cols-2"><div className="min-w-0 space-y-2"><p className="text-xs text-muted-foreground">Original selection</p><ShopLook title={item.title} image={item.image} shop={item.shop} sku={item.sku} /><p className="text-xs">Guest requested size: {item.size || "Not recorded"} · Actual ordered size: {item.orderedSize || "Not recorded"}</p>
-          {comparison && !comparison.at ? <div className="space-y-2 border-t border-border pt-2"><p className="text-xs text-primary">Replacement</p><ShopLook {...comparison.replacement} title={comparison.replacement.title || "Replacement"} /><p className="text-xs">Size: {item.orderedSize || "Not recorded"}</p></div> : <SubstitutionNote sub={comparison} />}
+          <div className="grid gap-4 sm:grid-cols-2"><div className="min-w-0 space-y-2"><p className="text-xs text-muted-foreground">Original selection</p><ShopLook title={item.title} image={item.image} shop={item.shop} sku={item.sku} /><WardrobeFlag sku={item.sku} skus={wardrobeSkus} /><p className="text-xs">Guest requested size: {item.size || "Not recorded"} · Actual ordered size: {item.orderedSize || "Not recorded"}</p>
+          {comparison && !comparison.at ? <div className="space-y-2 border-t border-border pt-2"><p className="text-xs text-primary">Replacement</p><ShopLook {...comparison.replacement} title={comparison.replacement.title || "Replacement"} /><WardrobeFlag sku={comparison.replacement.sku} skus={wardrobeSkus} /><p className="text-xs">Size: {item.orderedSize || "Not recorded"}</p></div> : <SubstitutionNote sub={comparison} />}
           <p className="text-sm">Outfit after discount: {order.currency} {money(item.price - item.discount, order.currency)}</p></div>
-          <div className="min-w-0 space-y-2">{item.addOns?.length ? <><h5 className="text-sm font-medium">Extra items for {wearer}</h5>{item.addOns.map((extra) => <div key={extra.id} className="border-b border-border py-2 text-sm"><ShopLook title={extra.label} shop={extra.shop} sku={extra.sku} /><p>Size: {extra.size || "Not recorded"} · {order.currency} {money(extra.price - extra.discount, order.currency)}</p>{extra.notes ? <p className="text-xs text-muted-foreground">{extra.notes}</p> : null}</div>)}</> : <p className="text-xs text-muted-foreground">No extra items</p>}</div></div>
+          <div className="min-w-0 space-y-2">{item.addOns?.length ? <><h5 className="text-sm font-medium">Extra items for {wearer}</h5>{item.addOns.map((extra) => <div key={extra.id} className="border-b border-border py-2 text-sm"><ShopLook title={extra.label} shop={extra.shop} sku={extra.sku} /><WardrobeFlag sku={extra.sku} skus={wardrobeSkus} /><p>Size: {extra.size || "Not recorded"} · {order.currency} {money(extra.price - extra.discount, order.currency)}</p>{extra.notes ? <p className="text-xs text-muted-foreground">{extra.notes}</p> : null}</div>)}</> : <p className="text-xs text-muted-foreground">No extra items</p>}</div></div>
         </article>;
       })}
       {[...new Map(family.rows.map(({ order }) => [order.id, order])).values()].map((order) => {
