@@ -434,8 +434,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           <label className="text-sm">Tracking details<Input aria-label={`Tracking for ${item.wearer} — ${item.event}`} value={item.tracking ?? ""} placeholder="Courier · AWB / link" onChange={(e) => changeItem(item.reservationId, { tracking: e.target.value })} /></label>
           {id ? <Button type="button" size="sm" variant="outline" className="sm:col-span-4 sm:w-fit" disabled={busy} onClick={() => void run(() => saveDelivery(item), `Delivery dates saved for ${item.wearer} · ${item.event}`, false)}><Save className="size-4" /> Save dates for this outfit</Button> : null}
         </div>
-        <label className="block text-sm">Customisations / availability questions<Textarea value={item.notes} onChange={(e) => changeItem(item.reservationId, { notes: e.target.value })} /></label>
-        <label className="block text-sm">Note for {item.wearer} (shown to them)<Textarea aria-label={`Note for ${item.wearer} — ${item.event}`} value={item.wearerNote ?? ""} placeholder="e.g. Carry the matching mojaris and pocket square; pair with gold studs" onChange={(e) => changeItem(item.reservationId, { wearerNote: e.target.value })} /></label>
+        <label className="block text-sm">Customisations / availability questions <span className="text-xs text-muted-foreground">— private, never shown to guests</span><Textarea value={item.notes} onChange={(e) => changeItem(item.reservationId, { notes: e.target.value })} /></label>
+        <label className="block text-sm">Wearer note — shown to guest and printed in PDFs <span className="text-xs text-muted-foreground">({item.wearer})</span><Textarea aria-label={`Note for ${item.wearer} — ${item.event}`} value={item.wearerNote ?? ""} placeholder="e.g. Carry the matching mojaris and pocket square; pair with gold studs" onChange={(e) => changeItem(item.reservationId, { wearerNote: e.target.value })} /></label>
       </div>)}
 
       <div className="grid gap-3 border-t border-border pt-4 sm:grid-cols-3">
@@ -443,7 +443,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         <label className="text-sm">Seller's quoted total ({currency})<Input type="number" min="0" placeholder="From proforma / invoice" value={sellerTotal} onChange={(e) => setSellerTotal(e.target.value)} /></label>
         <div className="self-end pb-2 text-sm">{sellerTotal && Number(sellerTotal) !== totals.total ? <span className="text-destructive">Differs from our total by {(Number(sellerTotal) - totals.total).toLocaleString(...nf(currency))}</span> : null}</div>
       </div>
-      <label className="text-sm">Discount / delivery discussion notes<Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
+      <label className="text-sm">Order notes — private, host only <span className="block text-xs text-muted-foreground">Discount and delivery discussions. Never shown to guests or printed in family/individual PDFs.</span><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
 
       <div className="border-t border-border pt-4">
         <h3 className="font-medium">Advance and payments</h3>
