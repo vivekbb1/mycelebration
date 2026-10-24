@@ -49,7 +49,7 @@ export function IndividualShare({ wearer, celebration, lines, phone }: { wearer:
   const make = () => buildFamilyLooksPdf(wearer, celebration, lines);
   const text = `Hello ${wearer}, please find attached the outfits ordered for you for ${celebration}, with notes on anything to carry. Kindly check each look and size and let us know of any last-minute changes.`;
   return <>
-    <Button size="sm" variant="outline" disabled={busy || !lines.length} onClick={async () => { setBusy(true); try { saveBlob(await make(), pdfFileName(wearer)); } catch { toast.error("Couldn't create the PDF"); } finally { setBusy(false); } }}><FileDown className="size-4" /> Individual PDF</Button>
+    <Button size="sm" variant="outline" aria-label={`Individual PDF for ${wearer}`} disabled={busy || !lines.length} onClick={async () => { setBusy(true); try { saveBlob(await make(), pdfFileName(wearer)); } catch { toast.error("Couldn't create the PDF"); } finally { setBusy(false); } }}><FileDown className="size-4" /> PDF</Button>
     <Button size="sm" variant="outline" disabled={busy || !lines.length} aria-label={`WhatsApp ${wearer}'s outfits`} onClick={async () => { setBusy(true); try { await sharePdfOnWhatsApp(make, pdfFileName(wearer), text, phone); } finally { setBusy(false); } }}><MessageCircle className="size-4" /> WhatsApp</Button>
   </>;
 }
@@ -72,7 +72,7 @@ export function WearerNoteButton({ inviteId, orderId, item, wearer, disabled }: 
     } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't save the note"); } finally { setBusy(false); }
   }
   return <>
-    <Button size="sm" variant="outline" disabled={disabled} onClick={() => { setNote(item.wearerNote ?? ""); setOpen(true); }}><StickyNote className="size-4" /> {item.wearerNote ? "Edit wearer note" : "Add wearer note"}</Button>
+    <Button size="sm" variant="outline" disabled={disabled} aria-label={`${item.wearerNote ? "Edit wearer note" : "Add wearer note"} for ${wearer} — ${item.event}`} onClick={() => { setNote(item.wearerNote ?? ""); setOpen(true); }}><StickyNote className="size-4" /> {item.wearerNote ? "Edit note" : "Add note"}</Button>
     <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="sm:max-w-md">
       <DialogHeader><DialogTitle>Note for {wearer} · {item.event}</DialogTitle></DialogHeader>
       <p className="text-sm text-muted-foreground">{item.alternative?.title || item.title}. Shown to {wearer} and printed in the family and individual PDFs.</p>

@@ -280,9 +280,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       const allActive = active.flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => { const cur = candidates.find((c) => c.reservationId === i.reservationId); return { i, wearer: cur?.wearer ?? i.wearer, family: cur?.family ?? i.family }; }));
       const linesFor = (wearer: string, family: string) => allActive.filter((r) => sameWearer(r, { wearer, family })).sort((a, b) => seq.event(a.i.event) - seq.event(b.i.event)).map((r) => wearerLookLine(r.i, r.wearer, subs.data?.get(r.i.reservationId)));
       return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; const wearer = cur?.wearer ?? i.wearer; const family = cur?.family ?? i.family; return (
-        <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 gap-3 rounded-xl border border-border p-4 ${o.status === "cancelled" ? "opacity-60" : ""}`}>
-          {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="h-24 w-16 shrink-0 rounded object-cover" /> : null}
-          <div className="min-w-0 flex-1 space-y-0.5">
+        <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 flex-col rounded-xl border border-border bg-card ${o.status === "cancelled" ? "opacity-60" : ""}`}>
+          <div className="flex min-w-0 flex-1 gap-3 p-4">
+          {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="aspect-[3/4] w-20 shrink-0 self-start rounded-md object-cover" /> : <div className="flex aspect-[3/4] w-20 shrink-0 items-center justify-center self-start rounded-md bg-muted text-xs text-muted-foreground">No photo</div>}
+          <div className="min-w-0 flex-1 space-y-1">
             <p className="truncate font-medium">{wearer}</p>
             {o.status !== "cancelled" && isDupe(wearer, i.event) ? <p className="text-xs font-medium text-destructive">Duplicate: another main outfit for this event</p> : null}
             <p className="truncate text-xs text-muted-foreground">{family} · {i.event}</p>
@@ -291,8 +292,11 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}</p>
             {(i.addOns ?? []).map((a) => <p key={a.id} className="truncate text-xs">Extra: {a.label || a.sku || "item"}{a.sku ? <> · <WardrobeFlag sku={a.sku} skus={wardrobeSkus} /></> : null}</p>)}
             {i.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{i.wearerNote}</p> : null}
-            <div className="flex items-center justify-between gap-2 pt-1"><span className="truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="outline" onClick={() => openOrder(o)}>Open</Button></div>
-            {o.status !== "cancelled" ? <div className="flex flex-wrap gap-1.5 pt-1"><WearerNoteButton inviteId={inviteId} orderId={o.id} item={i} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={linesFor(wearer, family)} phone={phones?.get(wearer.trim().toLowerCase())} /></div> : null}
+          </div>
+          </div>
+          <div className="space-y-2 border-t border-border p-3">
+            <div className="flex items-center justify-between gap-2"><span className="min-w-0 truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => openOrder(o)}>Open order</Button></div>
+            {o.status !== "cancelled" ? <div className="grid grid-cols-3 gap-1.5 [&>button]:h-8 [&>button]:w-full [&>button]:min-w-0 [&>button]:px-1.5 [&>button]:text-xs [&_svg]:shrink-0"><WearerNoteButton inviteId={inviteId} orderId={o.id} item={i} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={linesFor(wearer, family)} phone={phones?.get(wearer.trim().toLowerCase())} /></div> : null}
           </div>
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
     })() : null}
