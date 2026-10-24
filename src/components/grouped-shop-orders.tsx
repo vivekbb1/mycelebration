@@ -14,6 +14,10 @@ import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
 import { FamilyOrderReport } from "@/components/family-order-report";
+import { AssignGuestLook } from "@/components/assign-guest-look";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchPerniaLook } from "@/lib/pernia.functions";
+import { fetchKoraLook } from "@/lib/kora.functions";
 
 const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
@@ -23,6 +27,26 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean;
 }) {
   const qc = useQueryClient();
+  const pernia = useServerFn(fetchPerniaLook); const kora = useServerFn(fetchKoraLook);
+  const [assignedId, setAssignedId] = useState<string | null>(null);
+  useEffect(() => {
+    const candidate = candidates.find(c => c.reservationId === assignedId);
+    if (!candidate) return;
+    setItems(all => all.some(i => i.reservationId === candidate.reservationId) ? all : [...all, candidate]);
+    setAssignedId(null);
+  }, [assignedId, candidates]);
+  async function fetchAlternative(item: OrderItem) {
+    const url = item.alternative?.shop?.trim();
+    if (!url) { toast.error("Enter the replacement shop link first"); return; }
+    setBusy(true);
+    try {
+      const host = new URL(url).hostname;
+      const look = host === "perniaspopupshop.com" || host === "www.perniaspopupshop.com" ? await pernia({ data: { url } }) : host === "koranm.com" || host === "www.koranm.com" ? await kora({ data: { inviteId, url } }) : null;
+      if (!look) throw new Error("For this shop, enter the outfit details and photo URL manually");
+      setItems(all => setAlternative(all, item.reservationId, { title: look.title, sku: look.sku, designer: look.designer, shop: look.url, image: look.images[0] ?? "" }));
+      toast.success("Replacement details and photo fetched");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not fetch outfit"); } finally { setBusy(false); }
+  }
   const orders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
     if (error) throw error; return data ?? [];
@@ -220,7 +244,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
         <h3 className="font-medium">Outfits in this order ({items.length})</h3>
-        {!cancelled ? <Button size="sm" variant="outline" onClick={() => { setAdding((v) => !v); setSwapFor(null); }}><Plus className="size-4" /> Add outfits</Button> : null}
+        {!cancelled ? <div className="flex flex-wrap gap-2"><AssignGuestLook inviteId={inviteId} onAssigned={setAssignedId} /><Button size="sm" variant="outline" onClick={() => { setAdding((v) => !v); setSwapFor(null); }}><Plus className="size-4" /> Add outfits</Button></div> : null}
       </div>
       {adding || swapFor ? <div className="space-y-3 rounded-md border border-border p-3">
         <p className="text-sm">{swapFor ? `Choose the substitute for ${items.find((i) => i.reservationId === swapFor)?.title ?? "this outfit"}` : "Tick outfits to add"}</p>
@@ -280,6 +304,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             <label className="text-sm">Model number<Input value={item.alternative.sku} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, sku: e.target.value }))} /></label>
             <label className="text-sm">Designer<Input value={item.alternative.designer} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, designer: e.target.value }))} /></label>
             <label className="text-sm">Shop link<Input value={item.alternative.shop} disabled={cancelled} onChange={(e) => setItems((all) => setAlternative(all, item.reservationId, { ...item.alternative!, shop: e.target.value }))} /></label>
+            <Button variant="outline" disabled={busy || cancelled} onClick={() => void fetchAlternative(item)}>Fetch replacement photo & details</Button>
+            <label className="text-sm">Replacement photo URL<Input value={item.alternative.image ?? ""} disabled={cancelled} onChange={e => setItems(all => setAlternative(all, item.reservationId, { ...item.alternative, title: item.alternative?.title ?? "", sku: item.alternative?.sku ?? "", designer: item.alternative?.designer ?? "", shop: item.alternative?.shop ?? "", image: e.target.value }))} /></label>
+            {item.alternative.image ? <img src={item.alternative.image} alt={item.alternative.title} className="h-32 w-24 rounded object-cover" /> : null}
             <p className="text-xs text-muted-foreground sm:col-span-2">Set the alternative's price in "Revised price" above.</p>
           </div> : null}
         </div>

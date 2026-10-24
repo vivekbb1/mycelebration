@@ -68,12 +68,12 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
         const l = await pernia({ data: { url } });
         setAlternative({ outfitId: null, title: l.title, sku: l.sku, designer: l.designer, shop: l.url, image: l.images[0] ?? '' });
         if (l.priceInr) setPrice(l.priceInr);
-        setDetails(d => ({ ...d, gender: l.gender, color_family: l.color ?? d.color_family, garment_type: l.garmentType ?? d.garment_type, silhouette: l.silhouette ?? d.silhouette, notes: l.description.slice(0, 500) }));
+        setDetails(d => ({ ...d, color_family: l.color ?? d.color_family, notes: l.description.slice(0, 500) }));
       } else if (/koranm\.com/i.test(url)) {
         const l = await kora({ data: { inviteId, url } });
         setAlternative({ outfitId: null, title: l.title, sku: l.sku, designer: l.designer, shop: l.url, image: l.images[0] ?? '' });
         if (l.priceInr) setPrice(l.priceInr);
-        setDetails(d => ({ ...d, color_family: l.colours[0] ?? d.color_family, garment_type: l.garmentType ?? d.garment_type, notes: l.description.slice(0, 500) }));
+        setDetails(d => ({ ...d, color_family: l.colours[0] ?? d.color_family, notes: l.description.slice(0, 500) }));
       } else {
         setAlternative(a => ({ ...a, outfitId: null, shop: url }));
         toast.message('This shop can\'t be read automatically — link saved, please type the details below');
