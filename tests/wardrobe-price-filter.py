@@ -3,7 +3,7 @@ import asyncio
 import json
 import os
 import re
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, expect
 
 
 async def main():
@@ -20,12 +20,12 @@ async def main():
         maximum = page.get_by_placeholder("Price to ₹")
         heading = page.get_by_role("heading", name="In the lookbook", exact=False)
         await minimum.wait_for()
-        await page.wait_for_function("() => /In the lookbook \\([1-9]/.test(document.body.innerText)")
+        await expect(heading).to_contain_text(re.compile(r"In the lookbook \([1-9]"))
         original = await heading.inner_text()
         assert int(re.search(r"\((\d+)", original).group(1)) > 0
 
         async def expect_empty():
-            await page.wait_for_function("() => document.body.innerText.includes('In the lookbook (0')")
+            await expect(heading).to_contain_text("In the lookbook (0")
             await page.locator("#select-all-looks").click()
             assert await page.get_by_text(re.compile(r"\d+ selected — apply to all of them:")).count() == 0
 
@@ -33,13 +33,13 @@ async def main():
         await minimum.fill("999999999")
         await expect_empty()
         await minimum.fill("")
-        await page.wait_for_function("text => document.body.innerText.includes(text)", arg=original)
+        await expect(heading).to_have_text(original)
 
         # An upper bound below every outfit must also recompute immediately.
         await maximum.fill("-1")
         await expect_empty()
         await maximum.fill("")
-        await page.wait_for_function("text => document.body.innerText.includes(text)", arg=original)
+        await expect(heading).to_have_text(original)
 
         # Non-empty realistic range: select-all uses the visible price-filtered rows.
         await minimum.fill("30000")
