@@ -99,7 +99,7 @@ export async function buildPreorderPdf(title: string, subtitle: string, lines: P
     if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
     const img = l.image ? await embedLookPhoto(pdf, l.image) : null;
-    if (img) { const s = img.scaleToFit(85, 120); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height }); }
+    if (img) { const sc = img.scaleToFit(85, 120); page.drawImage(img, { x: 40, y: y - sc.height, width: sc.width, height: sc.height }); }
     let ty = y - 12;
     for (const b of body) { page.drawText(b.t, { x: 140, y: ty, size: b.size, font: b.font, color: b.t.startsWith("Updated") ? accent : rgb(.12, .12, .12) }); ty -= 14; }
     y -= h + 6;
