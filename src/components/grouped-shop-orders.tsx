@@ -20,6 +20,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { fetchPerniaLook } from "@/lib/pernia.functions";
 import { fetchKoraLook } from "@/lib/kora.functions";
 import { TrouserPairingReview } from "@/components/trouser-pairing-review";
+import { OrderEventView } from "@/components/order-event-view";
+import { IndividualShare, WearerNoteButton, useOrderPeople } from "@/components/wearer-order-actions";
+import { useCelebrationName } from "@/components/family-order-report";
+import { alphabetical } from "@/lib/order-sequence";
+import { sameWearer, wearerLookLine } from "@/lib/wearer-order";
 
 const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
@@ -208,9 +213,12 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const [orderSearch, setOrderSearch] = useState("");
-  const [listView, setListView] = useState<"order" | "person" | "family" | "amounts">("order");
+  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "amounts">("order");
   const [statusFilter, setStatusFilter] = useState("");
   const showReport = listView === "amounts"; const showLooks = listView === "family";
+  const peopleInfo = useOrderPeople(inviteId);
+  const seq = peopleInfo.data?.seq ?? alphabetical; const phones = peopleInfo.data?.phones;
+  const celebrationName = useCelebrationName(inviteId);
   const q = orderSearch.trim().toLowerCase();
   const itemHit = (i: OrderItem) => {
     const current = candidates.find((c) => c.reservationId === i.reservationId);
