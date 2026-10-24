@@ -132,7 +132,8 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
       await qc.invalidateQueries({ queryKey: ["reservations"] });
       await qc.invalidateQueries({ queryKey: ["confirm-looks"] });
       await qc.invalidateQueries({ queryKey: ["host-orders"] });
-      setInvoice(null); setFile(null);
+      if (draft) { await supabase.from("invoice_drafts").delete().eq("id", draft.id); await supabase.storage.from("alteration-photos").remove([draft.path]); await qc.invalidateQueries({ queryKey: ["invoice-drafts", inviteId] }); }
+      setInvoice(null); setFile(null); setDraft(null);
       toast.success(`Invoice ${invoice.reference} recorded — ${items.length} looks moved to Orders`);
     } catch (e) {
       if (uploaded) await supabase.storage.from("alteration-photos").remove([path]);
@@ -142,7 +143,14 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
   return <>
     <Button variant="outline" disabled={busy || !inviteId} onClick={() => document.getElementById(fileId)?.click()}><Upload className="size-4" />{busy ? "Reading invoice…" : "Upload vendor invoice"}</Button>
     <input id={fileId} type="file" accept="application/pdf" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void read(f); }} />
-    <Dialog open={Boolean(invoice)} onOpenChange={(open) => { if (!open && !busy) { setInvoice(null); setFile(null); } }}>
+    {drafts.data?.length ? <span className="inline-flex flex-wrap items-center gap-2 text-sm">
+      <span className="text-muted-foreground">Invoice drafts:</span>
+      {drafts.data.map(d => <span key={d.id} className="inline-flex items-center gap-1 rounded border border-border px-2 py-0.5">
+        <button type="button" className="hover:text-primary hover:underline" disabled={busy} onClick={() => void resume(d)}>{d.reference} · {new Date(d.updated_at).toLocaleDateString("en-GB")}</button>
+        <button type="button" aria-label={`Delete draft ${d.reference}`} className="text-muted-foreground hover:text-destructive" onClick={() => { if (confirm(`Delete draft for invoice ${d.reference}?`)) void deleteDraft(d); }}>×</button>
+      </span>)}
+    </span> : null}
+    <Dialog open={Boolean(invoice)} onOpenChange={(open) => { if (!open && !busy) { setInvoice(null); setFile(null); setDraft(null); } }}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader><DialogTitle>Review invoice {invoice?.reference}</DialogTitle></DialogHeader>
         {invoice ? <>
@@ -151,7 +159,7 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
           <AssignGuestLook inviteId={inviteId} onAssigned={() => { toast.success("Guest's confirmed look is now available for invoice matching"); }} />
           {missing.isError ? <p className="text-sm text-destructive">Could not load guests without selections. Please reopen invoice review.</p> : null}
           {invoice.lines.map((line, index) => { const exact = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
-            <p className="font-medium">{line.sku} · ordered size {line.orderedSize}</p>
+            <p className="font-medium">{line.sku} · ordered size {line.orderedSize} {wardrobeSkus.data ? (wardrobeSkus.data.has(line.sku.trim().toUpperCase()) ? <span className="text-xs text-primary">✓ In wardrobe</span> : <span className="text-xs text-destructive">✗ Not in wardrobe — paste the shop link below</span>) : null}</p>
             <p className="text-sm text-muted-foreground">Revised price INR {money(line.price)} − discount {money(line.discount)} = discounted price INR {money(line.net)}</p>
             <InvoiceShopLook inviteId={inviteId} sku={line.sku} onFetched={look => { setFetched(all => ({ ...all, [index]: look })); setDetails(all => ({ ...all, [index]: { title: look.title, sku: look.sku, designer: look.designer, shop: look.url, image: look.images[0] ?? "" } })); }} />
             {!exact.length ? <p className="text-xs text-muted-foreground">No pending look matches this model. Assign a guest's look, use an alternative, or add an extra item.</p> : null}
@@ -191,7 +199,11 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
             })}
           </div>; })}
           {!valid ? <p className="text-sm text-destructive">Every invoice line needs a person. Each person's look can be used once; extra items must go with a look on this invoice.</p> : null}
-          <Button disabled={busy || !valid} onClick={() => void save()}>{busy ? "Saving…" : "Confirm invoice and move to Orders"}</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" disabled={busy} onClick={() => void saveDraft()}>{draft ? "Update draft" : "Save as draft"}</Button>
+            <Button disabled={busy || !valid} onClick={() => void save()}>{busy ? "Saving…" : "Confirm invoice and move to Orders"}</Button>
+          </div>
+          <p className="text-xs text-muted-foreground">A draft keeps the PDF, every person and event you picked, substitutions and fetched outfits. Nothing moves to Orders until you confirm.</p>
         </> : null}
       </DialogContent>
     </Dialog>
