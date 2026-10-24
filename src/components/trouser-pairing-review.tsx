@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { money, validateOrder, type OrderItem, type OrderPayment } from "@/lib/shop-order";
 import { needsTrouserReview, pairWhitePants, modelKey, WHITE_PANTS_SKU, type PairingLook } from "@/lib/trouser-pairing";
+import { pdfPhotoUrl } from "@/lib/shop-order-pdf";
 
 type PairOrder = { id: string; reference: string; currency: string; status: string; updated_at: string; items: unknown };
 type WardrobeLook = PairingLook & { image_url?: string | null; boutique_url?: string | null; price_inr?: number | null };
@@ -47,7 +48,7 @@ export function TrouserPairingReview({ inviteId, orders, wardrobe, candidates }:
       {review && pants ? <div className="space-y-4">
         <p className="break-words font-medium">{review.wearer} · {review.item.event}</p>
         <p className="break-words text-sm">{review.item.alternative?.title || review.item.title} · {review.order.reference}</p>
-        <div className="flex items-start gap-3">{pants.image_url ? <img src={pants.image_url} alt={pants.title ?? "White pyjama pants"} className="h-36 w-24 shrink-0 rounded object-cover" /> : null}<div className="min-w-0"><p>{pants.title}</p><p className="text-sm text-emerald">✓ In wardrobe · {WHITE_PANTS_SKU}</p>{pants.boutique_url ? <a href={pants.boutique_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">Shop details</a> : null}</div></div>
+        <div className="flex items-start gap-3">{pants.image_url ? <img src={pdfPhotoUrl(pants.image_url)} alt={pants.title ?? "White pyjama pants"} referrerPolicy="no-referrer" className="h-36 w-24 shrink-0 rounded object-cover" /> : null}<div className="min-w-0"><p>{pants.title}</p><p className="text-sm text-emerald">✓ In wardrobe · {WHITE_PANTS_SKU}</p>{pants.boutique_url ? <a href={pants.boutique_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">Shop details</a> : null}</div></div>
         <div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm">Pants size to order<Input aria-label="Pants size to order" value={size} onChange={(e) => setSize(e.target.value)} /></label><label className="space-y-1 text-sm">Pants price · INR<Input aria-label="Pants price" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} /></label></div>
         <p className="text-sm">Order total and balance increase by INR {money(Number(price) || 0)}. Recorded payments stay unchanged.</p>
         <div className="flex flex-wrap justify-end gap-2"><Button variant="outline" disabled={busy} onClick={() => setReview(null)}>Cancel</Button><Button disabled={busy || !size.trim() || !price.trim() || !Number.isFinite(Number(price)) || Number(price) < 0} onClick={() => void save()}>{busy ? "Saving…" : "Save pants to this look"}</Button></div>
