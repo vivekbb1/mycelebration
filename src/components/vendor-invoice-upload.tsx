@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,12 @@ import type { Json } from "@/integrations/supabase/types";
 import { money, type OrderItem, type OrderAlternative } from "@/lib/shop-order";
 import { AssignGuestLook } from "@/components/assign-guest-look";
 import { InvoiceShopLook } from "@/components/invoice-shop-look";
+import { InvoiceAssignLook } from "@/components/invoice-assign-look";
+import { missingInvoiceWearers } from "@/lib/invoice-wearers";
+import type { PerniaLook } from "@/lib/pernia.functions";
 import { defaultSlotMode, invoiceMatches, invoiceOrderItems, parseVendorInvoice, type SlotMode, type VendorInvoice } from "@/lib/vendor-invoice";
 
-export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string; candidates: OrderItem[] }) {
+export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }: { inviteId: string; candidates: OrderItem[] }) {
   const qc = useQueryClient();
   const fileId = useId();
   const [busy, setBusy] = useState(false);
@@ -20,6 +23,20 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
   const [matches, setMatches] = useState<string[][]>([]);
   const [modes, setModes] = useState<SlotMode[][]>([]);
   const [details, setDetails] = useState<Record<number, OrderAlternative>>({});
+  const [fetched, setFetched] = useState<Record<number, PerniaLook>>({});
+  const [assigned, setAssigned] = useState<OrderItem[]>([]);
+  const candidates = [...pendingCandidates, ...assigned.filter(a => !pendingCandidates.some(c => c.reservationId === a.reservationId))];
+  const missing = useQuery({ queryKey: ["invoice-missing-wearers", inviteId], enabled: Boolean(invoice), queryFn: async () => {
+    const [members, events, access, looks, outfits] = await Promise.all([
+      supabase.from("invite_codes").select("id,guest_name,household,claimed_by,gender").eq("invite_id", inviteId).order("guest_name"),
+      supabase.from("events").select("id,name,outfit_selection").eq("invite_id", inviteId).eq("outfit_selection", true).order("name"),
+      supabase.from("household_event_invites").select("household,event_id,outfit_selection").eq("invite_id", inviteId),
+      supabase.from("reservations").select("guest_id,guest_name,member_code_id,outfits(event_id)").eq("invite_id", inviteId),
+      supabase.from("outfits").select("event_id,gender").eq("invite_id", inviteId).in("gender", ["boy", "girl"]).is("retired_at", null),
+    ]);
+    if (members.error) throw members.error; if (events.error) throw events.error; if (access.error) throw access.error; if (looks.error) throw looks.error; if (outfits.error) throw outfits.error;
+    return missingInvoiceWearers(members.data, events.data, access.data, looks.data, new Set(outfits.data.map(o => `${o.event_id}|${o.gender}`)));
+  }});
   async function read(file: File) {
     setBusy(true);
     try {
@@ -28,7 +45,7 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
       const existing = await supabase.from("wardrobe_orders").select("id").eq("invite_id", inviteId).eq("seller_reference", parsed.reference);
       if (existing.error) throw existing.error;
       if (existing.data.length) throw new Error(`Invoice ${parsed.reference} is already recorded`);
-      setFile(file); setInvoice(parsed); setDetails({});
+      setFile(file); setInvoice(parsed); setDetails({}); setFetched({}); setAssigned([]);
       setMatches(parsed.lines.map((line) => { const options = invoiceMatches(line, candidates); return options.length === line.quantity ? options.map((o) => o.reservationId) : Array.from({ length: line.quantity }, () => ""); }));
       setModes(parsed.lines.map((line) => Array.from({ length: line.quantity }, () => defaultSlotMode(line, candidates))));
     } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't read invoice"); }
@@ -79,15 +96,17 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
           <p className="text-sm">{invoice.date} · {invoice.stylist} · {invoice.lines.length} invoice lines</p>
           <div className="grid grid-cols-3 gap-2 text-sm"><p>Total<br /><strong>INR {money(invoice.total)}</strong></p><p>Stated paid<br /><strong>INR {money(invoice.paid)}</strong></p><p>Due<br /><strong>INR {money(invoice.due)}</strong></p></div>
           <AssignGuestLook inviteId={inviteId} onAssigned={() => { toast.success("Guest's confirmed look is now available for invoice matching"); }} />
+          {missing.isError ? <p className="text-sm text-destructive">Could not load guests without selections. Please reopen invoice review.</p> : null}
           {invoice.lines.map((line, index) => { const exact = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
             <p className="font-medium">{line.sku} · ordered size {line.orderedSize}</p>
             <p className="text-sm text-muted-foreground">Revised price INR {money(line.price)} − discount {money(line.discount)} = discounted price INR {money(line.net)}</p>
-            <InvoiceShopLook inviteId={inviteId} sku={line.sku} onFetched={look => setDetails(all => ({ ...all, [index]: { title: look.title, sku: look.sku, designer: look.designer, shop: look.url, image: look.images[0] ?? "" } }))} />
+            <InvoiceShopLook inviteId={inviteId} sku={line.sku} onFetched={look => { setFetched(all => ({ ...all, [index]: look })); setDetails(all => ({ ...all, [index]: { title: look.title, sku: look.sku, designer: look.designer, shop: look.url, image: look.images[0] ?? "" } })); }} />
             {!exact.length ? <p className="text-xs text-muted-foreground">No pending look matches this model. Assign a guest's look, use an alternative, or add an extra item.</p> : null}
             {Array.from({ length: line.quantity }, (_, slot) => {
               const mode = modes[index]?.[slot] ?? defaultSlotMode(line, candidates);
               const lookIds = new Set(invoice.lines.flatMap((l, i) => (matches[i] ?? []).filter((id, s) => id && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon")));
-              const options = mode === "look" ? exact : mode === "alternative" ? candidates : candidates.filter((c) => lookIds.has(c.reservationId));
+              const options = mode === "addon" ? candidates.filter((c) => lookIds.has(c.reservationId)) : candidates;
+              const missingWearer = missing.data?.find(w => w.key === matches[index]?.[slot]);
               const chosen = candidates.find((c) => c.reservationId === matches[index]?.[slot]);
               const setSlot = (id: string, m: SlotMode = mode) => {
                 setMatches((all) => all.map((ids, i) => { if (i !== index) return ids; const next = [...ids]; next[slot] = id; return next; }));
@@ -97,16 +116,23 @@ export function VendorInvoiceUpload({ inviteId, candidates }: { inviteId: string
                 <label className="text-sm">Use as{line.quantity > 1 ? ` (${slot + 1})` : ""}
                   <select aria-label={`Use ${line.sku} as`} className="field-select w-full" value={mode} onChange={(e) => setSlot("", e.target.value as SlotMode)}>
                     {exact.length ? <option value="look">Their chosen look</option> : null}
+                    <option value="assign">Assign to guest without selection</option>
                     <option value="alternative">Alternative to their look</option>
                     <option value="addon">Extra item (e.g. trousers)</option>
                   </select>
                 </label>
                 <label className="text-sm">{mode === "addon" ? "Add to whose look on this invoice" : "Person"}
-                  <select aria-label={`Wearer for ${line.sku}${line.quantity > 1 ? ` ${slot + 1}` : ""}`} className="field-select w-full" value={matches[index]?.[slot] ?? ""} onChange={(e) => setSlot(e.target.value)}>
+                  <select aria-label={`Wearer for ${line.sku}${line.quantity > 1 ? ` ${slot + 1}` : ""}`} className="field-select w-full" value={matches[index]?.[slot] ?? ""} onChange={(e) => {
+                    const id = e.target.value;
+                    if (id.startsWith("member:")) setSlot(id, "assign");
+                    else setSlot(id, mode === "addon" ? "addon" : exact.some(c => c.reservationId === id) ? "look" : "alternative");
+                  }}>
                     <option value="">{options.length ? "Choose a person and event" : mode === "addon" ? "Assign the main looks first" : "No matching pending look"}</option>
-                    {options.map((o) => <option key={o.reservationId} value={o.reservationId}>{o.wearer} · {o.event} · {o.title}{o.sku ? ` (${o.sku})` : ""} · selected size {o.size || "—"}</option>)}
+                    <optgroup label="Pending outfit orders">{options.map((o) => <option key={o.reservationId} value={o.reservationId}>{o.wearer} · {o.event} · {o.title}{o.sku ? ` (${o.sku})` : ""} · selected size {o.size || "—"}</option>)}</optgroup>
+                    {mode !== "addon" ? <optgroup label="No outfit selected">{missing.data?.map(w => <option key={w.key} value={w.key}>{w.member.guest_name} · {w.event.name} · {w.member.household} · No selection</option>)}</optgroup> : null}
                   </select>
                 </label>
+                {missingWearer ? <div className="sm:col-span-2"><InvoiceAssignLook inviteId={inviteId} member={missingWearer.member} event={missingWearer.event} line={line} fetched={fetched[index]} onAssigned={item => { setAssigned(all => [...all.filter(a => a.reservationId !== item.reservationId), item]); setSlot(item.reservationId, "look"); }} /></div> : null}
                 {chosen && mode !== "addon" ? <p className="text-xs text-muted-foreground sm:col-span-2">Original uploaded price: {chosen.originalPrice != null ? `INR ${money(chosen.originalPrice)}` : "Not recorded"}{mode === "alternative" ? " · Guest still sees their own choice" : ""}</p> : null}
               </div>;
             })}

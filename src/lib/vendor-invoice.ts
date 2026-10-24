@@ -38,7 +38,7 @@ export function validateInvoiceShopModel(invoiceSku: string, fetchedSku: string)
 }
 
 /** How an invoice line relates to a person: their own look, an order-only alternative to it, or an extra piece (e.g. trousers) for a look on this invoice. */
-export type SlotMode = "look" | "alternative" | "addon";
+export type SlotMode = "look" | "alternative" | "addon" | "assign";
 
 export function defaultSlotMode(line: InvoiceLine, candidates: OrderItem[]): SlotMode {
   return invoiceMatches(line, candidates).length ? "look" : "alternative";
@@ -57,6 +57,7 @@ export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[
     if (ids.length !== line.quantity || ids.some((id) => !id)) throw new Error(`Match all ${line.quantity} wearer(s) for ${line.sku}`);
     ids.forEach((id, slot) => {
       const mode = modeOf(index, slot);
+      if (mode === "assign" || id.startsWith("member:")) throw new Error("Assign the invoice outfit to this guest before saving the invoice");
       if (mode === "addon") return;
       const item = (mode === "look" ? invoiceMatches(line, candidates) : candidates).find((c) => c.reservationId === id);
       if (!item || used.has(id)) throw new Error("Each invoice outfit must go to a different person's pending look");
