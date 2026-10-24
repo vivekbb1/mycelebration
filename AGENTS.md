@@ -11,8 +11,7 @@
 
 - Live feeds per event: shop filters per audience, guests claim live, host hide. Why: no bulk importing needed.
 - Host-only orders snapshot wearer/prices/measurements with database-validated discounts/payments; family reports filter current reservation-linked look rows, retain full orders for payments/courier and separate currencies. Why: filtering must not invent shared-order payment allocations.
-- Store optional orderedSize separately from requested size; save size-only edits from latest items with an updated_at concurrency check. Why: preserve guest choices and concurrent order/payment edits without inferring legacy sizes.
-- Store the uploaded numeric outfit price in each new order item's optional originalPrice snapshot; price remains the revised vendor amount used for discounts and totals, and legacy missing snapshots stay unknown. Why: size-based price changes must not destroy the price comparison or imply payments.
+- Order items keep optional orderedSize apart from requested size and an originalPrice snapshot apart from revised price (used for totals; legacy missing = unknown); targeted edits (size, dates, notes, trousers) rewrite only that look from latest items with an updated_at check. Why: preserve guest choices, price comparison and concurrent edits.
 - Placed host orders atomically confirm reservation status and mirror only ordered size onto guest-readable reservations; order documents, prices and payments stay host-only. Why: guests see fulfilment details without access to private shop orders or alteration of selected sizes.
 - All invoice ingestion screens use one VendorInvoiceUpload with pendingOrderLook and shared member/event eligibility; inline assignment uses host_choose_outfit/Pernia import before matching real reservation IDs and one insert; parse/store PDFs privately. Why: consistent review without invented IDs or overwritten choices.
 - Alteration photos use a private celebration-prefixed bucket and signed URLs; shop PDFs are generated in the browser. Why: fitting media and measurements stay host-only and PDF generation needs no server filesystem.
@@ -33,8 +32,9 @@
 
 - Per-person records (reservations, measurements, room assignments, passports, travel travellers) link to the person by invite_code id (`member_code_id` / `traveller_code_ids`); names are display-only and a fallback for unlinked rows. Why: renaming a person must never detach their choices.
 - Pre-order search filters visibility, not selected reservation IDs; PDF and conversion resolve selections from the active tab's rows, while tab and dimension changes clear selections. Why: hosts can collect looks across searches without losing ticks or exporting another tab's selections.
-- Order alternatives/extras stay in items; trouser review saves only the targeted look with a version check. Why: preserve guest choices, payments and concurrent edits.
+- Order alternatives/extras stay in items. Why: guest choices stay untouched.
 - Photo enrichment is best-effort via the order helper. Why: bad shop links or failed lookups must not block order saves.
 - Persist pre-order alternatives separately by reservation and audit order alternative/size changes through database triggers; shared substitution controls and change-ID emails preserve original selections and tenant-scoped history without requiring invoices.
 - Collection substitutions and order saves atomically collect missing alternatives in the original event/category and retire originals; Orders uses the shared host chooser for missing guest looks. Why: preserve wearer history and assignment safeguards.
 - Registration-link outfit ranges are resolved through the wearer's family; eligibility and host confirmation are enforced by database functions/triggers, with existing reservations grandfathered and guest family reads linked by member code. Why: gallery filters cannot be the authorization boundary and host-selected looks must remain visible to their wearer.
+- Order views sequence people by invite_codes.created_at and looks by event schedule via `makeSequencer`; individual PDFs reuse the family PDF builder. Why: consistent order, no price/shop leakage.

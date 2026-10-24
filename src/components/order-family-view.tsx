@@ -1,5 +1,6 @@
 import type { LatestSub } from "@/components/substitution-note";
 import { money, type OrderItem } from "@/lib/shop-order";
+import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 
 type Look = { label: string; title?: string; sku?: string; designer?: string; image?: string; shop?: string; sizes: string[] };
 
@@ -17,10 +18,10 @@ function LookCard({ look, accent }: { look: Look; accent?: boolean }) {
   </div>;
 }
 
-/** Order items grouped by family → wearer, with original, substitute and extra items. */
-export function OrderFamilyView({ items, currency, subs }: { items: OrderItem[]; currency: string; subs?: Map<string, LatestSub> | undefined }) {
+/** Order items grouped by family → wearer (invitation order), each wearer's looks in event order. */
+export function OrderFamilyView({ items, currency, subs, seq = alphabetical }: { items: OrderItem[]; currency: string; subs?: Map<string, LatestSub> | undefined; seq?: Sequencer }) {
   const families = new Map<string, Map<string, OrderItem[]>>();
-  for (const i of items) {
+  for (const i of [...items].sort(seq.compare)) {
     const f = families.get(i.family || "No family") ?? new Map<string, OrderItem[]>();
     f.set(i.wearer, [...(f.get(i.wearer) ?? []), i]);
     families.set(i.family || "No family", f);
@@ -37,6 +38,7 @@ export function OrderFamilyView({ items, currency, subs }: { items: OrderItem[];
           return <div key={item.reservationId} className="space-y-3 pl-0 sm:pl-3">
             <p className="text-sm text-muted-foreground">{item.event || "Event"} · after discount {currency} {money(item.price - item.discount, currency)}</p>
             <p className="text-xs">Estimated delivery: {item.expectedDelivery || "Not recorded"} · Arrived: {item.arrivedOn || "Not yet"}{item.tracking ? ` · Tracking: ${item.tracking}` : ""}</p>
+            {item.wearerNote ? <p className="text-xs"><span className="text-muted-foreground">Note for {wearer}: </span>{item.wearerNote}</p> : null}
             <div className="grid gap-4 sm:grid-cols-2">
               <LookCard look={{ label: "Guest's selection", title: item.title, sku: item.sku, designer: item.designer, image: item.image, shop: item.shop, sizes: [`Guest requested size: ${item.size || "Not recorded"}`, ...(alt ? [] : [`Actual size ordered: ${item.orderedSize || "Not recorded"}`])] }} />
               {alt ? <LookCard accent look={{ label: "Substitute ordered", title: alt.title, sku: alt.sku, designer: alt.designer, image: alt.image, shop: alt.shop, sizes: [`Actual size ordered: ${item.orderedSize || sub?.replacement.size || "Not recorded"}`] }} /> : <p className="self-center text-xs text-muted-foreground">No substitute — original look ordered</p>}
