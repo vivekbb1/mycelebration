@@ -8,6 +8,21 @@ export type OrderItem = { reservationId: string; wearer: string; family: string;
   /** Note shown to the wearer: accessories to carry, styling tips. Mirrored to their look once placed. */
   wearerNote?: string };
 
+/** Photo enrichment is optional: malformed links and shop failures must not block an order save. */
+export async function enrichOrderAlternative(item: OrderItem, fetchLook: (url: URL) => Promise<{ images: string[]; sku: string; designer: string } | null>): Promise<OrderItem> {
+  const alt = item.alternative;
+  if (!alt || alt.outfitId || alt.image || !alt.shop) return item;
+  try {
+    const url = new URL(alt.shop);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return item;
+    const look = await fetchLook(url);
+    return look ? { ...item, alternative: { ...alt, image: look.images[0] ?? "", sku: alt.sku || look.sku, designer: alt.designer || look.designer } } : item;
+  } catch {
+    // Retain the host's replacement details; explicit Fetch still reports lookup errors.
+    return item;
+  }
+}
+
 /** Revised vendor price changes never replace the original upload snapshot. */
 export function setRevisedPrice(items: OrderItem[], reservationId: string, price: number) {
   return items.map((item) => item.reservationId === reservationId ? { ...item, price } : item);

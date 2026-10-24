@@ -1,7 +1,30 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { addAddOn, familyOrderReport, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, validateOrder, type OrderItem } from "./shop-order";
+import { addAddOn, enrichOrderAlternative, familyOrderReport, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, validateOrder, type OrderItem } from "./shop-order";
 const item = { price: 10000, discount: 1000 } as OrderItem;
+it("incomplete shop links do not reject order-save enrichment or erase replacement details", async () => {
+  for (const shop of ["www.perniaspopupshop.com/look.html", "Pernia", "https://", "mailto:shop@example.com"]) {
+    const original = { ...item, alternative: { title: "Replacement", sku: "ALT1", designer: "", shop, image: "" } };
+    let calls = 0;
+    const saved = await enrichOrderAlternative(original, async () => { calls++; return null; });
+    strictEqual(saved, original); strictEqual(calls, 0);
+  }
+});
+it("failed shop lookups do not reject a grouped order save", async () => {
+  const original = { ...item, wearerNote: "Carry a shirt", alternative: { title: "Replacement", sku: "ALT1", designer: "", shop: "https://www.perniaspopupshop.com/look.html", image: "" } };
+  const collected = await Promise.all([original, item].map(i => enrichOrderAlternative(i, async () => { throw new Error("Shop unavailable"); })));
+  strictEqual(collected[0], original); strictEqual(collected[1], item);
+});
+it("successful enrichment retains host details and financial values while filling the replacement photo", async () => {
+  const original = { ...item, alternative: { title: "Replacement", sku: "ALT1", designer: "Host designer", shop: "https://www.perniaspopupshop.com/look.html", image: "" } };
+  const saved = await enrichOrderAlternative(original, async url => {
+    strictEqual(url.hostname, "www.perniaspopupshop.com");
+    return { images: ["replacement.jpg"], sku: "SHOP1", designer: "Shop designer" };
+  });
+  strictEqual(saved.alternative?.image, "replacement.jpg"); strictEqual(saved.alternative?.sku, "ALT1");
+  strictEqual(saved.alternative?.designer, "Host designer"); strictEqual(saved.price, 10000);
+  strictEqual(original.alternative.image, "");
+});
 it("retains original price while revised size pricing and discounts determine value, not payment", () => {
   const original = [{ ...item, reservationId: "a", originalPrice: 10000 }];
   const revised = setRevisedPrice(original, "a", 12000);
