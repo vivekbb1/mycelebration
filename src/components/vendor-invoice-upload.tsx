@@ -37,6 +37,11 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
     if (members.error) throw members.error; if (events.error) throw events.error; if (access.error) throw access.error; if (looks.error) throw looks.error; if (outfits.error) throw outfits.error;
     return missingInvoiceWearers(members.data, events.data, access.data, looks.data, new Set(outfits.data.map(o => `${o.event_id}|${o.gender}`)));
   }});
+  const wardrobeSkus = useQuery({ queryKey: ["invoice-wardrobe-skus", inviteId], enabled: Boolean(invoice), queryFn: async () => {
+    const r = await supabase.from("outfits").select("source_sku").eq("invite_id", inviteId).is("retired_at", null).not("source_sku", "is", null);
+    if (r.error) throw r.error;
+    return new Set(r.data.map(o => (o.source_sku ?? "").trim().toUpperCase()));
+  }});
   async function read(file: File) {
     setBusy(true);
     try {

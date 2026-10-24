@@ -47,3 +47,6 @@
 - [x] "Adjustments needed" per outfit and general comments per tailor
 - [x] "Talk to the hosts" shows only the signed-in guest's own family thread
 - [ ] Federico Michelini: two measurement records disagree — waiting on host to say which values are correct
+
+- [x] Invoice upload: tick/cross per line for in-wardrobe, link fetch when missing
+- [x] Order view: family view with original/substitute photos, sizes and extra items
