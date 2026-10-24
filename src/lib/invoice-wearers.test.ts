@@ -17,3 +17,7 @@ it("does not offer events excluded by household wardrobe access", () => {
   const result = missingInvoiceWearers([oscar], events, [{ household: "Family", event_id: "wedding", outfit_selection: true }], [], new Set());
   deepStrictEqual(result.map(w => w.event.id), ["wedding"]);
 });
+it("a reservation removes only its member/event pair, retaining guests without selections for other events", () => {
+  const result = missingInvoiceWearers([oscar], events, [], [{ guest_id: "host", guest_name: "Oscar", member_code_id: "oscar", outfits: { event_id: "bollywood" } }], new Set());
+  deepStrictEqual(result.map(w => w.key), ["member:oscar:wedding"]);
+});

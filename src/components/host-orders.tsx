@@ -300,6 +300,8 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   const select = "field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm";
 
   const candidates = (data.data ?? []).map(toItem);
+  const invoiceUpload = <VendorInvoiceUpload inviteId={inviteId} candidates={(data.data ?? [])
+    .filter((row) => pendingOrderLook(row.id, row.order_placed_at, inOrder)).map(toItem)} />;
   const filterBar = (<div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {([["gender", "All looks"], ["event", "All events"], ["family", "All families"], ["person", "All people"]] as const).map(([k, all]) => (
             <select key={k} aria-label={all} className="field-select h-9 w-full rounded-md border border-border bg-background px-2 text-sm" value={dim[k]}
@@ -363,13 +365,13 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
   if (view === "orders") return (
     <div className="space-y-5">
       <GroupedShopOrders inviteId={inviteId} candidates={candidates} preorder={pending.map(toItem)} />
-      <VendorInvoiceUpload inviteId={inviteId} candidates={candidates.filter((c) => !inOrder.has(c.reservationId) && !(data.data ?? []).find((r) => r.id === c.reservationId)?.order_placed_at)} />
+      {invoiceUpload}
     </div>
   );
   return (
     <div className="space-y-5">
       <GroupedShopOrders listHidden inviteId={inviteId} startWith={startWith} onStarted={() => { setStartWith(null); setPicked(new Set()); }} candidates={candidates} />
-      <VendorInvoiceUpload inviteId={inviteId} candidates={candidates.filter((c) => !inOrder.has(c.reservationId) && !(data.data ?? []).find((r) => r.id === c.reservationId)?.order_placed_at)} />
+      {invoiceUpload}
       {rows.length ? <PreorderFamilyTotals items={rows.map(toItem)} /> : null}
       {rows.length ? (
         <div className="panel-wrap sticky top-2 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 p-3">
