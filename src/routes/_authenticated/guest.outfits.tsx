@@ -174,7 +174,7 @@ function Lookbook() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, outfit_id, guest_id, guest_name, member_code_id, status, size_choice, ordered_size, wearer_note");
+        .select("id, outfit_id, guest_id, guest_name, member_code_id, status, size_choice, ordered_size, wearer_note, ordered_look_title, ordered_look_image");
       if (error) throw error;
       return data;
     },
@@ -791,12 +791,13 @@ function Lookbook() {
         return (
           <div className="panel mt-6 p-4 sm:p-6">
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-              {held?.image_url ? (
-                <img src={held.image_url} referrerPolicy="no-referrer" alt={held.title} className="h-40 w-28 rounded-md object-cover" />
+              {res?.ordered_look_image || held?.image_url ? (
+                <img src={res?.ordered_look_image || held?.image_url || ""} referrerPolicy="no-referrer" alt={res?.ordered_look_title || held?.title || "Look"} className="h-40 w-28 rounded-md object-cover" />
               ) : null}
               <div className="min-w-0 flex-1">
                 <p className="text-eyebrow">{locked ? "Confirmed" : "Reserved"} for {activeName}</p>
-                <h2 className="mt-1 text-xl">{held?.title}</h2>
+                <h2 className="mt-1 text-xl">{res?.ordered_look_title || held?.title}</h2>
+                {res?.ordered_look_title ? <p className="mt-1 text-sm text-primary">Updated look · replaces your original choice: {held?.title}</p> : null}
                 {res?.size_choice ? <p className="mt-1 text-sm text-muted-foreground">Size: {res.size_choice}</p> : null}
                 {res?.ordered_size ? <p className="mt-1 text-sm font-medium">Size ordered: {res.ordered_size}</p> : null}
                 {res?.wearer_note ? <p className="mt-1 whitespace-pre-line text-sm"><span className="font-medium">Note from your hosts:</span> {res.wearer_note}</p> : null}
