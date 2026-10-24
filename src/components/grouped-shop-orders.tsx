@@ -30,8 +30,8 @@ const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
 
 /** Orders built from pre-order selections. `startWith` opens a new order prefilled with looks. */
-export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden, preorder = [] }: {
-  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean;
+export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden, preorder = [], actions }: {
+  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean; actions?: import("react").ReactNode;
 }) {
   const qc = useQueryClient();
   const pernia = useServerFn(fetchPerniaLook); const kora = useServerFn(fetchKoraLook);
@@ -256,7 +256,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <div className="min-w-0"><h2 className="text-xl">Shop orders</h2>{active.length ? <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
         {([["Active orders", String(active.length)], ["Total", sum.total.toLocaleString(...nf(currency))], ["Paid", sum.paid.toLocaleString(...nf(currency))], ["Balance", (sum.total - sum.paid).toLocaleString(...nf(currency))]] as const).map(([l, v]) => <div key={l} className="rounded-md border border-border px-3 py-1.5"><p className="text-xs text-muted-foreground">{l}</p><p className="font-medium tabular-nums">{v}</p></div>)}
       </div> : null}</div>
-      <Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button>
+      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">{actions}<Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button></div>
     </div>
     {dupes.length ? <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
       <p className="font-medium text-destructive">Possible duplicate orders: {dupes.length} {dupes.length === 1 ? "person has" : "people have"} more than one main outfit for the same event</p>
