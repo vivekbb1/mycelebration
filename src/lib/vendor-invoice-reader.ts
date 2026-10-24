@@ -1,8 +1,8 @@
 /** Loaded only in the upload handler so PDF.js never enters server execution. */
 export async function readInvoicePdf(file: File) {
   if (file.size > 20 * 1024 * 1024) throw new Error("Invoice must be under 20 MB");
-  const pdfjs = await import("pdfjs-dist");
-  const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const worker = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url");
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
   try {
