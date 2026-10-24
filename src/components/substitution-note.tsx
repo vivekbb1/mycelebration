@@ -11,6 +11,25 @@ function thumb(src: string) {
   return src;
 }
 
+const generic = (s?: { title?: string; sku?: string }) => !s?.title?.trim() || /^alternative\s/i.test(s.title.trim()) || s.title.trim() === s.sku?.trim();
+
+/** Fills photo, name and shop link of substitutes saved with only a model number, from the wardrobe (same model number). */
+export async function fillSnapsFromWardrobe<T extends { title?: string; sku?: string; image?: string; shop?: string; designer?: string }>(snaps: T[]): Promise<void> {
+  const need = snaps.filter((s) => s.sku?.trim() && (!s.image || generic(s)));
+  const skus = [...new Set(need.map((s) => s.sku!.trim()))];
+  if (!skus.length) return;
+  const r = await supabase.from("outfits").select("title, designer, source_sku, boutique_url, image_url").in("source_sku", skus);
+  if (r.error) return;
+  const by = new Map(r.data.map((o) => [(o.source_sku ?? "").trim().toUpperCase(), o]));
+  for (const s of need) {
+    const o = by.get(s.sku!.trim().toUpperCase()); if (!o) continue;
+    if (!s.image && o.image_url) s.image = o.image_url;
+    if (generic(s) && o.title) s.title = o.title;
+    if (!s.shop && o.boutique_url) s.shop = o.boutique_url;
+    if (!s.designer && o.designer) s.designer = o.designer;
+  }
+}
+
 /** Latest host substitution per reservation (host-only history). */
 export function useLatestSubstitutions(reservationIds: string[]) {
   const ids = [...new Set(reservationIds)].sort();
@@ -24,6 +43,7 @@ export function useLatestSubstitutions(reservationIds: string[]) {
         if (r.error) throw r.error;
         for (const h of r.data) if (!latest.has(h.reservation_id)) latest.set(h.reservation_id, { original: h.original as SubSnap, replacement: h.replacement as SubSnap, order: Boolean(h.order_id), at: h.created_at });
       }
+      await fillSnapsFromWardrobe([...latest.values()].map((l) => l.replacement));
       return latest;
     },
   });

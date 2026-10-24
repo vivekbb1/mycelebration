@@ -1,4 +1,4 @@
-import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
+import { SubstitutionNote, fillSnapsFromWardrobe, useLatestSubstitutions } from "@/components/substitution-note";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, FileDown, FileUp, Plus, Repeat, Save, Trash2, Undo2 } from "lucide-react";
@@ -50,7 +50,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   }
   const orders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    await fillSnapsFromWardrobe((data ?? []).flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.alternative).filter((a): a is NonNullable<OrderItem["alternative"]> => Boolean(a))));
+    return data ?? [];
   } });
   const wardrobe = useQuery({ queryKey: ["order-wardrobe", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const { data, error } = await supabase.from("outfits").select("id, title, designer, source_sku, boutique_url, image_url, price_inr, gender").eq("invite_id", inviteId).order("title");
