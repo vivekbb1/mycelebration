@@ -50,5 +50,5 @@
 
 - [x] Invoice upload: tick/cross per line for in-wardrobe, link fetch when missing
 - [x] Invoice review: save as draft with PDF, person/event picks, substitutions; resume or delete drafts
-- [ ] Family-shareable order PDF without prices, model numbers or shop details (not built yet)
+- [x] Family PDF from Orders → outfits by family: photos, look names, sizes, extras, wearer notes; no prices, model numbers or shop details
 - [x] Order view: family view with original/substitute photos, sizes and extra items
