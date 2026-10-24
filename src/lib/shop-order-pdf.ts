@@ -164,8 +164,9 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
     if (line) out.push(line); return out;
   };
   let page = pdf.addPage([595, 842]); let y = 800;
-  page.drawText(clean(`${family} - outfits to reconfirm`), { x: 40, y, size: 18, font: bold }); y -= 18;
-  page.drawText(clean(`${celebration} | ${lines.length} looks | ${new Date().toLocaleDateString("en-GB")}`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 16;
+  page.drawText(clean(celebration), { x: 40, y, size: 20, font: bold, color: accent }); y -= 22;
+  page.drawText(clean(`${family} - Outfits Ordered`), { x: 40, y, size: 14, font: bold }); y -= 16;
+  page.drawText(clean(`${lines.length} looks | ${new Date().toLocaleDateString("en-GB")}`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 16;
   for (const t of wrap("Please check each look and size below and tell your hosts about any last-minute changes.", 9.5, regular, 515)) { page.drawText(t, { x: 40, y, size: 9.5, font: regular }); y -= 13; }
   y -= 10;
   for (const l of lines) {
@@ -187,7 +188,7 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
     page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
   }
   const pages = pdf.getPages();
-  pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); });
+  pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); p.drawText("mycelebration.app", { x: 40, y: 22, size: 8, font: bold, color: accent }); });
   return new Blob([new Uint8Array(await pdf.save())], { type: "application/pdf" });
 }
 
