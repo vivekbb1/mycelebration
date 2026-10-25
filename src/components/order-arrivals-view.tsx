@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, ExternalLink, FileDown } from "lucide-react";
+import { AlertTriangle, ArrowDownWideNarrow, ArrowUpWideNarrow, ExternalLink, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "@/components/order-status-badge";
@@ -9,7 +9,7 @@ import { ArrivalLookReview } from "@/components/arrival-look-review";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
 import { orderSizeWarnings } from "@/lib/order-size-review";
 import { sameWearer, wearerLookLine } from "@/lib/wearer-order";
-import { arrivalStage, type ArrivalStage } from "@/lib/shipment";
+import { arrivalStage, compareArrivalDates, type ArrivalStage } from "@/lib/shipment";
 import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 import { money, type OrderItem } from "@/lib/shop-order";
 import type { LatestSub } from "@/components/substitution-note";
@@ -24,7 +24,8 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders
   const today = new Date().toISOString().slice(0, 10);
   const [stage, setStage] = useState<ArrivalStage | "">("");
   const rows = orders.filter((o) => o.status !== "cancelled").flatMap((o) => o.items.filter((i) => matches(i, o)).map((i) => ({ o, i, ...current(i), stage: arrivalStage(i, today) })));
-  const sorted = STAGES.flatMap(([k]) => rows.filter((r) => r.stage === k).sort((a, b) => (k === "arrived" ? (b.i.arrivedOn ?? "").localeCompare(a.i.arrivedOn ?? "") : (a.i.expectedDelivery ?? "").localeCompare(b.i.expectedDelivery ?? "")) || a.wearer.localeCompare(b.wearer)));
+  const [dateSort, setDateSort] = useState<"asc" | "desc">("asc");
+  const sorted = [...rows].sort((a, b) => compareArrivalDates(a.i, b.i, dateSort) || seq.compare({ wearer: a.wearer, event: a.i.event }, { wearer: b.wearer, event: b.i.event }));
   const [byFamily, setByFamily] = useState(false);
   const [q, setQ] = useState("");
   const [reviewOnly, setReviewOnly] = useState(false);
@@ -32,7 +33,7 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders
   const needle = q.trim().toLowerCase();
   const filtered = sorted.filter((r) => (!stage || r.stage === stage) && (!reviewOnly || orderSizeWarnings(r.i).length > 0) && (!needle || [r.wearer, r.family, r.i.event, r.i.title, r.i.alternative?.title, r.i.sku, r.o.reference, r.o.seller_reference, r.i.tracking, r.i.wearerNote, ...(r.i.addOns ?? []).flatMap((a) => [a.label, a.sku])].some((v) => v?.toLowerCase().includes(needle))));
   const shown = byFamily ? [...filtered].sort((a, b) => a.family.localeCompare(b.family) || seq.compare({ wearer: a.wearer, event: a.i.event }, { wearer: b.wearer, event: b.i.event })) : filtered;
-  const groupOf = (r: (typeof shown)[number]) => byFamily ? r.family || "No family" : STAGES.find(([k]) => k === r.stage)?.[1] ?? "Expected";
+  const groupOf = (r: (typeof shown)[number]) => byFamily ? r.family || "No family" : fmt(r.i.arrivedOn || r.i.expectedDelivery) || "No delivery date";
   const exportRows = allOrders.filter((o) => o.status !== "cancelled").flatMap((o) => o.items.map((i) => ({ i, ...current(i) })));
   const linesFor = (family: string, wearer?: string) => exportRows.filter((r) => wearer ? sameWearer(r, { wearer, family }) : r.family === family).sort((a, b) => seq.compare({ wearer: a.wearer, event: a.i.event }, { wearer: b.wearer, event: b.i.event })).map((r) => wearerLookLine(r.i, r.wearer, substitutions?.get(r.i.reservationId)));
   async function familyPdf(family: string) {
@@ -55,6 +56,7 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders
       {([["", "All"], ...STAGES] as const).map(([k, l]) => <Button key={k || "all"} size="sm" variant={stage === k ? "default" : "outline"} onClick={() => setStage(k)}>{l} ({k ? rows.filter((r) => r.stage === k).length : rows.length})</Button>)}
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, family, event, look, tracking…" aria-label="Search arrivals" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm sm:w-64" />
       <span className="ml-auto inline-flex gap-1"><Button size="sm" variant={byFamily ? "outline" : "default"} onClick={() => setByFamily(false)}>By date</Button><Button size="sm" variant={byFamily ? "default" : "outline"} onClick={() => setByFamily(true)}>By family</Button></span>
+      {!byFamily ? <div role="group" aria-label="Sort arrivals by date" className="flex flex-wrap gap-1"><Button size="sm" variant={dateSort === "asc" ? "default" : "outline"} aria-pressed={dateSort === "asc"} onClick={() => setDateSort("asc")}><ArrowDownWideNarrow className="size-4" /> Earliest first</Button><Button size="sm" variant={dateSort === "desc" ? "default" : "outline"} aria-pressed={dateSort === "desc"} onClick={() => setDateSort("desc")}><ArrowUpWideNarrow className="size-4" /> Latest first</Button></div> : null}
       <Button size="sm" variant="outline" disabled={!shown.length} onClick={() => void pdf()}><FileDown className="size-4" /> Arrivals PDF</Button>
     </div>
     <div className="flex flex-wrap items-center gap-2"><Button size="sm" variant={reviewOnly ? "default" : "outline"} onClick={() => setReviewOnly((v) => !v)}><AlertTriangle className="size-4" /> Size review ({rows.filter((r) => orderSizeWarnings(r.i).length > 0).length})</Button></div>
