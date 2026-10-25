@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileDown, MessageCircle, StickyNote } from "lucide-react";
+import { FileDown, MessageCircle, StickyNote, Truck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { setShipment } from "@/lib/shipment";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
@@ -78,6 +80,44 @@ export function WearerNoteButton({ inviteId, orderId, item, wearer, disabled }: 
       <div className="min-w-0 space-y-0.5 rounded-md bg-muted/50 p-2 text-sm"><p className="break-words font-medium">{wearer}</p><p className="break-words text-xs text-muted-foreground">{item.event} · {item.alternative?.title || item.title}</p></div>
       <Textarea aria-label={`Wearer note for ${wearer} — ${item.event}`} rows={4} value={note} placeholder="e.g. It's a suit — please carry your own white shirt" onChange={(e) => setNote(e.target.value)} />
       <div className="flex flex-wrap justify-end gap-2"><Button variant="ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save note"}</Button></div>
+    </DialogContent></Dialog>
+  </>;
+}
+
+/** Shipment details (dates, courier, tracking) for one or more looks of one order; saves only those looks against the latest version. */
+export function ShipmentButton({ inviteId, orderId, items, label, compact }: { inviteId: string; orderId: string; items: OrderItem[]; label: string; compact?: boolean }) {
+  const qc = useQueryClient();
+  const first = items[0];
+  const blank = { expectedDelivery: first?.expectedDelivery ?? "", arrivedOn: first?.arrivedOn ?? "", tracking: first?.tracking ?? "", courierName: first?.courierName ?? "", trackingUrl: first?.trackingUrl ?? "" };
+  const [open, setOpen] = useState(false); const [s, setS] = useState(blank); const [busy, setBusy] = useState(false);
+  const recorded = items.some((i) => i.arrivedOn || i.expectedDelivery || i.tracking || i.courierName);
+  async function save() {
+    setBusy(true);
+    try {
+      const current = await supabase.from("wardrobe_orders").select("items, updated_at").eq("id", orderId).eq("invite_id", inviteId).single();
+      if (current.error) throw current.error;
+      const next = setShipment(current.data.items as unknown as OrderItem[], items.map((i) => i.reservationId), s);
+      const saved = await supabase.from("wardrobe_orders").update({ items: next as unknown as Json }).eq("id", orderId).eq("invite_id", inviteId).eq("updated_at", current.data.updated_at).select("id").maybeSingle();
+      if (saved.error) throw saved.error;
+      if (!saved.data) throw new Error("The order changed while saving. Try again");
+      await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
+      toast.success(`Shipment saved for ${label}`); setOpen(false);
+    } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't save shipment"); } finally { setBusy(false); }
+  }
+  const f = (k: keyof typeof s) => (e: React.ChangeEvent<HTMLInputElement>) => setS((p) => ({ ...p, [k]: e.target.value }));
+  return <>
+    <Button size="sm" variant={compact ? "ghost" : "outline"} className={compact ? "h-7 shrink-0 px-2 text-xs" : undefined} disabled={!items.length} aria-label={`Shipment for ${label}`} onClick={() => { setS(blank); setOpen(true); }}><Truck className="size-4" /> {first?.arrivedOn ? "Arrived" : recorded ? "Shipment" : "Add shipment"}</Button>
+    <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+      <DialogHeader><DialogTitle className="pr-8 text-base leading-snug sm:text-lg">Shipment<span className="block text-sm font-normal text-muted-foreground">Private — host only</span></DialogTitle></DialogHeader>
+      <div className="min-w-0 rounded-md bg-muted/50 p-2 text-sm"><p className="break-words font-medium">{label}</p>{items.length > 1 ? <p className="text-xs text-muted-foreground">Applies to all {items.length} looks in this order</p> : <p className="break-words text-xs text-muted-foreground">{first?.event} · {first?.alternative?.title || first?.title}</p>}</div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm">Estimated delivery<Input type="date" value={s.expectedDelivery} onChange={f("expectedDelivery")} /></label>
+        <label className="text-sm">Arrived on<div className="flex gap-1"><Input type="date" value={s.arrivedOn} onChange={f("arrivedOn")} /><Button type="button" size="sm" variant="outline" className="h-10 shrink-0" onClick={() => setS((p) => ({ ...p, arrivedOn: new Date().toISOString().slice(0, 10) }))}>Today</Button></div></label>
+        <label className="text-sm">Courier company<Input value={s.courierName} placeholder="e.g. DHL, Blue Dart" onChange={f("courierName")} /></label>
+        <label className="text-sm">Tracking reference<Input value={s.tracking} placeholder="AWB / consignment no." onChange={f("tracking")} /></label>
+        <label className="text-sm sm:col-span-2">Tracking link<Input type="url" value={s.trackingUrl} placeholder="https://…" onChange={f("trackingUrl")} /></label>
+      </div>
+      <div className="flex flex-wrap justify-end gap-2"><Button variant="ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save shipment"}</Button></div>
     </DialogContent></Dialog>
   </>;
 }

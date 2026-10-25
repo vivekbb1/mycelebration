@@ -8,7 +8,7 @@ import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 import type { OrderItem } from "@/lib/shop-order";
 import { buildFamilyLooksPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { wearerLookLine } from "@/lib/wearer-order";
-import { IndividualShare, WearerNoteButton, pdfFileName, sharePdfOnWhatsApp } from "@/components/wearer-order-actions";
+import { IndividualShare, ShipmentButton, WearerNoteButton, pdfFileName, sharePdfOnWhatsApp } from "@/components/wearer-order-actions";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 
 const ALL = "__all__";
@@ -68,7 +68,7 @@ export function OrderEventView({ inviteId, orders, candidates, substitutions, ma
                 </div>
               </div>
               <div className="space-y-2 border-t border-border p-3">
-                <div className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={order.reference}>{order.reference}</span><OrderStatusBadge status={order.status} /><Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => onOpen(order.id)}>Open order</Button></div>
+                <div className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={order.reference}>{order.reference}</span><OrderStatusBadge status={order.status} />{order.status !== "cancelled" ? <ShipmentButton compact inviteId={inviteId} orderId={order.id} items={[item]} label={`${wearer} — ${item.event}`} /> : null}<Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => onOpen(order.id)}>Open order</Button></div>
                 {order.status !== "cancelled" ? <div className="grid grid-cols-3 gap-1.5 [&>button]:h-8 [&>button]:w-full [&>button]:min-w-0 [&>button]:px-1.5 [&>button]:text-xs [&_svg]:shrink-0"><WearerNoteButton inviteId={inviteId} orderId={order.id} item={item} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={lines(f.all.filter((r) => r.wearer === wearer))} phone={phoneOf(wearer)} /></div> : null}
               </div>
             </li>;
