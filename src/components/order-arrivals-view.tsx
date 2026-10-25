@@ -31,7 +31,7 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, current, 
     return { group: groupOf(r), wearer: r.wearer, family: r.family, event: r.i.event, title: rep?.title || r.i.title, orderedSize: r.i.orderedSize ?? "", requestedSize: r.i.size ?? "", reference: r.o.seller_reference || r.o.reference, shop: r.o.shop_name, expected: fmt(r.i.expectedDelivery), arrived: fmt(r.i.arrivedOn), courier: r.i.courierName ?? "", tracking: r.i.tracking ?? "",
       originalTitle: r.i.title, originalImage: r.i.image, originalSku: r.i.sku, ...(rep ? { replacementTitle: rep.title || "Replacement", replacementImage: rep.image ?? "", replacementSku: rep.sku ?? "" } : {}),
       price: `${r.o.currency} ${money(r.i.price - r.i.discount, r.o.currency)}`, note: r.i.wearerNote ?? "",
-      subgroup: byFamily ? r.wearer : undefined, extras: (r.i.addOns ?? []).map((e) => `${e.label || "Extra item"}${e.sku ? ` (${e.sku})` : ""}${e.size ? ` · size ${e.size}` : ""} · ${r.o.currency} ${money(e.price - e.discount, r.o.currency)}`) };
+      ...(byFamily ? { subgroup: r.wearer } : {}), extras: (r.i.addOns ?? []).map((e) => `${e.label || "Extra item"}${e.sku ? ` (${e.sku})` : ""}${e.size ? ` · size ${e.size}` : ""} · ${r.o.currency} ${money(e.price - e.discount, r.o.currency)}`) };
   };
   async function pdf() {
     try { saveBlob(await buildArrivalsPdf(byFamily ? `${celebrationName} - by family` : celebrationName, shown.map(lineOf)), byFamily ? "outfit-arrivals-by-family.pdf" : "outfit-arrivals.pdf"); } catch { toast.error("Couldn't create the PDF"); }
