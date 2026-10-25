@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [x] Arrivals family/member review: family links, measurements, ordered-size edits, substitution, notes, family/individual PDFs and pre-dispatch size warnings added; signed-in controls and PDF downloads checked at desktop/tablet/phone widths without saving real orders; 27 tests passed. New quick-size persistence and real-phone sharing not exercised.
 - [x] Shared status badges verified in By person/family/event on desktop and phone; exact closing sizing/tailor note inspected in real family/individual PDFs; 18 tests passed, order writes blocked.
 - [x] Pants pairing verified per event-specific reservation: Oscar Wedding/Bollywood regression, same-event duplicate guard, 24 tests passed; signed-in invoice review offers Grant for both events, all order writes blocked.
 - [x] Oscar pants already linked to Wedding order; fixed host event eligibility for unrestricted families; 31 tests passed, temporary records cleaned, saved orders unchanged.
