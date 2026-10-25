@@ -305,8 +305,8 @@ function FamilyPageContent() {
 
       <div className="gold-rule my-8" />
 
-      <nav aria-label="Family sections" className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        {[["family-members", "Members"], ["family-orders", "Ordered outfits"], ["family-measurements", "Measurements"], ...(has("arrivals") ? [["family-arrivals", "Arrival & stay"]] : [])].filter(([id]) => id !== "family-orders" || has("wardrobe_picker")).map(([id, label]) => <Button key={id} asChild variant="outline"><a href={`#${id}`}>{label}</a></Button>)}
+      <nav aria-label="Family sections" className="sticky top-0 z-20 -mx-4 mb-6 grid grid-cols-2 gap-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:static sm:mx-0 sm:flex sm:flex-wrap sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+        {[...(has("arrivals") ? [["family-arrivals", "Arrival & stay"]] : []), ["family-orders", "Wardrobe PDF & outfits"], ["family-members", "Members"], ["family-measurements", "Measurements"]].filter(([id]) => id !== "family-orders" || (has("wardrobe_picker") && inviteId)).map(([id, label]) => <Button key={id} asChild variant="outline" size="sm"><a href={`#${id}`}>{label}</a></Button>)}
       </nav>
       {has("arrivals") ? <section id="family-arrivals" className="mb-6 min-w-0 scroll-mt-6 border-b border-border pb-6">
         <h2 className="text-xl">Arrival & stay</h2>
