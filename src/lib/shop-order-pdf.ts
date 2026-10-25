@@ -230,7 +230,7 @@ async function embedLookPhoto(pdf: PDFDocument, src: string) {
   return null;
 }
 
-export type ArrivalLine = { group: string; wearer: string; family: string; event: string; title: string; orderedSize: string; reference: string; shop: string; expected: string; arrived: string; courier: string; tracking: string; originalTitle: string; originalImage: string; originalSku: string; replacementTitle?: string; replacementImage?: string; replacementSku?: string; price: string };
+export type ArrivalLine = { group: string; wearer: string; family: string; event: string; title: string; orderedSize: string; reference: string; shop: string; expected: string; arrived: string; courier: string; tracking: string; originalTitle: string; originalImage: string; originalSku: string; replacementTitle?: string; replacementImage?: string; replacementSku?: string; price: string; requestedSize: string; note: string; extras: string[] };
 
 /** Host-only arrival tracker: one row per outfit with selected/substituted photos, model references and discounted price. */
 export async function buildArrivalsPdf(celebration: string, lines: ArrivalLine[]) {
@@ -246,28 +246,36 @@ export async function buildArrivalsPdf(celebration: string, lines: ArrivalLine[]
   page.drawText(clean(`${celebration} - Outfit arrivals`), { x: 40, y, size: 16, font: bold, color: accent }); y -= 16;
   page.drawText(clean(`${lines.length} outfits | ${new Date().toLocaleDateString("en-GB")} | host only`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 20;
   const header = () => { for (const [x, , h] of cols) page.drawText(h, { x, y, size: 8, font: bold, color: rgb(.35, .35, .35) }); y -= 12; };
+  const cache = new Map<string, Promise<Awaited<ReturnType<typeof embedLookPhoto>>>>();
+  const load = (src: string) => { if (!cache.has(src)) cache.set(src, (async () => { for (let k = 0; k < 3; k++) { const r = await embedLookPhoto(pdf, src).catch(() => null); if (r) return r; await new Promise((ok) => setTimeout(ok, 400 * (k + 1))); } return null; })()); return cache.get(src)!; };
+  const srcs = [...new Set(lines.flatMap((l) => [l.originalImage, l.replacementImage]).filter((x): x is string => !!x))];
+  for (let k = 0; k < srcs.length; k += 4) await Promise.all(srcs.slice(k, k + 4).map(load));
   const photo = async (src: string | undefined, x: number, top: number, label: string) => {
-    const img = src ? await embedLookPhoto(pdf, src).catch(() => null) : null;
+    const img = src ? await load(src) : null;
     if (img) { const s = img.scaleToFit(38, 50); page.drawImage(img, { x, y: top - s.height, width: s.width, height: s.height }); }
     else page.drawRectangle({ x, y: top - 50, width: 38, height: 50, borderColor: rgb(.85, .85, .85), borderWidth: .5 });
     page.drawText(label, { x, y: top - 58, size: 6, font: regular, color: grey });
   };
   let group = "";
   for (const l of lines) {
-    if (y < 40 + ROW) { page = pdf.addPage([W, H]); y = H - 40; group = ""; }
+    const extra = l.extras.length + (l.note ? 1 : 0); const rowH = Math.max(ROW, 52 + extra * 10);
+    if (y < 40 + rowH) { page = pdf.addPage([W, H]); y = H - 40; group = ""; }
     if (l.group !== group) { group = l.group; y -= 4; page.drawText(clean(group), { x: 40, y, size: 11, font: bold, color: accent }); y -= 14; header(); }
     const top = y + 8;
     await photo(l.originalImage, 40, top, "Selected");
     if (l.replacementTitle) await photo(l.replacementImage, 84, top, "Substitute");
     const put = (n: number, rows: [string, boolean?][]) => { const [x, w] = cols[n]!; rows.forEach(([t, b], k) => { if (t) page.drawText(fit(t, w - 4, b ? 8.5 : 7.5, b ? bold : regular), { x, y: y - k * 10, size: b ? 8.5 : 7.5, font: b ? bold : regular, ...(b ? {} : { color: grey }) }); }); };
-    put(1, [[l.wearer, true], [l.family], [l.orderedSize ? `Size ${l.orderedSize}` : ""]]);
+    put(1, [[l.wearer, true], [l.family], [`Requested: ${l.requestedSize || "-"}`], [`Ordered: ${l.orderedSize || "-"}`]]);
     put(2, [[l.event, true], [`Selected: ${l.originalTitle}`], [`Model ref: ${l.originalSku || "-"}`], ...(l.replacementTitle ? [[`Substitute: ${l.replacementTitle}`], [`Model ref: ${l.replacementSku || "-"}`]] as [string][] : [])]);
     put(3, [[l.price, true]]);
+    let ny = y - 52; const nx = cols[2]![0];
+    for (const e of l.extras) { page.drawText(fit(`+ Extra: ${e}`, W - 40 - nx, 7.5), { x: nx, y: ny, size: 7.5, font: regular, color: grey }); ny -= 10; }
+    if (l.note) { page.drawText(fit(`Wearer note: ${l.note}`, W - 40 - nx, 7.5, bold), { x: nx, y: ny, size: 7.5, font: bold, color: accent }); }
     put(4, [[l.reference, true], [l.shop]]);
     put(5, [[l.expected || "-", true]]);
     put(6, [[l.arrived || "Not yet", true]]);
     put(7, [[l.courier || "-", true], [l.tracking]]);
-    y -= ROW; page.drawLine({ start: { x: 40, y: y + 8 }, end: { x: W - 40, y: y + 8 }, thickness: .4, color: rgb(.88, .88, .88) });
+    y -= rowH; page.drawLine({ start: { x: 40, y: y + 8 }, end: { x: W - 40, y: y + 8 }, thickness: .4, color: rgb(.88, .88, .88) });
   }
   const pages = pdf.getPages();
   pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: p.getWidth() - 40 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); p.drawText("mycelebration.app", { x: 40, y: 22, size: 8, font: bold, color: accent }); });
