@@ -230,7 +230,7 @@ async function embedLookPhoto(pdf: PDFDocument, src: string) {
   return null;
 }
 
-export type ArrivalLine = { group: string; wearer: string; family: string; event: string; title: string; orderedSize: string; reference: string; shop: string; expected: string; arrived: string; courier: string; tracking: string; originalTitle: string; originalImage: string; originalSku: string; replacementTitle?: string; replacementImage?: string; replacementSku?: string; price: string; requestedSize: string; note: string; extras: string[] };
+export type ArrivalLine = { group: string; wearer: string; family: string; event: string; title: string; orderedSize: string; reference: string; shop: string; expected: string; arrived: string; courier: string; tracking: string; originalTitle: string; originalImage: string; originalSku: string; replacementTitle?: string; replacementImage?: string; replacementSku?: string; price: string; requestedSize: string; note: string; extras: string[]; subgroup?: string };
 
 /** Host-only arrival tracker: one row per outfit with selected/substituted photos, model references and discounted price. */
 export async function buildArrivalsPdf(celebration: string, lines: ArrivalLine[]) {
@@ -256,11 +256,12 @@ export async function buildArrivalsPdf(celebration: string, lines: ArrivalLine[]
     else page.drawRectangle({ x, y: top - 50, width: 38, height: 50, borderColor: rgb(.85, .85, .85), borderWidth: .5 });
     page.drawText(label, { x, y: top - 58, size: 6, font: regular, color: grey });
   };
-  let group = "";
+  let group = ""; let sub = "";
   for (const l of lines) {
     const extra = l.extras.length + (l.note ? 1 : 0); const rowH = Math.max(ROW, 52 + extra * 10);
-    if (y < 40 + rowH) { page = pdf.addPage([W, H]); y = H - 40; group = ""; }
-    if (l.group !== group) { group = l.group; y -= 4; page.drawText(clean(group), { x: 40, y, size: 11, font: bold, color: accent }); y -= 14; header(); }
+    if (y < 40 + rowH) { page = pdf.addPage([W, H]); y = H - 40; group = ""; sub = ""; }
+    if (l.group !== group) { group = l.group; sub = ""; y -= 4; page.drawText(clean(group), { x: 40, y, size: 11, font: bold, color: accent }); y -= 14; header(); }
+    if (l.subgroup && l.subgroup !== sub) { sub = l.subgroup; if (y < 40 + rowH + 14) { page = pdf.addPage([W, H]); y = H - 40; page.drawText(clean(`${group} (cont.)`), { x: 40, y, size: 11, font: bold, color: accent }); y -= 14; header(); } page.drawRectangle({ x: 40, y: y - 3, width: W - 80, height: 13, color: rgb(.96, .93, .89) }); page.drawText(fit(sub, W - 90, 9, bold), { x: 44, y, size: 9, font: bold }); y -= 16; }
     const top = y + 8;
     await photo(l.originalImage, 40, top, "Selected");
     if (l.replacementTitle) await photo(l.replacementImage, 84, top, "Substitute");
