@@ -141,12 +141,23 @@ function FamilyPageContent() {
   });
 
   const travel = useQuery({
-    queryKey: ["family-travel", name],
-    enabled: isHost,
+    queryKey: ["family-travel", name, inviteId],
+    enabled: isHost && has("arrivals") && Boolean(inviteId),
     queryFn: async () => {
-      const { data, error } = await supabase.from("travel_plans").select("*").eq("household", name);
+      if (!inviteId) return [];
+      const { data, error } = await supabase.from("travel_plans").select("*").eq("household", name).eq("invite_id", inviteId);
       if (error) throw error;
       return data ?? [];
+    },
+  });
+  const stay = useQuery({
+    queryKey: ["family-profile-stay", inviteId, familyId],
+    enabled: isHost && has("arrivals") && Boolean(inviteId && familyId),
+    queryFn: async () => {
+      if (!inviteId || !familyId) return null;
+      const { data, error } = await supabase.from("families").select("prepaid_checkin_date, prepaid_checkout_date").eq("id", familyId).eq("invite_id", inviteId).maybeSingle();
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -299,6 +310,7 @@ function FamilyPageContent() {
       </nav>
       {has("arrivals") ? <section id="family-arrivals" className="mb-6 min-w-0 scroll-mt-6 border-b border-border pb-6">
         <h2 className="text-xl">Arrival & stay</h2>
+        {stay.data?.prepaid_checkin_date || stay.data?.prepaid_checkout_date ? <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg border border-border p-3 text-sm"><div><p className="text-xs text-muted-foreground">Prepaid check-in</p><p>{dateLabel(stay.data.prepaid_checkin_date)}</p></div><div><p className="text-xs text-muted-foreground">Prepaid check-out</p><p>{dateLabel(stay.data.prepaid_checkout_date)}</p></div></div> : null}
         {travel.isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading travel details…</p> : travel.isError ? <p className="mt-3 text-sm text-destructive">Couldn't load travel details.</p> : !travel.data?.length ? <p className="mt-3 text-sm text-muted-foreground">No arrival or stay dates recorded yet.</p> : <ul className="mt-3 grid gap-3 md:grid-cols-2">{travel.data.map((plan) => <li key={plan.id} className="min-w-0 rounded-lg border border-border p-3">
           <h3 className="break-words font-medium">{plan.traveller_code_ids?.length ? rows.filter((p) => plan.traveller_code_ids?.includes(p.id)).map((p) => p.guest_name).join(" · ") || "Family travel group" : plan.travellers?.join(" · ") || plan.guest_name || "Whole family"}</h3>
           <dl className="mt-2 grid grid-cols-2 gap-3 text-sm">{[["Arrival", plan.arrival_date, plan.arrival_time], ["Check-in", plan.checkin_date, plan.checkin_time], ["Check-out", plan.checkout_date, plan.checkout_time], ["Departure", plan.departure_date, plan.departure_time]].map(([label, date, time]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="break-words">{date ? dateLabel(date) : "Not recorded"}{time ? ` · ${time}` : ""}</dd></div>)}</dl>

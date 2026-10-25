@@ -831,7 +831,7 @@ function HostDashboard() {
         {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
           <Tabs value={!sub || sub === "import" ? "outfits" : sub} onValueChange={(v) => go("wardrobe", v)}>
-            <TabsList className="max-w-full justify-start overflow-x-auto">  
+            <TabsList className="grid h-auto w-full max-w-full grid-cols-3 gap-1 sm:grid-cols-4 lg:flex lg:flex-wrap lg:justify-start [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:whitespace-normal">
               <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="manage">Manage</TabsTrigger>
               <TabsTrigger value="feeds">Live feeds</TabsTrigger>
