@@ -11,9 +11,8 @@ import { AssignGuestLook } from "@/components/assign-guest-look";
 import { InvoiceShopLook } from "@/components/invoice-shop-look";
 import { InvoiceAssignLook } from "@/components/invoice-assign-look";
 import { missingInvoiceWearers } from "@/lib/invoice-wearers";
-import { canPairTrouserExtra } from "@/lib/trouser-pairing";
 import type { PerniaLook } from "@/lib/pernia.functions";
-import { defaultSlotMode, invoiceMatches, invoiceOrderItems, parseVendorInvoice, type SlotMode, type VendorInvoice } from "@/lib/vendor-invoice";
+import { defaultSlotMode, invoiceMatches, invoiceOrderItems, invoiceTrouserOptions, parseVendorInvoice, type SlotMode, type VendorInvoice } from "@/lib/vendor-invoice";
 
 export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }: { inviteId: string; candidates: OrderItem[] }) {
   const qc = useQueryClient();
@@ -167,15 +166,7 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
             {!exact.length ? <p className="text-xs text-muted-foreground">No pending look matches this model. Assign a guest's look, use an alternative, or add an extra item.</p> : null}
             {Array.from({ length: line.quantity }, (_, slot) => {
               const mode = modes[index]?.[slot] ?? defaultSlotMode(line, candidates);
-              const lookIds = new Set(invoice.lines.flatMap((l, i) => (matches[i] ?? []).filter((id, s) => id && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon")));
-              const options = mode === "addon" ? candidates.filter((c) => {
-                if (!lookIds.has(c.reservationId)) return false;
-                const mainIndex = invoice.lines.findIndex((l, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon"));
-                const mainLine = invoice.lines[mainIndex];
-                const replacement = mainLine && !invoiceMatches(mainLine, [c]).length ? details[mainIndex] ?? { sku: mainLine.sku, title: "" } : undefined;
-                const alreadyPaired = invoice.lines.some((l, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && (i !== index || s !== slot) && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) === "addon"));
-                return !alreadyPaired && canPairTrouserExtra(c, wardrobeSkus.data ?? [], replacement);
-              }) : candidates;
+              const options = mode === "addon" ? invoiceTrouserOptions(invoice, candidates, matches, modes, details, wardrobeSkus.data ?? [], index, slot) : candidates;
               const missingWearer = missing.data?.find(w => w.key === matches[index]?.[slot]);
               const chosen = candidates.find((c) => c.reservationId === matches[index]?.[slot]);
               const setSlot = (id: string, m: SlotMode = mode) => {
@@ -191,7 +182,7 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
                     <option value="addon">Extra item (e.g. trousers)</option>
                   </select>
                 </label>
-                <label className="text-sm">{mode === "addon" ? "Add to whose look on this invoice" : "Person"}
+                <label className="text-sm">{mode === "addon" ? "Person and event for these trousers" : "Person"}
                   <select aria-label={`Wearer for ${line.sku}${line.quantity > 1 ? ` ${slot + 1}` : ""}`} className="field-select w-full" value={matches[index]?.[slot] ?? ""} onChange={(e) => {
                     const id = e.target.value;
                     if (id.startsWith("member:")) setSlot(id, "assign");

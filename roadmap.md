@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [x] Pants pairing verified per event-specific reservation: Oscar Wedding/Bollywood regression, same-event duplicate guard, 24 tests passed; signed-in invoice review offers Grant for both events, all order writes blocked.
 - [x] Oscar pants already linked to Wedding order; fixed host event eligibility for unrestricted families; 31 tests passed, temporary records cleaned, saved orders unchanged.
 - [x] Invoice extra pairing excludes sets/included/linked pants; 23 tests and real invoice review verified without saving orders.
 - [x] Verified ten green white-pants extra ticks in both order views; saved-order fingerprints unchanged.
