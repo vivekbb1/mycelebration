@@ -243,7 +243,7 @@
 .order-workspace :is(button, input, select, textarea) {
   min-width: 0;
 }
-.order-workspace button {
+.order-workspace button:not([role="checkbox"]) {
   white-space: normal;
   overflow-wrap: anywhere;
   height: auto;
@@ -253,7 +253,7 @@
   overflow-wrap: anywhere;
 }
 @media (pointer: coarse) {
-  .order-workspace :is(button, input, select, [role="combobox"]) {
+  .order-workspace :is(button:not([role="checkbox"]), input, select, [role="combobox"]) {
     min-height: 2.75rem;
   }
   .order-workspace textarea {

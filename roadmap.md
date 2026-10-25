@@ -1,6 +1,6 @@
 # Roadmap — multi-celebration platform
-- [ ] Check and improve Orders layouts and touch controls across phone, iPad, desktop and large screens.
-- [ ] Add family ordered-outfit overview/PDF and prominent arrival/check-in details; verify without changing saved orders.
+- [x] Orders: all seven views checked at 390/768/1024/1440/1920px without page overflow; wrapped navigation, readable cards and scoped touch targets. Real hardware gestures remain device-dependent.
+- [x] Family: ordered-look overview, family/individual PDFs, notes/extras and arrival/check-in/prepaid dates; actual Falcioni PDF downloaded, ten regression tests passed, saved-order writes blocked.
 - [x] Orderer measurement editing in Arrivals → By family: temporary order saved/reloaded with chest 107 cm, sizes unchanged, records cleaned; phone checked and 23 tests passed. Edits affect order measurements only, not guest submissions.
 - [x] Arrivals family/member review: family links, measurements, ordered-size edits, substitution, notes, family/individual PDFs and pre-dispatch size warnings added; signed-in controls and PDF downloads checked at desktop/tablet/phone widths without saving real orders; 27 tests passed. New quick-size persistence and real-phone sharing not exercised.
 - [x] Shared status badges verified in By person/family/event on desktop and phone; exact closing sizing/tailor note inspected in real family/individual PDFs; 18 tests passed, order writes blocked.
