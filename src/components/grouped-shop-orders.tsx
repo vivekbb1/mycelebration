@@ -21,7 +21,7 @@ import { fetchPerniaLook } from "@/lib/pernia.functions";
 import { fetchKoraLook } from "@/lib/kora.functions";
 import { TrouserPairingReview } from "@/components/trouser-pairing-review";
 import { OrderEventView } from "@/components/order-event-view";
-import { IndividualShare, ShipmentButton, WearerNoteButton, useOrderPeople } from "@/components/wearer-order-actions";
+import { IndividualShare, ShipmentButton, ShipmentLine, WearerNoteButton, useOrderPeople } from "@/components/wearer-order-actions";
 import { OrderArrivalsView } from "@/components/order-arrivals-view";
 import { OrderMenSetsView } from "@/components/order-men-sets-view";
 import { useCelebrationName } from "@/components/family-order-report";
@@ -294,7 +294,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
             <p className="text-xs"><WardrobeFlag sku={look.sku} skus={wardrobeSkus} />{i.alternative ? <span className="text-muted-foreground"> · original <WardrobeFlag sku={i.sku} skus={wardrobeSkus} /></span> : null}</p>
             <p className="text-xs">Size {i.size || "—"} → ordered {i.orderedSize || "—"}</p>
             {(i.addOns ?? []).map((a) => <p key={a.id} className="truncate text-xs">Extra: {a.label || a.sku || "item"}{a.sku ? <> · <WardrobeFlag sku={a.sku} skus={wardrobeSkus} /></> : null}</p>)}
-            {i.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{i.wearerNote}</p> : null}
+            {i.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{i.wearerNote}</p> : null}<ShipmentLine item={i} />
           </div>
           </div>
           <div className="space-y-2 border-t border-border p-3">
