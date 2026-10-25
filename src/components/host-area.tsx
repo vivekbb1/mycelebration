@@ -829,7 +829,7 @@ function HostDashboard() {
         )}
 
         {!has("wardrobe_picker") ? null : (
-        <TabsContent value="wardrobe" className="mt-6">
+        <TabsContent value="wardrobe" className="wardrobe-ui mt-6">
           <Tabs value={!sub || sub === "import" || sub === "outfits" || sub === "feeds" ? "manage" : sub} onValueChange={(v) => go("wardrobe", v)}>
             <TabsList className="grid h-auto w-full max-w-full grid-cols-3 gap-1 sm:grid-cols-4 lg:flex lg:flex-wrap lg:justify-start [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:whitespace-normal">
               <TabsTrigger value="manage">Manage</TabsTrigger>
@@ -1067,7 +1067,7 @@ function HostDashboard() {
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Input
                 className="col-span-2 sm:col-span-3"
-                placeholder="Search name, designer, code or paste a shop link"
+                type="search" aria-label="Search wardrobe" placeholder="Search name, designer, code or paste a shop link"
                 value={fq}
                 onChange={(e) => setFq(e.target.value)}
               />

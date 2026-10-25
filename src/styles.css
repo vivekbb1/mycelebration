@@ -265,3 +265,17 @@
     font-size: 1rem;
   }
 }
+
+/* Wardrobe sub-tabs share Pre-orders' control sizing: search/filters and buttons align on every device. */
+.wardrobe-ui :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, [role="combobox"]) {
+  min-height: 2.5rem;
+  border-radius: calc(var(--radius) - 2px);
+}
+.wardrobe-ui button:not([role="checkbox"]):not([role="tab"]):not([role="switch"]) {
+  min-height: 2.25rem;
+}
+@media (pointer: coarse) {
+  .wardrobe-ui :is(input:not([type="checkbox"]):not([type="radio"]), select, [role="combobox"], button:not([role="checkbox"]):not([role="switch"])) {
+    min-height: 2.75rem;
+  }
+}
