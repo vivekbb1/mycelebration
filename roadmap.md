@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [ ] Verify and enforce pants pairing per person/event, without changing saved orders.
 - [x] Oscar pants already linked to Wedding order; fixed host event eligibility for unrestricted families; 31 tests passed, temporary records cleaned, saved orders unchanged.
 - [x] Invoice extra pairing excludes sets/included/linked pants; 23 tests and real invoice review verified without saving orders.
 - [x] Verified ten green white-pants extra ticks in both order views; saved-order fingerprints unchanged.
