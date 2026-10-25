@@ -4,6 +4,34 @@ import { invoiceMatches, invoiceOrderItems, invoiceTrouserOptions, parseVendorIn
 import type { OrderItem } from "./shop-order";
 
 const text = "ORDER NO : 100581221 DATE : 20-10-2026 ROPK112508-BO-S ROSA by Priyanka kar 1 ₹33,000.00 ₹8,250.00 ₹24,750.00 ORDER TAKEN BY Muskaan Oberoi TOTAL AMOUNT ₹33,000.00 TOTAL PAYABLE ₹24,750.00 TOTAL PAID ₹20,000.00 AMOUNT DUE ₹4,750.00";
+it("unknown invoice substitutes allow reviewed trousers for an eligible original men's look", () => {
+  const invoice = parseVendorInvoice("ORDER NO : 5 DATE : 25-10-2026 NEW123-BO-L X 1 ₹10,000.00 ₹0.00 ₹10,000.00 KASB082443-BO-L Y 1 ₹4,840.00 ₹242.00 ₹4,598.00 ORDER TAKEN BY M TOTAL AMOUNT ₹1 TOTAL PAYABLE ₹14,598.00 TOTAL PAID ₹10,000.00 AMOUNT DUE ₹4,598.00");
+  const candidate = { reservationId: "oscar-bollywood", wearer: "Oscar", event: "Big Bollywood Night", sku: "OLD1", title: "Kurta", size: "M", price: 9000, discount: 0 } as OrderItem;
+  const wardrobe = [{ source_sku: "OLD1", title: "Kurta", gender: "men" }];
+  const matches = [[candidate.reservationId], [candidate.reservationId]];
+  const modes: SlotMode[][] = [["alternative"], ["addon"]];
+  for (const details of [{}, { 0: { title: "New kurta", sku: "NEW123", designer: "", shop: "", image: "" } }]) {
+    strictEqual(invoiceTrouserOptions(invoice, [candidate], matches, modes, details, wardrobe, 1, 0).length, 1);
+    const result = invoiceOrderItems(invoice, [candidate], matches, modes, details, wardrobe);
+    strictEqual(result[0]?.alternative?.sku, "NEW123");
+    strictEqual(result[0]?.addOns?.[0]?.sku, "KASB082443");
+    strictEqual(result[0]?.size, "M");
+    strictEqual(result[0]?.orderedSize, "L");
+    strictEqual(candidate.addOns, undefined);
+  }
+  for (const deniedWardrobe of [[], [{ ...wardrobe[0], gender: "women" }], [{ ...wardrobe[0], title: "Kurta Set" }], [...wardrobe, { source_sku: "NEW123", title: "Kurta Set", gender: "men" }]]) {
+    strictEqual(invoiceTrouserOptions(invoice, [candidate], matches, modes, {}, deniedWardrobe, 1, 0).length, 0);
+    throws(() => invoiceOrderItems(invoice, [candidate], matches, modes, {}, deniedWardrobe));
+  }
+  for (const title of ["Replacement Kurta Set", "Kurta with trousers"]) {
+    const details = { 0: { title, sku: "NEW123", designer: "", shop: "", image: "" } };
+    strictEqual(invoiceTrouserOptions(invoice, [candidate], matches, modes, details, wardrobe, 1, 0).length, 0);
+    throws(() => invoiceOrderItems(invoice, [candidate], matches, modes, details, wardrobe));
+  }
+  const duplicate = { ...candidate, addOns: [{ id: "pants", label: "Trousers", sku: "KASB082443", size: "L", shop: "", price: 4598, discount: 0, notes: "" }] };
+  strictEqual(invoiceTrouserOptions(invoice, [duplicate], matches, modes, {}, wardrobe, 1, 0).length, 0);
+  throws(() => invoiceOrderItems(invoice, [duplicate], matches, modes, {}, wardrobe));
+});
 it("Oscar's Wedding pants never exclude his Big Bollywood Night trouser pairing", () => {
   const wedding = { reservationId: "oscar-wedding", wearer: "Oscar", event: "Wedding", sku: "MAIN1", title: "Jacket", size: "XXL", price: 10000, discount: 0, addOns: [{ id: "wedding-pants", label: "Pants", sku: "KASB082590", size: "XXL", price: 4598, discount: 0, shop: "", notes: "" }] } as OrderItem;
   const bollywood = { ...wedding, reservationId: "oscar-bollywood", event: "Big Bollywood Night", addOns: [] };
