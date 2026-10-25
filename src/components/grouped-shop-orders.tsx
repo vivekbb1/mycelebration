@@ -21,7 +21,8 @@ import { fetchPerniaLook } from "@/lib/pernia.functions";
 import { fetchKoraLook } from "@/lib/kora.functions";
 import { TrouserPairingReview } from "@/components/trouser-pairing-review";
 import { OrderEventView } from "@/components/order-event-view";
-import { IndividualShare, WearerNoteButton, useOrderPeople } from "@/components/wearer-order-actions";
+import { IndividualShare, ShipmentButton, WearerNoteButton, useOrderPeople } from "@/components/wearer-order-actions";
+import { OrderArrivalsView } from "@/components/order-arrivals-view";
 import { useCelebrationName } from "@/components/family-order-report";
 import { alphabetical } from "@/lib/order-sequence";
 import { sameWearer, wearerLookLine } from "@/lib/wearer-order";
@@ -172,7 +173,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     if (current.error) throw current.error;
     const latest = current.data.items as unknown as OrderItem[];
     if (!latest.some((i) => i.reservationId === item.reservationId)) throw new Error("This look is no longer in the order. Reopen it to continue");
-    const next = latest.map((i) => i.reservationId === item.reservationId ? { ...i, expectedDelivery: item.expectedDelivery ?? "", arrivedOn: item.arrivedOn ?? "", tracking: (item.tracking ?? "").trim() } : i);
+    const next = latest.map((i) => i.reservationId === item.reservationId ? { ...i, expectedDelivery: item.expectedDelivery ?? "", arrivedOn: item.arrivedOn ?? "", tracking: (item.tracking ?? "").trim(), courierName: (item.courierName ?? "").trim(), trackingUrl: (item.trackingUrl ?? "").trim() } : i);
     const saved = await supabase.from("wardrobe_orders").update({ items: next as unknown as Json }).eq("id", id).eq("invite_id", inviteId).eq("updated_at", current.data.updated_at).select("updated_at").maybeSingle();
     if (saved.error) throw saved.error;
     if (!saved.data) throw new Error("The order changed while saving. Try again");
@@ -214,7 +215,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const [orderSearch, setOrderSearch] = useState("");
-  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "amounts">("order");
+  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "arrivals" | "amounts">("order");
   const [statusFilter, setStatusFilter] = useState("");
   const showReport = listView === "amounts"; const showLooks = listView === "family";
   const peopleInfo = useOrderPeople(inviteId);
@@ -265,8 +266,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <p className="mt-1 text-xs text-muted-foreground">Extra items like trousers don't count. Tap a name to see their outfits.</p>
     </div> : null}
     <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 py-2 backdrop-blur">
-      <div role="tablist" aria-label="View orders" className="grid grid-cols-3 gap-1 rounded-lg border border-border p-1 sm:grid-cols-5">
-        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
+      <div role="tablist" aria-label="View orders" className="grid grid-cols-3 gap-1 rounded-lg border border-border p-1 sm:grid-cols-6">
+        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["arrivals", "Arrivals"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
       </div>
       <Input placeholder="Search name, family, event, outfit, ref" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
       {statuses.length > 1 ? <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
@@ -296,12 +297,13 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           </div>
           </div>
           <div className="space-y-2 border-t border-border p-3">
-            <div className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={o.reference}>{o.reference}</span><OrderStatusBadge status={o.status} /><Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => openOrder(o)}>Open order</Button></div>
+            <div className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={o.reference}>{o.reference}</span><OrderStatusBadge status={o.status} />{o.status !== "cancelled" ? <ShipmentButton compact inviteId={inviteId} orderId={o.id} items={[i]} label={`${wearer} — ${i.event}`} /> : null}<Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => openOrder(o)}>Open order</Button></div>
             {o.status !== "cancelled" ? <div className="grid grid-cols-3 gap-1.5 [&>button]:h-8 [&>button]:w-full [&>button]:min-w-0 [&>button]:px-1.5 [&>button]:text-xs [&_svg]:shrink-0"><WearerNoteButton inviteId={inviteId} orderId={o.id} item={i} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={linesFor(wearer, family)} phone={phones?.get(wearer.trim().toLowerCase())} /></div> : null}
           </div>
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
     })() : null}
     {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} seq={seq} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} onOpen={openById} /> : null}
+    {listView === "arrivals" ? <OrderArrivalsView inviteId={inviteId} celebrationName={celebrationName} orders={reportOrders} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family }; }} matches={reportMatches} onOpen={openById} /> : null}
     {listView === "event" ? <OrderEventView inviteId={inviteId} celebrationName={celebrationName} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} events={peopleInfo.data?.events ?? []} seq={seq} onOpen={openById} /> : null}
     {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-xl border border-border p-4 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
@@ -321,7 +323,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           {q ? <p className="text-xs text-primary">{(o.items as unknown as OrderItem[]).filter(itemHit).map((i) => `${i.wearer} · ${i.event} · ${i.alternative?.title || i.title}`).join(" | ")}</p> : null}
           <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · balance {t.balance.toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
         </div>
-        <Button variant="outline" size="sm" className="w-full shrink-0 sm:w-auto" onClick={() => openOrder(o)}>Open order</Button>
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end"><Button variant="outline" size="sm" className="w-full shrink-0 sm:w-auto" onClick={() => openOrder(o)}>Open order</Button>{o.status !== "cancelled" ? <ShipmentButton inviteId={inviteId} orderId={o.id} items={o.items as unknown as OrderItem[]} label={o.reference} /> : null}{(o.items as unknown as OrderItem[]).some((i) => i.expectedDelivery || i.arrivedOn) ? <p className="text-xs text-muted-foreground">{(o.items as unknown as OrderItem[]).filter((i) => i.arrivedOn).length}/{(o.items as unknown as OrderItem[]).length} arrived</p> : null}</div>
       </div>); })}</div> : null}
     {orders.isSuccess && !(orders.data ?? []).length ? <p className="text-sm text-muted-foreground">No shop orders yet. Tick looks in Pre-orders and choose "Convert to one order", or start a new order here.</p> : null}
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
@@ -432,8 +434,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           <p className="text-sm">Original size<br /><strong>{item.size || "Not recorded"}</strong></p>
           <label className="text-sm">Estimated delivery<Input type="date" aria-label={`Estimated delivery for ${item.wearer} — ${item.event}`} value={item.expectedDelivery ?? ""} onChange={(e) => changeItem(item.reservationId, { expectedDelivery: e.target.value })} /></label>
           <label className="text-sm">Arrived on<Input type="date" aria-label={`Arrival date for ${item.wearer} — ${item.event}`} value={item.arrivedOn ?? ""} onChange={(e) => changeItem(item.reservationId, { arrivedOn: e.target.value })} /></label>
-          <label className="text-sm">Tracking details<Input aria-label={`Tracking for ${item.wearer} — ${item.event}`} value={item.tracking ?? ""} placeholder="Courier · AWB / link" onChange={(e) => changeItem(item.reservationId, { tracking: e.target.value })} /></label>
-          {id ? <Button type="button" size="sm" variant="outline" className="sm:col-span-4 sm:w-fit" disabled={busy} onClick={() => void run(() => saveDelivery(item), `Delivery dates saved for ${item.wearer} · ${item.event}`, false)}><Save className="size-4" /> Save dates for this outfit</Button> : null}
+          <label className="text-sm">Tracking reference<Input aria-label={`Tracking for ${item.wearer} — ${item.event}`} value={item.tracking ?? ""} placeholder="AWB / consignment no." onChange={(e) => changeItem(item.reservationId, { tracking: e.target.value })} /></label>
+          <label className="text-sm">Courier company<Input aria-label={`Courier for ${item.wearer} — ${item.event}`} value={item.courierName ?? ""} placeholder="e.g. DHL" onChange={(e) => changeItem(item.reservationId, { courierName: e.target.value })} /></label>
+          <label className="text-sm sm:col-span-2">Tracking link<Input type="url" aria-label={`Tracking link for ${item.wearer} — ${item.event}`} value={item.trackingUrl ?? ""} placeholder="https://…" onChange={(e) => changeItem(item.reservationId, { trackingUrl: e.target.value })} /></label>
+          {id ? <Button type="button" size="sm" variant="outline" className="sm:col-span-4 sm:w-fit" disabled={busy} onClick={() => void run(() => saveDelivery(item), `Delivery dates saved for ${item.wearer} · ${item.event}`, false)}><Save className="size-4" /> Save shipment for this outfit</Button> : null}
         </div>
         <label className="block min-w-0 text-sm"><span className="block break-words font-medium leading-snug">Customisations / availability questions</span><span className="mb-2 mt-1 block break-words text-xs leading-relaxed text-muted-foreground">Private — host only. Never shown to guests or printed in family/individual PDFs.</span><Textarea aria-label={`Private customisations / availability questions for ${item.wearer} — ${item.event}`} value={item.notes} onChange={(e) => changeItem(item.reservationId, { notes: e.target.value })} /></label>
         <label className="block min-w-0 text-sm"><span className="block font-medium leading-snug">Wearer note</span><span className="mb-1 block text-xs leading-snug text-muted-foreground">Shown to {item.wearer} and printed in PDFs</span><Textarea aria-label={`Note for ${item.wearer} — ${item.event}`} value={item.wearerNote ?? ""} placeholder="e.g. Carry the matching mojaris and pocket square; pair with gold studs" onChange={(e) => changeItem(item.reservationId, { wearerNote: e.target.value })} /></label>

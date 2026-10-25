@@ -229,3 +229,31 @@ async function embedLookPhoto(pdf: PDFDocument, src: string) {
   }
   return null;
 }
+
+export type ArrivalLine = { group: string; wearer: string; family: string; event: string; title: string; orderedSize: string; reference: string; shop: string; expected: string; arrived: string; courier: string; tracking: string };
+
+/** Host-only arrival tracker: one line per outfit, grouped by arrival stage/date. No prices. */
+export async function buildArrivalsPdf(celebration: string, lines: ArrivalLine[]) {
+  const pdf = await PDFDocument.create();
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const clean = (s: string) => s.replace(/[–—]/g, "-").replace(/[·]/g, "|").replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
+  const fit = (s: string, w: number, size: number, font = regular) => { let t = clean(s); while (t && font.widthOfTextAtSize(t, size) > w) t = t.slice(0, -1); return t.length < clean(s).length ? `${t.slice(0, -1)}.` : t; };
+  const accent = rgb(.55, .27, .12);
+  const cols = [[40, 120, "Wearer / family"], [160, 120, "Event / look"], [280, 95, "Order"], [375, 60, "Expected"], [435, 60, "Arrived"], [495, 80, "Courier / tracking"]] as const;
+  let page = pdf.addPage([595, 842]); let y = 800;
+  page.drawText(clean(`${celebration} - Outfit arrivals`), { x: 40, y, size: 16, font: bold, color: accent }); y -= 16;
+  page.drawText(clean(`${lines.length} outfits | ${new Date().toLocaleDateString("en-GB")} | host only`), { x: 40, y, size: 9, font: regular, color: rgb(.35, .35, .35) }); y -= 20;
+  const header = () => { for (const [x, , h] of cols) page.drawText(h, { x, y, size: 8, font: bold, color: rgb(.35, .35, .35) }); y -= 12; };
+  let group = "";
+  for (const l of lines) {
+    if (y < 80) { page = pdf.addPage([595, 842]); y = 800; group = ""; }
+    if (l.group !== group) { group = l.group; y -= 4; page.drawText(clean(group), { x: 40, y, size: 11, font: bold, color: accent }); y -= 14; header(); }
+    const cells: [string, string][] = [[l.wearer, l.family], [l.event, l.title], [l.reference, l.shop], [l.expected || "-", ""], [l.arrived || "Not yet", ""], [l.courier || "-", l.tracking]];
+    cells.forEach(([a, b], n) => { const [x, w] = cols[n]!; page.drawText(fit(a, w - 4, 8.5, bold), { x, y, size: 8.5, font: bold }); if (b) page.drawText(fit(b, w - 4, 8), { x, y: y - 10, size: 8, font: regular, color: rgb(.3, .3, .3) }); });
+    y -= 24; page.drawLine({ start: { x: 40, y: y + 8 }, end: { x: 555, y: y + 8 }, thickness: .4, color: rgb(.88, .88, .88) });
+  }
+  const pages = pdf.getPages();
+  pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); p.drawText("mycelebration.app", { x: 40, y: 22, size: 8, font: bold, color: accent }); });
+  return new Blob([new Uint8Array(await pdf.save())], { type: "application/pdf" });
+}
