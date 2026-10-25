@@ -218,7 +218,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const [orderSearch, setOrderSearch] = useState("");
-  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "arrivals" | "sets" | "amounts">("order");
+  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "sets" | "amounts">("order");
   const [statusFilter, setStatusFilter] = useState("");
   const showReport = listView === "amounts"; const showLooks = listView === "family";
   const peopleInfo = useOrderPeople(inviteId);
@@ -307,7 +307,6 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     })() : null}
     {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} seq={seq} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} onOpen={openById} /> : null}
     {listView === "sets" ? <OrderMenSetsView inviteId={inviteId} orders={reportOrders} wardrobe={wardrobe.data ?? []} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family }; }} matches={reportMatches} onOpen={openById} /> : null}
-    {listView === "arrivals" ? <OrderArrivalsView inviteId={inviteId} celebrationName={celebrationName} orders={reportOrders} allOrders={(orders.data ?? []).map((o) => ({ ...o, items: o.items as unknown as OrderItem[] }))} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family, measurements: c?.measurements }; }} substitutions={subs.data} seq={seq} matches={reportMatches} onOpen={openById} /> : null}
     {listView === "event" ? <OrderEventView inviteId={inviteId} celebrationName={celebrationName} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} events={peopleInfo.data?.events ?? []} seq={seq} onOpen={openById} /> : null}
     {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-xl border border-border p-4 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
