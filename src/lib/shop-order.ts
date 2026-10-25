@@ -4,7 +4,7 @@ export type OrderAlternative = { title: string; sku: string; designer: string; s
 export type OrderAddOn = { id: string; label: string; sku: string; size: string; shop: string; price: number; discount: number; notes: string };
 export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string; alternative?: OrderAlternative | null; addOns?: OrderAddOn[];
   /** Per-look delivery tracking (host-only). */
-  expectedDelivery?: string; arrivedOn?: string; tracking?: string;
+  expectedDelivery?: string; arrivedOn?: string; tracking?: string; courierName?: string; trackingUrl?: string;
   /** Note shown to the wearer: accessories to carry, styling tips. Mirrored to their look once placed. */
   wearerNote?: string };
 
