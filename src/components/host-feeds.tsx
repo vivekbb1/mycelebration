@@ -147,7 +147,7 @@ export function HostFeeds() {
   const forEvent = (feeds.data ?? []).filter((f) => !eventId || f.event_id === eventId);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid min-w-0 gap-5">
       <section className="panel-wrap p-4 sm:p-5">
         <h2 className="flex items-center gap-2 font-display text-xl">
           <Rss className="size-4 text-primary" /> Live feeds
