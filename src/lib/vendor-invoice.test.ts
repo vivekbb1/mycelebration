@@ -105,5 +105,5 @@ it("invoice save rejects ineligible or duplicate trouser pairing and preserves i
   strictEqual(result[0]?.addOns?.[0]?.price, 4840);
   strictEqual(a.addOns, undefined);
   throws(() => invoiceOrderItems(i, [a], [["a"], ["a"]], [["look"], ["addon"]], {}, [{ ...wardrobe[0], title: "Jacket Set" }]));
-  throws(() => invoiceOrderItems(i, [{ ...a, addOns: result[0]?.addOns }], [["a"], ["a"]], [["look"], ["addon"]], {}, wardrobe));
+  throws(() => invoiceOrderItems(i, [{ ...a, addOns: result[0]?.addOns ?? [] }], [["a"], ["a"]], [["look"], ["addon"]], {}, wardrobe));
 });
