@@ -12,6 +12,7 @@ import { orderSizeWarnings } from "@/lib/order-size-review";
 import { sameWearer, wearerLookLine } from "@/lib/wearer-order";
 import { arrivalStage, type ArrivalStage } from "@/lib/shipment";
 import { compareArrivals, type ArrivalSort } from "@/lib/arrival-sort";
+import { matchesArrivalSearch } from "@/lib/arrival-search";
 import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 import { money, type OrderItem } from "@/lib/shop-order";
 import type { LatestSub } from "@/components/substitution-note";
@@ -32,8 +33,10 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders
   const [q, setQ] = useState("");
   const [reviewOnly, setReviewOnly] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
-  const needle = q.trim().toLowerCase();
-  const filtered = sorted.filter((r) => (!stage || r.stage === stage) && (!reviewOnly || orderSizeWarnings(r.i).length > 0) && (!needle || [r.wearer, r.family, r.i.event, r.i.title, r.i.alternative?.title, r.i.sku, r.o.reference, r.o.seller_reference, r.i.tracking, r.i.wearerNote, ...(r.i.addOns ?? []).flatMap((a) => [a.label, a.sku])].some((v) => v?.toLowerCase().includes(needle))));
+  const filtered = sorted.filter((r) => {
+    const replacement = substitutions?.get(r.i.reservationId)?.replacement;
+    return (!stage || r.stage === stage) && (!reviewOnly || orderSizeWarnings(r.i).length > 0) && matchesArrivalSearch(q, [r.wearer, r.family, r.i.event, r.i.title, r.i.sku, r.i.alternative?.title, r.i.alternative?.sku, replacement?.title, replacement?.sku, r.o.reference, r.o.seller_reference, r.o.shop_name, r.i.courierName, r.i.tracking, r.i.trackingUrl, r.i.wearerNote, ...(r.i.addOns ?? []).flatMap((a) => [a.label, a.sku])]);
+  });
   const shown = byFamily ? [...filtered].sort((a, b) => a.family.localeCompare(b.family) || seq.compare({ wearer: a.wearer, event: a.i.event }, { wearer: b.wearer, event: b.i.event })) : filtered;
   const groupOf = (r: (typeof shown)[number]) => byFamily || dateSort === "family" ? r.family || "No family" : dateSort === "individual" ? r.wearer : dateSort === "event" ? r.i.event : fmt(r.i.arrivedOn || r.i.expectedDelivery) || "No delivery date";
   const exportRows = allOrders.filter((o) => o.status !== "cancelled").flatMap((o) => o.items.map((i) => ({ i, ...current(i) })));
@@ -56,7 +59,7 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center gap-1.5">
       {([["", "All"], ...STAGES] as const).map(([k, l]) => <Button key={k || "all"} size="sm" variant={stage === k ? "default" : "outline"} onClick={() => setStage(k)}>{l} ({k ? rows.filter((r) => r.stage === k).length : rows.length})</Button>)}
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, family, event, look, tracking…" aria-label="Search arrivals" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm sm:w-64" />
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, family, outfit code, order…" aria-label="Search arrivals" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm sm:w-80" />
       <span className="ml-auto inline-flex gap-1"><Button size="sm" variant={byFamily ? "outline" : "default"} onClick={() => setByFamily(false)}>By date</Button><Button size="sm" variant={byFamily ? "default" : "outline"} onClick={() => setByFamily(true)}>By family</Button></span>
       {!byFamily ? <Select value={dateSort} onValueChange={(value) => { if (["asc", "desc", "individual", "family", "event"].includes(value)) setDateSort(value as ArrivalSort); }}><SelectTrigger aria-label="Sort arrivals" className="w-full sm:w-48"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="asc">Date: earliest first</SelectItem><SelectItem value="desc">Date: latest first</SelectItem><SelectItem value="individual">By individual</SelectItem><SelectItem value="family">By family</SelectItem><SelectItem value="event">By event</SelectItem></SelectContent></Select> : null}
       <Button size="sm" variant="outline" disabled={!shown.length} onClick={() => void pdf()}><FileDown className="size-4" /> Arrivals PDF</Button>
