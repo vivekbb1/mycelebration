@@ -1,4 +1,4 @@
-import { it } from "node:test";
+import { describe, it } from "node:test";
 import { strictEqual, throws } from "node:assert";
 import { canPairTrouserExtra, needsTrouserReview, pairWhitePants, WHITE_PANTS_SKU } from "./trouser-pairing";
 import { orderTotals, type OrderItem, type OrderAddOn } from "./shop-order";
