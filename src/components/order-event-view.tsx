@@ -8,7 +8,7 @@ import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 import type { OrderItem } from "@/lib/shop-order";
 import { buildFamilyLooksPdf, saveBlob } from "@/lib/shop-order-pdf";
 import { wearerLookLine } from "@/lib/wearer-order";
-import { IndividualShare, ShipmentButton, WearerNoteButton, pdfFileName, sharePdfOnWhatsApp } from "@/components/wearer-order-actions";
+import { IndividualShare, ShipmentButton, ShipmentLine, WearerNoteButton, pdfFileName, sharePdfOnWhatsApp } from "@/components/wearer-order-actions";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 
 const ALL = "__all__";
@@ -64,7 +64,7 @@ export function OrderEventView({ inviteId, orders, candidates, substitutions, ma
                   <p className="line-clamp-2 text-sm">{title}{swapped ? <span className="text-primary"> · substitute</span> : null}</p>
                   <p className="text-xs">Size {item.size || "—"} → ordered {item.orderedSize || "—"}</p>
                   {(item.addOns ?? []).map((a) => <p key={a.id} className="break-words text-xs">Extra: {a.label || "Extra item"}{a.size ? ` · ${a.size}` : ""}</p>)}
-                  {item.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{item.wearerNote}</p> : null}
+                  {item.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{item.wearerNote}</p> : null}<ShipmentLine item={item} />
                 </div>
               </div>
               <div className="space-y-2 border-t border-border p-3">

@@ -92,6 +92,7 @@ export function ShipmentButton({ inviteId, orderId, items, label, compact }: { i
   const [open, setOpen] = useState(false); const [s, setS] = useState(blank); const [busy, setBusy] = useState(false);
   const recorded = items.some((i) => i.arrivedOn || i.expectedDelivery || i.tracking || i.courierName);
   async function save() {
+    if (!Object.values(s).some((v) => v.trim()) && !recorded) { toast.error("Enter at least one shipment detail. If a date won't take, pick it from the calendar"); return; }
     setBusy(true);
     try {
       const current = await supabase.from("wardrobe_orders").select("items, updated_at").eq("id", orderId).eq("invite_id", inviteId).single();
@@ -101,7 +102,7 @@ export function ShipmentButton({ inviteId, orderId, items, label, compact }: { i
       if (saved.error) throw saved.error;
       if (!saved.data) throw new Error("The order changed while saving. Try again");
       await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
-      toast.success(`Shipment saved for ${label}`); setOpen(false);
+      toast.success(`Shipment saved for ${label}`, { description: shipmentSummary(s) || "Details cleared" }); setOpen(false);
     } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn't save shipment"); } finally { setBusy(false); }
   }
   const f = (k: keyof typeof s) => (e: React.ChangeEvent<HTMLInputElement>) => setS((p) => ({ ...p, [k]: e.target.value }));
@@ -120,4 +121,15 @@ export function ShipmentButton({ inviteId, orderId, items, label, compact }: { i
       <div className="flex flex-wrap justify-end gap-2"><Button variant="ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</Button><Button disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Save shipment"}</Button></div>
     </DialogContent></Dialog>
   </>;
+}
+
+const fmtDate = (d?: string) => d ? new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+export function shipmentSummary(i: { expectedDelivery?: string; arrivedOn?: string; tracking?: string; courierName?: string }) {
+  return [i.arrivedOn ? `Arrived ${fmtDate(i.arrivedOn)}` : i.expectedDelivery ? `Expected ${fmtDate(i.expectedDelivery)}` : "", i.courierName, i.tracking].filter(Boolean).join(" · ");
+}
+/** Saved shipment details on an order card; host-only. */
+export function ShipmentLine({ item }: { item: OrderItem }) {
+  const text = shipmentSummary(item);
+  if (!text && !item.trackingUrl) return null;
+  return <p className="break-words text-xs"><Truck className="mr-1 inline size-3.5 text-muted-foreground" />{text}{item.trackingUrl ? <> · <a className="text-primary underline-offset-2 hover:underline" href={item.trackingUrl} target="_blank" rel="noreferrer">Track</a></> : null}</p>;
 }
