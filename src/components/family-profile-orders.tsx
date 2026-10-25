@@ -33,7 +33,7 @@ export function FamilyProfileOrders({ inviteId, household }: { inviteId: string;
   const subs = useLatestSubstitutions(rows.map(({ item }) => item.reservationId));
   const lines = rows.map(({ item }) => wearerLookLine(item, item.wearer, subs.data?.get(item.reservationId)));
   const wearers = [...new Set(rows.map(({ item }) => item.wearer))];
-  return <section id="family-orders" className="min-w-0 scroll-mt-6 border-t border-border py-6">
+  return <section id="family-orders" className="min-w-0 scroll-mt-28 sm:scroll-mt-6 border-t border-border py-6">
     <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
       <div className="min-w-0"><h2 className="text-xl">Outfits Ordered</h2><p className="text-sm text-muted-foreground">{rows.length} looks · {wearers.length} wearers</p></div>
       <Button variant="outline" disabled={busy || !rows.length || query.isPending || subs.isPending || !people.data} onClick={async () => {

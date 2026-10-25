@@ -308,7 +308,7 @@ function FamilyPageContent() {
       <nav aria-label="Family sections" className="sticky top-0 z-20 -mx-4 mb-6 grid grid-cols-2 gap-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:static sm:mx-0 sm:flex sm:flex-wrap sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
         {[...(has("arrivals") ? [["family-arrivals", "Arrival & stay"]] : []), ["family-orders", "Wardrobe PDF & outfits"], ["family-members", "Members"], ["family-measurements", "Measurements"]].filter(([id]) => id !== "family-orders" || (has("wardrobe_picker") && inviteId)).map(([id, label]) => <Button key={id} asChild variant="outline" size="sm"><a href={`#${id}`}>{label}</a></Button>)}
       </nav>
-      {has("arrivals") ? <section id="family-arrivals" className="mb-6 min-w-0 scroll-mt-6 border-b border-border pb-6">
+      {has("arrivals") ? <section id="family-arrivals" className="mb-6 min-w-0 scroll-mt-28 sm:scroll-mt-6 border-b border-border pb-6">
         <h2 className="text-xl">Arrival & stay</h2>
         {stay.data?.prepaid_checkin_date || stay.data?.prepaid_checkout_date ? <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg border border-border p-3 text-sm"><div><p className="text-xs text-muted-foreground">Prepaid check-in</p><p>{dateLabel(stay.data.prepaid_checkin_date)}</p></div><div><p className="text-xs text-muted-foreground">Prepaid check-out</p><p>{dateLabel(stay.data.prepaid_checkout_date)}</p></div></div> : null}
         {travel.isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading travel details…</p> : travel.isError ? <p className="mt-3 text-sm text-destructive">Couldn't load travel details.</p> : !travel.data?.length ? <p className="mt-3 text-sm text-muted-foreground">No arrival or stay dates recorded yet.</p> : <ul className="mt-3 grid gap-3 md:grid-cols-2">{travel.data.map((plan) => <li key={plan.id} className="min-w-0 rounded-lg border border-border p-3">
@@ -319,7 +319,7 @@ function FamilyPageContent() {
       </section> : null}
       {has("wardrobe_picker") && inviteId ? <FamilyProfileOrders inviteId={inviteId} household={name} /> : null}
       <div className="grid min-w-0 gap-6">
-        <section id="family-members" className="panel min-w-0 scroll-mt-6 p-4 sm:p-6">
+        <section id="family-members" className="panel min-w-0 scroll-mt-28 sm:scroll-mt-6 p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl">Family members</h2>
             {isHost && inviteId ? <div className="flex flex-wrap gap-2"><FamilyRegroupDialog inviteId={inviteId} household={name} members={rows} /><AddFamilyMemberButton inviteId={inviteId} household={name} /></div> : null}
@@ -481,7 +481,7 @@ function FamilyPageContent() {
           </section>
         ) : null}
 
-        <section id="family-measurements" className="panel min-w-0 scroll-mt-6 p-4 sm:p-6">
+        <section id="family-measurements" className="panel min-w-0 scroll-mt-28 sm:scroll-mt-6 p-4 sm:p-6">
           <h2 className="text-xl">Measurements</h2>
           {(measurements.data ?? []).length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">
