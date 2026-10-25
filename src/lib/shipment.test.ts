@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import { strictEqual, throws } from "node:assert";
 import { arrivalStage, setShipment } from "./shipment";
 import type { OrderItem } from "./shop-order";
 
@@ -8,16 +9,16 @@ const s = { expectedDelivery: "2026-11-01", arrivedOn: "", tracking: " AWB1 ", c
 describe("shipment", () => {
   it("updates only chosen looks and keeps other fields", () => {
     const out = setShipment([item("a"), item("b")], ["a"], s);
-    expect(out[0]).toMatchObject({ tracking: "AWB1", courierName: "DHL", expectedDelivery: "2026-11-01", wearerNote: "keep", price: 100 });
-    expect(out[1]!.courierName).toBeUndefined();
+    strictEqual(out[0]!.tracking, "AWB1"); strictEqual(out[0]!.courierName, "DHL"); strictEqual(out[0]!.expectedDelivery, "2026-11-01"); strictEqual(out[0]!.wearerNote, "keep"); strictEqual(out[0]!.price, 100);
+    strictEqual(out[1]!.courierName, undefined);
   });
   it("rejects a tracking link without https", () => {
-    expect(() => setShipment([item("a")], ["a"], { ...s, trackingUrl: "dhl.com/x" })).toThrow();
+    throws(() => setShipment([item("a")], ["a"], { ...s, trackingUrl: "dhl.com/x" }));
   });
   it("stages: arrived beats overdue; past date overdue; no date undated", () => {
-    expect(arrivalStage({ expectedDelivery: "2026-01-01", arrivedOn: "2026-01-05" }, "2026-02-01")).toBe("arrived");
-    expect(arrivalStage({ expectedDelivery: "2026-01-01" }, "2026-02-01")).toBe("overdue");
-    expect(arrivalStage({ expectedDelivery: "2026-03-01" }, "2026-02-01")).toBe("due");
-    expect(arrivalStage({}, "2026-02-01")).toBe("undated");
+    strictEqual(arrivalStage({ expectedDelivery: "2026-01-01", arrivedOn: "2026-01-05" }, "2026-02-01"), "arrived");
+    strictEqual(arrivalStage({ expectedDelivery: "2026-01-01" }, "2026-02-01"), "overdue");
+    strictEqual(arrivalStage({ expectedDelivery: "2026-03-01" }, "2026-02-01"), "due");
+    strictEqual(arrivalStage({}, "2026-02-01"), "undated");
   });
 });
