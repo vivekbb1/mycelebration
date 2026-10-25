@@ -12,6 +12,13 @@ export function setShipment(items: OrderItem[], reservationIds: string[], s: Shi
 }
 
 export type ArrivalStage = "arrived" | "overdue" | "due" | "undated";
+/** Actual arrival date when recorded, otherwise expected delivery; undated looks stay last. */
+export function compareArrivalDates(a: Pick<OrderItem, "expectedDelivery" | "arrivedOn">, b: Pick<OrderItem, "expectedDelivery" | "arrivedOn">, direction: "asc" | "desc") {
+  const left = a.arrivedOn || a.expectedDelivery || "", right = b.arrivedOn || b.expectedDelivery || "";
+  if (!left) return right ? 1 : 0;
+  if (!right) return -1;
+  return left.localeCompare(right) * (direction === "asc" ? 1 : -1);
+}
 /** Arrived beats any date; past expected date without arrival is overdue. Dates are YYYY-MM-DD. */
 export function arrivalStage(i: Pick<OrderItem, "expectedDelivery" | "arrivedOn">, today: string): ArrivalStage {
   if (i.arrivedOn) return "arrived";
