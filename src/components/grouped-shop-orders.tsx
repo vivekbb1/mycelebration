@@ -34,8 +34,8 @@ const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
 
 /** Orders built from pre-order selections. `startWith` opens a new order prefilled with looks. */
-export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden, preorder = [], actions }: {
-  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean; actions?: import("react").ReactNode;
+export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, listHidden, preorder = [], actions, shipment = false }: {
+  inviteId: string; candidates: OrderItem[]; preorder?: OrderItem[]; startWith?: OrderItem[] | null; onStarted?: () => void; listHidden?: boolean; actions?: import("react").ReactNode; shipment?: boolean;
 }) {
   const qc = useQueryClient();
   const pernia = useServerFn(fetchPerniaLook); const kora = useServerFn(fetchKoraLook);
@@ -218,7 +218,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const [orderSearch, setOrderSearch] = useState("");
-  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "arrivals" | "sets" | "amounts">("order");
+  const [listView, setListView] = useState<"order" | "person" | "family" | "event" | "sets" | "amounts">("order");
   const [statusFilter, setStatusFilter] = useState("");
   const showReport = listView === "amounts"; const showLooks = listView === "family";
   const peopleInfo = useOrderPeople(inviteId);
@@ -256,7 +256,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const sum = active.reduce((acc, o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); acc.total += t.total; acc.paid += t.paid; return acc; }, { total: 0, paid: 0 });
 
   return <section className={listHidden ? "contents" : "order-workspace min-w-0 space-y-3"}>
-    {listHidden ? <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">{actions}<Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button></div> : <>
+    {listHidden ? <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">{actions}<Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button></div> : !shipment ? <>
     <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0"><h2 className="text-xl">Shop orders</h2>{active.length ? <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
         {([["Active orders", String(active.length)], ["Total", sum.total.toLocaleString(...nf(currency))], ["Paid", sum.paid.toLocaleString(...nf(currency))], ["Balance", (sum.total - sum.paid).toLocaleString(...nf(currency))]] as const).map(([l, v]) => <div key={l} className="rounded-md border border-border px-3 py-1.5"><p className="text-xs text-muted-foreground">{l}</p><p className="font-medium tabular-nums">{v}</p></div>)}
@@ -269,8 +269,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <p className="mt-1 text-xs text-muted-foreground">Extra items like trousers don't count. Tap a name to see their outfits.</p>
     </div> : null}
     <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 py-2 backdrop-blur">
-      <div role="group" aria-label="View orders" className="grid grid-cols-3 gap-1 rounded-lg border border-border p-1 sm:grid-cols-4 lg:grid-cols-7">
-        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["arrivals", "Arrivals"], ["sets", "Men's sets"], ["amounts", "Amounts"]] as const).map(([k, l]) => <Button key={k} aria-pressed={listView === k} variant={listView === k ? "default" : "ghost"} onClick={() => setListView(k)} className="min-h-11 min-w-0 whitespace-normal px-2 py-2 text-xs sm:text-sm">{l}</Button>)}
+      <div role="group" aria-label="View orders" className="grid grid-cols-3 gap-1 rounded-lg border border-border p-1 lg:grid-cols-6">
+        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["amounts", "Amounts"], ["sets", "Men's sets"]] as const).map(([k, l]) => <Button key={k} aria-pressed={listView === k} variant={listView === k ? "default" : "ghost"} onClick={() => setListView(k)} className="min-h-11 min-w-0 whitespace-normal px-2 py-2 text-xs sm:text-sm">{l}</Button>)}
       </div>
       <Input placeholder="Search name, family, event, outfit, ref" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
       {statuses.length > 1 ? <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
@@ -307,7 +307,6 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     })() : null}
     {showLooks ? <FamilyOrderReport inviteId={inviteId} wardrobeSkus={wardrobeSkus} seq={seq} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} onOpen={openById} /> : null}
     {listView === "sets" ? <OrderMenSetsView inviteId={inviteId} orders={reportOrders} wardrobe={wardrobe.data ?? []} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family }; }} matches={reportMatches} onOpen={openById} /> : null}
-    {listView === "arrivals" ? <OrderArrivalsView inviteId={inviteId} celebrationName={celebrationName} orders={reportOrders} allOrders={(orders.data ?? []).map((o) => ({ ...o, items: o.items as unknown as OrderItem[] }))} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family, measurements: c?.measurements }; }} substitutions={subs.data} seq={seq} matches={reportMatches} onOpen={openById} /> : null}
     {listView === "event" ? <OrderEventView inviteId={inviteId} celebrationName={celebrationName} phones={phones} orders={reportOrders} candidates={candidates} substitutions={subs.data} matches={reportMatches} events={peopleInfo.data?.events ?? []} seq={seq} onOpen={openById} /> : null}
     {showReport ? <ul className="space-y-2 md:hidden">{familyReport.map((f) => <li key={f.family} className="rounded-xl border border-border p-4 text-sm">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><p className="truncate font-medium">{f.family}</p><p className="font-medium tabular-nums">{(f.amount + f.preAmount).toLocaleString(...nf(currency))}</p></div>
@@ -331,6 +330,10 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       </div>); })}</div> : null}
     {orders.isSuccess && !(orders.data ?? []).length ? <p className="text-sm text-muted-foreground">No shop orders yet. Tick looks in Pre-orders and choose "Convert to one order", or start a new order here.</p> : null}
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
+    </> : <>
+      <h2 className="text-xl">Shipment</h2>
+      <OrderArrivalsView inviteId={inviteId} celebrationName={celebrationName} orders={(orders.data ?? []).map((o) => ({ ...o, items: o.items as unknown as OrderItem[] }))} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family, measurements: c?.measurements }; }} substitutions={subs.data} seq={seq} matches={() => true} onOpen={openById} />
+      {orders.isError ? <p role="alert" className="text-destructive">Couldn't load shipments.</p> : null}
     </>}
 
     <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="order-workspace max-h-[90dvh] min-w-0 overflow-y-auto sm:max-w-4xl">

@@ -838,8 +838,9 @@ function HostDashboard() {
               <TabsTrigger value="picks">Selection</TabsTrigger>
               <TabsTrigger value="preorders">Pre-orders</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
+              <TabsTrigger value="shipment">Shipment</TabsTrigger>
               <TabsTrigger value="alterations">Alterations</TabsTrigger>
-              {has("delivery") ? <TabsTrigger value="logistics">Delivery</TabsTrigger> : null}
+              {has("delivery") ? <TabsTrigger value="logistics">Instructions</TabsTrigger> : null}
             </TabsList>
 
             <TabsContent value="feeds" className="mt-6">
@@ -856,6 +857,9 @@ function HostDashboard() {
 
             <TabsContent value="orders" className="mt-6">
               <HostOrders view="orders" />
+            </TabsContent>
+            <TabsContent value="shipment" className="mt-6">
+              <HostOrders view="shipment" />
             </TabsContent>
 
             <TabsContent value="alterations" className="mt-6">
