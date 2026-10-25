@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "@/components/order-status-badge";
 import { ShipmentButton } from "@/components/wearer-order-actions";
 import { arrivalStage, type ArrivalStage } from "@/lib/shipment";
-import type { OrderItem } from "@/lib/shop-order";
+import { money, type OrderItem } from "@/lib/shop-order";
+import type { LatestSub } from "@/components/substitution-note";
 import { buildArrivalsPdf, saveBlob, type ArrivalLine } from "@/lib/shop-order-pdf";
 
-type Order = { id: string; reference: string; seller_reference: string; shop_name: string; status: string; items: OrderItem[] };
+type Order = { id: string; reference: string; seller_reference: string; shop_name: string; status: string; currency: string; items: OrderItem[] };
 const STAGES: [ArrivalStage, string][] = [["overdue", "Overdue"], ["due", "Expected"], ["undated", "No delivery date"], ["arrived", "Arrived"]];
 const fmt = (d?: string) => d ? new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
 
 /** Every active outfit by arrival: overdue, expected by date, undated, arrived. Host-only shipment details. */
-export function OrderArrivalsView({ inviteId, celebrationName, orders, current, matches, onOpen }: { inviteId: string; celebrationName: string; orders: Order[]; current: (i: OrderItem) => { wearer: string; family: string }; matches: (i: OrderItem, o: Order) => boolean; onOpen: (id: string) => void }) {
+export function OrderArrivalsView({ inviteId, celebrationName, orders, current, matches, substitutions, onOpen }: { inviteId: string; celebrationName: string; orders: Order[]; current: (i: OrderItem) => { wearer: string; family: string }; matches: (i: OrderItem, o: Order) => boolean; substitutions?: Map<string, LatestSub> | undefined; onOpen: (id: string) => void }) {
   const today = new Date().toISOString().slice(0, 10);
   const [stage, setStage] = useState<ArrivalStage | "">("");
   const rows = orders.filter((o) => o.status !== "cancelled").flatMap((o) => o.items.filter((i) => matches(i, o)).map((i) => ({ o, i, ...current(i), stage: arrivalStage(i, today) })));
@@ -21,7 +22,7 @@ export function OrderArrivalsView({ inviteId, celebrationName, orders, current, 
   const shown = sorted.filter((r) => !stage || r.stage === stage);
   async function pdf() {
     try {
-      const lines: ArrivalLine[] = shown.map((r) => ({ group: STAGES.find(([k]) => k === r.stage)![1], wearer: r.wearer, family: r.family, event: r.i.event, title: r.i.alternative?.title || r.i.title, orderedSize: r.i.orderedSize ?? "", reference: r.o.seller_reference || r.o.reference, shop: r.o.shop_name, expected: fmt(r.i.expectedDelivery), arrived: fmt(r.i.arrivedOn), courier: r.i.courierName ?? "", tracking: r.i.tracking ?? "" }));
+      const lines: ArrivalLine[] = shown.map((r) => ({ group: STAGES.find(([k]) => k === r.stage)![1], wearer: r.wearer, family: r.family, event: r.i.event, title: r.i.alternative?.title || r.i.title, orderedSize: r.i.orderedSize ?? "", reference: r.o.seller_reference || r.o.reference, shop: r.o.shop_name, expected: fmt(r.i.expectedDelivery), arrived: fmt(r.i.arrivedOn), courier: r.i.courierName ?? "", tracking: r.i.tracking ?? "", originalTitle: r.i.title, originalImage: r.i.image, originalSku: r.i.sku, ...(() => { const sub = substitutions?.get(r.i.reservationId); const rep = r.i.alternative ?? sub?.replacement; return rep ? { replacementTitle: rep.title || "Replacement", replacementImage: rep.image ?? "", replacementSku: rep.sku ?? "" } : {}; })(), price: `${r.o.currency} ${money(r.i.price - r.i.discount, r.o.currency)}` }));
       saveBlob(await buildArrivalsPdf(celebrationName, lines), "outfit-arrivals.pdf");
     } catch { toast.error("Couldn't create the PDF"); }
   }
