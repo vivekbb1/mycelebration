@@ -62,6 +62,8 @@ describe("men's set report", () => {
   });
   it("linked pants, offline mark or wearer note each make it complete", () => {
     strictEqual(menSetStatus({ ...base, addOns: [{ id: "a", label: "", sku: "KASB082443", size: "L", shop: "", price: 1, discount: 0, notes: "" }] }, wd)!.pantsLinked, true);
+    strictEqual(menSetStatus({ ...base, addOns: [{ id: "b", label: "Extra item", sku: "SPBC102658", size: "XXL", shop: "", price: 1, discount: 0, notes: "" }] }, wd)!.pantsLinked, true);
+    strictEqual(menSetStatus({ ...base, addOns: [{ id: "c", label: "Pocket square", sku: "", size: "", shop: "", price: 1, discount: 0, notes: "" }] }, wd)!.pantsLinked, false);
     strictEqual(menSetStatus(setSetHandled([base], "r", true)[0]!, wd)!.complete, true);
     strictEqual(menSetStatus({ ...base, wearerNote: "carry white churidar" }, wd)!.complete, true);
   });
