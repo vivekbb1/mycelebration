@@ -238,3 +238,30 @@
   border: 1px solid var(--color-border);
   background-color: var(--color-card);
 }
+
+/* Scoped to buyer tools: readable wrapping and comfortable touch targets without changing guest controls. */
+.order-workspace :is(button, input, select, textarea) {
+  min-width: 0;
+}
+.order-workspace button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  height: auto;
+  min-height: 2.5rem;
+}
+.order-workspace :is(p, dd, h3, h4, label) {
+  overflow-wrap: anywhere;
+}
+@media (pointer: coarse) {
+  .order-workspace :is(button, input, select, [role="combobox"]) {
+    min-height: 2.75rem;
+  }
+  .order-workspace textarea {
+    font-size: 1rem;
+  }
+}
+@media (width < 40rem) {
+  .order-workspace :is(input, select, textarea) {
+    font-size: 1rem;
+  }
+}

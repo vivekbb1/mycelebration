@@ -50,7 +50,7 @@ export function OrderEventView({ inviteId, orders, candidates, substitutions, ma
         </div>
         {f.byEvent.map((g) => <div key={g.event} className="space-y-2">
           {event === ALL ? <p className="text-sm font-medium text-primary">{g.event || "No event"}</p> : null}
-          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{g.rows.map(({ order, item, wearer }) => {
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">{g.rows.map(({ order, item, wearer }) => {
             const sub = substitutions?.get(item.reservationId);
             const title = item.alternative?.title || sub?.replacement.title || item.title;
             const image = item.alternative ? item.alternative.image : sub ? sub.replacement.image ?? "" : item.image;

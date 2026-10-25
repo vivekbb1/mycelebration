@@ -18,6 +18,7 @@ import { GuestPassports } from "@/components/guest-passports";
 import { FamilyTravelAdmin } from "@/components/family-travel-admin";
 import { FamilyNotes } from "@/components/family-notes";
 import { FamilyWardrobeChoices } from "@/components/family-wardrobe-choices";
+import { FamilyProfileOrders } from "@/components/family-profile-orders";
 import { splitTags } from "@/components/host-function-access";
 
 export const Route = createFileRoute("/_authenticated/family/$household")({
@@ -282,8 +283,8 @@ function FamilyPageContent() {
         </Link>
       </Button>
 
-      <div className="mt-4 flex items-center gap-2">
-        <h1 className="text-3xl">{name}</h1>
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+        <h1 className="min-w-0 break-words text-3xl">{name}</h1>
         {isHost && rows[0] && rows[0].household === name ? <RenameFamilyButton codeId={rows[0].id} current={name} person={rows[0]} /> : null}
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
@@ -293,8 +294,20 @@ function FamilyPageContent() {
 
       <div className="gold-rule my-8" />
 
-      <div className="grid gap-6">
-        <section className="panel p-4 sm:p-6">
+      <nav aria-label="Family sections" className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        {[["family-members", "Members"], ["family-orders", "Ordered outfits"], ["family-measurements", "Measurements"], ...(has("arrivals") ? [["family-arrivals", "Arrival & stay"]] : [])].filter(([id]) => id !== "family-orders" || has("wardrobe_picker")).map(([id, label]) => <Button key={id} asChild variant="outline"><a href={`#${id}`}>{label}</a></Button>)}
+      </nav>
+      {has("arrivals") ? <section id="family-arrivals" className="mb-6 min-w-0 scroll-mt-6 border-b border-border pb-6">
+        <h2 className="text-xl">Arrival & stay</h2>
+        {travel.isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading travel details…</p> : travel.isError ? <p className="mt-3 text-sm text-destructive">Couldn't load travel details.</p> : !travel.data?.length ? <p className="mt-3 text-sm text-muted-foreground">No arrival or stay dates recorded yet.</p> : <ul className="mt-3 grid gap-3 md:grid-cols-2">{travel.data.map((plan) => <li key={plan.id} className="min-w-0 rounded-lg border border-border p-3">
+          <h3 className="break-words font-medium">{plan.traveller_code_ids?.length ? rows.filter((p) => plan.traveller_code_ids?.includes(p.id)).map((p) => p.guest_name).join(" · ") || "Family travel group" : plan.travellers?.join(" · ") || plan.guest_name || "Whole family"}</h3>
+          <dl className="mt-2 grid grid-cols-2 gap-3 text-sm">{[["Arrival", plan.arrival_date, plan.arrival_time], ["Check-in", plan.checkin_date, plan.checkin_time], ["Check-out", plan.checkout_date, plan.checkout_time], ["Departure", plan.departure_date, plan.departure_time]].map(([label, date, time]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="break-words">{date ? dateLabel(date) : "Not recorded"}{time ? ` · ${time}` : ""}</dd></div>)}</dl>
+          {plan.arrival_flight ? <p className="mt-2 break-words text-xs text-muted-foreground">Arrival flight: {plan.arrival_flight}</p> : null}
+        </li>)}</ul>}
+      </section> : null}
+      {has("wardrobe_picker") && inviteId ? <FamilyProfileOrders inviteId={inviteId} household={name} /> : null}
+      <div className="grid min-w-0 gap-6">
+        <section id="family-members" className="panel min-w-0 scroll-mt-6 p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl">Family members</h2>
             {isHost && inviteId ? <div className="flex flex-wrap gap-2"><FamilyRegroupDialog inviteId={inviteId} household={name} members={rows} /><AddFamilyMemberButton inviteId={inviteId} household={name} /></div> : null}
@@ -456,7 +469,7 @@ function FamilyPageContent() {
           </section>
         ) : null}
 
-        <section className="panel p-4 sm:p-6">
+        <section id="family-measurements" className="panel min-w-0 scroll-mt-6 p-4 sm:p-6">
           <h2 className="text-xl">Measurements</h2>
           {(measurements.data ?? []).length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">

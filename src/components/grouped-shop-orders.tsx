@@ -255,9 +255,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   }).sort((a, b) => b.amount + b.preAmount - a.amount - a.preAmount);
   const sum = active.reduce((acc, o) => { const t = orderTotals(o.items as unknown as OrderItem[], o.payments as unknown as OrderPayment[], Number(o.courier_charges ?? 0)); acc.total += t.total; acc.paid += t.paid; return acc; }, { total: 0, paid: 0 });
 
-  return <section className={listHidden ? "contents" : "space-y-3"}>
+  return <section className={listHidden ? "contents" : "order-workspace min-w-0 space-y-3"}>
     {listHidden ? <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">{actions}<Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button></div> : <>
-    <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0"><h2 className="text-xl">Shop orders</h2>{active.length ? <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
         {([["Active orders", String(active.length)], ["Total", sum.total.toLocaleString(...nf(currency))], ["Paid", sum.paid.toLocaleString(...nf(currency))], ["Balance", (sum.total - sum.paid).toLocaleString(...nf(currency))]] as const).map(([l, v]) => <div key={l} className="rounded-md border border-border px-3 py-1.5"><p className="text-xs text-muted-foreground">{l}</p><p className="font-medium tabular-nums">{v}</p></div>)}
       </div> : null}</div>
@@ -269,8 +269,8 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       <p className="mt-1 text-xs text-muted-foreground">Extra items like trousers don't count. Tap a name to see their outfits.</p>
     </div> : null}
     <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 py-2 backdrop-blur">
-      <div role="tablist" aria-label="View orders" className="grid grid-cols-4 gap-1 rounded-lg border border-border p-1 sm:grid-cols-7">
-        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["arrivals", "Arrivals"], ["sets", "Men's sets"], ["amounts", "Amounts"]] as const).map(([k, l]) => <button key={k} role="tab" aria-selected={listView === k} onClick={() => setListView(k)} className={`rounded-md px-2 py-1.5 text-xs font-medium sm:text-sm ${listView === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{l}</button>)}
+      <div role="group" aria-label="View orders" className="grid grid-cols-3 gap-1 rounded-lg border border-border p-1 sm:grid-cols-4 lg:grid-cols-7">
+        {([["order", "By order"], ["person", "By person"], ["family", "By family"], ["event", "By event"], ["arrivals", "Arrivals"], ["sets", "Men's sets"], ["amounts", "Amounts"]] as const).map(([k, l]) => <Button key={k} aria-pressed={listView === k} variant={listView === k ? "default" : "ghost"} onClick={() => setListView(k)} className="min-h-11 min-w-0 whitespace-normal px-2 py-2 text-xs sm:text-sm">{l}</Button>)}
       </div>
       <Input placeholder="Search name, family, event, outfit, ref" aria-label="Search orders" value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)} />
       {statuses.length > 1 ? <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
@@ -284,7 +284,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       // Individual PDFs cover every active look of that person, not only the search hits.
       const allActive = active.flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => { const cur = candidates.find((c) => c.reservationId === i.reservationId); return { i, wearer: cur?.wearer ?? i.wearer, family: cur?.family ?? i.family }; }));
       const linesFor = (wearer: string, family: string) => allActive.filter((r) => sameWearer(r, { wearer, family })).sort((a, b) => seq.event(a.i.event) - seq.event(b.i.event)).map((r) => wearerLookLine(r.i, r.wearer, subs.data?.get(r.i.reservationId)));
-      return <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; const wearer = cur?.wearer ?? i.wearer; const family = cur?.family ?? i.family; return (
+      return <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-3">{rows.map(({ o, i, cur }) => { const look = i.alternative?.title ? i.alternative : i; const wearer = cur?.wearer ?? i.wearer; const family = cur?.family ?? i.family; return (
         <li key={`${o.id}-${i.reservationId}`} className={`flex min-w-0 flex-col rounded-xl border border-border bg-card ${o.status === "cancelled" ? "opacity-60" : ""}`}>
           <div className="flex min-w-0 flex-1 gap-3 p-4">
           {look.image || i.image ? <img src={look.image || i.image} alt={look.title} referrerPolicy="no-referrer" loading="lazy" className="aspect-[3/4] w-20 shrink-0 self-start rounded-md object-cover" /> : <div className="flex aspect-[3/4] w-20 shrink-0 items-center justify-center self-start rounded-md bg-muted text-xs text-muted-foreground">No photo</div>}
@@ -333,7 +333,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
     </>}
 
-    <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
+    <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}><DialogContent className="order-workspace max-h-[90dvh] min-w-0 overflow-y-auto sm:max-w-4xl">
       <DialogHeader><DialogTitle>{id ? `Order ${reference}` : "New order"}{cancelled ? " (cancelled)" : ""}</DialogTitle></DialogHeader>
 
       <div className="grid gap-3 sm:grid-cols-3">
