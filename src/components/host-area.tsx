@@ -1067,7 +1067,7 @@ function HostDashboard() {
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <Input
                 className="col-span-2 sm:col-span-3"
-                placeholder="Search name, designer, code or paste a shop link"
+                type="search" aria-label="Search wardrobe" placeholder="Search name, designer, code or paste a shop link"
                 value={fq}
                 onChange={(e) => setFq(e.target.value)}
               />
