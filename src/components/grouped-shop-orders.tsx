@@ -25,6 +25,7 @@ import { IndividualShare, WearerNoteButton, useOrderPeople } from "@/components/
 import { useCelebrationName } from "@/components/family-order-report";
 import { alphabetical } from "@/lib/order-sequence";
 import { sameWearer, wearerLookLine } from "@/lib/wearer-order";
+import { OrderStatusBadge } from "@/components/order-status-badge";
 
 const BUCKET = "alteration-photos"; // private, host-only, celebration-prefixed
 const DOC_LABEL: Record<DocKind, string> = { proforma: "Proforma", invoice: "Invoice", bill: "Bill", receipt: "Receipt", other: "Other" };
@@ -295,7 +296,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           </div>
           </div>
           <div className="space-y-2 border-t border-border p-3">
-            <div className="flex items-center justify-between gap-2"><span className="min-w-0 truncate text-xs capitalize text-muted-foreground">{o.reference} · {o.status}</span><Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => openOrder(o)}>Open order</Button></div>
+            <div className="flex flex-wrap items-center gap-2"><span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={o.reference}>{o.reference}</span><OrderStatusBadge status={o.status} /><Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => openOrder(o)}>Open order</Button></div>
             {o.status !== "cancelled" ? <div className="grid grid-cols-3 gap-1.5 [&>button]:h-8 [&>button]:w-full [&>button]:min-w-0 [&>button]:px-1.5 [&>button]:text-xs [&_svg]:shrink-0"><WearerNoteButton inviteId={inviteId} orderId={o.id} item={i} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={linesFor(wearer, family)} phone={phones?.get(wearer.trim().toLowerCase())} /></div> : null}
           </div>
         </li>); })}{!rows.length ? <li className="text-sm text-muted-foreground">No outfits match.</li> : null}</ul>;
