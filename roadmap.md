@@ -1,5 +1,5 @@
 # Roadmap — multi-celebration platform
-- [ ] Diagnose and fix Oscar Big Bollywood Night outfit eligibility and missing invoice pants target.
+- [x] Oscar pants already linked to Wedding order; fixed host event eligibility for unrestricted families. Verify regression with temporary records.
 - [x] Invoice extra pairing excludes sets/included/linked pants; 23 tests and real invoice review verified without saving orders.
 - [x] Verified ten green white-pants extra ticks in both order views; saved-order fingerprints unchanged.
 - [x] Kurta-only trouser review with photo, explicit size/price and version-checked save; 21 tests and phone/tablet/desktop browser-only pairing save passed.
