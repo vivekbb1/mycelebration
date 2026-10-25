@@ -32,7 +32,7 @@
 
 - Per-person records (reservations, measurements, room assignments, passports, travel travellers) link to the person by invite_code id (`member_code_id` / `traveller_code_ids`); names are display-only and a fallback for unlinked rows. Why: renaming a person must never detach their choices.
 - Pre-order search filters visibility, not selected reservation IDs; PDF and conversion resolve selections from the active tab's rows, while tab and dimension changes clear selections. Why: hosts can collect looks across searches without losing ticks or exporting another tab's selections.
-- Order alternatives/extras stay in items. Why: guest choices stay untouched.
+- Alternatives/extras stay in items; invoice trouser dropdown/save share canPairTrouserExtra. Why: preserve choices and exclude sets/linked pants.
 - Photo enrichment is best-effort via the order helper. Why: bad shop links or failed lookups must not block order saves.
 - Persist pre-order alternatives separately by reservation and audit order alternative/size changes through database triggers; shared substitution controls and change-ID emails preserve original selections and tenant-scoped history without requiring invoices.
 - Collection substitutions and order saves atomically collect missing alternatives in the original event/category and retire originals; Orders uses the shared host chooser for missing guest looks. Why: preserve wearer history and assignment safeguards.
