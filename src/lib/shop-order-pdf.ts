@@ -151,6 +151,8 @@ export function saveBlob(blob: Blob, filename: string) {
 
 export type FamilyLookLine = { wearer: string; event: string; title: string; image: string; size: string; orderedSize: string; substituted: boolean; originalTitle?: string; extras: { label: string; size: string }[]; note: string };
 
+const FAMILY_SIZING_NOTE = "The outfits have been ordered in sizes recommended by the respective designers based on the measurements shared. A tailor will be available on-site to assist with any necessary fitting adjustments and critical alterations.";
+
 /** Family reconfirmation sheet: photos, look names and sizes only — never prices, model numbers or shop details. */
 export async function buildFamilyLooksPdf(family: string, celebration: string, lines: FamilyLookLine[]) {
   const pdf = await PDFDocument.create();
@@ -187,6 +189,11 @@ export async function buildFamilyLooksPdf(family: string, celebration: string, l
     y -= h + 6;
     page.drawLine({ start: { x: 40, y: y + 3 }, end: { x: 555, y: y + 3 }, thickness: .5, color: rgb(.85, .85, .85) });
   }
+  const sizingNoteLines = wrap(FAMILY_SIZING_NOTE, 10, regular, 515);
+  const sizingNoteHeight = sizingNoteLines.length * 14 + 20;
+  if (y - sizingNoteHeight < 60) { page = pdf.addPage([595, 842]); y = 800; }
+  y -= 16;
+  for (const t of sizingNoteLines) { page.drawText(t, { x: 40, y, size: 10, font: regular, color: rgb(.12, .12, .12) }); y -= 14; }
   const pages = pdf.getPages();
   pages.forEach((p, n) => { const pt = `Page ${n + 1} of ${pages.length}`; p.drawText(pt, { x: 555 - regular.widthOfTextAtSize(pt, 8), y: 22, size: 8, font: regular, color: rgb(.4, .4, .4) }); p.drawText("mycelebration.app", { x: 40, y: 22, size: 8, font: bold, color: accent }); });
   return new Blob([new Uint8Array(await pdf.save())], { type: "application/pdf" });
