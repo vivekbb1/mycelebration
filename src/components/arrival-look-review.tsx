@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { setOrderedSize, type OrderItem } from "@/lib/shop-order";
 
-export function ArrivalLookReview({ inviteId, orderId, item, wearer, currentMeasurements }: { inviteId: string; orderId: string; item: OrderItem; wearer: string; currentMeasurements?: OrderItem["measurements"] }) {
+export function ArrivalLookReview({ inviteId, orderId, item, wearer, currentMeasurements }: { inviteId: string; orderId: string; item: OrderItem; wearer: string; currentMeasurements?: OrderItem["measurements"] | undefined }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false), [busy, setBusy] = useState(false), [size, setSize] = useState("");
   async function save() {

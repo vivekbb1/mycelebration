@@ -20,7 +20,7 @@ const STAGES: [ArrivalStage, string][] = [["overdue", "Overdue"], ["due", "Expec
 const fmt = (d?: string) => d ? new Date(`${d}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
 
 /** Every active outfit by arrival: overdue, expected by date, undated, arrived. Host-only shipment details. */
-export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders = orders, current, matches, substitutions, seq = alphabetical, onOpen }: { inviteId: string; celebrationName: string; orders: Order[]; allOrders?: Order[]; current: (i: OrderItem) => { wearer: string; family: string; measurements?: OrderItem["measurements"] }; matches: (i: OrderItem, o: Order) => boolean; substitutions?: Map<string, LatestSub> | undefined; seq?: Sequencer; onOpen: (id: string) => void }) {
+export function OrderArrivalsView({ inviteId, celebrationName, orders, allOrders = orders, current, matches, substitutions, seq = alphabetical, onOpen }: { inviteId: string; celebrationName: string; orders: Order[]; allOrders?: Order[]; current: (i: OrderItem) => { wearer: string; family: string; measurements?: OrderItem["measurements"] | undefined }; matches: (i: OrderItem, o: Order) => boolean; substitutions?: Map<string, LatestSub> | undefined; seq?: Sequencer; onOpen: (id: string) => void }) {
   const today = new Date().toISOString().slice(0, 10);
   const [stage, setStage] = useState<ArrivalStage | "">("");
   const rows = orders.filter((o) => o.status !== "cancelled").flatMap((o) => o.items.filter((i) => matches(i, o)).map((i) => ({ o, i, ...current(i), stage: arrivalStage(i, today) })));
