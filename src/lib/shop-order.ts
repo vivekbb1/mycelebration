@@ -5,6 +5,8 @@ export type OrderAddOn = { id: string; label: string; sku: string; size: string;
 export type OrderItem = { reservationId: string; wearer: string; family: string; event: string; title: string; designer: string; sku: string; size: string; orderedSize?: string; originalPrice?: number | null; shop: string; image: string; price: number; discount: number; measurements: Record<string, string | number> | null; notes: string; alternative?: OrderAlternative | null; addOns?: OrderAddOn[];
   /** Per-look delivery tracking (host-only). */
   expectedDelivery?: string; arrivedOn?: string; tracking?: string; courierName?: string; trackingUrl?: string;
+  /** Host ticked that a non-set look was completed offline (host-only). */
+  setHandled?: boolean;
   /** Note shown to the wearer: accessories to carry, styling tips. Mirrored to their look once placed. */
   wearerNote?: string };
 

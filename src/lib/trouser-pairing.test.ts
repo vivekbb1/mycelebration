@@ -52,3 +52,17 @@ it("review is immutable and adds INR 4598 only to the confirmed person's look, p
   throws(() => pairWhitePants(next, "a", pants, wardrobe));
   throws(() => pairWhitePants(original, "a", { ...pants, size: "" }, wardrobe));
 });
+import { menSetStatus, setSetHandled } from "./trouser-pairing";
+describe("men's set report", () => {
+  const wd = [{ id: "k", title: "Ivory Kurta", source_sku: "K1", gender: "men" }, { id: "s", title: "Kurta Set", source_sku: "S1", gender: "men" }, { id: "p", title: "White Pyjama Pants", source_sku: "KASB082443", gender: "men" }];
+  const base = { reservationId: "r", wearer: "Oscar", family: "F", event: "Wedding", title: "Ivory Kurta", designer: "", sku: "K1", size: "L", shop: "", image: "", price: 1, discount: 0, measurements: null, notes: "" };
+  it("sets are excluded; kurta without pants is incomplete", () => {
+    strictEqual(menSetStatus({ ...base, sku: "S1", title: "Kurta Set" }, wd), null);
+    strictEqual(menSetStatus(base, wd)!.complete, false);
+  });
+  it("linked pants, offline mark or wearer note each make it complete", () => {
+    strictEqual(menSetStatus({ ...base, addOns: [{ id: "a", label: "", sku: "KASB082443", size: "L", shop: "", price: 1, discount: 0, notes: "" }] }, wd)!.pantsLinked, true);
+    strictEqual(menSetStatus(setSetHandled([base], "r", true)[0]!, wd)!.complete, true);
+    strictEqual(menSetStatus({ ...base, wearerNote: "carry white churidar" }, wd)!.complete, true);
+  });
+});

@@ -40,3 +40,20 @@ export function pairWhitePants(items: OrderItem[], reservationId: string, extra:
   if (!extra.size.trim()) throw new Error("Enter the size to order for the pants");
   return addAddOn(items, reservationId, extra);
 }
+export type MenSetStatus = { pantsLinked: boolean; pants: string[]; handled: boolean; noted: boolean; complete: boolean };
+/** Men's main looks whose title isn't a set; complete when trousers are linked, handled offline, or a wearer note covers it. */
+export function menSetStatus(item: OrderItem, wardrobe: PairingLook[]): MenSetStatus | null {
+  const effective = item.alternative ?? item;
+  const look = wardrobe.find((w) => ("outfitId" in effective && effective.outfitId && effective.outfitId === w.id) || (modelKey(effective.sku) !== "" && modelKey(w.source_sku) === modelKey(effective.sku)));
+  if (!look || !/^(men|man|male)$/i.test(look.gender ?? "")) return null;
+  if (/\bset\b/i.test(look.title || effective.title || "")) return null;
+  const pants = (item.addOns ?? []).filter((a) => modelKey(a.sku) === WHITE_PANTS_SKU || bottoms.test(a.label) || bottoms.test(wardrobe.find((w) => modelKey(w.source_sku) !== "" && modelKey(w.source_sku) === modelKey(a.sku))?.title ?? "")).map((a) => `${a.label || a.sku}${a.size ? ` (${a.size})` : ""}`);
+  const handled = Boolean(item.setHandled); const noted = Boolean((item.wearerNote ?? "").trim());
+  return { pantsLinked: pants.length > 0, pants, handled, noted, complete: pants.length > 0 || handled || noted };
+}
+
+/** Toggle only one look's "set managed offline" mark. */
+export function setSetHandled(items: OrderItem[], reservationId: string, handled: boolean): OrderItem[] {
+  if (!items.some((i) => i.reservationId === reservationId)) throw new Error("This look is no longer in the order");
+  return items.map((i) => i.reservationId === reservationId ? { ...i, setHandled: handled } : i);
+}
