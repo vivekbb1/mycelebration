@@ -11,7 +11,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { OrderItem } from "@/lib/shop-order";
 import { menSetStatus, setSetHandled, type PairingLook } from "@/lib/trouser-pairing";
 
-type Order = { id: string; reference: string; status: string; items: OrderItem[] };
+type Order = { id: string; reference: string; seller_reference: string; shop_name: string; status: string; items: OrderItem[] };
 type Filter = "" | "incomplete" | "linked" | "handled";
 
 /** Men's non-set looks: are trousers linked, handled offline, or covered by a wearer note? */
