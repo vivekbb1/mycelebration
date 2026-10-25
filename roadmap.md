@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [ ] Move Arrivals into Shipment with date/person/family/event views, rename Delivery to Instructions, and place Men's sets after Amounts; verify without order writes.
 - [x] Orders: all seven views checked at 390/768/1024/1440/1920px without page overflow; wrapped navigation, readable cards and scoped touch targets. Real hardware gestures remain device-dependent.
 - [x] Family: ordered-look overview, family/individual PDFs, notes/extras and arrival/check-in/prepaid dates; actual Falcioni PDF downloaded, ten regression tests passed, saved-order writes blocked.
 - [x] Orderer measurement editing in Arrivals → By family: temporary order saved/reloaded with chest 107 cm, sizes unchanged, records cleaned; phone checked and 23 tests passed. Edits affect order measurements only, not guest submissions.

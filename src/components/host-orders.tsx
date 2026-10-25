@@ -52,7 +52,7 @@ const FILTER_TABS = [
  * Orders: once a guest has reserved their look and sent measurements, the
  * host places the order with the shop and tracks money and shipping here.
  */
-export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "alterations" }) {
+export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "shipment" | "alterations" }) {
   const qc = useQueryClient();
   const { inviteId } = useSelectedEvent();
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -362,9 +362,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "altera
       </ul>
     </div>
   );
-  if (view === "orders") return (
+  if (view === "orders" || view === "shipment") return (
     <div className="space-y-5">
-      <GroupedShopOrders inviteId={inviteId} candidates={candidates} preorder={pending.map(toItem)} actions={invoiceUpload} />
+      <GroupedShopOrders shipment={view === "shipment"} inviteId={inviteId} candidates={candidates} preorder={pending.map(toItem)} actions={invoiceUpload} />
     </div>
   );
   return (
