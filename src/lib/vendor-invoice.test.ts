@@ -96,3 +96,14 @@ it("assigns an unmatched invoice line to a person as an alternative or as trouse
   strictEqual(alt[0]?.alternative?.sku, "ROPK112508"); strictEqual(alt[0]?.addOns?.[0]?.sku, "TRSR000001"); strictEqual(alt[0]?.addOns?.[0]?.size, "32");
   throws(() => invoiceOrderItems(i, [a], [["a"], ["a"]], [["alternative"], ["alternative"]]));
 });
+it("invoice save rejects ineligible or duplicate trouser pairing and preserves invoice totals", () => {
+  const i = parseVendorInvoice("ORDER NO : 3 DATE : 21-10-2026 MAIN1-BO-M X 1 ₹10,000.00 ₹0.00 ₹10,000.00 KASB082443-BO-L Y 1 ₹4,840.00 ₹242.00 ₹4,598.00 ORDER TAKEN BY M TOTAL AMOUNT ₹1 TOTAL PAYABLE ₹14,598.00 TOTAL PAID ₹10,000.00 AMOUNT DUE ₹4,598.00");
+  const a = { reservationId: "a", sku: "MAIN1", size: "M", price: 9000, discount: 0, title: "Jacket" } as OrderItem;
+  const wardrobe = [{ source_sku: "MAIN1", title: "Jacket", gender: "men" }];
+  const result = invoiceOrderItems(i, [a], [["a"], ["a"]], [["look"], ["addon"]], {}, wardrobe);
+  strictEqual(result[0]?.addOns?.[0]?.size, "L");
+  strictEqual(result[0]?.addOns?.[0]?.price, 4840);
+  strictEqual(a.addOns, undefined);
+  throws(() => invoiceOrderItems(i, [a], [["a"], ["a"]], [["look"], ["addon"]], {}, [{ ...wardrobe[0], title: "Jacket Set" }]));
+  throws(() => invoiceOrderItems(i, [{ ...a, addOns: result[0]?.addOns }], [["a"], ["a"]], [["look"], ["addon"]], {}, wardrobe));
+});

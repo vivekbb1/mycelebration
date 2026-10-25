@@ -1,11 +1,29 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { needsTrouserReview, pairWhitePants, WHITE_PANTS_SKU } from "./trouser-pairing";
+import { canPairTrouserExtra, needsTrouserReview, pairWhitePants, WHITE_PANTS_SKU } from "./trouser-pairing";
 import { orderTotals, type OrderItem, type OrderAddOn } from "./shop-order";
 
 const item = { reservationId: "a", title: "Black Embroidered Kurta", sku: "K1", size: "M", price: 10000, discount: 0 } as OrderItem;
 const wardrobe = [{ source_sku: "K1", title: item.title, gender: "men", notes: "Style it with pants and mojaris." }, { source_sku: WHITE_PANTS_SKU, title: "White Egyptian Giza Cotton Pyjama Pants", gender: "men" }];
 const pants: OrderAddOn = { id: "p", label: "White pyjama pants", sku: WHITE_PANTS_SKU, shop: "", size: "XL", price: 4598, discount: 0, notes: "" };
+it("invoice trousers complement any men's non-set main look, not only kurtas", () => {
+  strictEqual(canPairTrouserExtra(item, [{ ...wardrobe[0], title: "Embroidered Jacket" }]), true);
+});
+it("invoice trousers exclude sets and included pants", () => {
+  strictEqual(canPairTrouserExtra(item, [{ ...wardrobe[0], title: "Kurta Set" }]), false);
+  strictEqual(canPairTrouserExtra(item, [{ ...wardrobe[0], title: "Kurta with Pants" }]), false);
+});
+it("invoice trousers exclude women and unknown categories", () => {
+  strictEqual(canPairTrouserExtra(item, [{ ...wardrobe[0], gender: "women" }]), false);
+  strictEqual(canPairTrouserExtra(item, []), false);
+});
+it("invoice trousers exclude linked pants even with a generic extra label", () => {
+  strictEqual(canPairTrouserExtra({ ...item, addOns: [pants] }, wardrobe), false);
+  strictEqual(canPairTrouserExtra({ ...item, addOns: [{ ...pants, sku: "OTHER", label: "Cotton trousers" }] }, wardrobe), false);
+});
+it("invoice trousers evaluate the actual invoice replacement", () => {
+  strictEqual(canPairTrouserExtra(item, [...wardrobe, { source_sku: "SET", title: "Kurta Set", gender: "men" }], { sku: "SET" }), false);
+});
 it("flags men's kurta-only looks but does not count styling suggestions as included trousers", () => {
   strictEqual(needsTrouserReview(item, wardrobe), true);
 });
