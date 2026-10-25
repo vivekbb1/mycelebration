@@ -31,8 +31,9 @@ const SUBS: Record<string, Record<string, string>> = {
     picks: "selection",
     preorders: "pre-orders",
     orders: "orders",
+    shipment: "shipment",
     alterations: "alterations",
-    logistics: "delivery",
+    logistics: "instructions",
   },
   setup: {
     boutiques: "boutiques",
@@ -52,7 +53,7 @@ const invert = (m: Record<string, string>) =>
 export function parseHostPath(splat: string | undefined): { section: string; sub: string | null } {
   const [s = "", sub = ""] = (splat ?? "").split("/").filter(Boolean);
   const section = invert(SECTIONS)[s] ?? (s in SECTIONS ? s : "overview");
-  const subValue = sub ? (invert(SUBS[section] ?? {})[sub] ?? null) : null;
+  const subValue = section === "wardrobe" && sub === "delivery" ? "logistics" : sub ? (invert(SUBS[section] ?? {})[sub] ?? null) : null;
   return { section, sub: subValue };
 }
 
@@ -68,7 +69,7 @@ export const HOST_SUB_LABELS: Record<string, string> = {
   list: "List", tags: "Tags", invited: "Assign", replies: "RSVP", broadcast: "Broadcast",
   travel: "Count", arrivals: "Logistics", rooms: "Rooms", hosts: "Communication", tracker: "Tracker",
   outfits: "Upload", manage: "Manage", registered: "Registered", import: "Bulk Upload", feeds: "Live feeds", picks: "Selection", orders: "Orders",
-  logistics: "Delivery", boutiques: "Boutiques", vendors: "Vendors", budget: "Budget",
+  logistics: "Instructions", shipment: "Shipment", boutiques: "Boutiques", vendors: "Vendors", budget: "Budget",
   preorders: "Pre-orders", alterations: "Alterations",
   fees: "Celebration fees", email: "Email", look: "Wording",
 };
