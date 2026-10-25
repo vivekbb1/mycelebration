@@ -861,8 +861,8 @@ function HostDashboard() {
             </TabsContent>
 
 
-        <TabsContent value="manage" className="mt-6 space-y-8">
-          <nav aria-label="Manage sections" className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+        <TabsContent value="manage" className="mt-6 min-w-0 space-y-5">
+          <nav aria-label="Manage sections" className="panel-wrap sticky top-2 z-10 grid grid-cols-3 gap-2 p-3 sm:flex sm:flex-wrap">
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-add">Add & import</a></Button>
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-lookbook">Lookbook</a></Button>
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-feeds">Live feeds</a></Button>
