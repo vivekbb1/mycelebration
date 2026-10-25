@@ -830,11 +830,9 @@ function HostDashboard() {
 
         {!has("wardrobe_picker") ? null : (
         <TabsContent value="wardrobe" className="mt-6">
-          <Tabs value={!sub || sub === "import" ? "outfits" : sub} onValueChange={(v) => go("wardrobe", v)}>
+          <Tabs value={!sub || sub === "import" || sub === "outfits" || sub === "feeds" ? "manage" : sub} onValueChange={(v) => go("wardrobe", v)}>
             <TabsList className="grid h-auto w-full max-w-full grid-cols-3 gap-1 sm:grid-cols-4 lg:flex lg:flex-wrap lg:justify-start [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:whitespace-normal">
-              <TabsTrigger value="outfits">Upload</TabsTrigger>
               <TabsTrigger value="manage">Manage</TabsTrigger>
-              <TabsTrigger value="feeds">Live feeds</TabsTrigger>
               <TabsTrigger value="picks">Selection</TabsTrigger>
               <TabsTrigger value="preorders">Pre-orders</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
@@ -842,10 +840,6 @@ function HostDashboard() {
               <TabsTrigger value="alterations">Alterations</TabsTrigger>
               {has("delivery") ? <TabsTrigger value="logistics">Instructions</TabsTrigger> : null}
             </TabsList>
-
-            <TabsContent value="feeds" className="mt-6">
-              <HostFeeds />
-            </TabsContent>
 
             <TabsContent value="picks" className="mt-6">
               <HostPicks />
@@ -867,7 +861,13 @@ function HostDashboard() {
             </TabsContent>
 
 
-        <TabsContent value="outfits" className="mt-6 space-y-8">
+        <TabsContent value="manage" className="mt-6 space-y-8">
+          <nav aria-label="Manage sections" className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+            <Button asChild variant="outline" size="sm"><a href="#wardrobe-add">Add & import</a></Button>
+            <Button asChild variant="outline" size="sm"><a href="#wardrobe-lookbook">Lookbook</a></Button>
+            <Button asChild variant="outline" size="sm"><a href="#wardrobe-feeds">Live feeds</a></Button>
+          </nav>
+          <div id="wardrobe-add" className="scroll-mt-6" />
 
           <div className="panel h-fit min-w-0 p-4 sm:p-6">
             <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
@@ -1059,10 +1059,7 @@ function HostDashboard() {
               </TabsContent>
             </Tabs>
           </div>
-        </TabsContent>
-
-        <TabsContent value="manage" className="mt-6">
-          <div className="panel h-fit min-w-0 p-4 sm:p-6">
+          <div id="wardrobe-lookbook" className="panel h-fit min-w-0 scroll-mt-6 p-4 sm:p-6">
             <h2 className="text-xl">
               In the lookbook ({shownList.length}
               {shownList.length !== outfitList.length ? ` of ${outfitList.length}` : ""})
@@ -1335,6 +1332,9 @@ function HostDashboard() {
                 </li>
               ) : null}
             </ul>
+          </div>
+          <div id="wardrobe-feeds" className="min-w-0 scroll-mt-6">
+            <HostFeeds />
           </div>
         </TabsContent>
 
