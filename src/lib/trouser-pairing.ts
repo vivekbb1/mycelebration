@@ -6,10 +6,18 @@ export const modelKey = (sku?: string | null) => (sku ?? "").trim().toUpperCase(
 const bottoms = /\b(pants?|trousers?|pyjamas?|pajamas?|churidars?|dhotis?|salwars?)\b/i;
 
 /** A trouser extra complements a men's main look, never a set or a look already supplied with pants. */
-export function canPairTrouserExtra(item: OrderItem, wardrobe: PairingLook[], replacement?: { sku?: string; title?: string; outfitId?: string | null } | null) {
+export function canPairTrouserExtra(item: OrderItem, wardrobe: PairingLook[], replacement?: { sku?: string; title?: string; outfitId?: string | null } | null, allowUncataloguedReplacement = false) {
   const effective = replacement ?? item.alternative ?? item;
-  const look = wardrobe.find((w) => ("outfitId" in effective && effective.outfitId === w.id) || (modelKey(effective.sku) !== "" && modelKey(w.source_sku) === modelKey(effective.sku)));
+  const catalogued = wardrobe.find((w) => ("outfitId" in effective && effective.outfitId === w.id) || (modelKey(effective.sku) !== "" && modelKey(w.source_sku) === modelKey(effective.sku)));
+  // Invoice-only fallback: retain the original category and included-pants safeguards
+  // until the reviewed replacement is collected. A known replacement remains authoritative.
+  const original = !catalogued && allowUncataloguedReplacement && effective !== item
+    ? wardrobe.find((w) => modelKey(item.sku) !== "" && modelKey(w.source_sku) === modelKey(item.sku)) : undefined;
+  const look = catalogued ?? original;
   if (!look || !/^(men|man|male)$/i.test(look.gender ?? "")) return false;
+  if (original && !canPairTrouserExtra({ ...item, alternative: null }, wardrobe)) return false;
+  if (original && /\bset\b/i.test(effective.title ?? "")) return false;
+  if (original && bottoms.test(effective.title ?? "") && !/\b(without|excluding|excludes|not included)\b/i.test(effective.title ?? "")) return false;
   const title = look.title || effective.title || "";
   if (/\bset\b/i.test(title)) return false;
   const excluded = /\b(without|excluding|excludes|not included)\b/i.test(title);

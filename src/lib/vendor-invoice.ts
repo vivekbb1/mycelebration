@@ -54,7 +54,7 @@ export function invoiceTrouserOptions(invoice: VendorInvoice, candidates: OrderI
     const mainLine = invoice.lines[mainIndex];
     const replacement = mainLine && !invoiceMatches(mainLine, [c]).length ? details[mainIndex] ?? { sku: mainLine.sku, title: "" } : undefined;
     const alreadyPaired = invoice.lines.some((line, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && (i !== index || s !== slot) && modeOf(line, i, s) === "addon"));
-    return !alreadyPaired && canPairTrouserExtra(c, wardrobe, replacement);
+    return !alreadyPaired && canPairTrouserExtra(c, wardrobe, replacement, true);
   });
 }
 
@@ -85,7 +85,7 @@ export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[
     if (modeOf(index, slot) !== "addon") return;
     const target = items.find((i) => i.reservationId === id);
     if (!target) throw new Error(`Extra item ${line.sku} must go with a look on this invoice`);
-    if (wardrobe && !canPairTrouserExtra(target, wardrobe)) throw new Error(`Extra item ${line.sku} needs a men's non-set look without linked or included trousers`);
+    if (wardrobe && !canPairTrouserExtra(target, wardrobe, undefined, true)) throw new Error(`Extra item ${line.sku} needs a men's non-set look without linked or included trousers`);
     target.addOns = [...(target.addOns ?? []), { id: `${line.sku}-${index}-${slot}`, label: details[index]?.title ?? "Extra item", sku: line.sku, size: line.orderedSize, shop: details[index]?.shop ?? "", price: line.price, discount: line.discount, notes: "From vendor invoice" }];
   }));
   return items;
