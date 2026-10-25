@@ -39,7 +39,7 @@ export function OrderEventView({ inviteId, orders, candidates, substitutions, ma
     <p className="text-sm text-muted-foreground">{event === ALL ? "All events" : event}: {count} outfits across {shown.length} {shown.length === 1 ? "family" : "families"}</p>
     {shown.map((f) => {
       const people = [...new Set(f.all.map((r) => r.wearer))];
-      return <section key={f.family} className="space-y-3 rounded-xl border border-border p-4">
+      return <section key={f.family} className="space-y-3 rounded-xl border border-border p-3 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="font-medium">{f.family}</h4>
           <div className="flex flex-wrap gap-2">
@@ -47,24 +47,28 @@ export function OrderEventView({ inviteId, orders, candidates, substitutions, ma
             <Button size="sm" variant="outline" aria-label={`WhatsApp ${f.family} family PDF`} onClick={() => void sharePdfOnWhatsApp(() => familyBlob(f.family, f.all), pdfFileName(f.family), `Hello ${f.family}, please find attached the outfits ordered for you for ${celebrationName}. Kindly check each look and size and let us know of any last-minute changes.`, people.map(phoneOf).find(Boolean) ?? "")}><MessageCircle className="size-4" /> WhatsApp</Button>
           </div>
         </div>
-        <div className="flex flex-col gap-1.5 border-b border-border pb-3">{people.map((w) => <div key={w} className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="font-medium">{w}</span><span className="flex flex-wrap gap-2"><IndividualShare wearer={w} celebration={celebrationName} lines={lines(f.all.filter((r) => r.wearer === w))} phone={phoneOf(w)} /></span></div>)}</div>
         {f.byEvent.map((g) => <div key={g.event} className="space-y-2">
           {event === ALL ? <p className="text-sm font-medium text-primary">{g.event || "No event"}</p> : null}
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{g.rows.map(({ order, item, wearer }) => {
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">{g.rows.map(({ order, item, wearer }) => {
             const sub = substitutions?.get(item.reservationId);
             const title = item.alternative?.title || sub?.replacement.title || item.title;
             const image = item.alternative ? item.alternative.image : sub ? sub.replacement.image ?? "" : item.image;
             const swapped = Boolean(item.alternative || sub);
-            return <li key={`${order.id}-${item.reservationId}`} className="min-w-0 space-y-1 rounded-lg bg-surface p-2">
-              {image ? <img src={image} alt={title} referrerPolicy="no-referrer" loading="lazy" className="aspect-[3/4] w-full rounded object-cover" /> : <div className="flex aspect-[3/4] w-full items-center justify-center rounded bg-muted text-xs text-muted-foreground">No photo</div>}
-              <p className="truncate text-sm font-medium">{wearer}</p>
-              <p className="line-clamp-2 text-xs">{title}{swapped ? <span className="text-primary"> · substitute</span> : null}</p>
-              <p className="text-xs text-muted-foreground">Size {item.orderedSize || item.size || "—"}</p>
-              {(item.addOns ?? []).map((a) => <p key={a.id} className="truncate text-xs">+ {a.label || "Extra item"}</p>)}
-              {item.wearerNote ? <p className="line-clamp-3 text-xs text-muted-foreground">Note: {item.wearerNote}</p> : null}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                {order.status !== "cancelled" ? <WearerNoteButton inviteId={inviteId} orderId={order.id} item={item} wearer={wearer} /> : null}
-                <button type="button" className="text-xs text-primary underline-offset-2 hover:underline" onClick={() => onOpen(order.id)}>{order.reference}</button>
+            return <li key={`${order.id}-${item.reservationId}`} className={`flex min-w-0 flex-col rounded-xl border border-border bg-card ${order.status === "cancelled" ? "opacity-60" : ""}`}>
+              <div className="flex min-w-0 flex-1 gap-3 p-4">
+                {image ? <img src={image} alt={title} referrerPolicy="no-referrer" loading="lazy" className="aspect-[3/4] w-20 shrink-0 self-start rounded-md object-cover" /> : <div className="flex aspect-[3/4] w-20 shrink-0 items-center justify-center self-start rounded-md bg-muted text-xs text-muted-foreground">No photo</div>}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="break-words font-medium">{wearer}</p>
+                  <p className="break-words text-xs text-muted-foreground">{item.event}</p>
+                  <p className="line-clamp-2 text-sm">{title}{swapped ? <span className="text-primary"> · substitute</span> : null}</p>
+                  <p className="text-xs">Size {item.size || "—"} → ordered {item.orderedSize || "—"}</p>
+                  {(item.addOns ?? []).map((a) => <p key={a.id} className="break-words text-xs">Extra: {a.label || "Extra item"}{a.size ? ` · ${a.size}` : ""}</p>)}
+                  {item.wearerNote ? <p className="line-clamp-3 text-xs"><span className="text-muted-foreground">Note: </span>{item.wearerNote}</p> : null}
+                </div>
+              </div>
+              <div className="space-y-2 border-t border-border p-3">
+                <div className="flex items-center justify-between gap-2"><span className="min-w-0 truncate text-xs capitalize text-muted-foreground">{order.reference} · {order.status}</span><Button size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onClick={() => onOpen(order.id)}>Open order</Button></div>
+                {order.status !== "cancelled" ? <div className="grid grid-cols-3 gap-1.5 [&>button]:h-8 [&>button]:w-full [&>button]:min-w-0 [&>button]:px-1.5 [&>button]:text-xs [&_svg]:shrink-0"><WearerNoteButton inviteId={inviteId} orderId={order.id} item={item} wearer={wearer} /><IndividualShare wearer={wearer} celebration={celebrationName} lines={lines(f.all.filter((r) => r.wearer === wearer))} phone={phoneOf(wearer)} /></div> : null}
               </div>
             </li>;
           })}</ul>
