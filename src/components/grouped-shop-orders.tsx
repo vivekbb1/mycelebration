@@ -14,6 +14,7 @@ import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
 import { FamilyOrderReport } from "@/components/family-order-report";
+import { OrderInvoiceLines } from "@/components/order-invoice-lines";
 import { OrderFamilyView } from "@/components/order-family-view";
 import { AssignGuestLook } from "@/components/assign-guest-look";
 import { useServerFn } from "@tanstack/react-start";
@@ -83,6 +84,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const [orderVersion, setOrderVersion] = useState<string | null>(null);
   const [familyView, setFamilyView] = useState(false);
+  const [invoiceView, setInvoiceView] = useState(false);
 
   const used = new Set((orders.data ?? []).filter((o) => o.id !== id && o.status !== "cancelled").flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.reservationId)));
   const available = candidates.filter((c) => !used.has(c.reservationId) && !items.some((i) => i.reservationId === c.reservationId) && `${c.wearer} ${c.title} ${c.family}`.toLowerCase().includes(search.toLowerCase()));
@@ -92,7 +94,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const totals = orderTotals(items, payments, courierNum);
   const cancelled = status === "cancelled";
 
-  function reset(start: OrderItem[] = []) {
+  function reset(start: OrderItem[] = []) { setInvoiceView(false);
     setOrderVersion(null);
     setId(null); setReference(`ORDER-${new Date().toISOString().slice(0, 10)}`); setShop(""); setCurrency("INR"); setNotes("");
     setSellerRef(""); setStylist(""); setStylistMobile(""); setSellerTotal(""); setCourierCharges("0");
@@ -101,7 +103,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   useEffect(() => { if (startWith?.length) { reset(startWith); onStarted?.(); } }, [startWith]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openOrder(o: NonNullable<typeof orders.data>[number]) {
-    setOrderVersion(o.updated_at);
+    setOrderVersion(o.updated_at); setInvoiceView(true); setFamilyView(false);
     setId(o.id); setReference(o.reference); setShop(o.shop_name); setCurrency(o.currency); setNotes(o.notes);
     setSellerRef(o.seller_reference); setStylist(o.salesperson_name); setStylistMobile(o.salesperson_mobile);
     setSellerTotal(o.seller_total?.toString() ?? ""); setCourierCharges(String(o.courier_charges ?? 0));
@@ -344,7 +346,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-        <div className="flex flex-wrap items-center gap-2"><h3 className="font-medium">Outfits in this order ({items.length})</h3><Button size="sm" variant={familyView ? "default" : "outline"} onClick={() => setFamilyView((v) => !v)}>{familyView ? "Edit view" : "Family view"}</Button></div>
+        <div className="flex flex-wrap items-center gap-2"><h3 className="font-medium">Outfits in this order ({items.length})</h3><div className="inline-flex flex-wrap gap-1">{([["invoice", "Invoice view"], ["edit", "Edit view"], ["family", "Family view"]] as const).map(([k, l]) => { const on = k === "invoice" ? invoiceView : k === "family" ? familyView && !invoiceView : !familyView && !invoiceView; return <Button key={k} size="sm" variant={on ? "default" : "outline"} onClick={() => { setInvoiceView(k === "invoice"); setFamilyView(k === "family"); }}>{l}</Button>; })}</div></div>
         {!cancelled ? <div className="flex flex-wrap gap-2"><AssignGuestLook inviteId={inviteId} onAssigned={setAssignedId} /><Button size="sm" variant="outline" onClick={() => { setAdding((v) => !v); setSwapFor(null); }}><Plus className="size-4" /> Add outfits</Button></div> : null}
       </div>
       {adding || swapFor ? <div className="space-y-3 rounded-xl border border-border p-4">
@@ -363,8 +365,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         </div>
       </div> : null}
 
-      {familyView ? <OrderFamilyView items={items} currency={currency} subs={subs.data} seq={seq} /> : null}
-      {familyView ? null : items.map((item) => <div key={item.reservationId} className="space-y-3 rounded-xl border border-border p-4">
+      {invoiceView ? <OrderInvoiceLines items={items} currency={currency} /> : null}
+      {familyView && !invoiceView ? <OrderFamilyView items={items} currency={currency} subs={subs.data} seq={seq} /> : null}
+      {familyView || invoiceView ? null : items.map((item) => <div key={item.reservationId} className="space-y-3 rounded-xl border border-border p-4">
         <div className="flex flex-wrap gap-3 sm:flex-nowrap">
           {item.image ? <img src={item.image} alt={item.title} className="h-24 w-20 shrink-0 object-cover" /> : null}
           <div className="min-w-0 flex-1 basis-40 sm:basis-auto"><p className="font-medium">{item.wearer} · {item.event}</p><p className="text-sm">{item.title}</p><p className="text-sm text-muted-foreground">{item.designer} · size {item.size || "—"} · {item.sku} <WardrobeFlag sku={item.sku} skus={wardrobeSkus} /></p>{item.alternative ? <p className="text-sm font-medium text-primary">Shop order: {item.alternative.title || item.alternative.sku}{item.alternative.sku && item.alternative.title ? ` (${item.alternative.sku})` : ""} {id && !cancelled && wardrobeSkus && !(item.alternative.outfitId) && (!item.alternative.sku?.trim() || !wardrobeSkus.has(item.alternative.sku.trim().toUpperCase())) ? <OutfitSubstitution inviteId={inviteId} item={item} orderId={id} disabled={busy} trigger={(go, off) => <button type="button" disabled={off} onClick={go} title="Paste the shop link to fetch it, add it to the wardrobe and link it to this person" className="whitespace-nowrap text-xs text-destructive underline underline-offset-2 hover:opacity-80">✗ Not in wardrobe · paste link to add</button>} onSaved={async () => {
