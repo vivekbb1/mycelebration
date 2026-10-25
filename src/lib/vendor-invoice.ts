@@ -1,4 +1,5 @@
 import type { OrderItem, OrderAlternative } from "./shop-order";
+import { canPairTrouserExtra, type PairingLook } from "./trouser-pairing";
 
 export type InvoiceLine = { sku: string; orderedSize: string; quantity: number; price: number; discount: number; net: number };
 export type VendorInvoice = { reference: string; date: string; stylist: string; total: number; paid: number; due: number; lines: InvoiceLine[] };
@@ -44,7 +45,7 @@ export function defaultSlotMode(line: InvoiceLine, candidates: OrderItem[]): Slo
   return invoiceMatches(line, candidates).length ? "look" : "alternative";
 }
 
-export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = [], details: Record<number, OrderAlternative> = {}): OrderItem[] {
+export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = [], details: Record<number, OrderAlternative> = {}, wardrobe?: PairingLook[]): OrderItem[] {
   const used = new Set<string>();
   const items: OrderItem[] = [];
   const modeOf = (index: number, slot: number) => {
@@ -71,6 +72,7 @@ export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[
     if (modeOf(index, slot) !== "addon") return;
     const target = items.find((i) => i.reservationId === id);
     if (!target) throw new Error(`Extra item ${line.sku} must go with a look on this invoice`);
+    if (wardrobe && !canPairTrouserExtra(target, wardrobe)) throw new Error(`Extra item ${line.sku} needs a men's non-set look without linked or included trousers`);
     target.addOns = [...(target.addOns ?? []), { id: `${line.sku}-${index}-${slot}`, label: details[index]?.title ?? "Extra item", sku: line.sku, size: line.orderedSize, shop: details[index]?.shop ?? "", price: line.price, discount: line.discount, notes: "From vendor invoice" }];
   }));
   return items;
