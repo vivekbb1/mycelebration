@@ -27,8 +27,6 @@ it("link ranges include the boundaries, preserve old choices and host selection 
     const member = await client.from("invite_codes").insert({ invite_id: inviteId, family_id: familyId, household: name, code: crypto.randomUUID(), guest_name: name, gender: "men" }).select("id").single();
     if (member.error) throw member.error;
     memberId = member.data.id;
-    const access = await client.from("household_event_invites").insert({ invite_id: inviteId, household: name, event_id: event.data.id, outfit_selection: true });
-    if (access.error) throw access.error;
     const prices = [29999, 30000, 35000, 35001, 60000, 60001];
     const outfits = await client.from("outfits").insert(prices.map((price) => ({ invite_id: inviteId, event_id: event.data.id, title: `${name} ${price}`, gender: "men", price_inr: price }))).select("id, price_inr");
     if (outfits.error) throw outfits.error;
@@ -38,6 +36,12 @@ it("link ranges include the boundaries, preserve old choices and host selection 
     strictEqual((await client.rpc("member_outfit_allowed", { _member: memberId, _outfit: idAt(35001) })).data, false);
     const denied = await client.rpc("host_choose_outfit", { _member: memberId, _outfit: idAt(35001) });
     ok(denied.error);
+    const access = await client.from("household_event_invites").insert({ invite_id: inviteId, household: name, event_id: event.data.id, outfit_selection: false });
+    if (access.error) throw access.error;
+    const notOffered = await client.rpc("host_choose_outfit", { _member: memberId, _outfit: idAt(35000), _size: "L" });
+    ok(notOffered.error?.message.includes("not offered outfits"));
+    await client.from("household_event_invites").delete().eq("event_id", event.data.id).eq("household", name);
+    // No explicit family restrictions must allow globally enabled events, like Oscar's family.
     const choose = await client.rpc("host_choose_outfit", { _member: memberId, _outfit: idAt(35000), _size: "L" });
     if (choose.error) throw choose.error;
     const before = await client.from("reservations").select("id, status, outfit_id, size_choice, member_code_id").eq("id", choose.data).single();
