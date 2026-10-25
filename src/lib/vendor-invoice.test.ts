@@ -1,9 +1,28 @@
 import { it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { invoiceMatches, invoiceOrderItems, parseVendorInvoice, pendingOrderLook, validateInvoiceShopModel } from "./vendor-invoice";
+import { invoiceMatches, invoiceOrderItems, invoiceTrouserOptions, parseVendorInvoice, pendingOrderLook, validateInvoiceShopModel, type SlotMode } from "./vendor-invoice";
 import type { OrderItem } from "./shop-order";
 
 const text = "ORDER NO : 100581221 DATE : 20-10-2026 ROPK112508-BO-S ROSA by Priyanka kar 1 ₹33,000.00 ₹8,250.00 ₹24,750.00 ORDER TAKEN BY Muskaan Oberoi TOTAL AMOUNT ₹33,000.00 TOTAL PAYABLE ₹24,750.00 TOTAL PAID ₹20,000.00 AMOUNT DUE ₹4,750.00";
+it("Oscar's Wedding pants never exclude his Big Bollywood Night trouser pairing", () => {
+  const wedding = { reservationId: "oscar-wedding", wearer: "Oscar", event: "Wedding", sku: "MAIN1", title: "Jacket", size: "XXL", price: 10000, discount: 0, addOns: [{ id: "wedding-pants", label: "Pants", sku: "KASB082590", size: "XXL", price: 4598, discount: 0, shop: "", notes: "" }] } as OrderItem;
+  const bollywood = { ...wedding, reservationId: "oscar-bollywood", event: "Big Bollywood Night", addOns: [] };
+  const invoice = parseVendorInvoice("ORDER NO : 4 DATE : 25-10-2026 MAIN1-BO-XXL X 1 ₹10,000.00 ₹0.00 ₹10,000.00 KASB082443-BO-XXL Y 1 ₹4,840.00 ₹242.00 ₹4,598.00 ORDER TAKEN BY M TOTAL AMOUNT ₹1 TOTAL PAYABLE ₹14,598.00 TOTAL PAID ₹10,000.00 AMOUNT DUE ₹4,598.00");
+  const wardrobe = [{ source_sku: "MAIN1", title: "Jacket", gender: "men" }];
+  const modes: SlotMode[][] = [["look"], ["addon"]];
+  const matches = [[bollywood.reservationId], [bollywood.reservationId]];
+  const options = invoiceTrouserOptions(invoice, [wedding, bollywood], matches, modes, {}, wardrobe, 1, 0);
+  strictEqual(options.length, 1);
+  strictEqual(options[0]?.event, "Big Bollywood Night");
+  const result = invoiceOrderItems(invoice, [wedding, bollywood], matches, modes, {}, wardrobe);
+  strictEqual(result[0]?.reservationId, "oscar-bollywood");
+  strictEqual(result[0]?.addOns?.[0]?.sku, "KASB082443");
+  strictEqual(wedding.addOns?.[0]?.sku, "KASB082590");
+  strictEqual(bollywood.addOns.length, 0);
+  const duplicate = { ...bollywood, addOns: result[0]?.addOns ?? [] };
+  strictEqual(invoiceTrouserOptions(invoice, [duplicate], matches, modes, {}, wardrobe, 1, 0).length, 0);
+  throws(() => invoiceOrderItems(invoice, [duplicate], matches, modes, {}, wardrobe));
+});
 it("only attaches fetched Pernia details to the invoice's exact model", () => {
   validateInvoiceShopModel("ROPK112508", "ropk112508");
   throws(() => validateInvoiceShopModel("ROPK112508", "ROPK1125080"));

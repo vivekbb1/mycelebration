@@ -45,6 +45,19 @@ export function defaultSlotMode(line: InvoiceLine, candidates: OrderItem[]): Slo
   return invoiceMatches(line, candidates).length ? "look" : "alternative";
 }
 
+/** A reservation identifies one wearer's look for one event, never all their events. */
+export function invoiceTrouserOptions(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][], details: Record<number, OrderAlternative>, wardrobe: PairingLook[], index: number, slot: number) {
+  const modeOf = (line: InvoiceLine, i: number, s: number) => modes[i]?.[s] ?? defaultSlotMode(line, candidates);
+  return candidates.filter(c => {
+    const mainIndex = invoice.lines.findIndex((line, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && modeOf(line, i, s) !== "addon"));
+    if (mainIndex < 0) return false;
+    const mainLine = invoice.lines[mainIndex];
+    const replacement = mainLine && !invoiceMatches(mainLine, [c]).length ? details[mainIndex] ?? { sku: mainLine.sku, title: "" } : undefined;
+    const alreadyPaired = invoice.lines.some((line, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && (i !== index || s !== slot) && modeOf(line, i, s) === "addon"));
+    return !alreadyPaired && canPairTrouserExtra(c, wardrobe, replacement);
+  });
+}
+
 export function invoiceOrderItems(invoice: VendorInvoice, candidates: OrderItem[], matches: string[][], modes: SlotMode[][] = [], details: Record<number, OrderAlternative> = {}, wardrobe?: PairingLook[]): OrderItem[] {
   const used = new Set<string>();
   const items: OrderItem[] = [];
