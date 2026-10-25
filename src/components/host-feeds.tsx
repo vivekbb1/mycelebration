@@ -148,8 +148,8 @@ export function HostFeeds() {
 
   return (
     <div className="grid gap-6">
-      <section className="panel p-4 sm:p-6">
-        <h2 className="flex items-center gap-2 text-xl">
+      <section className="panel-wrap p-4 sm:p-5">
+        <h2 className="flex items-center gap-2 font-display text-xl">
           <Rss className="size-4 text-primary" /> Live feeds
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -280,7 +280,7 @@ export function HostFeeds() {
       </section>
 
       {eventId ? (
-        <section className="panel p-4 sm:p-6">
+        <section className="panel-wrap p-4 sm:p-5">
           <p className="text-sm text-muted-foreground">
             What guests see for {eventName(eventId)}. Hide any look you don't want offered.
           </p>

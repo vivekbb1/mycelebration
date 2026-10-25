@@ -175,8 +175,8 @@ export function HostPicks() {
 
   return (
     <div className="space-y-6">
-      <div className="panel p-4 sm:p-6">
-        <h2 className="text-xl">Nudge guests who haven't chosen</h2>
+      <div className="panel-wrap p-4 sm:p-5">
+        <h2 className="font-display text-xl">Nudge guests who haven't chosen</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           A short email listing the days still waiting on them, with a link to the wardrobe.
         </p>

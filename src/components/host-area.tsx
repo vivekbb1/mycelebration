@@ -869,8 +869,8 @@ function HostDashboard() {
           </nav>
           <div id="wardrobe-add" className="scroll-mt-6" />
 
-          <div className="panel h-fit min-w-0 p-4 sm:p-6">
-            <h2 className="text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
+          <div className="panel-wrap h-fit min-w-0 p-4 sm:p-5">
+            <h2 className="font-display text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Copy the image link and product link from Pernia's Pop-Up Shop (or any boutique) and
               paste them here.
@@ -1059,8 +1059,8 @@ function HostDashboard() {
               </TabsContent>
             </Tabs>
           </div>
-          <div id="wardrobe-lookbook" className="panel h-fit min-w-0 scroll-mt-6 p-4 sm:p-6">
-            <h2 className="text-xl">
+          <div id="wardrobe-lookbook" className="panel-wrap h-fit min-w-0 scroll-mt-6 p-4 sm:p-5">
+            <h2 className="font-display text-xl">
               In the lookbook ({shownList.length}
               {shownList.length !== outfitList.length ? ` of ${outfitList.length}` : ""})
             </h2>

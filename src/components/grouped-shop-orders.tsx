@@ -258,7 +258,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   return <section className={listHidden ? "contents" : "order-workspace min-w-0 space-y-3"}>
     {listHidden ? <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">{actions}<Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button></div> : !shipment ? <>
     <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-      <div className="min-w-0"><h2 className="text-xl">Shop orders</h2>{active.length ? <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
+      <div className="min-w-0"><h2 className="font-display text-xl">Shop orders</h2>{active.length ? <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:flex sm:flex-wrap">
         {([["Active orders", String(active.length)], ["Total", sum.total.toLocaleString(...nf(currency))], ["Paid", sum.paid.toLocaleString(...nf(currency))], ["Balance", (sum.total - sum.paid).toLocaleString(...nf(currency))]] as const).map(([l, v]) => <div key={l} className="rounded-md border border-border px-3 py-1.5"><p className="text-xs text-muted-foreground">{l}</p><p className="font-medium tabular-nums">{v}</p></div>)}
       </div> : null}</div>
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">{actions}<Button onClick={() => reset()} disabled={!inviteId} className="w-full sm:w-auto"><Plus className="size-4" /> New order</Button></div>
@@ -331,7 +331,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     {orders.isSuccess && !(orders.data ?? []).length ? <p className="text-sm text-muted-foreground">No shop orders yet. Tick looks in Pre-orders and choose "Convert to one order", or start a new order here.</p> : null}
     {orders.isError ? <p className="text-destructive">Couldn't load shop orders.</p> : null}
     </> : <>
-      <h2 className="text-xl">Shipment</h2>
+      <h2 className="font-display text-xl">Shipment</h2>
       <OrderArrivalsView inviteId={inviteId} celebrationName={celebrationName} orders={(orders.data ?? []).map((o) => ({ ...o, items: o.items as unknown as OrderItem[] }))} current={(i) => { const c = candidates.find((x) => x.reservationId === i.reservationId); return { wearer: c?.wearer ?? i.wearer, family: c?.family ?? i.family, measurements: c?.measurements }; }} substitutions={subs.data} seq={seq} matches={() => true} onOpen={openById} />
       {orders.isError ? <p role="alert" className="text-destructive">Couldn't load shipments.</p> : null}
     </>}
