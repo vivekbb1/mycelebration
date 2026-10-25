@@ -47,7 +47,8 @@ export function menSetStatus(item: OrderItem, wardrobe: PairingLook[]): MenSetSt
   const look = wardrobe.find((w) => ("outfitId" in effective && effective.outfitId && effective.outfitId === w.id) || (modelKey(effective.sku) !== "" && modelKey(w.source_sku) === modelKey(effective.sku)));
   if (!look || !/^(men|man|male)$/i.test(look.gender ?? "")) return null;
   if (/\bset\b/i.test(look.title || effective.title || "")) return null;
-  const pants = (item.addOns ?? []).filter((a) => modelKey(a.sku) === WHITE_PANTS_SKU || bottoms.test(a.label) || bottoms.test(wardrobe.find((w) => modelKey(w.source_sku) !== "" && modelKey(w.source_sku) === modelKey(a.sku))?.title ?? "")).map((a) => `${a.label || a.sku}${a.size ? ` (${a.size})` : ""}`);
+  // Unnamed invoice extras on a non-set men's look are taken as its trousers unless the wardrobe names them otherwise.
+  const pants = (item.addOns ?? []).filter((a) => { const t = wardrobe.find((w) => modelKey(w.source_sku) !== "" && modelKey(w.source_sku) === modelKey(a.sku))?.title ?? ""; return modelKey(a.sku) === WHITE_PANTS_SKU || bottoms.test(a.label) || bottoms.test(t) || (!t && (!a.label.trim() || /^extra item$/i.test(a.label.trim()))); }).map((a) => `${a.label || a.sku}${a.size ? ` (${a.size})` : ""}`);
   const handled = Boolean(item.setHandled); const noted = Boolean((item.wearerNote ?? "").trim());
   return { pantsLinked: pants.length > 0, pants, handled, noted, complete: pants.length > 0 || handled || noted };
 }
