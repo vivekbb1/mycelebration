@@ -11,6 +11,7 @@ import { AssignGuestLook } from "@/components/assign-guest-look";
 import { InvoiceShopLook } from "@/components/invoice-shop-look";
 import { InvoiceAssignLook } from "@/components/invoice-assign-look";
 import { missingInvoiceWearers } from "@/lib/invoice-wearers";
+import { canPairTrouserExtra } from "@/lib/trouser-pairing";
 import type { PerniaLook } from "@/lib/pernia.functions";
 import { defaultSlotMode, invoiceMatches, invoiceOrderItems, parseVendorInvoice, type SlotMode, type VendorInvoice } from "@/lib/vendor-invoice";
 
@@ -83,9 +84,9 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
     return missingInvoiceWearers(members.data, events.data, access.data, looks.data, new Set(outfits.data.map(o => `${o.event_id}|${o.gender}`)));
   }});
   const wardrobeSkus = useQuery({ queryKey: ["invoice-wardrobe-skus", inviteId], enabled: Boolean(invoice), queryFn: async () => {
-    const r = await supabase.from("outfits").select("source_sku").eq("invite_id", inviteId).is("retired_at", null).not("source_sku", "is", null);
+    const r = await supabase.from("outfits").select("id,source_sku,title,gender,garment_type,notes").eq("invite_id", inviteId);
     if (r.error) throw r.error;
-    return new Set(r.data.map(o => (o.source_sku ?? "").trim().toUpperCase()));
+    return r.data;
   }});
   async function read(file: File) {
     setBusy(true);
@@ -105,7 +106,7 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
     finally { setBusy(false); }
   }
   let valid = false;
-  if (invoice) { try { invoiceOrderItems(invoice, candidates, matches, modes); valid = true; } catch { /* unresolved matches */ } }
+  if (invoice && wardrobeSkus.data) { try { invoiceOrderItems(invoice, candidates, matches, modes, details, wardrobeSkus.data); valid = true; } catch { /* unresolved matches */ } }
   async function save() {
     if (!invoice || !file) return;
     setBusy(true);
@@ -113,7 +114,8 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
     const path = `${inviteId}/orders/${id}/${file.name.replace(/[^a-z0-9.-]/gi, "_")}`;
     let uploaded = false;
     try {
-      const items = invoiceOrderItems(invoice, candidates, matches, modes, details);
+      if (!wardrobeSkus.data) throw new Error("Wait for wardrobe details before confirming the invoice");
+      const items = invoiceOrderItems(invoice, candidates, matches, modes, details, wardrobeSkus.data);
       const up = await supabase.storage.from("alteration-photos").upload(path, file, { contentType: "application/pdf" });
       if (up.error) throw up.error;
       uploaded = true;
@@ -159,14 +161,21 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
           <AssignGuestLook inviteId={inviteId} onAssigned={() => { toast.success("Guest's confirmed look is now available for invoice matching"); }} />
           {missing.isError ? <p className="text-sm text-destructive">Could not load guests without selections. Please reopen invoice review.</p> : null}
           {invoice.lines.map((line, index) => { const exact = invoiceMatches(line, candidates); return <div key={`${line.sku}-${index}`} className="space-y-2 border-t border-border pt-3">
-            <p className="font-medium">{line.sku} · ordered size {line.orderedSize} {wardrobeSkus.data ? (wardrobeSkus.data.has(line.sku.trim().toUpperCase()) ? <span className="text-xs text-primary">✓ In wardrobe</span> : <span className="text-xs text-destructive">✗ Not in wardrobe — paste the shop link below</span>) : null}</p>
+            <p className="font-medium">{line.sku} · ordered size {line.orderedSize} {wardrobeSkus.data ? (wardrobeSkus.data.some(o => o.source_sku?.trim().toUpperCase() === line.sku.trim().toUpperCase()) ? <span className="text-xs text-primary">✓ In wardrobe</span> : <span className="text-xs text-destructive">✗ Not in wardrobe — paste the shop link below</span>) : null}</p>
             <p className="text-sm text-muted-foreground">Revised price INR {money(line.price)} − discount {money(line.discount)} = discounted price INR {money(line.net)}</p>
             <InvoiceShopLook inviteId={inviteId} sku={line.sku} onFetched={look => { setFetched(all => ({ ...all, [index]: look })); setDetails(all => ({ ...all, [index]: { title: look.title, sku: look.sku, designer: look.designer, shop: look.url, image: look.images[0] ?? "" } })); }} />
             {!exact.length ? <p className="text-xs text-muted-foreground">No pending look matches this model. Assign a guest's look, use an alternative, or add an extra item.</p> : null}
             {Array.from({ length: line.quantity }, (_, slot) => {
               const mode = modes[index]?.[slot] ?? defaultSlotMode(line, candidates);
               const lookIds = new Set(invoice.lines.flatMap((l, i) => (matches[i] ?? []).filter((id, s) => id && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon")));
-              const options = mode === "addon" ? candidates.filter((c) => lookIds.has(c.reservationId)) : candidates;
+              const options = mode === "addon" ? candidates.filter((c) => {
+                if (!lookIds.has(c.reservationId)) return false;
+                const mainIndex = invoice.lines.findIndex((l, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) !== "addon"));
+                const mainLine = invoice.lines[mainIndex];
+                const replacement = mainLine && !invoiceMatches(mainLine, [c]).length ? details[mainIndex] ?? { sku: mainLine.sku, title: "" } : undefined;
+                const alreadyPaired = invoice.lines.some((l, i) => (matches[i] ?? []).some((id, s) => id === c.reservationId && (i !== index || s !== slot) && (modes[i]?.[s] ?? defaultSlotMode(l, candidates)) === "addon"));
+                return !alreadyPaired && canPairTrouserExtra(c, wardrobeSkus.data ?? [], replacement);
+              }) : candidates;
               const missingWearer = missing.data?.find(w => w.key === matches[index]?.[slot]);
               const chosen = candidates.find((c) => c.reservationId === matches[index]?.[slot]);
               const setSlot = (id: string, m: SlotMode = mode) => {
@@ -188,7 +197,7 @@ export function VendorInvoiceUpload({ inviteId, candidates: pendingCandidates }:
                     if (id.startsWith("member:")) setSlot(id, "assign");
                     else setSlot(id, mode === "addon" ? "addon" : exact.some(c => c.reservationId === id) ? "look" : "alternative");
                   }}>
-                    <option value="">{options.length ? "Choose a person and event" : mode === "addon" ? "Assign the main looks first" : "No matching pending look"}</option>
+                    <option value="">{options.length ? "Choose a person and event" : mode === "addon" ? "No eligible men's look on this invoice" : "No matching pending look"}</option>
                     <optgroup label="Pending outfit orders">{options.map((o) => <option key={o.reservationId} value={o.reservationId}>{o.wearer} · {o.event} · {o.title}{o.sku ? ` (${o.sku})` : ""} · selected size {o.size || "—"}</option>)}</optgroup>
                     {mode !== "addon" ? <optgroup label="No outfit selected">{missing.data?.map(w => <option key={w.key} value={w.key}>{w.member.guest_name} · {w.event.name} · {w.member.household} · No selection</option>)}</optgroup> : null}
                   </select>
