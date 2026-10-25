@@ -94,7 +94,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const totals = orderTotals(items, payments, courierNum);
   const cancelled = status === "cancelled";
 
-  function reset(start: OrderItem[] = []) {
+  function reset(start: OrderItem[] = []) { setInvoiceView(false);
     setOrderVersion(null);
     setId(null); setReference(`ORDER-${new Date().toISOString().slice(0, 10)}`); setShop(""); setCurrency("INR"); setNotes("");
     setSellerRef(""); setStylist(""); setStylistMobile(""); setSellerTotal(""); setCourierCharges("0");
