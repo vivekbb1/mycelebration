@@ -152,7 +152,7 @@ function Lookbook() {
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id, name, event_date, start_time, venue, dress_code, sort_order, outfit_selection, outfit_choose_by",
+          "id, name, event_date, start_time, venue, dress_code, sort_order, outfit_selection, outfit_choose_by, delivery_cutoff_date",
         )
         .order("sort_order");
       if (error) throw error;
@@ -346,7 +346,10 @@ function Lookbook() {
       (mineByOutfit.has(o.id) ||
         canArriveInTime(
           o,
-          (events.data ?? []).find((e) => e.id === o.event_id)?.event_date,
+          (() => {
+            const ev = (events.data ?? []).find((e) => e.id === o.event_id);
+            return { eventDate: ev?.event_date, cutoff: ev?.delivery_cutoff_date };
+          })(),
           (o.invite_id && deliverySettings.data?.get(o.invite_id)) || {},
         )),
   );
