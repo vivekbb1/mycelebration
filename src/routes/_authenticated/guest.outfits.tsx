@@ -45,6 +45,9 @@ export const Route = createFileRoute("/_authenticated/guest/outfits")({
 });
 
 type Outfit = {
+  invite_id?: string | null;
+  production_days?: number | null;
+  courier_days?: number | null;
   id: string;
   retired_at?: string | null;
   is_pinned?: boolean;

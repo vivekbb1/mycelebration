@@ -44,7 +44,10 @@ export function DeliverySettingsCard({ inviteId }: { inviteId: string }) {
       .update({ default_courier_days: c, delivery_buffer_days: b })
       .eq("id", inviteId);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Delivery times saved.");
     qc.invalidateQueries({ queryKey: ["delivery-settings"] });
   };
