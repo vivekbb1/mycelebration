@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { hasDeliveryInfo, productionDays } from "@/lib/delivery-eligibility";
 import { DeliverySettingsCard } from "@/components/delivery-settings-card";
 import { claimHostAccess } from "@/lib/guest-access.functions";
+import { fetchVendorDeliveryDays } from "@/lib/outfit-sizes.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -331,6 +332,8 @@ function HostDashboard() {
   const [fStatus, setFStatus] = useState("all");
   const [fSort, setFSort] = useState("pinned");
   const [bulkType, setBulkType] = useState("");
+  const [bulkProd, setBulkProd] = useState("");
+  const [bulkCourier, setBulkCourier] = useState("");
   const [fMinPrice, setFMinPrice] = useState("");
   const [fMaxPrice, setFMaxPrice] = useState("");
   const reservedIds = useMemo(
@@ -530,6 +533,42 @@ function HostDashboard() {
     toast.success(`${selected.length} look${selected.length === 1 ? "" : "s"} updated.`);
     setSelected([]);
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+  };
+
+  const bulkFetchDays = async () => {
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const r = await fetchVendorDeliveryDays({ data: { outfitIds: selected } });
+      const parts = [`${r.updated} updated from the shop`];
+      if (r.noInfo) parts.push(`${r.noInfo} with no shipping time on the shop page`);
+      if (r.failed) parts.push(`${r.failed} couldn't be read`);
+      if (r.skipped) parts.push(`${r.skipped} without a shop link`);
+      toast.success(parts.join(" · "));
+      await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't fetch from the shop.");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkSetDays = async (): Promise<unknown> => {
+    if (selected.length === 0) return undefined;
+    const patch: { production_days?: number; courier_days?: number } = {};
+    const p = bulkProd.trim(), c = bulkCourier.trim();
+    if (p) { const n = Number(p); if (!Number.isInteger(n) || n < 0 || n > 365) return toast.error("Making days must be 0–365."); patch.production_days = n; }
+    if (c) { const n = Number(c); if (!Number.isInteger(n) || n < 0 || n > 120) return toast.error("Courier days must be 0–120."); patch.courier_days = n; }
+    if (!p && !c) return toast.error("Enter making days, courier days or both.");
+    setBulkBusy(true);
+    const { error } = await supabase.from("outfits").update(patch).in("id", selected);
+    setBulkBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Delivery days set on ${selected.length} look${selected.length === 1 ? "" : "s"}.`);
+    setBulkProd("");
+    setBulkCourier("");
+    await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+    return undefined;
   };
 
   const setPinned = async (ids: string[], pinned: boolean) => {
@@ -1249,6 +1288,12 @@ function HostDashboard() {
                     >
                       Set
                     </Button>
+                  </div>
+                  <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                    <Input className="w-28" inputMode="numeric" placeholder="Making days" aria-label="Making days" value={bulkProd} onChange={(e) => setBulkProd(e.target.value)} />
+                    <Input className="w-28" inputMode="numeric" placeholder="Courier days" aria-label="Courier days" value={bulkCourier} onChange={(e) => setBulkCourier(e.target.value)} />
+                    <Button variant="outline" disabled={bulkBusy} onClick={bulkSetDays}>Set days</Button>
+                    <Button variant="outline" disabled={bulkBusy} onClick={bulkFetchDays}>{bulkBusy ? "Working…" : "Fetch days from shop"}</Button>
                   </div>
                   <Button variant="outline" disabled={bulkBusy} onClick={() => setPinned(selected, true)}>
                     <Pin className="size-4" /> Pin

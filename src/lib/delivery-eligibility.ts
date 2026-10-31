@@ -49,3 +49,18 @@ export function canArriveInTime(
   if (need == null) return true;
   return dayNumber(today) + need <= dayNumber(date);
 }
+
+/** Making time from a shop's size list: 0 when an available size is ready to
+ *  ship, else days until the earliest available size's ship-by date. Null when
+ *  the shop gives neither. */
+export function productionDaysFromSizes(sizes: unknown, today: string | Date = new Date()): number | null {
+  if (!Array.isArray(sizes)) return null;
+  const open = sizes.filter((s: any) => s && s.available !== false);
+  if (open.some((s: any) => s.ready_to_ship === true)) return 0;
+  const dates = open
+    .map((s: any) => (typeof s.ships_by === "string" ? s.ships_by.slice(0, 10) : ""))
+    .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    .map(dayNumber);
+  if (!dates.length) return null;
+  return Math.min(365, Math.max(0, Math.min(...dates) - dayNumber(today)));
+}

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canArriveInTime, daysNeeded } from "./delivery-eligibility.ts";
+import { canArriveInTime, daysNeeded, productionDaysFromSizes } from "./delivery-eligibility.ts";
 
 const today = "2026-11-01";
 test("on time when production + courier fit before the event", () => {
@@ -28,4 +28,10 @@ test("host cut-off replaces event date and buffer", () => {
   assert.equal(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-14" }, s, "2026-10-31"), false);
   assert.equal(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-15" }, s, "2026-10-31"), true);
   assert.equal(canArriveInTime(look, "2026-11-22", s, "2026-10-31"), true);
+});
+
+test("shop sizes give making days", () => {
+  assert.equal(productionDaysFromSizes([{ available: true, ready_to_ship: true }], "2026-10-31"), 0);
+  assert.equal(productionDaysFromSizes([{ available: true, ships_by: "2026-11-20" }, { available: true, ships_by: "2026-11-10" }, { available: false, ships_by: "2026-11-01" }], "2026-10-31"), 10);
+  assert.equal(productionDaysFromSizes([{ available: true }], "2026-10-31"), null);
 });
