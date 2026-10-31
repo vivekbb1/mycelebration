@@ -10,6 +10,7 @@ import { Pencil, Pin, Trash2, ShieldCheck } from "lucide-react";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 
 import { supabase } from "@/integrations/supabase/client";
+import { hasDeliveryInfo, productionDays } from "@/lib/delivery-eligibility";
 import { claimHostAccess } from "@/lib/guest-access.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,7 +117,15 @@ const emptyOutfit: OutfitForm = {
   gender: "women",
   event_id: "",
   boutique_id: "",
+  production_days: "",
+  courier_days: "",
 };
+
+function dayValue(v: string, max: number): number | null {
+  if (!v.trim()) return null;
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) && n >= 0 && n <= max ? n : null;
+}
 
 function HostPage() {
   const queryClient = useQueryClient();
