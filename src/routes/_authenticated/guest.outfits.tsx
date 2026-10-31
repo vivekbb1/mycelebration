@@ -169,6 +169,15 @@ function Lookbook() {
     },
   });
 
+  const deliverySettings = useQuery({
+    queryKey: ["delivery-settings", "guest"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invites").select("id, default_courier_days, delivery_buffer_days");
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.id, r]));
+    },
+  });
+
   const reservations = useQuery({
     queryKey: ["reservations"],
     queryFn: async () => {
@@ -328,7 +337,14 @@ function Lookbook() {
       (mineByOutfit.has(o.id) || offered.data?.has(o.id) === true) &&
       // Looks for an event this family isn't invited to stay hidden.
       (!o.event_id || !invitedIds || invitedIds.has(o.event_id)) &&
-      (!wardrobe || (o.gender ?? "women") === wardrobe),
+      (!wardrobe || (o.gender ?? "women") === wardrobe) &&
+      // Only looks that can be made and couriered before their event; reserved ones stay.
+      (mineByOutfit.has(o.id) ||
+        canArriveInTime(
+          o,
+          (events.data ?? []).find((e) => e.id === o.event_id)?.event_date,
+          (o.invite_id && deliverySettings.data?.get(o.invite_id)) || {},
+        )),
   );
 
   const inEvent = selectable.filter((o) => activeEvent === "all" || o.event_id === activeEvent);
