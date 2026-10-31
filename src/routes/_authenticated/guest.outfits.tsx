@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search } from "lucide-react";
 
+import { canArriveInTime } from "@/lib/delivery-eligibility";
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
