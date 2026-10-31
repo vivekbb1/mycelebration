@@ -114,3 +114,49 @@ export const refreshGallerySizes = createServerFn({ method: "POST" })
     await Promise.all(Array.from({ length: 6 }, worker));
     return { updated };
   });
+
+/**
+ * Host bulk action: reads each look's shop page and saves stock plus making
+ * days (ready to ship = 0, else days until the earliest ship-by date). Writes
+ * go through the caller's client, so RLS limits them to the host's own looks.
+ */
+export const fetchVendorDeliveryDays = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { outfitIds: string[] }) => ({
+    outfitIds: (Array.isArray(d?.outfitIds) ? d.outfitIds : []).map((x) => String(x).slice(0, 64)).slice(0, 300),
+  }))
+  .handler(async ({ data, context }) => {
+    const { productionDaysFromSizes } = await import("@/lib/delivery-eligibility");
+    const { data: rows } = await context.supabase
+      .from("outfits")
+      .select("id, boutique_url, invite_id")
+      .in("id", data.outfitIds);
+    const hostOf = new Map<string, boolean>();
+    let updated = 0, noInfo = 0, failed = 0, skipped = 0;
+    const queue = [...(rows ?? [])];
+    const worker = async () => {
+      while (queue.length) {
+        const r = queue.shift()!;
+        if (!r.boutique_url || !r.invite_id) { skipped++; continue; }
+        if (!hostOf.has(r.invite_id)) {
+          const { data: ok } = await context.supabase.rpc("is_celebration_host", { _invite_id: r.invite_id });
+          hostOf.set(r.invite_id, ok === true);
+        }
+        if (!hostOf.get(r.invite_id)) { skipped++; continue; }
+        let fresh: ShopSize[] | null = null;
+        try {
+          fresh = (await perniaSizes(r.boutique_url)) ?? (await koraSizes(r.boutique_url));
+        } catch { fresh = null; }
+        if (!fresh) { failed++; continue; }
+        const days = productionDaysFromSizes(fresh);
+        const patch: Record<string, unknown> = { sizes: fresh, sizes_checked_at: new Date().toISOString() };
+        if (days != null) patch["production_days"] = days;
+        const { error } = await context.supabase.from("outfits").update(patch as any).eq("id", r.id);
+        if (error) failed++;
+        else if (days != null) updated++;
+        else noInfo++;
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, worker));
+    return { updated, noInfo, failed, skipped };
+  });
