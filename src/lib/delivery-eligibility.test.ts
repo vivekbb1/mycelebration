@@ -25,7 +25,7 @@ test("ready-to-ship sizes count as zero production days", () => {
 test("host cut-off replaces event date and buffer", () => {
   const look = { production_days: 10, courier_days: 5 };
   const s = { delivery_buffer_days: 7 };
-  expect(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-14" }, s, "2026-10-31")).toBe(false);
-  expect(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-15" }, s, "2026-10-31")).toBe(true);
-  expect(canArriveInTime(look, "2026-11-22", s, "2026-10-31")).toBe(true);
+  assert.equal(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-14" }, s, "2026-10-31"), false);
+  assert.equal(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-15" }, s, "2026-10-31"), true);
+  assert.equal(canArriveInTime(look, "2026-11-22", s, "2026-10-31"), true);
 });
