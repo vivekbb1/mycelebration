@@ -38,7 +38,7 @@ export function daysNeeded(o: DeliveryLook, s: DeliverySettings): number | null 
  *  cut-off replaces the event date and the fitting buffer (already built in). */
 export function canArriveInTime(
   o: DeliveryLook,
-  target: string | null | undefined | { cutoff?: string | null; eventDate?: string | null },
+  target: string | null | undefined | { cutoff?: string | null | undefined; eventDate?: string | null | undefined },
   s: DeliverySettings,
   today: string | Date = new Date(),
 ): boolean {
