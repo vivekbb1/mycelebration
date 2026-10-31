@@ -99,6 +99,8 @@ type OutfitForm = {
   gender: string;
   event_id: string;
   boutique_id: string;
+  production_days: string;
+  courier_days: string;
 };
 
 const emptyOutfit: OutfitForm = {
@@ -451,6 +453,8 @@ function HostDashboard() {
       gender: form.gender,
       event_id: form.event_id || null,
       boutique_id: form.boutique_id || null,
+      production_days: dayValue(form.production_days, 365),
+      courier_days: dayValue(form.courier_days, 120),
     };
     const { error } = editingId
       ? await supabase.from("outfits").update(payload).eq("id", editingId)
@@ -482,6 +486,8 @@ function HostDashboard() {
       gender: o.gender ?? "women",
       event_id: o.event_id ?? "",
       boutique_id: o.boutique_id ?? "",
+      production_days: o.production_days != null ? String(o.production_days) : "",
+      courier_days: o.courier_days != null ? String(o.courier_days) : "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -1002,6 +1008,20 @@ function HostDashboard() {
                     placeholder="approx. ₹95,000"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="o-prod">Production days (vendor)</Label>
+                  <Input id="o-prod" type="number" min={0} max={365} inputMode="numeric"
+                    value={form.production_days}
+                    onChange={(e) => setForm((o) => ({ ...o, production_days: e.target.value }))}
+                    placeholder="Auto from shop if ready to ship" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="o-courier">Courier days</Label>
+                  <Input id="o-courier" type="number" min={0} max={120} inputMode="numeric"
+                    value={form.courier_days}
+                    onChange={(e) => setForm((o) => ({ ...o, courier_days: e.target.value }))}
+                    placeholder="Celebration default" />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>For</Label>
@@ -1280,6 +1300,11 @@ function HostDashboard() {
                         {eventName(o.event_id)}
                         {o.designer ? ` · ${o.designer}` : ""}
                         {o.garment_type ? ` · ${o.garment_type}` : ""}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {hasDeliveryInfo(o)
+                          ? `Delivery: ${productionDays(o) ?? "?"}d make + ${o.courier_days ?? "default"} courier`
+                          : "No delivery time"}
                       </p>
                       <p className="text-xs">
                         {o.price_inr != null ? (
