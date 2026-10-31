@@ -30,6 +30,7 @@ const eventSchema = z.object({
   background_image_url: z.string().trim().max(500),
   outfit_ready_by: z.string().trim().max(20),
   outfit_choose_by: z.string().trim().max(20),
+  delivery_cutoff_date: z.string().trim().max(20),
   outfit_slot_note: z.string().trim().max(400),
 });
 
@@ -51,6 +52,7 @@ const emptyEvent: EventForm = {
   background_image_url: "",
   outfit_ready_by: "",
   outfit_choose_by: "",
+  delivery_cutoff_date: "",
   outfit_slot_note: "",
   sort_order: "",
   outfit_selection: true,
@@ -213,6 +215,7 @@ export function HostEvents() {
       background_image_url: parsed.data.background_image_url || null,
       outfit_ready_by: parsed.data.outfit_ready_by || null,
       outfit_choose_by: parsed.data.outfit_choose_by || null,
+      delivery_cutoff_date: parsed.data.delivery_cutoff_date || null,
       outfit_slot_note: parsed.data.outfit_slot_note || null,
       sort_order: Number.isFinite(order) ? order : (events.data?.length ?? 0) + 1,
       outfit_selection: form.outfit_selection,
@@ -269,6 +272,7 @@ export function HostEvents() {
       background_image_url: ev.background_image_url ?? "",
       outfit_ready_by: ev.outfit_ready_by ?? "",
       outfit_choose_by: ev.outfit_choose_by ?? "",
+      delivery_cutoff_date: ev.delivery_cutoff_date ?? "",
       outfit_slot_note: ev.outfit_slot_note ?? "",
       sort_order: String(ev.sort_order ?? ""),
       outfit_selection: ev.outfit_selection ?? true,
@@ -585,6 +589,16 @@ export function HostEvents() {
                   onChange={(e) => setForm((f) => ({ ...f, outfit_choose_by: e.target.value }))}
                 />
                 <p className="text-xs text-muted-foreground">After this date guests can't pick, change or drop looks for this event. Hosts still can.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-cutoff">Outfits must arrive by</Label>
+                <Input
+                  id="e-cutoff"
+                  type="date"
+                  value={form.delivery_cutoff_date}
+                  onChange={(e) => setForm((f) => ({ ...f, delivery_cutoff_date: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Guests only see looks that can be made and delivered by this date. Leave empty to use the event date.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="e-outfit-by">Outfit ready by</Label>

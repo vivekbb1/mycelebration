@@ -21,3 +21,11 @@ test("default courier days used when look has none", () => {
 test("ready-to-ship sizes count as zero production days", () => {
   assert.equal(daysNeeded({ sizes: [{ label: "M", available: true, ready_to_ship: true }] }, { default_courier_days: 3 }), 3);
 });
+
+test("host cut-off replaces event date and buffer", () => {
+  const look = { production_days: 10, courier_days: 5 };
+  const s = { delivery_buffer_days: 7 };
+  assert.equal(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-14" }, s, "2026-10-31"), false);
+  assert.equal(canArriveInTime(look, { eventDate: "2026-12-31", cutoff: "2026-11-15" }, s, "2026-10-31"), true);
+  assert.equal(canArriveInTime(look, "2026-11-22", s, "2026-10-31"), true);
+});

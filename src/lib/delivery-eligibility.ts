@@ -34,14 +34,18 @@ export function daysNeeded(o: DeliveryLook, s: DeliverySettings): number | null 
   return (productionDays(o) ?? 0) + (o.courier_days ?? s.default_courier_days ?? 0) + (s.delivery_buffer_days ?? 0);
 }
 
+/** `target` is the event date, or `{ cutoff, eventDate }`: a host-set delivery
+ *  cut-off replaces the event date and the fitting buffer (already built in). */
 export function canArriveInTime(
   o: DeliveryLook,
-  eventDate: string | null | undefined,
+  target: string | null | undefined | { cutoff?: string | null | undefined; eventDate?: string | null | undefined },
   s: DeliverySettings,
   today: string | Date = new Date(),
 ): boolean {
-  if (!eventDate) return true;
-  const need = daysNeeded(o, s);
+  const t = typeof target === "object" && target ? target : { eventDate: target ?? null, cutoff: null };
+  const date = t.cutoff || t.eventDate;
+  if (!date) return true;
+  const need = daysNeeded(o, t.cutoff ? { ...s, delivery_buffer_days: 0 } : s);
   if (need == null) return true;
-  return dayNumber(today) + need <= dayNumber(eventDate);
+  return dayNumber(today) + need <= dayNumber(date);
 }

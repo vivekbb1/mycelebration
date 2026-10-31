@@ -841,6 +841,13 @@
       "when": 1793429297302,
       "tag": "0119_outfit_delivery_eligibility",
       "breakpoints": true
+    },
+    {
+      "idx": 120,
+      "version": "7",
+      "when": 1793429599522,
+      "tag": "0120_event_delivery_cutoff",
+      "breakpoints": true
     }
   ]
 }

@@ -726,6 +726,7 @@ export type Database = {
         Row: {
           background_image_url: string | null
           created_at: string
+          delivery_cutoff_date: string | null
           dress_code: string | null
           event_date: string | null
           id: string
@@ -746,6 +747,7 @@ export type Database = {
         Insert: {
           background_image_url?: string | null
           created_at?: string
+          delivery_cutoff_date?: string | null
           dress_code?: string | null
           event_date?: string | null
           id?: string
@@ -766,6 +768,7 @@ export type Database = {
         Update: {
           background_image_url?: string | null
           created_at?: string
+          delivery_cutoff_date?: string | null
           dress_code?: string | null
           event_date?: string | null
           id?: string

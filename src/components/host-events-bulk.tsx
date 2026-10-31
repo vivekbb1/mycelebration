@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-type Field = "rsvp_by" | "outfit_choose_by" | "outfit_ready_by" | "dress_code" | "venue";
+type Field = "rsvp_by" | "outfit_choose_by" | "outfit_ready_by" | "delivery_cutoff_date" | "dress_code" | "venue";
 type Selection = "keep" | "on" | "off";
 
 /** Applies the same dates or details to several events at once. Blank boxes are left as they are. */
@@ -17,6 +17,7 @@ export function HostEventsBulk({ ids, onDone }: { ids: string[]; onDone: () => v
     rsvp_by: "",
     outfit_choose_by: "",
     outfit_ready_by: "",
+    delivery_cutoff_date: "",
     dress_code: "",
     venue: "",
   });
@@ -36,6 +37,7 @@ export function HostEventsBulk({ ids, onDone }: { ids: string[]; onDone: () => v
     if (clearOutfitDates) {
       patch["outfit_choose_by"] = null;
       patch["outfit_ready_by"] = null;
+      patch["delivery_cutoff_date"] = null;
     }
     if (selection !== "keep") patch["outfit_selection"] = selection === "on";
     if (Object.keys(patch).length === 0) {
@@ -87,6 +89,10 @@ export function HostEventsBulk({ ids, onDone }: { ids: string[]; onDone: () => v
             value={values.outfit_ready_by}
             onChange={set("outfit_ready_by")}
           />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="b-cutoff">Outfits must arrive by</Label>
+          <Input id="b-cutoff" type="date" value={values.delivery_cutoff_date} onChange={set("delivery_cutoff_date")} />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="b-sel">Guests choose an outfit</Label>
