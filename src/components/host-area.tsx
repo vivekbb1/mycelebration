@@ -553,8 +553,8 @@ function HostDashboard() {
     }
   };
 
-  const bulkSetDays = async () => {
-    if (selected.length === 0) return;
+  const bulkSetDays = async (): Promise<unknown> => {
+    if (selected.length === 0) return undefined;
     const patch: { production_days?: number; courier_days?: number } = {};
     const p = bulkProd.trim(), c = bulkCourier.trim();
     if (p) { const n = Number(p); if (!Number.isInteger(n) || n < 0 || n > 365) return toast.error("Making days must be 0–365."); patch.production_days = n; }
@@ -568,6 +568,7 @@ function HostDashboard() {
     setBulkProd("");
     setBulkCourier("");
     await queryClient.invalidateQueries({ queryKey: ["outfits"] });
+    return undefined;
   };
 
   const setPinned = async (ids: string[], pinned: boolean) => {
