@@ -11,6 +11,7 @@ import { ClearMeasurementsButton } from "@/components/clear-measurements-button"
 
 import { supabase } from "@/integrations/supabase/client";
 import { hasDeliveryInfo, productionDays } from "@/lib/delivery-eligibility";
+import { DeliverySettingsCard } from "@/components/delivery-settings-card";
 import { claimHostAccess } from "@/lib/guest-access.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -882,6 +883,7 @@ function HostDashboard() {
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-lookbook">Lookbook</a></Button>
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-feeds">Live feeds</a></Button>
           </nav>
+          {selectedEvent ? <DeliverySettingsCard inviteId={selectedEvent} /> : null}
           <div id="wardrobe-add" className="scroll-mt-6" />
 
           <div className="panel-wrap h-fit min-w-0 p-4 sm:p-5">
