@@ -1848,7 +1848,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           custom_domain: string | null
+          default_courier_days: number | null
           default_travel_need: string
+          delivery_buffer_days: number
           fees_enabled: boolean
           id: string
           name: string
@@ -1869,7 +1871,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
+          default_courier_days?: number | null
           default_travel_need?: string
+          delivery_buffer_days?: number
           fees_enabled?: boolean
           id?: string
           name: string
@@ -1890,7 +1894,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           custom_domain?: string | null
+          default_courier_days?: number | null
           default_travel_need?: string
+          delivery_buffer_days?: number
           fees_enabled?: boolean
           id?: string
           name?: string
@@ -2358,6 +2364,7 @@ export type Database = {
           boutique_id: string | null
           boutique_url: string | null
           color_family: string | null
+          courier_days: number | null
           created_at: string
           designer: string | null
           event_id: string | null
@@ -2372,6 +2379,7 @@ export type Database = {
           notes: string | null
           price_inr: number | null
           price_note: string | null
+          production_days: number | null
           retired_at: string | null
           silhouette: string | null
           size_note: string | null
@@ -2385,6 +2393,7 @@ export type Database = {
           boutique_id?: string | null
           boutique_url?: string | null
           color_family?: string | null
+          courier_days?: number | null
           created_at?: string
           designer?: string | null
           event_id?: string | null
@@ -2399,6 +2408,7 @@ export type Database = {
           notes?: string | null
           price_inr?: number | null
           price_note?: string | null
+          production_days?: number | null
           retired_at?: string | null
           silhouette?: string | null
           size_note?: string | null
@@ -2412,6 +2422,7 @@ export type Database = {
           boutique_id?: string | null
           boutique_url?: string | null
           color_family?: string | null
+          courier_days?: number | null
           created_at?: string
           designer?: string | null
           event_id?: string | null
@@ -2426,6 +2437,7 @@ export type Database = {
           notes?: string | null
           price_inr?: number | null
           price_note?: string | null
+          production_days?: number | null
           retired_at?: string | null
           silhouette?: string | null
           size_note?: string | null
@@ -3569,6 +3581,10 @@ export type Database = {
       order_alt_look: {
         Args: { _invite: string; _item: Json }
         Returns: Record<string, unknown>
+      }
+      outfit_production_days: {
+        Args: { _o: Database["public"]["Tables"]["outfits"]["Row"] }
+        Returns: number
       }
       record_outfit_substitution: {
         Args: {

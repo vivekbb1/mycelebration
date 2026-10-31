@@ -834,6 +834,13 @@
       "when": 1792948201631,
       "tag": "0118_align_host_outfit_event_eligibility",
       "breakpoints": true
+    },
+    {
+      "idx": 119,
+      "version": "7",
+      "when": 1793429297302,
+      "tag": "0119_outfit_delivery_eligibility",
+      "breakpoints": true
     }
   ]
 }

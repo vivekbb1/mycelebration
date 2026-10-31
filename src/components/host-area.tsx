@@ -10,6 +10,8 @@ import { Pencil, Pin, Trash2, ShieldCheck } from "lucide-react";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 
 import { supabase } from "@/integrations/supabase/client";
+import { hasDeliveryInfo, productionDays } from "@/lib/delivery-eligibility";
+import { DeliverySettingsCard } from "@/components/delivery-settings-card";
 import { claimHostAccess } from "@/lib/guest-access.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,6 +101,8 @@ type OutfitForm = {
   gender: string;
   event_id: string;
   boutique_id: string;
+  production_days: string;
+  courier_days: string;
 };
 
 const emptyOutfit: OutfitForm = {
@@ -114,7 +118,15 @@ const emptyOutfit: OutfitForm = {
   gender: "women",
   event_id: "",
   boutique_id: "",
+  production_days: "",
+  courier_days: "",
 };
+
+function dayValue(v: string, max: number): number | null {
+  if (!v.trim()) return null;
+  const n = Math.round(Number(v));
+  return Number.isFinite(n) && n >= 0 && n <= max ? n : null;
+}
 
 function HostPage() {
   const queryClient = useQueryClient();
@@ -451,6 +463,8 @@ function HostDashboard() {
       gender: form.gender,
       event_id: form.event_id || null,
       boutique_id: form.boutique_id || null,
+      production_days: dayValue(form.production_days, 365),
+      courier_days: dayValue(form.courier_days, 120),
     };
     const { error } = editingId
       ? await supabase.from("outfits").update(payload).eq("id", editingId)
@@ -482,6 +496,8 @@ function HostDashboard() {
       gender: o.gender ?? "women",
       event_id: o.event_id ?? "",
       boutique_id: o.boutique_id ?? "",
+      production_days: o.production_days != null ? String(o.production_days) : "",
+      courier_days: o.courier_days != null ? String(o.courier_days) : "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -867,6 +883,7 @@ function HostDashboard() {
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-lookbook">Lookbook</a></Button>
             <Button asChild variant="outline" size="sm"><a href="#wardrobe-feeds">Live feeds</a></Button>
           </nav>
+          {selectedEvent ? <DeliverySettingsCard inviteId={selectedEvent} /> : null}
           <div id="wardrobe-add" className="scroll-mt-6" />
 
           <div className="panel-wrap h-fit min-w-0 p-4 sm:p-5">
@@ -1001,6 +1018,20 @@ function HostDashboard() {
                     onChange={(e) => setForm((o) => ({ ...o, price_note: e.target.value }))}
                     placeholder="approx. ₹95,000"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="o-prod">Production days (vendor)</Label>
+                  <Input id="o-prod" type="number" min={0} max={365} inputMode="numeric"
+                    value={form.production_days}
+                    onChange={(e) => setForm((o) => ({ ...o, production_days: e.target.value }))}
+                    placeholder="Auto from shop if ready to ship" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="o-courier">Courier days</Label>
+                  <Input id="o-courier" type="number" min={0} max={120} inputMode="numeric"
+                    value={form.courier_days}
+                    onChange={(e) => setForm((o) => ({ ...o, courier_days: e.target.value }))}
+                    placeholder="Celebration default" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -1280,6 +1311,11 @@ function HostDashboard() {
                         {eventName(o.event_id)}
                         {o.designer ? ` · ${o.designer}` : ""}
                         {o.garment_type ? ` · ${o.garment_type}` : ""}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {hasDeliveryInfo(o)
+                          ? `Delivery: ${productionDays(o) ?? "?"}d make + ${o.courier_days ?? "default"} courier`
+                          : "No delivery time"}
                       </p>
                       <p className="text-xs">
                         {o.price_inr != null ? (

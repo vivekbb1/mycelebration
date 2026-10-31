@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CalendarDays, Lock, Check, MapPin, Heart, Pin, Search } from "lucide-react";
 
+import { canArriveInTime } from "@/lib/delivery-eligibility";
 import { supabase } from "@/integrations/supabase/client";
 import { useGuestEvent } from "@/lib/guest-event";
 import { useNeedsWardrobe } from "@/lib/wardrobe";
@@ -44,6 +45,9 @@ export const Route = createFileRoute("/_authenticated/guest/outfits")({
 });
 
 type Outfit = {
+  invite_id?: string | null;
+  production_days?: number | null;
+  courier_days?: number | null;
   id: string;
   retired_at?: string | null;
   is_pinned?: boolean;
@@ -166,6 +170,15 @@ function Lookbook() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Outfit[];
+    },
+  });
+
+  const deliverySettings = useQuery({
+    queryKey: ["delivery-settings", "guest"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invites").select("id, default_courier_days, delivery_buffer_days");
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.id, r]));
     },
   });
 
@@ -328,7 +341,14 @@ function Lookbook() {
       (mineByOutfit.has(o.id) || offered.data?.has(o.id) === true) &&
       // Looks for an event this family isn't invited to stay hidden.
       (!o.event_id || !invitedIds || invitedIds.has(o.event_id)) &&
-      (!wardrobe || (o.gender ?? "women") === wardrobe),
+      (!wardrobe || (o.gender ?? "women") === wardrobe) &&
+      // Only looks that can be made and couriered before their event; reserved ones stay.
+      (mineByOutfit.has(o.id) ||
+        canArriveInTime(
+          o,
+          (events.data ?? []).find((e) => e.id === o.event_id)?.event_date,
+          (o.invite_id && deliverySettings.data?.get(o.invite_id)) || {},
+        )),
   );
 
   const inEvent = selectable.filter((o) => activeEvent === "all" || o.event_id === activeEvent);
