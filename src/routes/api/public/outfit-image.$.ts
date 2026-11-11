@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/public/outfit-image/$")({
     handlers: {
       GET: async ({ params, request }) => {
         const path = String(params._splat ?? "");
-        if (!/^[a-z0-9\-_]+\/\d+\.(jpg|png|webp)$/i.test(path)) {
+        if (!/^[a-z0-9\-_]+\/(?:[a-z0-9\-_]+\/)?\d+\.(jpg|png|webp)$/i.test(path)) {
           return new Response("Not found", { status: 404 });
         }
         const wRaw = Number(new URL(request.url).searchParams.get("w"));

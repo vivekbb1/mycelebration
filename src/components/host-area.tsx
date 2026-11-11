@@ -3,10 +3,11 @@ import { hostSplat, parseHostPath, HOST_SUB_LABELS } from "@/lib/host-url";
 import { useFeatures } from "@/lib/features";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Pencil, Pin, Trash2, ShieldCheck } from "lucide-react";
+import { Pencil, Pin, Trash2, ShieldCheck, Upload } from "lucide-react";
+import { uploadOutfitPhoto } from "@/lib/outfit-photo.functions";
 import { ClearMeasurementsButton } from "@/components/clear-measurements-button";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -217,6 +218,9 @@ function HostDashboard() {
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
+  const uploadPhoto = useServerFn(uploadOutfitPhoto);
 
   const { inviteId: selectedEvent } = useSelectedEvent();
   const events = useQuery({
@@ -447,6 +451,7 @@ function HostDashboard() {
   };
 
   const saveOutfit = async () => {
+    if (photoBusy) return;
     const parsed = outfitSchema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Please check the form");
@@ -468,6 +473,7 @@ function HostDashboard() {
       boutique_id: form.boutique_id || null,
       production_days: dayValue(form.production_days, 365),
       courier_days: dayValue(form.courier_days, 120),
+      ...(!editingId && selectedEvent ? { invite_id: selectedEvent } : {}),
     };
     const { error } = editingId
       ? await supabase.from("outfits").update(payload).eq("id", editingId)
@@ -927,10 +933,6 @@ function HostDashboard() {
 
           <div className="panel-wrap h-fit min-w-0 p-4 sm:p-5">
             <h2 className="font-display text-xl">{editingId ? "Edit outfit" : "Add an outfit"}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Copy the image link and product link from Pernia's Pop-Up Shop (or any boutique) and
-              paste them here.
-            </p>
             <div className="mt-5 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="o-title">Outfit name</Label>
@@ -996,11 +998,50 @@ function HostDashboard() {
               </div>
 
               <div className="space-y-2">
+                <Label>Outfit photo</Label>
+                <input
+                  ref={photoInput}
+                  type="file"
+                  accept="image/jpeg,.jpg,.jpeg"
+                  aria-label="Upload outfit JPG photo"
+                  className="hidden"
+                  disabled={photoBusy || busy}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    const inviteId = editingId
+                      ? outfits.data?.find((o) => o.id === editingId)?.invite_id
+                      : events.data?.find((ev) => ev.id === form.event_id)?.invite_id || selectedEvent;
+                    if (!inviteId) { toast.error("Choose a celebration or event first."); return; }
+                    if (!/\.jpe?g$/i.test(file.name)) { toast.error("Choose a JPG photo."); return; }
+                    if (file.size > 5 * 1024 * 1024) { toast.error("Choose a JPG photo smaller than 5 MB."); return; }
+                    setPhotoBusy(true);
+                    try {
+                      const base64 = await new Promise<string>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+                        reader.onerror = () => reject(new Error("The photo could not be read."));
+                        reader.readAsDataURL(file);
+                      });
+                      const result = await uploadPhoto({ data: { inviteId, base64 } });
+                      setForm((o) => ({ ...o, image_url: result.url }));
+                      toast.success("Photo uploaded. Save the outfit to keep it.");
+                    } catch (error) {
+                      toast.error(error instanceof Error ? error.message : "The photo could not be uploaded.");
+                    } finally { setPhotoBusy(false); }
+                  }}
+                />
+                <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={photoBusy || busy} onClick={() => photoInput.current?.click()}>
+                  <Upload className="size-4" />{photoBusy ? "Uploading photo…" : "Upload JPG photo"}
+                </Button>
+                {form.image_url ? <img src={form.image_url} alt="Outfit photo preview" className="h-48 w-36 rounded-md border border-border object-contain bg-muted" /> : null}
                 <Label htmlFor="o-image">Image link</Label>
                 <Input
                   id="o-image"
                   maxLength={500}
                   value={form.image_url}
+                  disabled={photoBusy}
                   onChange={(e) => setForm((o) => ({ ...o, image_url: e.target.value }))}
                   placeholder="https://…"
                 />
@@ -1103,11 +1144,11 @@ function HostDashboard() {
                 />
               </div>
               <div className="flex gap-3">
-                <Button onClick={saveOutfit} disabled={busy} className="flex-1">
+                <Button onClick={saveOutfit} disabled={busy || photoBusy} className="flex-1">
                   {busy ? "Saving…" : editingId ? "Save changes" : "Add to lookbook"}
                 </Button>
                 {editingId ? (
-                  <Button variant="outline" onClick={resetForm}>
+                  <Button variant="outline" onClick={resetForm} disabled={photoBusy || busy}>
                     Cancel
                   </Button>
                 ) : null}

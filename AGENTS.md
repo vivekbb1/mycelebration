@@ -23,6 +23,7 @@
 - Host membership lives in `celebration_hosts`; `user_roles.admin` is only a UI marker synced from it and grants no data. Why: keeps old "is host" checks working without global access.
 - A BEFORE INSERT trigger `fill_invite_id` derives `invite_id` from event/outfit/family/household or the caller's single celebration. Why: existing inserts keep working; multi-celebration screens must pass `invite_id` explicitly.
 - Storage paths start with the celebration id (`<invite_id>/...`; passports `<invite_id>/<household>/...`). Why: storage rules check the first folder.
+- Custom outfit JPG uploads use a celebration-host-authorized server function and the existing outfit image service with celebration-prefixed unique paths. Why: reuse reliable guest/PDF photos without exposing storage write access.
 
 - Per-celebration settings override platform defaults: `celebration_email_settings` over `email_settings`, `celebration_content` over `site_content`. Why: hosts reword and send for their own celebration without touching others.
 - Packages live on the celebration: `celebration_subscriptions`, `celebration_addons`, `plan_requests.invite_id`; features via `celebration_features(invite_id)`. Why: one upgrade applies to one celebration only.
