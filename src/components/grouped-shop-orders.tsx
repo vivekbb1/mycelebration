@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { addAddOn, enrichOrderAlternative, familyOrderReport, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
+import { addAddOn, balanceLabel, enrichOrderAlternative, familyOrderReport, nf, orderTotals, removeAddOn, setAlternative, setOrderedSize, setRevisedPrice, substituteItem, updateAddOn, type OrderAddOn, validateOrder, type DocKind, type OrderDocument, type OrderItem, type OrderPayment, type PaymentKind } from "@/lib/shop-order";
 import { downloadShopOrderPdf } from "@/lib/shop-order-pdf";
 import type { Json } from "@/integrations/supabase/types";
 import { OutfitSubstitution } from "@/components/outfit-substitution";
@@ -76,6 +76,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const [sellerRef, setSellerRef] = useState(""); const [stylist, setStylist] = useState(""); const [stylistMobile, setStylistMobile] = useState("");
   const [sellerTotal, setSellerTotal] = useState(""); const [courierCharges, setCourierCharges] = useState("0");
   const [items, setItems] = useState<OrderItem[]>([]); const [payments, setPayments] = useState<OrderPayment[]>([]);
+  const [retainedPayments, setRetainedPayments] = useState<OrderPayment[]>([]);
   const [docs, setDocs] = useState<OrderDocument[]>([]);
   const [status, setStatus] = useState("draft"); const [courier, setCourier] = useState(""); const [tracking, setTracking] = useState("");
   const [amount, setAmount] = useState(""); const [payKind, setPayKind] = useState<PaymentKind>("advance"); const [payReference, setPayReference] = useState(""); const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -95,6 +96,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const cancelled = status === "cancelled";
 
   function reset(start: OrderItem[] = []) { setInvoiceView(false);
+    setRetainedPayments([]);
     setOrderVersion(null);
     setId(null); setReference(`ORDER-${new Date().toISOString().slice(0, 10)}`); setShop(""); setCurrency("INR"); setNotes("");
     setSellerRef(""); setStylist(""); setStylistMobile(""); setSellerTotal(""); setCourierCharges("0");
@@ -103,6 +105,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   useEffect(() => { if (startWith?.length) { reset(startWith); onStarted?.(); } }, [startWith]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openOrder(o: NonNullable<typeof orders.data>[number]) {
+    setRetainedPayments(o.payments as unknown as OrderPayment[]);
     setOrderVersion(o.updated_at); setInvoiceView(true); setFamilyView(false);
     setId(o.id); setReference(o.reference); setShop(o.shop_name); setCurrency(o.currency); setNotes(o.notes);
     setSellerRef(o.seller_reference); setStylist(o.salesperson_name); setStylistMobile(o.salesperson_mobile);
@@ -113,7 +116,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const changeItem = (rid: string, patch: Partial<OrderItem>) => setItems((all) => all.map((i) => i.reservationId === rid ? { ...i, ...patch } : i));
 
   async function persist(nextStatus: string, extra: Record<string, unknown> = {}) {
-    if (nextStatus !== "cancelled") validateOrder(items, payments, courierNum);
+    if (nextStatus !== "cancelled") validateOrder(items, payments, courierNum, id ? retainedPayments : undefined);
     if (!reference.trim()) throw new Error("Enter an order reference");
     const collectedItems = nextStatus === "cancelled" ? items : await Promise.all(items.map(item => enrichOrderAlternative(item, async url => {
       const host = url.hostname;
@@ -132,7 +135,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     if (result.error) throw result.error;
     if (!result.data) throw new Error("The order changed. Reopen it before saving to preserve the latest changes.");
     setOrderVersion(result.data.updated_at);
-    setId(result.data.id); setStatus(nextStatus);
+    setId(result.data.id); setStatus(nextStatus); setRetainedPayments(payments);
     await qc.invalidateQueries({ queryKey: ["wardrobe-orders"] });
     await qc.invalidateQueries({ queryKey: ["reservations"] });
     await qc.invalidateQueries({ queryKey: ["confirm-looks"] });
@@ -214,7 +217,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
     }, "Document removed", false);
   }
 
-  async function pdf() { setBusy(true); try { validateOrder(items, payments, courierNum); await downloadShopOrderPdf(reference || "enquiry", shop, currency, items, payments, notes); } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't generate PDF"); } finally { setBusy(false); } }
+  async function pdf() { setBusy(true); try { validateOrder(items, payments, courierNum, id ? retainedPayments : undefined); await downloadShopOrderPdf(reference || "enquiry", shop, currency, items, payments, notes, courierNum); } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn't generate PDF"); } finally { setBusy(false); } }
 
   const active = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const [orderSearch, setOrderSearch] = useState("");
@@ -324,7 +327,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           <p className="font-medium">{o.reference}{o.seller_reference ? ` · shop ref ${o.seller_reference}` : ""} · {o.shop_name || "Shop not set"}</p>
           <p className="text-sm">{[...new Set((o.items as unknown as OrderItem[]).map((i) => i.wearer))].join(" · ")}</p>
           {q ? <p className="text-xs text-primary">{(o.items as unknown as OrderItem[]).filter(itemHit).map((i) => `${i.wearer} · ${i.event} · ${i.alternative?.title || i.title}`).join(" | ")}</p> : null}
-          <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · balance {t.balance.toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
+          <p className="text-sm text-muted-foreground">{o.status} · {(o.items as unknown as OrderItem[]).length} looks · {o.currency} {t.total.toLocaleString(...nf(o.currency))} · advance {t.advance.toLocaleString(...nf(o.currency))} · paid {t.paid.toLocaleString(...nf(o.currency))} · {balanceLabel(t.balance)} {Math.abs(t.balance).toLocaleString(...nf(o.currency))}{o.salesperson_name ? ` · stylist ${o.salesperson_name}` : ""}</p>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:items-end"><Button variant="outline" size="sm" className="w-full shrink-0 sm:w-auto" onClick={() => openOrder(o)}>Open order</Button>{o.status !== "cancelled" ? <ShipmentButton inviteId={inviteId} orderId={o.id} items={o.items as unknown as OrderItem[]} label={o.reference} /> : null}{(o.items as unknown as OrderItem[]).some((i) => i.expectedDelivery || i.arrivedOn) ? <p className="text-xs text-muted-foreground">{(o.items as unknown as OrderItem[]).filter((i) => i.arrivedOn).length}/{(o.items as unknown as OrderItem[]).length} arrived</p> : null}</div>
       </div>); })}</div> : null}
@@ -395,8 +398,9 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
           </div>
           <p className="text-sm">Original uploaded price<br /><strong>{item.originalPrice != null ? `${currency} ${item.originalPrice.toLocaleString(...nf(currency))}` : "Not recorded"}</strong></p>
           <label className="text-sm">Revised price ({currency})<Input aria-label={`Revised price for ${item.wearer} — ${item.event}`} type="number" min="0" step="0.01" value={item.price} onChange={(e) => setItems((all) => setRevisedPrice(all, item.reservationId, Number(e.target.value)))} /></label>
-          <label className="text-sm">Discount ({currency})<Input type="number" min="0" max={item.price} value={item.discount} onChange={(e) => changeItem(item.reservationId, { discount: Number(e.target.value) })} /></label>
+          <label className="text-sm">Discount ({currency})<Input aria-label={`Discount for ${item.wearer} — ${item.event}`} type="number" min="0" max={item.price} value={item.discount} onChange={(e) => changeItem(item.reservationId, { discount: Number(e.target.value) })} /></label>
           <p className="self-end pb-2 text-sm font-medium">Discounted price {currency} {(item.price - item.discount).toLocaleString(...nf(currency))}</p>
+          {item.originalOrderPrice != null ? <p className="text-sm sm:col-span-3">Original order: {currency} {item.originalOrderPrice.toLocaleString(...nf(currency))} − discount {(item.originalOrderDiscount ?? 0).toLocaleString(...nf(currency))} · Net change {currency} {(item.price - item.discount - item.originalOrderPrice + (item.originalOrderDiscount ?? 0)).toLocaleString(...nf(currency))}</p> : null}
         </div>
         <h3 className="text-sm font-medium">Wearer measurements</h3>
         <dl className="grid gap-2 text-xs sm:grid-cols-3">{item.measurements ? Object.entries(item.measurements).map(([k, v]) => <div key={k}><dt className="text-muted-foreground">{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>) : <p className="text-destructive">No measurements supplied</p>}</dl>
@@ -487,7 +491,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
         <label className="text-sm">Courier<Input value={courier} onChange={(e) => setCourier(e.target.value)} /></label>
         <label className="text-sm">Tracking number<Input value={tracking} onChange={(e) => setTracking(e.target.value)} /></label>
       </div>
-      <p className="font-medium">Order value {currency} {totals.total.toLocaleString(...nf(currency))} <span className="font-normal text-muted-foreground">(outfits {totals.gross.toLocaleString(...nf(currency))} − discount {totals.discount.toLocaleString(...nf(currency))} + courier {totals.courier.toLocaleString(...nf(currency))})</span> · advance {totals.advance.toLocaleString(...nf(currency))} · paid {totals.paid.toLocaleString(...nf(currency))} · balance {totals.balance.toLocaleString(...nf(currency))}</p>
+      <p className="font-medium">Order value {currency} {totals.total.toLocaleString(...nf(currency))} <span className="font-normal text-muted-foreground">(outfits {totals.gross.toLocaleString(...nf(currency))} − discount {totals.discount.toLocaleString(...nf(currency))} + courier {totals.courier.toLocaleString(...nf(currency))})</span> · advance {totals.advance.toLocaleString(...nf(currency))} · paid {totals.paid.toLocaleString(...nf(currency))} · {balanceLabel(totals.balance)} {Math.abs(totals.balance).toLocaleString(...nf(currency))}</p>
 
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" disabled={busy || !items.length} onClick={() => void pdf()}><FileDown className="size-4" /> Shop PDF</Button>

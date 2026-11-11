@@ -8,7 +8,7 @@ import { SubstitutionNote, type LatestSub } from "@/components/substitution-note
 import { familyOrderLooks, type ReportOrder } from "@/lib/family-order-looks";
 import { WardrobeFlag } from "@/components/grouped-shop-orders";
 import { useInvites } from "@/components/host-invites";
-import { money, orderTotals, type OrderItem } from "@/lib/shop-order";
+import { balanceLabel, money, orderTotals, type OrderItem } from "@/lib/shop-order";
 import { alphabetical, type Sequencer } from "@/lib/order-sequence";
 import { wearerLookLine } from "@/lib/wearer-order";
 import { IndividualShare, ShipmentButton, ShipmentLine, WearerNoteButton, pdfFileName, sharePdfOnWhatsApp } from "@/components/wearer-order-actions";
@@ -61,7 +61,7 @@ export function FamilyOrderReport({ inviteId, wardrobeSkus = null, orders, candi
     </div>
     <div className="flex flex-wrap gap-4">{currencies.map((currency) => {
       const total = active.filter((o) => o.currency === currency).reduce((s, o) => { const t = orderTotals(o.items, o.payments, o.courier_charges); return { value: s.value + t.total, paid: s.paid + t.paid, balance: s.balance + t.balance }; }, { value: 0, paid: 0, balance: 0 });
-      return <p key={currency} className="text-sm"><strong>{currency} {money(total.value, currency)}</strong> · Amount paid {money(total.paid, currency)} · Balance to pay {money(total.balance, currency)}</p>;
+      return <p key={currency} className="text-sm"><strong>{currency} {money(total.value, currency)}</strong> · Amount paid {money(total.paid, currency)} · {balanceLabel(total.balance)} {money(Math.abs(total.balance), currency)}</p>;
     })}</div>
     {families.map((family) => {
       const people = [...new Map(family.rows.map((r) => [r.wearer, [] as Row[]])).entries()];
@@ -85,7 +85,7 @@ export function FamilyOrderReport({ inviteId, wardrobeSkus = null, orders, candi
       {[...new Map(family.rows.map(({ order }) => [order.id, order])).values()].map((order) => {
         const t = orderTotals(order.items, order.payments, order.courier_charges);
         const shared = familyOrderLooks([order], candidates).length > 1;
-        return <div key={order.id} className="space-y-1 text-sm"><p className="font-medium">{order.reference} · {shared ? "Whole order · includes other families" : "Whole order"}</p><p>{order.currency} {money(t.total, order.currency)} · Amount paid {money(t.paid, order.currency)} · Balance to pay {money(t.balance, order.currency)} · Courier {money(t.courier, order.currency)}</p>{order.payments.map((payment, i) => <p key={i} className="text-xs text-muted-foreground">{payment.kind === "advance" ? "Advance" : "Payment"} · {payment.date} · {order.currency} {money(payment.amount, order.currency)}{payment.reference ? ` · ${payment.reference}` : ""}</p>)}</div>;
+        return <div key={order.id} className="space-y-1 text-sm"><p className="font-medium">{order.reference} · {shared ? "Whole order · includes other families" : "Whole order"}</p><p>{order.currency} {money(t.total, order.currency)} · Amount paid {money(t.paid, order.currency)} · {balanceLabel(t.balance)} {money(Math.abs(t.balance), order.currency)} · Courier {money(t.courier, order.currency)}</p>{order.payments.map((payment, i) => <p key={i} className="text-xs text-muted-foreground">{payment.kind === "advance" ? "Advance" : "Payment"} · {payment.date} · {order.currency} {money(payment.amount, order.currency)}{payment.reference ? ` · ${payment.reference}` : ""}</p>)}</div>;
       })}
     </section>; })}
     {!families.length ? <p className="text-sm text-muted-foreground">No active orders match this search.</p> : null}

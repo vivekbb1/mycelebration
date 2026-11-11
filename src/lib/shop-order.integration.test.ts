@@ -1,5 +1,5 @@
 import { it } from "node:test";
-import { strictEqual } from "node:assert";
+import { strictEqual, deepStrictEqual } from "node:assert";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { createClient, type PostgrestSingleResponse } from "@supabase/supabase-js";
@@ -17,6 +17,7 @@ it("placed orders confirm looks and expose actual ordered sizes without replacin
   if (outfit.error) throw outfit.error;
   let reservationId: string | undefined;
   let orderId: string | undefined;
+  let replacementId: string | undefined;
   try {
     const reserved = await client.from("reservations").insert({ invite_id: host.data.invite_id, outfit_id: outfit.data.id, guest_id: minted.session.user.id, guest_name: "Order verification", status: "reserved", size_choice: "M" }).select("id, size_choice, outfit_id, member_code_id").single();
     if (reserved.error) throw reserved.error;
@@ -50,6 +51,26 @@ it("placed orders confirm looks and expose actual ordered sizes without replacin
       strictEqual(guest.data.member_code_id, choice.member_code_id);
       strictEqual(guest.data.status, "confirmed");
     }
+    const advance = [{ amount: 80, date: "2026-11-11", reference: "Verification advance", kind: "advance" }];
+    const paid = await client.from("wardrobe_orders").update({ payments: advance }).eq("id", orderId).select("updated_at").single();
+    if (paid.error) throw paid.error;
+    const substituted = await client.rpc("save_priced_order_substitution", {
+      _reservation_id: choice.id, _order_id: orderId,
+      _alternative: { title: `Replacement verification ${crypto.randomUUID()}`, sku: "", designer: "", shop: "", image: "" },
+      _size: "L", _price: 60, _discount: 5, _expected: paid.data.updated_at,
+    });
+    if (substituted.error) throw substituted.error;
+    replacementId = (substituted.data as { replacementOutfitId: string }).replacementOutfitId;
+    const credit = await client.from("wardrobe_orders").select("items,payments,updated_at").eq("id", orderId).single();
+    if (credit.error) throw credit.error;
+    const creditItem = (credit.data.items as unknown as { price: number; discount: number; originalOrderPrice: number }[])[0];
+    strictEqual(creditItem?.price, 60); strictEqual(creditItem?.discount, 5); strictEqual(creditItem?.originalOrderPrice, 100);
+    deepStrictEqual(credit.data.payments, advance);
+    const edit = await client.from("wardrobe_orders").update({ notes: "Revised order with vendor credit" }).eq("id", orderId).eq("updated_at", credit.data.updated_at).select("notes").single();
+    if (edit.error) throw edit.error;
+    strictEqual(edit.data.notes, "Revised order with vendor credit");
+    const excess = await client.from("wardrobe_orders").update({ payments: [...advance, { amount: 1, date: "2026-11-11", reference: "Invalid extra", kind: "payment" }] }).eq("id", orderId);
+    strictEqual(Boolean(excess.error), true);
     const cancelled = await client.from("wardrobe_orders").update({ status: "cancelled" }).eq("id", orderId);
     if (cancelled.error) throw cancelled.error;
     const released = await client.from("reservations").select("ordered_size, status, size_choice").eq("id", choice.id).single();
@@ -64,6 +85,10 @@ it("placed orders confirm looks and expose actual ordered sizes without replacin
     }
     if (reservationId) {
       const removed = await client.from("reservations").delete().eq("id", reservationId);
+      if (removed.error) throw removed.error;
+    }
+    if (replacementId) {
+      const removed = await client.from("outfits").delete().eq("id", replacementId);
       if (removed.error) throw removed.error;
     }
     const removedOutfit = await client.from("outfits").delete().eq("id", outfit.data.id);

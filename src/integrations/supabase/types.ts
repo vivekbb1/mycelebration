@@ -3625,6 +3625,19 @@ export type Database = {
         }
         Returns: string
       }
+      save_priced_order_substitution: {
+        Args: {
+          _alternative: Json
+          _details?: Json
+          _discount: number
+          _expected: string
+          _order_id: string
+          _price: number
+          _reservation_id: string
+          _size: string
+        }
+        Returns: Json
+      }
       signup_link_info: { Args: { _token: string }; Returns: Json }
       sync_household_rsvp: { Args: { _household: string }; Returns: undefined }
       sync_household_rsvp_in: {

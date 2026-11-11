@@ -8,7 +8,7 @@ export type OrderItem = { reservationId: string; wearer: string; family: string;
   /** Host ticked that a non-set look was completed offline (host-only). */
   setHandled?: boolean;
   /** Note shown to the wearer: accessories to carry, styling tips. Mirrored to their look once placed. */
-  wearerNote?: string };
+  wearerNote?: string; originalOrderPrice?: number; originalOrderDiscount?: number };
 
 /** Photo enrichment is optional: malformed links and shop failures must not block an order save. */
 export async function enrichOrderAlternative(item: OrderItem, fetchLook: (url: URL) => Promise<{ images: string[]; sku: string; designer: string } | null>): Promise<OrderItem> {
@@ -67,7 +67,9 @@ export function orderTotals(items: OrderItem[], payments: OrderPayment[], courie
   return { gross, discount, courier: courier || 0, total, paid, advance, balance: r2(total - paid) };
 }
 
-export function validateOrder(items: OrderItem[], payments: OrderPayment[], courier = 0) {
+export function balanceLabel(balance: number) { return balance < 0 ? "Vendor credit" : "Balance due"; }
+
+export function validateOrder(items: OrderItem[], payments: OrderPayment[], courier = 0, retainedPayments?: OrderPayment[]) {
   if (!items.length) throw new Error("Select at least one outfit");
   for (const i of items) {
     if (!Number.isFinite(i.price) || !Number.isFinite(i.discount) || i.price < 0 || i.discount < 0 || i.discount > i.price) throw new Error("Discount must be between zero and the outfit price");
@@ -79,7 +81,7 @@ export function validateOrder(items: OrderItem[], payments: OrderPayment[], cour
   }
   if (!Number.isFinite(courier) || courier < 0) throw new Error("Courier charges can't be negative");
   for (const p of payments) if (!Number.isFinite(p.amount) || p.amount <= 0) throw new Error("Payment must be greater than zero");
-  if (orderTotals(items, payments, courier).balance < 0) throw new Error("Payments cannot exceed the order total");
+  if (orderTotals(items, payments, courier).balance < 0 && JSON.stringify(payments) !== JSON.stringify(retainedPayments)) throw new Error("Additional payments cannot exceed the revised order total; retain the existing advance as vendor credit");
 }
 
 /** Swap one outfit in an order for another, keeping its position. */

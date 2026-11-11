@@ -48,6 +48,14 @@ it("subtracts discounts and part-payments from a grouped order", () => {
 });
 it("rejects discounts exceeding the outfit price", () => throws(() => validateOrder([{ ...item, discount: 10001 }], [])));
 it("rejects part-payments exceeding the discounted total", () => throws(() => validateOrder([item], [{ amount: 9001, date: "2026-10-19", reference: "" }])));
+it("retains an existing advance above the replacement total as vendor credit", () => {
+  const payments = [{ amount: 8000, date: "2026-11-11", reference: "Advance", kind: "advance" as const }];
+  const replacement = [{ ...item, price: 6000, discount: 500 }];
+  validateOrder(replacement, payments, 0, payments);
+  const totals = orderTotals(replacement, payments);
+  strictEqual(totals.total, 5500); strictEqual(totals.paid, 8000); strictEqual(totals.balance, -2500);
+  throws(() => validateOrder(replacement, [...payments, { amount: 100, date: "2026-11-11", reference: "Extra", kind: "payment" }], 0, payments));
+});
 it("adds courier charges to the order total and tracks the advance", () => {
   const t = orderTotals([item], [{ amount: 2000, date: "2026-10-19", reference: "", kind: "advance" }, { amount: 1000, date: "2026-10-20", reference: "" }], 500);
   strictEqual(t.total, 9500); strictEqual(t.advance, 2000); strictEqual(t.balance, 6500);
