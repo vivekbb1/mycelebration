@@ -1,4 +1,4 @@
-import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
+import { SubstitutionNote, fillSnapsFromWardrobe, useLatestSubstitutions } from "@/components/substitution-note";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ExternalLink, Package } from "lucide-react";
@@ -62,7 +62,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "shipme
   const [pdfBusy, setPdfBusy] = useState(false);
   const preorderAlternatives = useQuery({ queryKey: ["preorder-alternatives", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const result = await supabase.from("wardrobe_preorder_alternatives").select("*").eq("invite_id", inviteId);
-    if (result.error) throw result.error; return new Map(result.data.map(a => [a.reservation_id, a]));
+    if (result.error) throw result.error;
+    if (inviteId) await fillSnapsFromWardrobe(result.data.map(a => a.alternative as unknown as NonNullable<OrderItem["alternative"]>), inviteId);
+    return new Map(result.data.map(a => [a.reservation_id, a]));
   } });
   const orderList = useQuery({
     queryKey: ["wardrobe-orders", inviteId],
@@ -71,6 +73,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "shipme
       if (!inviteId) return [];
       const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
       if (error) throw error;
+      await fillSnapsFromWardrobe((data ?? []).flatMap(o => (o.items as unknown as OrderItem[]).flatMap(i => i.alternative ? [i.alternative] : [])), inviteId);
       return data ?? [];
     },
   });

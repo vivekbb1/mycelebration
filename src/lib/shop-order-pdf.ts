@@ -24,12 +24,12 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(`SHOP ORDER / ENQUIRY - ${reference}`, true);
     text(`${shop || "Shop to confirm"} | ${index + 1} of ${items.length} looks | ${new Date().toLocaleDateString("en-GB")}`);
     text("For offline discussion: confirm stock, discounts, customisations and delivery before purchase.");
-    if (item.image) { try {
-      const response = await fetch(item.image); if (!response.ok) throw new Error("Photo unavailable");
-      const bytes = await response.arrayBuffer(); const mime = response.headers.get("content-type") ?? "";
-      const image = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+    const drawPhoto = async (src: string) => { if (!src) return; const image = await embedLookPhoto(pdf, src);
+      if (!image) { text("Photo unavailable; see shop link below."); return; }
+      if (y < 230) { page = pdf.addPage([595, 842]); y = 790; }
       const scaled = image.scaleToFit(150, 165); page.drawImage(image, { x: 42, y: y - scaled.height, width: scaled.width, height: scaled.height }); y -= scaled.height + 18;
-    } catch { text("Photo unavailable; see shop link below."); } }
+    };
+    await drawPhoto(item.image);
     text(item.title, true); text(`${item.designer} | SKU: ${item.sku || "Not supplied"}`);
     text(`Wearer: ${item.wearer} | Family: ${item.family} | Event: ${item.event}`);
     text(`Guest requested size: ${item.size || "Not supplied"}`);
@@ -39,6 +39,7 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(`Shop: ${item.shop || "Not supplied"}`);
     if (item.alternative) {
       text("ORDER THIS ALTERNATIVE INSTEAD", true);
+      await drawPhoto(item.alternative.image);
       text(`${item.alternative.title || "Alternative"} | ${item.alternative.designer || "Designer not supplied"} | SKU: ${item.alternative.sku || "Not supplied"}`);
       if (item.alternative.shop) text(`Shop: ${item.alternative.shop}`);
     }
@@ -98,12 +99,12 @@ export async function buildPreorderPdf(title: string, subtitle: string, lines: P
     const h = Math.max(96, head.length * 13 + (nameLines.length + body.length + (l.shop ? 1 : 0)) * 11 + 8);
     if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
-    if (l.image) { try {
-      const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
-      const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
-      const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+    if (l.image) {
+      const img = await embedLookPhoto(pdf, l.image);
+      if (img) {
       const s = img.scaleToFit(64, 90); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
-    } catch { /* photo optional */ } }
+      }
+    }
     // Highlighted price, right aligned
     const priceText = clean(l.price); const pw = bold.widthOfTextAtSize(priceText, 11);
     page.drawRectangle({ x: 555 - pw - 8, y: y - 15, width: pw + 8, height: 16, color: rgb(.98, .93, .86) });

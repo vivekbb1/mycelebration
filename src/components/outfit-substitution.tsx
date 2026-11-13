@@ -15,6 +15,7 @@ import type { OrderItem, OrderAlternative } from '@/lib/shop-order';
 import type { SubstitutionSnapshot } from '@/lib/outfit-substitution';
 import { previewSubstitutionEmail, emailOutfitSubstitution } from '@/lib/outfit-substitution.functions';
 import { WARDROBES } from '@/lib/wardrobe-options';
+import { fillSnapsFromWardrobe } from '@/components/substitution-note';
 
 export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled = false, trigger }: { inviteId: string; item: OrderItem; orderId?: string; onSaved?: (item: OrderItem) => void; disabled?: boolean; trigger?: (open: () => void, busy: boolean) => React.ReactNode }) {
   const qc = useQueryClient();
@@ -51,6 +52,7 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
         setExpected(latest.data?.updated_at ?? null);
         if (latest.data) current = { ...item, alternative: latest.data.alternative as OrderAlternative, orderedSize: latest.data.ordered_size, price: Number(latest.data.revised_price) };
       }
+      if (current.alternative) await fillSnapsFromWardrobe([current.alternative], inviteId);
       setAlternative(current.alternative ?? { title: '', sku: '', designer: '', shop: '', image: '' });
       const reservation = await supabase.from('reservations').select('outfit_id').eq('id', item.reservationId).eq('invite_id', inviteId).single();
       if (reservation.error) throw reservation.error;

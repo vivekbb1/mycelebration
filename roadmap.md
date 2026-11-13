@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [x] Replacement photos resolve current uploaded/vendor wardrobe images by ID across Pre-orders, Orders, Shipment, Alterations and family/individual downloads; signed-in browser-only substitutions, desktop/phone views and embedded images in all four PDF builders verified; 30 regression tests passed, no saved orders changed.
 - [x] Moved Arrivals into Shipment with date/person/family/event views, renamed Delivery to Instructions (old link retained), and placed Men's sets after Amounts; signed-in 62-look views, search, PDF and phone layout verified without saving orders; 7 regression tests passed.
 - [x] Orders: all seven views checked at 390/768/1024/1440/1920px without page overflow; wrapped navigation, readable cards and scoped touch targets. Real hardware gestures remain device-dependent.
 - [x] Family: ordered-look overview, family/individual PDFs, notes/extras and arrival/check-in/prepaid dates; actual Falcioni PDF downloaded, ten regression tests passed, saved-order writes blocked.

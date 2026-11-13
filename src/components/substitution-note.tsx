@@ -1,8 +1,9 @@
 import { Repeat } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fillSubstitutionPhotos, type PhotoSnapshot, type WardrobePhoto } from "@/lib/substitution-photo";
 
-export type SubSnap = { title?: string; sku?: string; image?: string; size?: string; shop?: string };
+export type SubSnap = PhotoSnapshot & { size?: string };
 export type LatestSub = { original: SubSnap; replacement: SubSnap; order: boolean; at: string };
 
 function thumb(src: string) {
@@ -11,23 +12,19 @@ function thumb(src: string) {
   return src;
 }
 
-const generic = (s?: { title?: string; sku?: string }) => !s?.title?.trim() || /^alternative\s/i.test(s.title.trim()) || s.title.trim() === s.sku?.trim();
-
-/** Fills photo, name and shop link of substitutes saved with only a model number, from the wardrobe (same model number). */
-export async function fillSnapsFromWardrobe<T extends { title?: string; sku?: string; image?: string; shop?: string; designer?: string }>(snaps: T[]): Promise<void> {
-  const need = snaps.filter((s) => s.sku?.trim() && (!s.image || generic(s)));
-  const skus = [...new Set(need.map((s) => s.sku!.trim()))];
-  if (!skus.length) return;
-  const r = await supabase.from("outfits").select("title, designer, source_sku, boutique_url, image_url").in("source_sku", skus);
-  if (r.error) return;
-  const by = new Map(r.data.map((o) => [(o.source_sku ?? "").trim().toUpperCase(), o]));
-  for (const s of need) {
-    const o = by.get(s.sku!.trim().toUpperCase()); if (!o) continue;
-    if (!s.image && o.image_url) s.image = o.image_url;
-    if (generic(s) && o.title) s.title = o.title;
-    if (!s.shop && o.boutique_url) s.shop = o.boutique_url;
-    if (!s.designer && o.designer) s.designer = o.designer;
+/** Resolve linked replacements from their current celebration wardrobe without writing snapshots. */
+export async function fillSnapsFromWardrobe(snaps: PhotoSnapshot[], inviteId: string): Promise<void> {
+  const ids = [...new Set(snaps.flatMap(s => s.outfitId ? [s.outfitId] : []))];
+  const skus = [...new Set(snaps.flatMap(s => !s.outfitId && s.sku?.trim() ? [s.sku.trim()] : []))];
+  const wardrobe: WardrobePhoto[] = [];
+  for (const [column, values] of [["id", ids], ["source_sku", skus]] as const) {
+    for (let i = 0; i < values.length; i += 100) {
+      const r = await supabase.from("outfits").select("id, title, designer, source_sku, boutique_url, image_url").eq("invite_id", inviteId).in(column, values.slice(i, i + 100));
+      if (r.error) throw r.error;
+      wardrobe.push(...r.data);
+    }
   }
+  fillSubstitutionPhotos(snaps, [...new Map(wardrobe.map(o => [o.id, o])).values()]);
 }
 
 /** Latest host substitution per reservation (host-only history). */
@@ -38,12 +35,17 @@ export function useLatestSubstitutions(reservationIds: string[]) {
     enabled: ids.length > 0,
     queryFn: async () => {
       const latest = new Map<string, LatestSub>();
+      const celebrations = new Map<string, SubSnap[]>();
       for (let i = 0; i < ids.length; i += 200) {
-        const r = await supabase.from("wardrobe_substitution_history").select("reservation_id,original,replacement,created_at,order_id").in("reservation_id", ids.slice(i, i + 200)).order("created_at", { ascending: false });
+        const r = await supabase.from("wardrobe_substitution_history").select("invite_id,reservation_id,original,replacement,created_at,order_id").in("reservation_id", ids.slice(i, i + 200)).order("created_at", { ascending: false });
         if (r.error) throw r.error;
-        for (const h of r.data) if (!latest.has(h.reservation_id)) latest.set(h.reservation_id, { original: h.original as SubSnap, replacement: h.replacement as SubSnap, order: Boolean(h.order_id), at: h.created_at });
+        for (const h of r.data) if (!latest.has(h.reservation_id)) {
+          const sub = { original: h.original as SubSnap, replacement: h.replacement as SubSnap, order: Boolean(h.order_id), at: h.created_at };
+          latest.set(h.reservation_id, sub);
+          celebrations.set(h.invite_id, [...(celebrations.get(h.invite_id) ?? []), sub.replacement]);
+        }
       }
-      await fillSnapsFromWardrobe([...latest.values()].map((l) => l.replacement));
+      await Promise.all([...celebrations].map(([inviteId, snaps]) => fillSnapsFromWardrobe(snaps, inviteId)));
       return latest;
     },
   });
