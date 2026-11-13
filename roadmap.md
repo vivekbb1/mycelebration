@@ -1,5 +1,4 @@
 # Roadmap — multi-celebration platform
-- [x] Substitution price/discount review and vendor credit; original line-price snapshots, advances and invoices retained. Temporary substitution and Edit save/reload verified; real-order versions unchanged.
 - [x] Moved Arrivals into Shipment with date/person/family/event views, renamed Delivery to Instructions (old link retained), and placed Men's sets after Amounts; signed-in 62-look views, search, PDF and phone layout verified without saving orders; 7 regression tests passed.
 - [x] Orders: all seven views checked at 390/768/1024/1440/1920px without page overflow; wrapped navigation, readable cards and scoped touch targets. Real hardware gestures remain device-dependent.
 - [x] Family: ordered-look overview, family/individual PDFs, notes/extras and arrival/check-in/prepaid dates; actual Falcioni PDF downloaded, ten regression tests passed, saved-order writes blocked.

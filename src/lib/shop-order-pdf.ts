@@ -1,12 +1,12 @@
 import { PDFDocument, PDFString, StandardFonts, rgb } from "pdf-lib";
-import { balanceLabel, money, orderTotals, type OrderItem, type OrderPayment } from "./shop-order";
+import { money, orderTotals, type OrderItem, type OrderPayment } from "./shop-order";
 
-export async function buildShopOrderPdf(reference: string, shop: string, currency: string, items: OrderItem[], payments: OrderPayment[], notes: string, courier = 0) {
+export async function buildShopOrderPdf(reference: string, shop: string, currency: string, items: OrderItem[], payments: OrderPayment[], notes: string) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const clean = (s: string) => s.replace(/[₹]/g, "INR ").replace(/[–—]/g, "-").replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
-  const totals = orderTotals(items, payments, courier);
+  const totals = orderTotals(items, payments);
   for (let index = 0; index < items.length; index++) {
     const item = items[index]; if (!item) continue;
     let page = pdf.addPage([595, 842]); let y = 790;
@@ -52,7 +52,7 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(item.measurements ? Object.entries(item.measurements).map(([k, v]) => `${k.replaceAll("_", " ")}: ${v}`).join(" | ") : "Measurements not supplied");
     if (item.notes) text(`Customisations: ${item.notes}`);
     if (notes) text(`Order discussion: ${notes}`);
-    text(`Group total: ${currency} ${money(totals.total, currency)} | Paid: ${currency} ${money(totals.paid, currency)} | ${balanceLabel(totals.balance)}: ${currency} ${money(Math.abs(totals.balance), currency)}`, true);
+    text(`Group total: ${currency} ${money(totals.total, currency)} | Paid: ${currency} ${money(totals.paid, currency)} | Balance: ${currency} ${money(totals.balance, currency)}`, true);
   }
   return pdf.save();
 }

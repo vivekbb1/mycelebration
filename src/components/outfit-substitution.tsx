@@ -11,7 +11,7 @@ import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
-import { money, orderTotals, balanceLabel, type OrderItem, type OrderAlternative, type OrderPayment } from '@/lib/shop-order';
+import type { OrderItem, OrderAlternative } from '@/lib/shop-order';
 import type { SubstitutionSnapshot } from '@/lib/outfit-substitution';
 import { previewSubstitutionEmail, emailOutfitSubstitution } from '@/lib/outfit-substitution.functions';
 import { WARDROBES } from '@/lib/wardrobe-options';
@@ -21,8 +21,6 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
   const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false);
   const [alternative, setAlternative] = useState<OrderAlternative>({ title: '', sku: '', designer: '', shop: '', image: '' });
   const [size, setSize] = useState(''); const [price, setPrice] = useState(0); const [expected, setExpected] = useState<string | null>(null);
-  const [discount, setDiscount] = useState(0);
-  const [orderSnapshot, setOrderSnapshot] = useState<{ items: OrderItem[]; payments: OrderPayment[]; courier: number; currency: string } | null>(null);
   const [search, setSearch] = useState('');
   const [link, setLink] = useState('');
   const pernia = useServerFn(fetchPerniaLook); const kora = useServerFn(fetchKoraLook);
@@ -42,13 +40,11 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
     try {
       let current = item;
       if (orderId) {
-        const latest = await supabase.from('wardrobe_orders').select('items,payments,courier_charges,currency,updated_at').eq('id', orderId).eq('invite_id', inviteId).single();
+        const latest = await supabase.from('wardrobe_orders').select('items,updated_at').eq('id', orderId).eq('invite_id', inviteId).single();
         if (latest.error) throw latest.error;
         const found = (latest.data.items as unknown as OrderItem[]).find(i => i.reservationId === item.reservationId);
         if (!found) throw new Error('This look is no longer in the order');
         current = found; setExpected(latest.data.updated_at);
-        setDiscount(found.discount);
-        setOrderSnapshot({ items: latest.data.items as unknown as OrderItem[], payments: latest.data.payments as unknown as OrderPayment[], courier: latest.data.courier_charges, currency: latest.data.currency });
       } else {
         const latest = await supabase.from('wardrobe_preorder_alternatives').select('*').eq('reservation_id', item.reservationId).eq('invite_id', inviteId).maybeSingle();
         if (latest.error) throw latest.error;
@@ -90,14 +86,11 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
   async function save() {
     setBusy(true);
     try {
-      if (orderId && !expected) throw new Error('Reopen the substitution to load the latest order.');
-      const result = orderId && expected
-        ? await supabase.rpc('save_priced_order_substitution', { _reservation_id: item.reservationId, _order_id: orderId, _alternative: alternative as unknown as Json, _size: size, _price: price, _discount: discount, _expected: expected, _details: details })
-        : await supabase.rpc('save_collection_substitution', { _reservation_id: item.reservationId, _alternative: alternative as unknown as Json, _size: size, _price: price, _details: details, ...(expected ? { _expected: expected } : {}) });
+      const result = await supabase.rpc('save_collection_substitution', { _reservation_id: item.reservationId, ...(orderId ? { _order_id: orderId } : {}), _alternative: alternative as unknown as Json, _size: size, _price: price, _details: details, ...(expected ? { _expected: expected } : {}) });
       if (result.error) throw result.error;
       const saved = result.data as { alternative: OrderAlternative };
       setAlternative(saved.alternative);
-      onSaved?.({ ...item, alternative: saved.alternative, orderedSize: size.trim(), price, ...(orderId ? { discount } : {}) });
+      onSaved?.({ ...item, alternative: saved.alternative, orderedSize: size.trim(), price });
       await Promise.all(['preorder-alternatives','wardrobe-orders','host-orders','reservations','outfit-substitution-history','outfits','substitution-wardrobe','host-choose-outfit','guest-offered-outfits','host-outfits'].map(k => qc.invalidateQueries({ queryKey: [k] })));
       // Reload the concurrency token before a second edit.
       const latest = orderId ? await supabase.from('wardrobe_orders').select('updated_at').eq('id', orderId).single() : await supabase.from('wardrobe_preorder_alternatives').select('updated_at').eq('reservation_id', item.reservationId).single();
@@ -125,7 +118,6 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
         <label className="text-sm">Designer<Input value={alternative.designer} onChange={e => setAlternative(a => ({ ...a, designer: e.target.value }))} /></label>
         <label className="text-sm">Replacement size<Input aria-label="Replacement size" value={size} onChange={e => setSize(e.target.value)} /></label>
         <label className="text-sm">Revised price<Input aria-label="Replacement revised price" type="number" min="0" step="0.01" value={price} onChange={e => setPrice(Number(e.target.value))} /></label>
-        {orderId ? <label className="text-sm">Replacement discount<Input aria-label="Replacement discount" type="number" min="0" max={price} step="0.01" value={discount} onChange={e => setDiscount(Number(e.target.value))} /></label> : null}
         <label className="text-sm">Shop link<Input value={alternative.shop} onChange={e => setAlternative(a => ({ ...a, shop: e.target.value }))} /></label>
         {!alternative.outfitId ? <>
           <label className="text-sm">Wardrobe<select className="field-select w-full" aria-label="Replacement wardrobe" value={details.gender} onChange={e => setDetails(d => ({ ...d, gender: e.target.value }))}>{WARDROBES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}</select></label>
@@ -136,13 +128,7 @@ export function OutfitSubstitution({ inviteId, item, orderId, onSaved, disabled 
           <label className="text-sm">Notes<Input value={details.notes} onChange={e => setDetails(d => ({ ...d, notes: e.target.value }))} /></label>
         </> : null}
       </div>
-      {orderSnapshot ? (() => {
-        const previous = orderSnapshot.items.find(i => i.reservationId === item.reservationId);
-        const revised = orderTotals(orderSnapshot.items.map(i => i.reservationId === item.reservationId ? { ...i, price, discount } : i), orderSnapshot.payments, orderSnapshot.courier);
-        const currency = orderSnapshot.currency;
-        return <div className="space-y-1 border-t border-border pt-3 text-sm" aria-label="Substitution price review"><p>Previous outfit net: {currency} {money((previous?.price ?? 0) - (previous?.discount ?? 0), currency)}</p><p>Replacement net: {currency} {money(price - discount, currency)} · Net change: {currency} {money(price - discount - ((previous?.price ?? 0) - (previous?.discount ?? 0)), currency)}</p><p>Revised order total: {currency} {money(revised.total, currency)} · Paid: {currency} {money(revised.paid, currency)}</p><p className="font-medium">{balanceLabel(revised.balance)}: {currency} {money(Math.abs(revised.balance), currency)}</p></div>;
-      })() : null}
-      <Button disabled={busy || !alternative.title.trim() || !size.trim() || (Boolean(orderId) && (discount < 0 || discount > price))} onClick={() => void save()}>{alternative.outfitId ? 'Save substitution' : 'Add to collection & save substitution'}</Button>
+      <Button disabled={busy || !alternative.title.trim() || !size.trim()} onClick={() => void save()}>{alternative.outfitId ? 'Save substitution' : 'Add to collection & save substitution'}</Button>
       <h3 className="flex items-center gap-2 text-sm font-medium"><History className="size-4" /> Substitution history</h3>
       {history.isError ? <p className="text-sm text-destructive">Couldn't load history.</p> : null}
       {history.data?.map(h => { const original = h.original as SubstitutionSnapshot; const previous = h.previous as SubstitutionSnapshot; const replacement = h.replacement as SubstitutionSnapshot;
