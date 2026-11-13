@@ -1,10 +1,8 @@
 import { Repeat } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useSelectedEvent } from "@/lib/selected-event";
-import { resolveWardrobePhoto, type PhotoSnapshot } from "@/lib/wardrobe-photo";
 
-export type SubSnap = PhotoSnapshot & { size?: string };
+export type SubSnap = { title?: string; sku?: string; image?: string; size?: string; shop?: string };
 export type LatestSub = { original: SubSnap; replacement: SubSnap; order: boolean; at: string };
 
 function thumb(src: string) {
@@ -13,34 +11,39 @@ function thumb(src: string) {
   return src;
 }
 
-/** Refresh display-only snapshots from the current uploaded wardrobe photo, not a stale shop URL. */
-export async function fillSnapsFromWardrobe<T extends PhotoSnapshot>(snaps: T[], inviteId: string): Promise<void> {
-  if (!inviteId || !snaps.length) return;
-  const wardrobe = [];
-  for (let offset = 0; ; offset += 1000) {
-    const r = await supabase.from("outfits").select("id,title,designer,source_sku,boutique_url,image_url").eq("invite_id", inviteId).range(offset, offset + 999);
-    if (r.error) return;
-    wardrobe.push(...r.data);
-    if (r.data.length < 1000) break;
+const generic = (s?: { title?: string; sku?: string }) => !s?.title?.trim() || /^alternative\s/i.test(s.title.trim()) || s.title.trim() === s.sku?.trim();
+
+/** Fills photo, name and shop link of substitutes saved with only a model number, from the wardrobe (same model number). */
+export async function fillSnapsFromWardrobe<T extends { title?: string; sku?: string; image?: string; shop?: string; designer?: string }>(snaps: T[]): Promise<void> {
+  const need = snaps.filter((s) => s.sku?.trim() && (!s.image || generic(s)));
+  const skus = [...new Set(need.map((s) => s.sku!.trim()))];
+  if (!skus.length) return;
+  const r = await supabase.from("outfits").select("title, designer, source_sku, boutique_url, image_url").in("source_sku", skus);
+  if (r.error) return;
+  const by = new Map(r.data.map((o) => [(o.source_sku ?? "").trim().toUpperCase(), o]));
+  for (const s of need) {
+    const o = by.get(s.sku!.trim().toUpperCase()); if (!o) continue;
+    if (!s.image && o.image_url) s.image = o.image_url;
+    if (generic(s) && o.title) s.title = o.title;
+    if (!s.shop && o.boutique_url) s.shop = o.boutique_url;
+    if (!s.designer && o.designer) s.designer = o.designer;
   }
-  for (const s of snaps) Object.assign(s, resolveWardrobePhoto(s, wardrobe));
 }
 
 /** Latest host substitution per reservation (host-only history). */
 export function useLatestSubstitutions(reservationIds: string[]) {
-  const { inviteId } = useSelectedEvent();
   const ids = [...new Set(reservationIds)].sort();
   return useQuery({
-    queryKey: ["outfit-substitution-history", "latest", inviteId, ids],
-    enabled: Boolean(inviteId) && ids.length > 0,
+    queryKey: ["outfit-substitution-history", "latest", ids],
+    enabled: ids.length > 0,
     queryFn: async () => {
       const latest = new Map<string, LatestSub>();
       for (let i = 0; i < ids.length; i += 200) {
-        const r = await supabase.from("wardrobe_substitution_history").select("reservation_id,original,replacement,created_at,order_id").eq("invite_id", inviteId).in("reservation_id", ids.slice(i, i + 200)).order("created_at", { ascending: false });
+        const r = await supabase.from("wardrobe_substitution_history").select("reservation_id,original,replacement,created_at,order_id").in("reservation_id", ids.slice(i, i + 200)).order("created_at", { ascending: false });
         if (r.error) throw r.error;
         for (const h of r.data) if (!latest.has(h.reservation_id)) latest.set(h.reservation_id, { original: h.original as SubSnap, replacement: h.replacement as SubSnap, order: Boolean(h.order_id), at: h.created_at });
       }
-      await fillSnapsFromWardrobe([...latest.values()].map((l) => l.replacement), inviteId);
+      await fillSnapsFromWardrobe([...latest.values()].map((l) => l.replacement));
       return latest;
     },
   });

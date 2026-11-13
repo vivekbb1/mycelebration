@@ -61,7 +61,7 @@ export function GroupedShopOrders({ inviteId, candidates, startWith, onStarted, 
   const orders = useQuery({ queryKey: ["wardrobe-orders", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const { data, error } = await supabase.from("wardrobe_orders").select("*").eq("invite_id", inviteId).order("created_at", { ascending: false });
     if (error) throw error;
-    await fillSnapsFromWardrobe((data ?? []).flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.alternative).filter((a): a is NonNullable<OrderItem["alternative"]> => Boolean(a))), inviteId);
+    await fillSnapsFromWardrobe((data ?? []).flatMap((o) => (o.items as unknown as OrderItem[]).map((i) => i.alternative).filter((a): a is NonNullable<OrderItem["alternative"]> => Boolean(a))));
     return data ?? [];
   } });
   const wardrobe = useQuery({ queryKey: ["order-wardrobe", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
