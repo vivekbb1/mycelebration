@@ -1,4 +1,4 @@
-import { SubstitutionNote, useLatestSubstitutions } from "@/components/substitution-note";
+import { SubstitutionNote, fillSnapsFromWardrobe, useLatestSubstitutions } from "@/components/substitution-note";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ExternalLink, Package } from "lucide-react";
@@ -15,7 +15,7 @@ import { OrderAlterations } from "@/components/order-alterations";
 import { VendorInvoiceUpload } from "@/components/vendor-invoice-upload";
 import { pendingOrderLook } from "@/lib/vendor-invoice";
 import { memberMeasurements } from "@/lib/outfit-pick-progress";
-import type { OrderItem } from "@/lib/shop-order";
+import type { OrderAlternative, OrderItem } from "@/lib/shop-order";
 import { Checkbox } from "@/components/ui/checkbox";
 import { familyOrderReport, money, nf } from "@/lib/shop-order";
 import { buildPreorderPdf, saveBlob } from "@/lib/shop-order-pdf";
@@ -62,7 +62,9 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "shipme
   const [pdfBusy, setPdfBusy] = useState(false);
   const preorderAlternatives = useQuery({ queryKey: ["preorder-alternatives", inviteId], enabled: Boolean(inviteId), queryFn: async () => {
     const result = await supabase.from("wardrobe_preorder_alternatives").select("*").eq("invite_id", inviteId);
-    if (result.error) throw result.error; return new Map(result.data.map(a => [a.reservation_id, a]));
+    if (result.error) throw result.error;
+    await fillSnapsFromWardrobe(result.data.map(a => a.alternative as OrderAlternative), inviteId);
+    return new Map(result.data.map(a => [a.reservation_id, a]));
   } });
   const orderList = useQuery({
     queryKey: ["wardrobe-orders", inviteId],
@@ -292,7 +294,7 @@ export function HostOrders({ view = "pre" }: { view?: "pre" | "orders" | "shipme
         price: item.alternative || r.outfits?.price_inr != null ? `INR ${money(item.price, "INR")}` : r.outfits?.price_note || "Not supplied",
         amount: item.alternative || r.outfits?.price_inr != null ? item.price : null,
         measurements: r.measurementValues ? Object.entries(r.measurementValues).map(([k, v]) => `${k.replaceAll("_", " ")} ${v}`).join(", ") : "",
-        shop: item.alternative?.shop || item.shop, image: item.alternative?.image || item.image, notes: [r.build_fabric, item.alternative ? `Original selection: ${item.title} (${item.sku}), requested size ${item.size || "Not recorded"}. Replacement size: ${item.orderedSize || "Not recorded"}` : ""].filter(Boolean).join(". "),
+        shop: item.alternative?.shop || item.shop, image: item.alternative ? item.alternative.image : item.image, notes: [r.build_fabric, item.alternative ? `Original selection: ${item.title} (${item.sku}), requested size ${item.size || "Not recorded"}. Replacement size: ${item.orderedSize || "Not recorded"}` : ""].filter(Boolean).join(". "),
       }); }));
       setPdfReady({ blob, name: `pre-order-${tab.toLowerCase().replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf` });
     } catch (e) { console.error(e); toast.error("Couldn't create the PDF"); } finally { setPdfBusy(false); }

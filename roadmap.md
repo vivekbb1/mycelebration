@@ -1,4 +1,5 @@
 # Roadmap — multi-celebration platform
+- [ ] Resolve uploaded replacement photos across pre-orders, orders, shipment, alterations and existing individual/family/shop PDFs; verify without changing saved orders.
 - [x] Substitution price/discount review and vendor credit; original line-price snapshots, advances and invoices retained. Temporary substitution and Edit save/reload verified; real-order versions unchanged.
 - [x] Moved Arrivals into Shipment with date/person/family/event views, renamed Delivery to Instructions (old link retained), and placed Men's sets after Amounts; signed-in 62-look views, search, PDF and phone layout verified without saving orders; 7 regression tests passed.
 - [x] Orders: all seven views checked at 390/768/1024/1440/1920px without page overflow; wrapped navigation, readable cards and scoped touch targets. Real hardware gestures remain device-dependent.

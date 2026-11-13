@@ -25,9 +25,8 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(`${shop || "Shop to confirm"} | ${index + 1} of ${items.length} looks | ${new Date().toLocaleDateString("en-GB")}`);
     text("For offline discussion: confirm stock, discounts, customisations and delivery before purchase.");
     if (item.image) { try {
-      const response = await fetch(item.image); if (!response.ok) throw new Error("Photo unavailable");
-      const bytes = await response.arrayBuffer(); const mime = response.headers.get("content-type") ?? "";
-      const image = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+      const image = await embedLookPhoto(pdf, item.image);
+      if (!image) throw new Error("Photo unavailable");
       const scaled = image.scaleToFit(150, 165); page.drawImage(image, { x: 42, y: y - scaled.height, width: scaled.width, height: scaled.height }); y -= scaled.height + 18;
     } catch { text("Photo unavailable; see shop link below."); } }
     text(item.title, true); text(`${item.designer} | SKU: ${item.sku || "Not supplied"}`);
@@ -39,6 +38,15 @@ export async function buildShopOrderPdf(reference: string, shop: string, currenc
     text(`Shop: ${item.shop || "Not supplied"}`);
     if (item.alternative) {
       text("ORDER THIS ALTERNATIVE INSTEAD", true);
+      if (item.alternative.image) {
+        const image = await embedLookPhoto(pdf, item.alternative.image);
+        if (image) {
+          const scaled = image.scaleToFit(150, 165);
+          if (y - scaled.height < 55) { page = pdf.addPage([595, 842]); y = 790; }
+          page.drawImage(image, { x: 42, y: y - scaled.height, width: scaled.width, height: scaled.height });
+          y -= scaled.height + 18;
+        }
+      }
       text(`${item.alternative.title || "Alternative"} | ${item.alternative.designer || "Designer not supplied"} | SKU: ${item.alternative.sku || "Not supplied"}`);
       if (item.alternative.shop) text(`Shop: ${item.alternative.shop}`);
     }
@@ -99,9 +107,8 @@ export async function buildPreorderPdf(title: string, subtitle: string, lines: P
     if (y - h < 60) { page = pdf.addPage([595, 842]); y = 800; }
     let ty = y;
     if (l.image) { try {
-      const res = await fetch(l.image, { signal: AbortSignal.timeout(6000) }); if (!res.ok) throw new Error();
-      const bytes = await res.arrayBuffer(); const mime = res.headers.get("content-type") ?? "";
-      const img = mime.includes("png") ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+      const img = await embedLookPhoto(pdf, l.image);
+      if (!img) throw new Error("Photo unavailable");
       const s = img.scaleToFit(64, 90); page.drawImage(img, { x: 40, y: y - s.height, width: s.width, height: s.height });
     } catch { /* photo optional */ } }
     // Highlighted price, right aligned
